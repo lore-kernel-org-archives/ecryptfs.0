@@ -1,50 +1,112 @@
 From: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.1-rc2
-Date: Wed, 10 Aug 2011 00:21:35 -0500
-Message-ID: <20110810052134.GA26944@boyd.l.tihix.com>
+Subject: Re: [PATCH 2/2] ecryptfs: Preallocate space in lower file in write
+ path
+Date: Thu, 18 Aug 2011 09:34:25 -0500
+Message-ID: <20110818143425.GA8589@boyd.l.tihix.com>
+References: <1311901067-1130-1-git-send-email-thieule@chromium.org>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from e35.co.us.ibm.com ([32.97.110.153]:44594 "EHLO
-	e35.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836Ab1HJFVn (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 10 Aug 2011 01:21:43 -0400
+Received: from e37.co.us.ibm.com ([32.97.110.158]:44483 "EHLO
+	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755518Ab1HROex (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 18 Aug 2011 10:34:53 -0400
+Received: from d03relay01.boulder.ibm.com (d03relay01.boulder.ibm.com [9.17.195.226])
+	by e37.co.us.ibm.com (8.14.4/8.13.1) with ESMTP id p7IEVhZ4031065
+	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 08:31:43 -0600
+Received: from d03av03.boulder.ibm.com (d03av03.boulder.ibm.com [9.17.195.169])
+	by d03relay01.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id p7IEYWvv152014
+	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 08:34:33 -0600
+Received: from d03av03.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av03.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p7I8YQUX007523
+	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 02:34:26 -0600
 Content-Disposition: inline
+In-Reply-To: <1311901067-1130-1-git-send-email-thieule@chromium.org>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: Thieu Le <thieule@chromium.org>
+Cc: ecryptfs@vger.kernel.org
 
-Hi Linus,
+I apologize for the slow review, Thieu. When I originally reviewed this
+patch, our email infrastructure was down for maintenance, so I saved it
+off in a local drafts folder. I forgot about it until you pinged me. :/
 
-John has added an eCryptfs mount option to do a mount time check
-ensuring that the source mount point is owned by the real uid of the
-process performing the mount. Roberto's Kconfig patch fixes a
-dependency-based compile error when encrypted keys are built as a module
-but eCryptfs is a built-in. My first patch removes a call to BUG() when
-we should be returning an error and my second patch simply fixes a
-compiler warning.
+Original review below...
 
-The following changes since commit 322a8b034003c0d46d39af85bf24fee27b902f48:
+On Thu Jul 28, 2011 at 05:57:47PM -0700, Thieu Le <thieule@chromium.org> wrote:
+> eCryptfs does not allocate space in the lower file until writepage.  In
+> low free space situation, this leads to the application thinking the
+> write succeeds but it actually fails later when the page is written out.
+> This patch preallocates the space in the write path using fallocate()
+> first.  For lower file systems that do not support fallocate(), it falls back
+> to writing the encrypted page directly to the lower file.  The
+> preallocation is only done for writes that extend the file.
+> 
+> Signed-off-by: Thieu Le <thieule@chromium.org>
+> ---
+>  fs/ecryptfs/mmap.c |   26 ++++++++++++++++++++++++--
+>  1 files changed, 24 insertions(+), 2 deletions(-)
+> 
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index 6a44148..ed0eace 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -520,9 +520,29 @@ static int ecryptfs_write_end(struct file *file,
+>  		goto out;
+>  	}
+>  	set_page_dirty(page);
+> -	unlock_page(page);
+> -	need_unlock_page = 0;
+>  	if (pos + copied > i_size_read(ecryptfs_inode)) {
+> +		struct ecryptfs_inode_info *inode_info =
+> +			ecryptfs_inode_to_private(ecryptfs_inode);
+> +		loff_t offset = ecryptfs_lower_header_size(crypt_stat) + pos;
+> +		BUG_ON(!inode_info->lower_file);
+> +		rc = do_fallocate(inode_info->lower_file, 0, offset,
+> +				  PAGE_CACHE_SIZE);
 
-  Linux 3.1-rc1 (2011-08-07 18:23:30 -0700)
+do_fallocate() isn't exported to modules:
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/ecryptfs/ecryptfs-2.6.git for-linus
+WARNING: "do_fallocate" [fs/ecryptfs/ecryptfs.ko] undefined!
 
-John Johansen (1):
-      Ecryptfs: Add mount option to check uid of device being mounted = expect uid
+> +		if (rc == -EOPNOTSUPP)
+> +			rc = ecryptfs_encrypt_page(page);
+> +		if (rc) {
+> +			if (rc != -ENOSPC) {
+> +				ecryptfs_printk(KERN_ERR,
+> +						"Error preallocating page "
+> +						"(upper index "
+> +						"[0x%.16lx], rc = [%d])\n",
+> +						index, rc);
+> +			}
+> +			goto out;
+> +		}
+> +
+> +		unlock_page(page);
+> +		need_unlock_page = 0;
+> +
+>  		i_size_write(ecryptfs_inode, pos + copied);
+>  		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
+>  			"[0x%.16llx]\n",
+> @@ -540,6 +560,8 @@ out:
+>  	if (need_unlock_page)
+>  		unlock_page(page);
+>  	page_cache_release(page);
+> +	if (rc)
+> +		truncate_inode_pages(mapping, i_size_read(ecryptfs_inode));
 
-Roberto Sassu (1):
-      eCryptfs: fix compile error
+This change seems to be silently fixing a separate issue (truncating
+after a failed write).
 
-Tyler Hicks (2):
-      eCryptfs: Return error when lower file pointer is NULL
-      eCryptfs: Fix payload_len unitialized variable warning
+I wonder if we should be using ecryptfs_truncate() here, instead? It
+truncates the lower file, as well.
 
- fs/ecryptfs/Kconfig      |    2 +-
- fs/ecryptfs/keystore.c   |    2 +-
- fs/ecryptfs/main.c       |   23 +++++++++++++++++++++--
- fs/ecryptfs/read_write.c |   18 ++++++++++--------
- 4 files changed, 33 insertions(+), 12 deletions(-)
+Tyler
+
+>  	return rc;
+>  }
+> 
+> -- 
+> 1.7.3.1
+> 
