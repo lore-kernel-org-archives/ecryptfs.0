@@ -1,112 +1,85 @@
-From: Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-Subject: Re: [PATCH 2/2] ecryptfs: Preallocate space in lower file in write
- path
-Date: Thu, 18 Aug 2011 09:34:25 -0500
-Message-ID: <20110818143425.GA8589@boyd.l.tihix.com>
-References: <1311901067-1130-1-git-send-email-thieule@chromium.org>
+From: Pavel Ivanov <paivanof@gmail.com>
+Subject: Full lockup when compiling kernel with "optimal" number of threads
+Date: Fri, 2 Sep 2011 23:34:01 -0400
+Message-ID: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from e37.co.us.ibm.com ([32.97.110.158]:44483 "EHLO
-	e37.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755518Ab1HROex (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 18 Aug 2011 10:34:53 -0400
-Received: from d03relay01.boulder.ibm.com (d03relay01.boulder.ibm.com [9.17.195.226])
-	by e37.co.us.ibm.com (8.14.4/8.13.1) with ESMTP id p7IEVhZ4031065
-	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 08:31:43 -0600
-Received: from d03av03.boulder.ibm.com (d03av03.boulder.ibm.com [9.17.195.169])
-	by d03relay01.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id p7IEYWvv152014
-	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 08:34:33 -0600
-Received: from d03av03.boulder.ibm.com (loopback [127.0.0.1])
-	by d03av03.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id p7I8YQUX007523
-	for <ecryptfs@vger.kernel.org>; Thu, 18 Aug 2011 02:34:26 -0600
-Content-Disposition: inline
-In-Reply-To: <1311901067-1130-1-git-send-email-thieule@chromium.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:45898 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753503Ab1ICDee (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 2 Sep 2011 23:34:34 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thieu Le <thieule@chromium.org>
-Cc: ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
 
-I apologize for the slow review, Thieu. When I originally reviewed this
-patch, our email infrastructure was down for maintenance, so I saved it
-off in a local drafts folder. I forgot about it until you pinged me. :/
+Hi,
 
-Original review below...
+I can reliably reproduce a complete machine lockup when compiling
+kernel sources with "make -j". After making some progress machine
+stops responding to anything (including CapsLock/NumLock switching or
+mouse moving) and after hard reboot nothing is left in kern.log or
+syslog. Only attaching a serial console gives me the following clues
+to what happens:
 
-On Thu Jul 28, 2011 at 05:57:47PM -0700, Thieu Le <thieule@chromium.org> wrote:
-> eCryptfs does not allocate space in the lower file until writepage.  In
-> low free space situation, this leads to the application thinking the
-> write succeeds but it actually fails later when the page is written out.
-> This patch preallocates the space in the write path using fallocate()
-> first.  For lower file systems that do not support fallocate(), it falls back
-> to writing the encrypted page directly to the lower file.  The
-> preallocation is only done for writes that extend the file.
-> 
-> Signed-off-by: Thieu Le <thieule@chromium.org>
-> ---
->  fs/ecryptfs/mmap.c |   26 ++++++++++++++++++++++++--
->  1 files changed, 24 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-> index 6a44148..ed0eace 100644
-> --- a/fs/ecryptfs/mmap.c
-> +++ b/fs/ecryptfs/mmap.c
-> @@ -520,9 +520,29 @@ static int ecryptfs_write_end(struct file *file,
->  		goto out;
->  	}
->  	set_page_dirty(page);
-> -	unlock_page(page);
-> -	need_unlock_page = 0;
->  	if (pos + copied > i_size_read(ecryptfs_inode)) {
-> +		struct ecryptfs_inode_info *inode_info =
-> +			ecryptfs_inode_to_private(ecryptfs_inode);
-> +		loff_t offset = ecryptfs_lower_header_size(crypt_stat) + pos;
-> +		BUG_ON(!inode_info->lower_file);
-> +		rc = do_fallocate(inode_info->lower_file, 0, offset,
-> +				  PAGE_CACHE_SIZE);
+[  376.460584] INFO: task cc1:6839 blocked for more than 60 seconds.
+[  376.533411] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  376.627129] INFO: task cc1:6840 blocked for more than 60 seconds.
+[  376.699991] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  376.793636] INFO: task cc1:6850 blocked for more than 60 seconds.
+[  376.866397] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  376.960026] INFO: task cc1:7017 blocked for more than 60 seconds.
+[  377.032776] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.128156] INFO: task cc1:7079 blocked for more than 60 seconds.
+[  377.200907] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.294522] INFO: task cc1:7188 blocked for more than 60 seconds.
+[  377.367274] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.460984] INFO: task cc1:8342 blocked for more than 60 seconds.
+[  377.533746] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.627372] INFO: task cc1:8425 blocked for more than 60 seconds.
+[  377.700119] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.793737] INFO: task cc1:8502 blocked for more than 60 seconds.
+[  377.866488] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  377.960103] INFO: task cc1:8535 blocked for more than 60 seconds.
+[  378.034788] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
 
-do_fallocate() isn't exported to modules:
+Interesting thing is that after such hang happens, I reboot the
+machine and try to build again (this time with limited number of
+threads) I get lots of "input/output errors" from make and messages
+like the following in kern.log:
 
-WARNING: "do_fallocate" [fs/ecryptfs/ecryptfs.ko] undefined!
+[  186.518188] ecryptfs_decrypt_page: Error attempting to read lower
+page; rc = [-4]
+[  186.522951] ecryptfs_decrypt_page: Error attempting to read lower
+page; rc = [-4]
+[  186.522955] ecryptfs_readpage: Error decrypting page; rc = [-4]
+[  186.542690] Valid eCryptfs headers not found in file header region
+or xattr region
+[  186.542694] Either the lower file is not in a valid eCryptfs
+format, or the key could not be retrieved. Plaintext passthrough mode
+is not enabled; returning -EIO
 
-> +		if (rc == -EOPNOTSUPP)
-> +			rc = ecryptfs_encrypt_page(page);
-> +		if (rc) {
-> +			if (rc != -ENOSPC) {
-> +				ecryptfs_printk(KERN_ERR,
-> +						"Error preallocating page "
-> +						"(upper index "
-> +						"[0x%.16lx], rc = [%d])\n",
-> +						index, rc);
-> +			}
-> +			goto out;
-> +		}
-> +
-> +		unlock_page(page);
-> +		need_unlock_page = 0;
-> +
->  		i_size_write(ecryptfs_inode, pos + copied);
->  		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
->  			"[0x%.16llx]\n",
-> @@ -540,6 +560,8 @@ out:
->  	if (need_unlock_page)
->  		unlock_page(page);
->  	page_cache_release(page);
-> +	if (rc)
-> +		truncate_inode_pages(mapping, i_size_read(ecryptfs_inode));
+(As you can guess I'm building in my home directory which is ecryptfs.)
 
-This change seems to be silently fixing a separate issue (truncating
-after a failed write).
+After that only doing "make distclean" allows me to compile kernel
+again. And note that when I build with "make -j 10" everything works
+fine (I have 2 CPUs with 4 cores each without hyper-threading).
 
-I wonder if we should be using ecryptfs_truncate() here, instead? It
-truncates the lower file, as well.
 
-Tyler
+So is it some bug or a known bad usage of ecryptfs?
 
->  	return rc;
->  }
-> 
-> -- 
-> 1.7.3.1
-> 
+
+Thank you,
+Pavel
