@@ -1,85 +1,72 @@
-From: Pavel Ivanov <paivanof@gmail.com>
-Subject: Full lockup when compiling kernel with "optimal" number of threads
-Date: Fri, 2 Sep 2011 23:34:01 -0400
-Message-ID: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Oops in ecryptfs (apparently) with 3.1-rc6
+Date: Fri, 23 Sep 2011 15:44:29 +0300
+Message-ID: <1316781869.4051.7.camel@cumari>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:45898 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753503Ab1ICDee (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 2 Sep 2011 23:34:34 -0400
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:45194 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753841Ab1IWMoe (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 23 Sep 2011 08:44:34 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: linux-kernel <linux-kernel@vger.kernel.org>
+To: ecryptfs@vger.kernel.org, tyhicks@linux.vnet.ibm.com, kirkland@canonical.com
+Cc: linux-kernel@vger.kernel.org
 
 Hi,
 
-I can reliably reproduce a complete machine lockup when compiling
-kernel sources with "make -j". After making some progress machine
-stops responding to anything (including CapsLock/NumLock switching or
-mouse moving) and after hard reboot nothing is left in kern.log or
-syslog. Only attaching a serial console gives me the following clues
-to what happens:
+I just got this oops on my PC, while running 3.1-rc6 normally:
 
-[  376.460584] INFO: task cc1:6839 blocked for more than 60 seconds.
-[  376.533411] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  376.627129] INFO: task cc1:6840 blocked for more than 60 seconds.
-[  376.699991] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  376.793636] INFO: task cc1:6850 blocked for more than 60 seconds.
-[  376.866397] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  376.960026] INFO: task cc1:7017 blocked for more than 60 seconds.
-[  377.032776] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.128156] INFO: task cc1:7079 blocked for more than 60 seconds.
-[  377.200907] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.294522] INFO: task cc1:7188 blocked for more than 60 seconds.
-[  377.367274] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.460984] INFO: task cc1:8342 blocked for more than 60 seconds.
-[  377.533746] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.627372] INFO: task cc1:8425 blocked for more than 60 seconds.
-[  377.700119] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.793737] INFO: task cc1:8502 blocked for more than 60 seconds.
-[  377.866488] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
-[  377.960103] INFO: task cc1:8535 blocked for more than 60 seconds.
-[  378.034788] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.
+[255264.517298] Oops: 0000 [#1] SMP 
+[255264.517301] CPU 4 
+[255264.517303] Modules linked in: nls_iso8859_1 nls_cp437 vfat fat dm_crypt pl2303 ftdi_sio usbserial cryptd aes_x86_64 aes_generic binfmt_misc snd_hda_codec_analog nvidia(P) snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq_midi psmouse snd_rawmidi snd_seq_midi_event snd_seq snd_timer dell_wmi nfsd exportfs snd_seq_device serio_raw nfs sparse_keymap snd soundcore snd_page_alloc i7core_edac edac_core ppdev lp dcdbas lockd fscache auth_rpcgss nfs_acl sunrpc parport_pc parport usb_storage usbhid hid tg3
+[255264.517341] 
+[255264.517343] Pid: 18110, comm: cat Tainted: P            3.1.0-rc6-custom #2 Dell Inc. Precision WorkStation T3500  /09KPNV
+[255264.517348] RIP: 0010:[<ffffffff8125dddd>]  [<ffffffff8125dddd>] ecryptfs_decrypt_extent+0x13d/0x360
+[255264.517353] RSP: 0018:ffff88031c03db78  EFLAGS: 00010246
+[255264.517356] RAX: 0000000000000000 RBX: ffff88031c03db88 RCX: 0000000000000000
+[255264.517358] RDX: 0000000000000010 RSI: ffff880170bd1ae0 RDI: 0000000000000000
+[255264.517361] RBP: ffff88031c03dc38 R08: 0000000000000000 R09: ffff88031c03db88
+[255264.517363] R10: 0000000000000000 R11: 0000000000000000 R12: ffff880170bd1a70
+[255264.517366] R13: 0000000000001000 R14: ffffea0008351cc0 R15: ffff880170bd1b60
+[255264.517369] FS:  00002b38b966bb20(0000) GS:ffff880333280000(0000) knlGS:0000000000000000
+[255264.517372] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[255264.517374] CR2: 0000000000000010 CR3: 000000010b9e6000 CR4: 00000000000006e0
+[255264.517377] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[255264.517379] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[255264.517382] Process cat (pid: 18110, threadinfo ffff88031c03c000, task ffff88005f920000)
+[255264.517385] Stack:
+[255264.517386]  0000000000000000 0000000000000000 ffffea0008351cc2 0000100000000000
+[255264.517391]  0000000000000000 0000000000000000 ffffea000964c302 0000100000000000
+[255264.517395]  0000000000000000 0000000000000000 0000000000000000 ffff88031c03dbe8
+[255264.517399] Call Trace:
+[255264.517406]  [<ffffffff81163f35>] ? vfs_read+0xc5/0x190
+[255264.517409]  [<ffffffff8125e0b2>] ecryptfs_decrypt_page+0xb2/0x190
+[255264.517413]  [<ffffffff8125bb08>] ecryptfs_readpage+0xd8/0x120
+[255264.517418]  [<ffffffff8110daf4>] generic_file_aio_read+0x234/0x740
+[255264.517424]  [<ffffffff8125863c>] ecryptfs_read_update_atime+0x1c/0x60
+[255264.517428]  [<ffffffff811637fa>] do_sync_read+0xda/0x120
+[255264.517434]  [<ffffffff81286a3b>] ? security_file_permission+0x8b/0x90
+[255264.517438]  [<ffffffff81163f35>] vfs_read+0xc5/0x190
+[255264.517441]  [<ffffffff81164101>] sys_read+0x51/0x90
+[255264.517446]  [<ffffffff815dc082>] system_call_fastpath+0x16/0x1b
+[255264.517448] Code: 98 41 0f af c5 89 85 58 ff ff ff 49 8b 44 24 40 48 89 45 90 e8 c5 4d 37 00 49 8b 44 24 40 49 8b 54 24 20 49 8d 74 24 70 48 89 c7 <ff> 50 10 85 c0 0f 85 40 01 00 00 31 c0 44 89 ea 48 c7 c6 50 cf 
+[255264.517481] RIP  [<ffffffff8125dddd>] ecryptfs_decrypt_extent+0x13d/0x360
+[255264.517485]  RSP <ffff88031c03db78>
+[255264.517487] CR2: 0000000000000010
+[255264.517490] ---[ end trace 6beaa9aa4bd67546 ]---
 
-Interesting thing is that after such hang happens, I reboot the
-machine and try to build again (this time with limited number of
-threads) I get lots of "input/output errors" from make and messages
-like the following in kern.log:
+My machine is a Dell Precision T3500 with an Intel Xeon quadcore,
+running Ubuntu 10.10.
 
-[  186.518188] ecryptfs_decrypt_page: Error attempting to read lower
-page; rc = [-4]
-[  186.522951] ecryptfs_decrypt_page: Error attempting to read lower
-page; rc = [-4]
-[  186.522955] ecryptfs_readpage: Error decrypting page; rc = [-4]
-[  186.542690] Valid eCryptfs headers not found in file header region
-or xattr region
-[  186.542694] Either the lower file is not in a valid eCryptfs
-format, or the key could not be retrieved. Plaintext passthrough mode
-is not enabled; returning -EIO
+I didn't do anything different from what I usually do.  This happened
+while I started a cross-compilation of a kernel for ARM.  I had been
+running this kernel for about 8 days without a problem, until this
+happened.
 
-(As you can guess I'm building in my home directory which is ecryptfs.)
+-- 
+Cheers,
+Luca.
 
-After that only doing "make distclean" allows me to compile kernel
-again. And note that when I build with "make -j 10" everything works
-fine (I have 2 CPUs with 4 cores each without hyper-threading).
-
-
-So is it some bug or a known bad usage of ecryptfs?
-
-
-Thank you,
-Pavel
