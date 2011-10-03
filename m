@@ -1,61 +1,47 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: Oops in ecryptfs (apparently) with 3.1-rc6
-Date: Thu, 29 Sep 2011 22:28:42 +0300
-Message-ID: <1317324522.2171.170.camel@cumari>
-References: <1316781869.4051.7.camel@cumari>
-	 <1317235816.2171.158.camel@cumari>  <20110929143058.GA15933@boyd>
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: Re: Full lockup when compiling kernel with "optimal" number of threads
+Date: Mon, 03 Oct 2011 15:08:12 +0530
+Message-ID: <4E898284.7060906@linux.vnet.ibm.com>
+References: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:51212 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757486Ab1I2T2r (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 29 Sep 2011 15:28:47 -0400
-In-Reply-To: <20110929143058.GA15933@boyd>
+Received: from e28smtp07.in.ibm.com ([122.248.162.7]:54770 "EHLO
+	e28smtp07.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753891Ab1JCJiO (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 3 Oct 2011 05:38:14 -0400
+In-Reply-To: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, kirkland@canonical.com, linux-kernel@vger.kernel.org
+To: Pavel Ivanov <paivanof@gmail.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thu, 2011-09-29 at 09:30 -0500, Tyler Hicks wrote: 
-> On 2011-09-28 21:50:15, Luciano Coelho wrote:
-> > On Fri, 2011-09-23 at 15:44 +0300, Luciano Coelho wrote: 
-> > > [255264.517399] Call Trace:
-> > > [255264.517406]  [<ffffffff81163f35>] ? vfs_read+0xc5/0x190
-> > > [255264.517409]  [<ffffffff8125e0b2>] ecryptfs_decrypt_page+0xb2/0x190
-> > > [255264.517413]  [<ffffffff8125bb08>] ecryptfs_readpage+0xd8/0x120
-> > > [255264.517418]  [<ffffffff8110daf4>] generic_file_aio_read+0x234/0x740
-> > > [255264.517424]  [<ffffffff8125863c>] ecryptfs_read_update_atime+0x1c/0x60
-> > > [255264.517428]  [<ffffffff811637fa>] do_sync_read+0xda/0x120
-> > > [255264.517434]  [<ffffffff81286a3b>] ? security_file_permission+0x8b/0x90
-> > > [255264.517438]  [<ffffffff81163f35>] vfs_read+0xc5/0x190
-> > > [255264.517441]  [<ffffffff81164101>] sys_read+0x51/0x90
-> > > [255264.517446]  [<ffffffff815dc082>] system_call_fastpath+0x16/0x1b
-> > > [255264.517448] Code: 98 41 0f af c5 89 85 58 ff ff ff 49 8b 44 24 40 48 89 45 90 e8 c5 4d 37 00 49 8b 44 24 40 49 8b 54 24 20 49 8d 74 24 70 48 89 c7 <ff> 50 10 85 c0 0f 85 40 01 00 00 31 c0 44 89 ea 48 c7 c6 50 cf 
-> > > [255264.517481] RIP  [<ffffffff8125dddd>] ecryptfs_decrypt_extent+0x13d/0x360
-> > > [255264.517485]  RSP <ffff88031c03db78>
-> > > [255264.517487] CR2: 0000000000000010
-> > > [255264.517490] ---[ end trace 6beaa9aa4bd67546 ]---
-> > 
-> > Did anyone else get a similar oops? Or does anyone have any clue what
-> > this is about? I haven't seen any fix that could be related to this, so
-> > I'm still really wary of using 3.1-rc*. ;)
+On 09/03/2011 09:04 AM, Pavel Ivanov wrote:
+> Hi,
 > 
-> I haven't seen that one. Was your kernel build using more than one job?
+> I can reliably reproduce a complete machine lockup when compiling
+> kernel sources with "make -j". After making some progress machine
+> stops responding to anything (including CapsLock/NumLock switching or
+> mouse moving) and after hard reboot nothing is left in kern.log or
+> syslog. Only attaching a serial console gives me the following clues
+> to what happens:
+> 
 
-Yes, I always build my kernel using 20 jobs on my quadcore with 8
-threads.
+[...]
 
+> After that only doing "make distclean" allows me to compile kernel
+> again. And note that when I build with "make -j 10" everything works
+> fine (I have 2 CPUs with 4 cores each without hyper-threading).
 
-> I'll take a closer look and try to reproduce it here. Thanks for the
-> report!
-
-You're welcome.  Let me know if you need any more info.  As I said
-originally, I had been using the kernel for about a week before this
-happened, so I'm not sure it's easily reproducible.
+How much memory does your system have? Doing so many fork()s could cause
+a lot of resource conflict and memory pressure leading to heavy swapping
+etc., which can ultimately hang your system, especially when your RAM
+size is small. It is advisable to use make -j only on systems with lot
+of RAM (> 3 or 4GB).
 
 -- 
-Cheers,
-Luca.
-
+Regards,
+Srivatsa S. Bhat  <srivatsa.bhat@linux.vnet.ibm.com>
+Linux Technology Center,
+IBM India Systems and Technology Lab
