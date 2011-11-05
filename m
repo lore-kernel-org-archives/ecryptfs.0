@@ -1,38 +1,39 @@
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: Re: Full lockup when compiling kernel with "optimal" number of threads
-Date: Mon, 03 Oct 2011 15:09:47 +0530
-Message-ID: <4E8982E3.9080809@linux.vnet.ibm.com>
-References: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [PATCH] MAINTAINERS: Update eCryptfs maintainer address
+Date: Sat,  5 Nov 2011 09:04:47 -0400
+Message-ID: <1320498287-19348-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from e28smtp01.in.ibm.com ([122.248.162.1]:55597 "EHLO
-	e28smtp01.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754004Ab1JCJju (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 3 Oct 2011 05:39:50 -0400
-In-Reply-To: <CAG1a4rvdYnOSWu3DJ+DL+Q_bfsfTv_px20vP06fBKRm6B8cwMw@mail.gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:49286 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740Ab1KENFA (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sat, 5 Nov 2011 09:05:00 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Pavel Ivanov <paivanof@gmail.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-On 09/03/2011 09:04 AM, Pavel Ivanov wrote:
-> Hi,
-> 
-> I can reliably reproduce a complete machine lockup when compiling
-> kernel sources with "make -j". After making some progress machine
-> stops responding to anything (including CapsLock/NumLock switching or
-> mouse moving) and after hard reboot nothing is left in kern.log or
-> syslog. Only attaching a serial console gives me the following clues
-> to what happens:
-> 
-By the way "optimal" is supposed to be make -j <nr_cpus*2> isn't it?
-IIRC, "maximal" refers to make -j
+Update my email address in MAINTAINERS.
 
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+---
+ MAINTAINERS |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a6afe34..6388a96 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2387,7 +2387,7 @@ F:	include/linux/netfilter_bridge/ebt_*.h
+ F:	net/bridge/netfilter/ebt*.c
+ 
+ ECRYPT FILE SYSTEM
+-M:	Tyler Hicks <tyhicks@linux.vnet.ibm.com>
++M:	Tyler Hicks <tyhicks@canonical.com>
+ M:	Dustin Kirkland <kirkland@canonical.com>
+ L:	ecryptfs@vger.kernel.org
+ W:	https://launchpad.net/ecryptfs
 -- 
-Regards,
-Srivatsa S. Bhat  <srivatsa.bhat@linux.vnet.ibm.com>
-Linux Technology Center,
-IBM India Systems and Technology Lab
+1.7.5.4
