@@ -1,39 +1,45 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] MAINTAINERS: Update eCryptfs maintainer address
-Date: Sat,  5 Nov 2011 09:04:47 -0400
-Message-ID: <1320498287-19348-1-git-send-email-tyhicks@canonical.com>
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: [PATCH] ecryptfs: Use kmemdup rather than duplicating its
+ implementation
+Date: Sat, 12 Nov 2011 10:27:52 +0100
+Message-ID: <1321090072.20155.130.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49286 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750740Ab1KENFA (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sat, 5 Nov 2011 09:05:00 -0400
+Received: from www17.your-server.de ([213.133.104.17]:48302 "EHLO
+	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751479Ab1KLJ2A (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sat, 12 Nov 2011 04:28:00 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Update my email address in MAINTAINERS.
+Use kmemdup rather than duplicating its implementation
 
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+The semantic patch that makes this change is available
+in scripts/coccinelle/api/memdup.cocci.
+
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
 ---
- MAINTAINERS |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index a6afe34..6388a96 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2387,7 +2387,7 @@ F:	include/linux/netfilter_bridge/ebt_*.h
- F:	net/bridge/netfilter/ebt*.c
- 
- ECRYPT FILE SYSTEM
--M:	Tyler Hicks <tyhicks@linux.vnet.ibm.com>
-+M:	Tyler Hicks <tyhicks@canonical.com>
- M:	Dustin Kirkland <kirkland@canonical.com>
- L:	ecryptfs@vger.kernel.org
- W:	https://launchpad.net/ecryptfs
--- 
-1.7.5.4
+diff -u -p a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
+--- a/fs/ecryptfs/messaging.c 2011-11-07 19:38:22.340474214 +0100
++++ b/fs/ecryptfs/messaging.c 2011-11-08 10:34:54.896614796 +0100
+@@ -350,14 +350,13 @@ int ecryptfs_process_response(struct ecr
+ 		goto unlock;
+ 	}
+ 	msg_size = (sizeof(*msg) + msg->data_len);
+-	msg_ctx->msg = kmalloc(msg_size, GFP_KERNEL);
++	msg_ctx->msg = kmemdup(msg, msg_size, GFP_KERNEL);
+ 	if (!msg_ctx->msg) {
+ 		rc = -ENOMEM;
+ 		printk(KERN_ERR "%s: Failed to allocate [%zd] bytes of "
+ 		       "GFP_KERNEL memory\n", __func__, msg_size);
+ 		goto unlock;
+ 	}
+-	memcpy(msg_ctx->msg, msg, msg_size);
+ 	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_DONE;
+ 	rc = 0;
+ wake_up:
+
