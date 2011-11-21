@@ -1,63 +1,115 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: eCryptfs tree back on git.kernel.org
-Date: Tue, 22 Nov 2011 08:22:14 +1100
-Message-ID: <20111122082214.af2f778f03082921c5a099f6@canb.auug.org.au>
-References: <20111121161607.GC2830@boyd>
+From: Michael Halcrow <mhalcrow@google.com>
+Subject: [PATCH] eCryptfs: Check array bounds for filename characters
+Date: Mon, 21 Nov 2011 15:32:58 -0800
+Message-ID: <20111121233258.GA18466@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from calzone.tip.net.au ([203.10.76.15]:38710 "EHLO
-	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752508Ab1KUVWY (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Nov 2011 16:22:24 -0500
-In-Reply-To: <20111121161607.GC2830@boyd>
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: linux-next@vger.kernel.org, ecryptfs@vger.kernel.org
-
---Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@linux-foundation.org, tyhicks@canonical.com
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, thieule@google.com
 
-Hi Tyler,
+Characters with ASCII values greater than the size of
+filename_rev_map[] are valid filename
+characters. ecryptfs_decode_from_filename() will access kernel memory
+beyond that array, and ecryptfs_parse_tag_70_packet() will then
+decrypt those characters. The attacker, using the FNEK of the crafted
+file, can then re-encrypt the characters to reveal the kernel memory
+past the end of the filename_rev_map[] array. I expect low security
+impact since this array is statically allocated in the text area, and
+the amount of memory past the array that is accessible is limited by
+the largest possible ASCII filename character.
 
-On Mon, 21 Nov 2011 10:16:08 -0600 Tyler Hicks <tyhicks@canonical.com> wrot=
-e:
->
-> Hi Stephen - The eCryptfs devel tree is back on kernel.org. Please track
-> this branch:
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git#next
+This change verifies that the offset into filename_rev_map[] is within
+bounds. If any one character is not, then eCryptfs will consider the
+filename to not be a valid encrypted filename and will copy it
+verbatim rather than try to decode/decrypt it.
 
-OK, I have switched to that, now.  I also changed your contact address.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Signed-off-by: Mike Halcrow <mhalcrow@google.com>
 
---Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJOysEGAAoJEECxmPOUX5FErxkP/3iKCFC4FHUrMYpq/IE1U0sA
-jYPW/YBFN1sY3CS9VghGz9dsKuW05AxeVMw7LiXHTMm0vdiGs2H66QKA8dqtwzr3
-0G3wse6JxJEwAVJLaDid//R8qXWRVNRswaxoZvPvCnfoMvXExNe0xMeVMoaRGB69
-O3ehHi0kvmHCZMeXB+zxHP+uFUARrMtGoCG7lw6uSPIrC4FJqWazcmEPKc/1Dra7
-lTD7zRYhW0lxAfSnlVE9BEdG6klJRxvqXOGH+P2ee8brIFRLp3gKVtXkVzDXDhsv
-WI+KOt5Z9bNvthJpPPlcmhn93EO9RAuxHinUt8msTdml0xXkQblFcnj7Rn2XRx4p
-PVjOEvIrjO21gzQoNOUWyLfMnWZTutxEVfvKpzx04YQCWuX4cGd0tTHzsbKzB5VF
-OwJXeCGlgE3yBSs+gnDYZadjGt2zlX+cOLOop26/v/NDtk5mmUTxaaIZBvJk/+HG
-7qWQQl3kgMQ3429t9ANo2wsm6PhwFohcHNIAKJ/S6mpHru7Ml4gQpk5w7Qus5reb
-lpWMoXRDUtX11j01iTWoZt8V7tIzAhNzv6UPeEM465Fpdo0owj3B4HWDELTaCu2h
-npMeuQ4vQ9toQ3fR2AtKFbDwao5yiR994nRtSnIy+2fMnIbpMnpDv6WXGGnNA6nk
-DITwEbeUFPspioZDsaUG
-=+VDl
------END PGP SIGNATURE-----
-
---Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD--
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 58609bd..d2d2b9e 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -2032,11 +2032,14 @@ out:
+  * @dst_size: Set to the size of the decoded string.
+  * @src: The encoded set of octets to decode.
+  * @src_size: The size of the encoded set of octets to decode.
++ *
++ * Returns zero on success; non-zero otherwise
+  */
+-static void
++static int
+ ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+ 			      const unsigned char *src, size_t src_size)
+ {
++	int rc = 0;
+ 	u8 current_bit_offset = 0;
+ 	size_t src_byte_offset = 0;
+ 	size_t dst_byte_offset = 0;
+@@ -2052,9 +2055,13 @@ ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+ 		goto out;
+ 	}
+ 	while (src_byte_offset < src_size) {
+-		unsigned char src_byte =
+-				filename_rev_map[(int)src[src_byte_offset]];
+-
++		int rev_map_offset = (int)src[src_byte_offset];
++		unsigned char src_byte;
++		if (rev_map_offset > (ARRAY_SIZE(filename_rev_map) - 1)) {
++			rc = -EINVAL;
++			goto out;
++		}
++		src_byte = filename_rev_map[rev_map_offset];
+ 		switch (current_bit_offset) {
+ 		case 0:
+ 			dst[dst_byte_offset] = (src_byte << 2);
+@@ -2081,7 +2088,7 @@ ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+ 	}
+ 	(*dst_size) = dst_byte_offset;
+ out:
+-	return;
++	return rc;
+ }
+ 
+ /**
+@@ -2235,8 +2242,14 @@ int ecryptfs_decode_and_decrypt_filename(char **plaintext_name,
+ 
+ 		name += ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX_SIZE;
+ 		name_size -= ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX_SIZE;
+-		ecryptfs_decode_from_filename(NULL, &decoded_name_size,
+-					      name, name_size);
++		rc = ecryptfs_decode_from_filename(NULL, &decoded_name_size,
++						   name, name_size);
++		if (rc) {
++			rc = ecryptfs_copy_filename(plaintext_name,
++						    plaintext_name_size,
++						    orig_name, orig_name_size);
++			goto out;
++		}
+ 		decoded_name = kmalloc(decoded_name_size, GFP_KERNEL);
+ 		if (!decoded_name) {
+ 			printk(KERN_ERR "%s: Out of memory whilst attempting "
+@@ -2245,8 +2258,16 @@ int ecryptfs_decode_and_decrypt_filename(char **plaintext_name,
+ 			rc = -ENOMEM;
+ 			goto out;
+ 		}
+-		ecryptfs_decode_from_filename(decoded_name, &decoded_name_size,
+-					      name, name_size);
++		rc = ecryptfs_decode_from_filename(decoded_name,
++						   &decoded_name_size,
++						   name,
++						   name_size);
++		if (rc) {
++			rc = ecryptfs_copy_filename(plaintext_name,
++						    plaintext_name_size,
++						    orig_name, orig_name_size);
++			goto out_free;
++		}
+ 		rc = ecryptfs_parse_tag_70_packet(plaintext_name,
+ 						  plaintext_name_size,
+ 						  &packet_size,
