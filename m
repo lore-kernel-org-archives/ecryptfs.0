@@ -1,72 +1,63 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: Flush file in vma close
-Date: Mon, 21 Nov 2011 11:24:32 -0600
-Message-ID: <1321896272-10130-1-git-send-email-tyhicks@canonical.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: eCryptfs tree back on git.kernel.org
+Date: Tue, 22 Nov 2011 08:22:14 +1100
+Message-ID: <20111122082214.af2f778f03082921c5a099f6@canb.auug.org.au>
+References: <20111121161607.GC2830@boyd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:33521 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623Ab1KURYm (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Nov 2011 12:24:42 -0500
+Received: from calzone.tip.net.au ([203.10.76.15]:38710 "EHLO
+	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508Ab1KUVWY (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Nov 2011 16:22:24 -0500
+In-Reply-To: <20111121161607.GC2830@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: eCryptfs <ecryptfs@vger.kernel.org>
-Cc: John Johansen <john.johansen@canonical.com>
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: linux-next@vger.kernel.org, ecryptfs@vger.kernel.org
 
-Dirty pages weren't being written back when an mmap'ed eCryptfs file was
-closed before the mapping was unmapped. Since f_ops->flush() is not
-called by the munmap() path, the lower file was simply being released.
-This patch flushes the eCryptfs file in the vm_ops->close() path.
+--Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://launchpad.net/bugs/870326
+Hi Tyler,
 
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
----
- fs/ecryptfs/file.c |   23 ++++++++++++++++++++++-
- 1 files changed, 22 insertions(+), 1 deletions(-)
+On Mon, 21 Nov 2011 10:16:08 -0600 Tyler Hicks <tyhicks@canonical.com> wrot=
+e:
+>
+> Hi Stephen - The eCryptfs devel tree is back on kernel.org. Please track
+> this branch:
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git#next
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index c6ac98c..d3f95f9 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -139,6 +139,27 @@ out:
- 	return rc;
- }
- 
-+static void ecryptfs_vma_close(struct vm_area_struct *vma)
-+{
-+	filemap_write_and_wait(vma->vm_file->f_mapping);
-+}
-+
-+static const struct vm_operations_struct ecryptfs_file_vm_ops = {
-+	.close		= ecryptfs_vma_close,
-+	.fault		= filemap_fault,
-+};
-+
-+static int ecryptfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	int rc;
-+
-+	rc = generic_file_mmap(file, vma);
-+	if (!rc)
-+		vma->vm_ops = &ecryptfs_file_vm_ops;
-+
-+	return rc;
-+}
-+
- struct kmem_cache *ecryptfs_file_info_cache;
- 
- /**
-@@ -349,7 +370,7 @@ const struct file_operations ecryptfs_main_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = ecryptfs_compat_ioctl,
- #endif
--	.mmap = generic_file_mmap,
-+	.mmap = ecryptfs_file_mmap,
- 	.open = ecryptfs_open,
- 	.flush = ecryptfs_flush,
- 	.release = ecryptfs_release,
--- 
-1.7.5.4
+OK, I have switched to that, now.  I also changed your contact address.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOysEGAAoJEECxmPOUX5FErxkP/3iKCFC4FHUrMYpq/IE1U0sA
+jYPW/YBFN1sY3CS9VghGz9dsKuW05AxeVMw7LiXHTMm0vdiGs2H66QKA8dqtwzr3
+0G3wse6JxJEwAVJLaDid//R8qXWRVNRswaxoZvPvCnfoMvXExNe0xMeVMoaRGB69
+O3ehHi0kvmHCZMeXB+zxHP+uFUARrMtGoCG7lw6uSPIrC4FJqWazcmEPKc/1Dra7
+lTD7zRYhW0lxAfSnlVE9BEdG6klJRxvqXOGH+P2ee8brIFRLp3gKVtXkVzDXDhsv
+WI+KOt5Z9bNvthJpPPlcmhn93EO9RAuxHinUt8msTdml0xXkQblFcnj7Rn2XRx4p
+PVjOEvIrjO21gzQoNOUWyLfMnWZTutxEVfvKpzx04YQCWuX4cGd0tTHzsbKzB5VF
+OwJXeCGlgE3yBSs+gnDYZadjGt2zlX+cOLOop26/v/NDtk5mmUTxaaIZBvJk/+HG
+7qWQQl3kgMQ3429t9ANo2wsm6PhwFohcHNIAKJ/S6mpHru7Ml4gQpk5w7Qus5reb
+lpWMoXRDUtX11j01iTWoZt8V7tIzAhNzv6UPeEM465Fpdo0owj3B4HWDELTaCu2h
+npMeuQ4vQ9toQ3fR2AtKFbDwao5yiR994nRtSnIy+2fMnIbpMnpDv6WXGGnNA6nk
+DITwEbeUFPspioZDsaUG
+=+VDl
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__22_Nov_2011_08_22_14_+1100_f8mhwA0.GcpdO=UD--
