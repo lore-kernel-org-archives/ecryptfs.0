@@ -1,55 +1,268 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: eCryptfs tree back on git.kernel.org
-Date: Mon, 21 Nov 2011 10:16:08 -0600
-Message-ID: <20111121161607.GC2830@boyd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="6c2NcOVqGQ03X4Wi"
+Subject: [PATCH] eCryptfs: Prevent file create race condition
+Date: Mon, 21 Nov 2011 11:22:49 -0600
+Message-ID: <1321896169-10070-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49054 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:33508 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046Ab1KUQQO (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Nov 2011 11:16:14 -0500
-Content-Disposition: inline
+	with ESMTP id S1751623Ab1KURXE (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Nov 2011 12:23:04 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: eCryptfs <ecryptfs@vger.kernel.org>
+Cc: John Johansen <john.johansen@canonical.com>
 
+The file creation path prematurely called d_instantiate() and
+unlock_new_inode() before the eCryptfs inode info was fully
+allocated and initialized and before the eCryptfs metadata was written
+to the lower file.
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This could result in race conditions in subsequent file and inode
+operations leading to unexpected error conditions or a null pointer
+dereference while attempting to use the unallocated memory.
 
-Hi Stephen - The eCryptfs devel tree is back on kernel.org. Please track
-this branch:
+https://launchpad.net/bugs/813146
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git#next
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+---
+ fs/ecryptfs/crypto.c          |   22 +++++++++--------
+ fs/ecryptfs/ecryptfs_kernel.h |    5 ++-
+ fs/ecryptfs/inode.c           |   52 ++++++++++++++++++++++++----------------
+ 3 files changed, 46 insertions(+), 33 deletions(-)
 
-Thanks!
-
-Tyler
-
---6c2NcOVqGQ03X4Wi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJOynlHAAoJENaSAD2qAscKKM8P/2OKeiszIqmeUJYJixbKKS6U
-r3qS6dYVCwHD3BuRG1HhtsfMqrEg9bSP4EjDuQuckgB66569Ba9FEhPNCvE+yCGM
-yJsR6LE4WYbET8SI84wnrNeMBcCUaZEboRt1EedoGc3OxoxrMHD4ib1ebqHPwK3M
-X98xEZePvChQEDMOefoTZ4MtU4V+WHYimBOCWDNjQQVXcP2zlgztir/L0riukmYE
-mcICSG8/JdA0+kmezzwsNBOFk+KJMFefDxRvQWRA7xBgL257uFFga7WQWluq/dyp
-WBN0lCYF/uebPD4QhvFhPq/OqgOxQyAVjYw83y0q6rrnNYxFVQDMSlatgcq8xq20
-ef7V1RtYsu2rUD1qcSh9xJrluk0e4tkDaNf5Y/5gGzn3bhQHkgIL/E2zt8/8xljO
-k4MpLCO/la2vBUzBLolqngJh+P5IkNF3uVkozWGV6qeCxQjPzT4QXBvV2FuTapBW
-ozusb4cGnsXKkhFQEViJICIIaQ1bHq0YPrjAJeLqpNuVmfJQVp5Djq82IH3Iqwhr
-zGGPWn+fzXBM55XfNkxYaI75ggnntJlvfb+pk4Wy+8OyXuZWyYfxQ0az78CQk5uw
-hN94D0vB7zZQRb+aKGTa8BGvYyRViqYdtEpIqFyO3/GLmNKm1jVN0WS3SHHw/InJ
-9CmQiniLU5+IQ7jR64Ni
-=gXu/
------END PGP SIGNATURE-----
-
---6c2NcOVqGQ03X4Wi--
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 58609bd..203a1fd 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -967,7 +967,7 @@ static void ecryptfs_set_default_crypt_stat_vals(
+ 
+ /**
+  * ecryptfs_new_file_context
+- * @ecryptfs_dentry: The eCryptfs dentry
++ * @ecryptfs_inode: The eCryptfs inode
+  *
+  * If the crypto context for the file has not yet been established,
+  * this is where we do that.  Establishing a new crypto context
+@@ -984,13 +984,13 @@ static void ecryptfs_set_default_crypt_stat_vals(
+  *
+  * Returns zero on success; non-zero otherwise
+  */
+-int ecryptfs_new_file_context(struct dentry *ecryptfs_dentry)
++int ecryptfs_new_file_context(struct inode *ecryptfs_inode)
+ {
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+-	    &ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
++	    &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
+ 	    &ecryptfs_superblock_to_private(
+-		    ecryptfs_dentry->d_sb)->mount_crypt_stat;
++		    ecryptfs_inode->i_sb)->mount_crypt_stat;
+ 	int cipher_name_len;
+ 	int rc = 0;
+ 
+@@ -1299,12 +1299,12 @@ static int ecryptfs_write_headers_virt(char *page_virt, size_t max,
+ }
+ 
+ static int
+-ecryptfs_write_metadata_to_contents(struct dentry *ecryptfs_dentry,
++ecryptfs_write_metadata_to_contents(struct inode *ecryptfs_inode,
+ 				    char *virt, size_t virt_len)
+ {
+ 	int rc;
+ 
+-	rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, virt,
++	rc = ecryptfs_write_lower(ecryptfs_inode, virt,
+ 				  0, virt_len);
+ 	if (rc < 0)
+ 		printk(KERN_ERR "%s: Error attempting to write header "
+@@ -1338,7 +1338,8 @@ static unsigned long ecryptfs_get_zeroed_pages(gfp_t gfp_mask,
+ 
+ /**
+  * ecryptfs_write_metadata
+- * @ecryptfs_dentry: The eCryptfs dentry
++ * @ecryptfs_dentry: The eCryptfs dentry, which should be negative
++ * @ecryptfs_inode: The newly created eCryptfs inode
+  *
+  * Write the file headers out.  This will likely involve a userspace
+  * callout, in which the session key is encrypted with one or more
+@@ -1348,10 +1349,11 @@ static unsigned long ecryptfs_get_zeroed_pages(gfp_t gfp_mask,
+  *
+  * Returns zero on success; non-zero on error
+  */
+-int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry)
++int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
++			    struct inode *ecryptfs_inode)
+ {
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+-		&ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
++		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+ 	unsigned int order;
+ 	char *virt;
+ 	size_t virt_len;
+@@ -1391,7 +1393,7 @@ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry)
+ 		rc = ecryptfs_write_metadata_to_xattr(ecryptfs_dentry, virt,
+ 						      size);
+ 	else
+-		rc = ecryptfs_write_metadata_to_contents(ecryptfs_dentry, virt,
++		rc = ecryptfs_write_metadata_to_contents(ecryptfs_inode, virt,
+ 							 virt_len);
+ 	if (rc) {
+ 		printk(KERN_ERR "%s: Error writing metadata out to lower file; "
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 54481a3..a9f29b1 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -584,9 +584,10 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat);
+ int ecryptfs_write_inode_size_to_metadata(struct inode *ecryptfs_inode);
+ int ecryptfs_encrypt_page(struct page *page);
+ int ecryptfs_decrypt_page(struct page *page);
+-int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry);
++int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
++			    struct inode *ecryptfs_inode);
+ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry);
+-int ecryptfs_new_file_context(struct dentry *ecryptfs_dentry);
++int ecryptfs_new_file_context(struct inode *ecryptfs_inode);
+ void ecryptfs_write_crypt_stat_flags(char *page_virt,
+ 				     struct ecryptfs_crypt_stat *crypt_stat,
+ 				     size_t *written);
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index a36d327..32f90a3 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -172,22 +172,23 @@ ecryptfs_create_underlying_file(struct inode *lower_dir_inode,
+  * it. It will also update the eCryptfs directory inode to mimic the
+  * stat of the lower directory inode.
+  *
+- * Returns zero on success; non-zero on error condition
++ * Returns the new eCryptfs inode on success; an ERR_PTR on error condition
+  */
+-static int
++static struct inode *
+ ecryptfs_do_create(struct inode *directory_inode,
+ 		   struct dentry *ecryptfs_dentry, int mode)
+ {
+ 	int rc;
+ 	struct dentry *lower_dentry;
+ 	struct dentry *lower_dir_dentry;
++	struct inode *inode;
+ 
+ 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
+ 	lower_dir_dentry = lock_parent(lower_dentry);
+ 	if (IS_ERR(lower_dir_dentry)) {
+ 		ecryptfs_printk(KERN_ERR, "Error locking directory of "
+ 				"dentry\n");
+-		rc = PTR_ERR(lower_dir_dentry);
++		inode = ERR_CAST(lower_dir_dentry);
+ 		goto out;
+ 	}
+ 	rc = ecryptfs_create_underlying_file(lower_dir_dentry->d_inode,
+@@ -195,20 +196,19 @@ ecryptfs_do_create(struct inode *directory_inode,
+ 	if (rc) {
+ 		printk(KERN_ERR "%s: Failure to create dentry in lower fs; "
+ 		       "rc = [%d]\n", __func__, rc);
++		inode = ERR_PTR(rc);
+ 		goto out_lock;
+ 	}
+-	rc = ecryptfs_interpose(lower_dentry, ecryptfs_dentry,
+-				directory_inode->i_sb);
+-	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Failure in ecryptfs_interpose\n");
++	inode = __ecryptfs_get_inode(lower_dentry->d_inode,
++				     directory_inode->i_sb);
++	if (IS_ERR(inode))
+ 		goto out_lock;
+-	}
+ 	fsstack_copy_attr_times(directory_inode, lower_dir_dentry->d_inode);
+ 	fsstack_copy_inode_size(directory_inode, lower_dir_dentry->d_inode);
+ out_lock:
+ 	unlock_dir(lower_dir_dentry);
+ out:
+-	return rc;
++	return inode;
+ }
+ 
+ /**
+@@ -219,26 +219,26 @@ out:
+  *
+  * Returns zero on success
+  */
+-static int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry)
++static int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
++				    struct inode *ecryptfs_inode)
+ {
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+-		&ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
++		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+ 	int rc = 0;
+ 
+-	if (S_ISDIR(ecryptfs_dentry->d_inode->i_mode)) {
++	if (S_ISDIR(ecryptfs_inode->i_mode)) {
+ 		ecryptfs_printk(KERN_DEBUG, "This is a directory\n");
+ 		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
+ 		goto out;
+ 	}
+ 	ecryptfs_printk(KERN_DEBUG, "Initializing crypto context\n");
+-	rc = ecryptfs_new_file_context(ecryptfs_dentry);
++	rc = ecryptfs_new_file_context(ecryptfs_inode);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Error creating new file "
+ 				"context; rc = [%d]\n", rc);
+ 		goto out;
+ 	}
+-	rc = ecryptfs_get_lower_file(ecryptfs_dentry,
+-				     ecryptfs_dentry->d_inode);
++	rc = ecryptfs_get_lower_file(ecryptfs_dentry, ecryptfs_inode);
+ 	if (rc) {
+ 		printk(KERN_ERR "%s: Error attempting to initialize "
+ 			"the lower file for the dentry with name "
+@@ -246,10 +246,10 @@ static int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry)
+ 			ecryptfs_dentry->d_name.name, rc);
+ 		goto out;
+ 	}
+-	rc = ecryptfs_write_metadata(ecryptfs_dentry);
++	rc = ecryptfs_write_metadata(ecryptfs_dentry, ecryptfs_inode);
+ 	if (rc)
+ 		printk(KERN_ERR "Error writing headers; rc = [%d]\n", rc);
+-	ecryptfs_put_lower_file(ecryptfs_dentry->d_inode);
++	ecryptfs_put_lower_file(ecryptfs_inode);
+ out:
+ 	return rc;
+ }
+@@ -269,18 +269,28 @@ static int
+ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
+ 		int mode, struct nameidata *nd)
+ {
++	struct inode *ecryptfs_inode;
+ 	int rc;
+ 
+-	/* ecryptfs_do_create() calls ecryptfs_interpose() */
+-	rc = ecryptfs_do_create(directory_inode, ecryptfs_dentry, mode);
+-	if (unlikely(rc)) {
++	ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry,
++					    mode);
++	if (unlikely(IS_ERR(ecryptfs_inode))) {
+ 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
+ 				"lower filesystem\n");
++		rc = PTR_ERR(ecryptfs_inode);
+ 		goto out;
+ 	}
+ 	/* At this point, a file exists on "disk"; we need to make sure
+ 	 * that this on disk file is prepared to be an ecryptfs file */
+-	rc = ecryptfs_initialize_file(ecryptfs_dentry);
++	rc = ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
++	if (rc) {
++		drop_nlink(ecryptfs_inode);
++		unlock_new_inode(ecryptfs_inode);
++		iput(ecryptfs_inode);
++		goto out;
++	}
++	d_instantiate(ecryptfs_dentry, ecryptfs_inode);
++	unlock_new_inode(ecryptfs_inode);
+ out:
+ 	return rc;
+ }
+-- 
+1.7.5.4
