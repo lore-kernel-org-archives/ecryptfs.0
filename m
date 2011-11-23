@@ -1,70 +1,77 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.2-rc3
-Date: Wed, 23 Nov 2011 16:25:55 -0600
-Message-ID: <20111123222555.GA1094@boyd>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] eCryptfs fixes for 3.2-rc3
+Date: Wed, 23 Nov 2011 14:56:23 -0800
+Message-ID: <CA+55aFyZvp=SsBG=SroMDLMEFGgazK1EM3b-Fejpgwf41+_e3w@mail.gmail.com>
+References: <20111123222555.GA1094@boyd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37794 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988Ab1KWW0B (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 23 Nov 2011 17:26:01 -0500
-Content-Disposition: inline
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35183 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754966Ab1KWW4p convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 23 Nov 2011 17:56:45 -0500
+In-Reply-To: <20111123222555.GA1094@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Tyler Hicks <tyhicks@canonical.com>, Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
+On Wed, Nov 23, 2011 at 2:25 PM, Tyler Hicks <tyhicks@canonical.com> wr=
+ote:
+>
+> Tyler Hicks (3):
+> =A0 =A0 =A0eCryptfs: Flush file in vma close
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I'm not hugely happy with this one.
 
-Hi Linus - Here are 3 eCryptfs fixes. The first patch solves a race condition
-around the initialization of eCryptfs inode info. The second patch solves a
-regression in mmap support. The last patch fixes a kernel memory disclosure
-which was fixed using your suggested implementation.
+The commit message says:
 
-The following changes since commit 6fe4c6d466e95d31164f14b1ac4aefb51f0f4f82:
+    Dirty pages weren't being written back when an mmap'ed eCryptfs fil=
+e was
+    closed before the mapping was unmapped. Since f_ops->flush() is not
+    called by the munmap() path, the lower file was simply being releas=
+ed.
+    This patch flushes the eCryptfs file in the vm_ops->close() path.
 
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2011-11-20 14:59:33 -0800)
+=46air enough - you've debugged the problem. You're misusing the ->flus=
+h
+thing which only gets called at close time, rather than flushing
+things at ->release time. But why?
 
-are available in the git repository at:
+"->flush()" is very special, and is literally meant for things that
+need to wait at close time. A file descriptor may be flushed many
+times for a single open (because it was dup'ed etc), and yes, if it is
+closed before mmap, it will be flushed before the mmap is done. The
+"flush()" is basically attached to a particular fd - useful mainly for
+things like special devices that actually want to delay the close
+(serial lines etc).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git for-linus
+But the fundamental issue is that I don't think cryptfs should be
+using "flush". The file is still *open* when "flush()" is called.
+That's the fundamental reason for the bug, I think.
 
-Tyler Hicks (3):
-      eCryptfs: Prevent file create race condition
-      eCryptfs: Flush file in vma close
-      eCryptfs: Extend array bounds for all filename chars
+cryptfs should flush the encrypted information at *release* time, not
+"flush" time. And that would have avoided the bug with mmap, because
+release gets called on the very last internal reference count drop of
+the 'struct file' - so it gets called after the last close *and*
+munmap.
 
- fs/ecryptfs/crypto.c          |   26 +++++++++++---------
- fs/ecryptfs/ecryptfs_kernel.h |    5 ++-
- fs/ecryptfs/file.c            |   23 +++++++++++++++++-
- fs/ecryptfs/inode.c           |   52 ++++++++++++++++++++++++----------------
- 4 files changed, 70 insertions(+), 36 deletions(-)
+Is there some reason I am missing that cryptfs has to use flush?
 
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I'm doing the pull, but I really think that this is papering over the
+*real* bug, which was the use of 'flush' in the first place.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+In general, I'd urge people to *not* use "->flush" at all as a
+"correctness issue". It's useful to return EIO to "close()" and to be
+*polite* (ie the return value of "flush()" will be returned to user
+space at close time), but it really should be seen as a "we try to
+flush now to try to give user space nice error reports where
+possible", but it's important to understand that it's not the last
+close, and if you rely on it for correctness, you're doing something
+wrong. It's "release()" that is the "get rid of all your state now",
+and is about correctness. "flush" is purely about being polite.
 
-iQIcBAEBCgAGBQJOzXLzAAoJENaSAD2qAscKPnsQAL7rG+ENiQZorXpGT1EGV9GG
-74hIoN1pNpSrOB7lNBK+rVNL3FS+oKrjgS1mgB7cP7D/5jfOOsaunGtJhlwcZvA8
-V3dh1P9FlSNRkKX24255KvAfTyjllQhW0MBIm7DO9xf/wPqjpRuutV1wbcaZI/2i
-6+PHIhERC3MspBL8HoNyKNfCovZyZ/QXx33A/QDDyaHXVgFHjW2SFn+jEiELhNpG
-BO+6eo/D1zaF7oAS5GmpJJrhWn2v3H/ncH1LPoVLU6z6FQYLYTF4PCcr0//m+ua0
-l78ZtQavxSTXjfaiVkUL6/eW0mqAoU5F5RsMRj2LN3SFW81i0p8mBtMpZm6sgfeU
-uro6LTf7KDwNQBdKM3E1IowTmpQ6faczI0iYXMGeyFidSRvzWFYw1/ortvB7YPWO
-LonMj/bnzIjKmvMNSd25D3F+VeDWAmDKj+e47l3E0SJBOADt7DA5os1LcEn7xm1G
-sLhbs6wjoDubHTr7giBpgQ2Z3kUo5or1A1Gp99MuZVY7UNXzubk8tsmXCDVFZ7i3
-VJyvJ9ImsIPlHVeHXIzOK0+aa3HAkPwCK95asjEanrkbrJoRaxz/Hv3kiXjIpzAh
-zzduWi5aY6qxFHqoj3t0YyFsGk6O2LkniWWVE/9j2DD6+IvJ67VBkfvCMdZUmKVK
-/gLS3eBVV5IDlUUGFYwf
-=i21a
------END PGP SIGNATURE-----
+ecryptfs seems to have relied on it for correctness. Not good.
 
---2fHTh5uZTiUOsy+g--
+                       Linus
