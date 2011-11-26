@@ -1,92 +1,69 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] eCryptfs fixes for 3.2-rc3
-Date: Thu, 24 Nov 2011 10:27:33 -0800
-Message-ID: <CA+55aFy2QWwvY17q_AVwVj9_g3DSLnUrEOD897Bu2_rQgVsv3w@mail.gmail.com>
-References: <20111123222555.GA1094@boyd> <CA+55aFyZvp=SsBG=SroMDLMEFGgazK1EM3b-Fejpgwf41+_e3w@mail.gmail.com>
- <20111124074526.GA3652@boyd>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: [PATCH]eCryptfs: quota check ignored in the context of kernel thr
+ ead
+Date: Sat, 26 Nov 2011 13:04:36 +0800
+Message-ID: <11112613043689e4ebac922bdda45ca181757479edcf@nudt.edu.cn>
 Mime-Version: 1.0
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61528 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888Ab1KXS1z (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 24 Nov 2011 13:27:55 -0500
-In-Reply-To: <20111124074526.GA3652@boyd>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:55410 "HELO nudt.edu.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1750806Ab1KZFZH (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Sat, 26 Nov 2011 00:25:07 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-On Wed, Nov 23, 2011 at 11:45 PM, Tyler Hicks <tyhicks@canonical.com> wrote:
->
->> In general, I'd urge people to *not* use "->flush" at all as a
->> "correctness issue". It's useful to return EIO to "close()" and to be
->> *polite* (ie the return value of "flush()" will be returned to user
->> space at close time), but it really should be seen as a "we try to
->> flush now to try to give user space nice error reports where
->> possible", but it's important to understand that it's not the last
->> close, and if you rely on it for correctness, you're doing something
->> wrong. It's "release()" that is the "get rid of all your state now",
->> and is about correctness. "flush" is purely about being polite.
->
-> But it *could* be the last close, so it seems that using flush() for
-> politeness *and* release() for correctness is not an option.
-
-You can certainly do both, there is nothing wrong with it.
-
-Note that even if "flush()" returns an error, we *will* close the fd.
-It is not going to abort the close or anything like that: it's just a
-signal to the user that something is wrong.
-
-For example, a filesystem like NFS may do delayed writes, so when you
-do a "write()" system call, and the server diskspace is full, you may
-not get the ENOSPC at "write()" time. You may get it at a subsequent
-write(), or you may get it at close() time - because NFS does try to
-write it synchronously at that time.  The user cannot *recover* from
-the error (the file is closed and you don't know how much of it made
-it), but a careful writer can check the error code of close() and at
-least know to alert the user that something went wrong.
-
-So there is nothing *wrong* with using "flush()", and it exists for a
-reason: so that careful writers *can* be careful.
-
-But when you do use flush(), you also need to be aware that most
-writers aren't careful. Even if they don't use mmap(), they also don't
-necessarily care about close(). And there are situations where
-"flush()" is used as a "let's try to flush, but we will time it out or
-still react to SIGINT, so we're doing a 'best effort' kind of flush,
-not any correctness guarantees".
-
-In fact, that "best effort" kind of flush is one of the original
-reasons for the callback: the flushing of characters of a serial line.
-It's timed out (because the close() does have to finish in a timely
-manner even if the other end has stopped receiving and i no longer
-asserting DTS), and it's not really even about the error code - it's
-literally just about "delay until the pending stuff has actually been
-sent".
-
-So having both flush (to do a "best effort" try at waiting for stuff
-and maybe returning an error) and a release (to actually finish
-everything off and get rid of reference counts etc) is perfectly fine
-and normal.
-
-> Theoretically, flush() could fail, followed by a successful release(),
-> resulting in close() returning an error when it shouldn't since the
-> return value of release() is ignored.
-
-That's not even theoretical, it's quite normal. If flush fails, it
-*will* be followed by the release() if it's the last close, and the
-release is by definition always successful - the release is just a
-"ok, we're done now".
-
-So the case you describe is what flush() is designed for. Something
-did a best effort to inform the user that things probably didn't work
-out. But the user may well not care. If the user close()'d the file
-before the last mmap was done, or if the user simply ignores the
-return value of close, the kernel doesn't really care. The kernel
-basically says "ok, I can *try* to give you relevant errors, but I'm
-not going to force the issue, and I'm not going to care if you don't
-care".
-
-                       Linus
+SGkgdGhlcmUsDQogICBUaGUgbGF0ZXN0IGVDcnlwdGZzIGNoYW5nZXMgdGhlIHdyaXRl
+IHBhdGggdG8gcGVyZm9ybSB0aGUgZW5jcnlwdGlvbiBpbiBlY3J5cHRmc193cml0ZXBh
+Z2UsIHdoaWNoIG1pbmltaXplcyB0aGUgbnVtYmVyIG9mIGVuY3J5cHRpb25zLCBob3dl
+dmVyLCBpZiB0aGUgZWNyeXB0ZnNfd3JpdGVwYWdlIGlzIGludm9rZWQgaW4gdGhlIGNv
+bnRleHQgb2YgcGFnZSBjYWNoZSB3cml0ZSBiYWNrIGtlcm5lbCB0aHJlYWQsIHRvIHdy
+aXRlIG91dCB0aGUgZGlydHkgcGFnZXMgdG8gdGhlIGxvd2VyIHBhZ2UgY2FjaGUsIHRo
+ZSBxdW90YSBjaGVjayBieSB0aGUgbG93ZXIgZmlsZSBzeXN0ZW0gZ290dGEgYmUgaWdu
+b3JlZCBzaW5jZSB0aGUga2VybmVsIHRocmVhZCBoYXMgdGhlIENBUF9TWVNfQ0FQQUJJ
+TElUWS4gVG8gdmFsaWRhdGUgdGhpcywganVzdCBsZXQgYSB1c2VyIGFwcGxpY2F0aW9u
+IG9wZW4gYSBmaWxlLCB3cml0ZSBtdWNoIGRhdGEgaW50byBpdCwgdGhlbiBzbGVlcCBm
+b3Igc2V2ZXJhbCBtaW5pdXRlcyBiZWZvcmUgY2xvc2UgaXQsIHRob3NlIGRhdGEgZ290
+dGEgZGVmaW5pdGVseSBiZSBzYWZlbHkgd3JpdHRlbiBpbnRvIHRoZSBkaXNrIGluIGRl
+c3BpdGUgb2YgdGhlIHVzZXIgcXVvdGEgbGltaXQuIFRoZSBwYXRjaCBiZWxvdyB0cnkg
+dG8gZml4IHRoaXMgYnkgc2ltcGx5IHRlbXBvcmFyaWx5IHJlbW92aW5nIHRoZSBjYXBh
+YmlsaXR5IGZyb20gdGhlIGtlcm5lbCB0aHJlYWQgYmVmb3JlIGludm9raW5nIGVjcnlw
+dGZzX3dyaXRlX2xvd2VyLCB0aGVyZWFmdGVyLCByZWFzc2lnbiBpdC4NCg0KICBGaXht
+ZTogSXQgc2VlbXMgdGhvc2UgY29tbWVudGVkIGNvZGVzIGluIHRoZSBwYXRjaCAocHJl
+cGFyZV9jcmVkcygpLCAuLi4sIGNvbW1pdF9jcmVkcygpKSBkbyB0aGUgdGhpbmcgaW4g
+YSBtb3JlIG9mZmljaWFsIHdheSwgYnV0IHRoZXkgcGVyZm9ybSB0b28gbXVjaCB2YWxp
+ZGl0eSBjaGVja3Mgd2hpY2ggYXJlIG5vdCBuZWVkZWQgaW4gb3VyIGNhc2UuIE9ubHkg
+aWYgdGhlIHNpbXBsZSBjYXBfbG93ZXIvY2FwX3JhaXNlIGNhbGwgd2lsbCB0cmlnZ2Vy
+IHNvbWUgcmFjZSBjb25kdGlvbnMsIG90aGVyd2lzZSBJIHRoaW5rIGl0IHNob3VsZCBi
+ZSBvaz8gICAgICAgICANCg0KQ2hlZXJzLA0KTGkgV2FuZw0KDQpzaWduZWQtb2ZmLWJ5
+OiBMaSBXYW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+DQogICAgICAgICAgICAgICBZb25n
+IFBlbmcgPHBlbmd5b25nQGt5bGlub3MuY29tLmNuPg0KDQotLS0NCi0tLSBmcy9lY3J5
+cHRmcy9jcnlwdG8uYy5vcmlnIDIwMTEtMTEtMjYgMjA6MjE6MDguMTA5MzA0Nzg2ICsw
+ODAwDQorKysgZnMvZWNyeXB0ZnMvY3J5cHRvLmMgMjAxMS0xMS0yNiAyMDoyMDowOS42
+NTEzMTU5NzggKzA4MDANCkBAIC01MDYsOCArNTA2LDMzIEBAIGludCBlY3J5cHRmc19l
+bmNyeXB0X3BhZ2Uoc3RydWN0IHBhZ2UgKnANCiAgICAgICAgKiAoUEFHRV9DQUNIRV9T
+SVpFDQogICAgICAgICAgIC8gY3J5cHRfc3RhdC0+ZXh0ZW50X3NpemUpKQ0KICAgICAg
+ICsgZXh0ZW50X29mZnNldCksIGNyeXB0X3N0YXQpOw0KKyAgLyoNCisgICAgKiBUZW1w
+b3JhcmlseSByZW1vdmUgdGhlIENBUF9TWVNfUkVTT1VSQ0UgY2FwYWJpbGl0eSBmcm9t
+IHRoZQ0KKyAgICAqIHdyaXRlIGJhY2sga2VybmVsIHRocmVhZCB0byBsZXQgaXQgdW5k
+ZXJnbyBxdW90YSBjaGVjayBieQ0KKyAgICAqIHRoZSBsb3dlciBmaWxlIHN5c3RlbQ0K
+KyAgICAqLw0KKyAgaWYgKGN1cnJlbnQtPmZsYWdzICYgUEZfS1RIUkVBRCkgew0KKyAg
+IGNhcF9sb3dlcigoKHN0cnVjdCBjcmVkICopY3VycmVudC0+Y3JlZCktPmNhcF9lZmZl
+Y3RpdmUsIENBUF9TWVNfUkVTT1VSQ0UpOw0KKyAgIC8qDQorICAgICAqIHN0cnVjdCBj
+cmVkICpjcmVkOw0KKyAgICAgKiBjcmVkID0gcHJlcGFyZV9jcmVkcygpOw0KKyAgICAg
+KiBpZiAodW5saWtlbHkoIWNyZWQpKSB7DQorICAgICAqICByYyA9IC1FTk9NRU07DQor
+ICAgICAqIGdvdG8gb3V0Ow0KKyAgICAgKiB9DQorICAgICAqIGNhcF9sb3dlcihjcmVk
+LT5jYXBfZWZmZWN0aXZlLCBDQVBfU1lTX1JFU09VUkNFKTsNCisgICAgICogcmMgPSBj
+b21taXRfY3JlZHMoY3JlZCk7DQorICAgICAqIGlmIChyYykNCisgICAgICogIGdvdG8g
+b3V0Ow0KKyAgICAgKi8gIA0KKyAgfQ0KICAgcmMgPSBlY3J5cHRmc193cml0ZV9sb3dl
+cihlY3J5cHRmc19pbm9kZSwgZW5jX2V4dGVudF92aXJ0LA0KICAgICAgICBvZmZzZXQs
+IGNyeXB0X3N0YXQtPmV4dGVudF9zaXplKTsNCisgIC8qDQorICAgICogUmVhc3NpZ24g
+dGhlIENBUF9TWVNfUkVTT1VSQ0UgY2FwYWJpbGl0eQ0KKyAgICAqLw0KKyAgaWYgKGN1
+cnJlbnQtPmZsYWdzICYgUEZfS1RIUkVBRCkNCisgICBjYXBfcmFpc2UoKChzdHJ1Y3Qg
+Y3JlZCAqKWN1cnJlbnQtPmNyZWQpLT5jYXBfZWZmZWN0aXZlLCBDQVBfU1lTX1JFU09V
+UkNFKTsNCiAgIGlmIChyYyA8IDApIHsNCiAgICBlY3J5cHRmc19wcmludGsoS0VSTl9F
+UlIsICJFcnJvciBhdHRlbXB0aW5nICINCiAgICAgICJ0byB3cml0ZSBsb3dlciBwYWdl
+OyByYyA9IFslZF0iDQogIA0KIA==
