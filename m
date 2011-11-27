@@ -1,69 +1,86 @@
-From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: [PATCH]eCryptfs: quota check ignored in the context of kernel thr
- ead
-Date: Sat, 26 Nov 2011 13:04:36 +0800
-Message-ID: <11112613043689e4ebac922bdda45ca181757479edcf@nudt.edu.cn>
-Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+From: Cong Wang <amwang@redhat.com>
+Subject: [PATCH 31/62] ecryptfs: remove the second argument of k[un]map_atomic()
+Date: Sun, 27 Nov 2011 13:27:11 +0800
+Message-ID: <1322371662-26166-32-git-send-email-amwang@redhat.com>
+References: <1322371662-26166-1-git-send-email-amwang@redhat.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:55410 "HELO nudt.edu.cn"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750806Ab1KZFZH (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Sat, 26 Nov 2011 00:25:07 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:51396 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754966Ab1K0Fef (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Sun, 27 Nov 2011 00:34:35 -0500
+In-Reply-To: <1322371662-26166-1-git-send-email-amwang@redhat.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org
+Cc: akpm@linux-foundation.org, Cong Wang <amwang@redhat.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
 
-SGkgdGhlcmUsDQogICBUaGUgbGF0ZXN0IGVDcnlwdGZzIGNoYW5nZXMgdGhlIHdyaXRl
-IHBhdGggdG8gcGVyZm9ybSB0aGUgZW5jcnlwdGlvbiBpbiBlY3J5cHRmc193cml0ZXBh
-Z2UsIHdoaWNoIG1pbmltaXplcyB0aGUgbnVtYmVyIG9mIGVuY3J5cHRpb25zLCBob3dl
-dmVyLCBpZiB0aGUgZWNyeXB0ZnNfd3JpdGVwYWdlIGlzIGludm9rZWQgaW4gdGhlIGNv
-bnRleHQgb2YgcGFnZSBjYWNoZSB3cml0ZSBiYWNrIGtlcm5lbCB0aHJlYWQsIHRvIHdy
-aXRlIG91dCB0aGUgZGlydHkgcGFnZXMgdG8gdGhlIGxvd2VyIHBhZ2UgY2FjaGUsIHRo
-ZSBxdW90YSBjaGVjayBieSB0aGUgbG93ZXIgZmlsZSBzeXN0ZW0gZ290dGEgYmUgaWdu
-b3JlZCBzaW5jZSB0aGUga2VybmVsIHRocmVhZCBoYXMgdGhlIENBUF9TWVNfQ0FQQUJJ
-TElUWS4gVG8gdmFsaWRhdGUgdGhpcywganVzdCBsZXQgYSB1c2VyIGFwcGxpY2F0aW9u
-IG9wZW4gYSBmaWxlLCB3cml0ZSBtdWNoIGRhdGEgaW50byBpdCwgdGhlbiBzbGVlcCBm
-b3Igc2V2ZXJhbCBtaW5pdXRlcyBiZWZvcmUgY2xvc2UgaXQsIHRob3NlIGRhdGEgZ290
-dGEgZGVmaW5pdGVseSBiZSBzYWZlbHkgd3JpdHRlbiBpbnRvIHRoZSBkaXNrIGluIGRl
-c3BpdGUgb2YgdGhlIHVzZXIgcXVvdGEgbGltaXQuIFRoZSBwYXRjaCBiZWxvdyB0cnkg
-dG8gZml4IHRoaXMgYnkgc2ltcGx5IHRlbXBvcmFyaWx5IHJlbW92aW5nIHRoZSBjYXBh
-YmlsaXR5IGZyb20gdGhlIGtlcm5lbCB0aHJlYWQgYmVmb3JlIGludm9raW5nIGVjcnlw
-dGZzX3dyaXRlX2xvd2VyLCB0aGVyZWFmdGVyLCByZWFzc2lnbiBpdC4NCg0KICBGaXht
-ZTogSXQgc2VlbXMgdGhvc2UgY29tbWVudGVkIGNvZGVzIGluIHRoZSBwYXRjaCAocHJl
-cGFyZV9jcmVkcygpLCAuLi4sIGNvbW1pdF9jcmVkcygpKSBkbyB0aGUgdGhpbmcgaW4g
-YSBtb3JlIG9mZmljaWFsIHdheSwgYnV0IHRoZXkgcGVyZm9ybSB0b28gbXVjaCB2YWxp
-ZGl0eSBjaGVja3Mgd2hpY2ggYXJlIG5vdCBuZWVkZWQgaW4gb3VyIGNhc2UuIE9ubHkg
-aWYgdGhlIHNpbXBsZSBjYXBfbG93ZXIvY2FwX3JhaXNlIGNhbGwgd2lsbCB0cmlnZ2Vy
-IHNvbWUgcmFjZSBjb25kdGlvbnMsIG90aGVyd2lzZSBJIHRoaW5rIGl0IHNob3VsZCBi
-ZSBvaz8gICAgICAgICANCg0KQ2hlZXJzLA0KTGkgV2FuZw0KDQpzaWduZWQtb2ZmLWJ5
-OiBMaSBXYW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+DQogICAgICAgICAgICAgICBZb25n
-IFBlbmcgPHBlbmd5b25nQGt5bGlub3MuY29tLmNuPg0KDQotLS0NCi0tLSBmcy9lY3J5
-cHRmcy9jcnlwdG8uYy5vcmlnIDIwMTEtMTEtMjYgMjA6MjE6MDguMTA5MzA0Nzg2ICsw
-ODAwDQorKysgZnMvZWNyeXB0ZnMvY3J5cHRvLmMgMjAxMS0xMS0yNiAyMDoyMDowOS42
-NTEzMTU5NzggKzA4MDANCkBAIC01MDYsOCArNTA2LDMzIEBAIGludCBlY3J5cHRmc19l
-bmNyeXB0X3BhZ2Uoc3RydWN0IHBhZ2UgKnANCiAgICAgICAgKiAoUEFHRV9DQUNIRV9T
-SVpFDQogICAgICAgICAgIC8gY3J5cHRfc3RhdC0+ZXh0ZW50X3NpemUpKQ0KICAgICAg
-ICsgZXh0ZW50X29mZnNldCksIGNyeXB0X3N0YXQpOw0KKyAgLyoNCisgICAgKiBUZW1w
-b3JhcmlseSByZW1vdmUgdGhlIENBUF9TWVNfUkVTT1VSQ0UgY2FwYWJpbGl0eSBmcm9t
-IHRoZQ0KKyAgICAqIHdyaXRlIGJhY2sga2VybmVsIHRocmVhZCB0byBsZXQgaXQgdW5k
-ZXJnbyBxdW90YSBjaGVjayBieQ0KKyAgICAqIHRoZSBsb3dlciBmaWxlIHN5c3RlbQ0K
-KyAgICAqLw0KKyAgaWYgKGN1cnJlbnQtPmZsYWdzICYgUEZfS1RIUkVBRCkgew0KKyAg
-IGNhcF9sb3dlcigoKHN0cnVjdCBjcmVkICopY3VycmVudC0+Y3JlZCktPmNhcF9lZmZl
-Y3RpdmUsIENBUF9TWVNfUkVTT1VSQ0UpOw0KKyAgIC8qDQorICAgICAqIHN0cnVjdCBj
-cmVkICpjcmVkOw0KKyAgICAgKiBjcmVkID0gcHJlcGFyZV9jcmVkcygpOw0KKyAgICAg
-KiBpZiAodW5saWtlbHkoIWNyZWQpKSB7DQorICAgICAqICByYyA9IC1FTk9NRU07DQor
-ICAgICAqIGdvdG8gb3V0Ow0KKyAgICAgKiB9DQorICAgICAqIGNhcF9sb3dlcihjcmVk
-LT5jYXBfZWZmZWN0aXZlLCBDQVBfU1lTX1JFU09VUkNFKTsNCisgICAgICogcmMgPSBj
-b21taXRfY3JlZHMoY3JlZCk7DQorICAgICAqIGlmIChyYykNCisgICAgICogIGdvdG8g
-b3V0Ow0KKyAgICAgKi8gIA0KKyAgfQ0KICAgcmMgPSBlY3J5cHRmc193cml0ZV9sb3dl
-cihlY3J5cHRmc19pbm9kZSwgZW5jX2V4dGVudF92aXJ0LA0KICAgICAgICBvZmZzZXQs
-IGNyeXB0X3N0YXQtPmV4dGVudF9zaXplKTsNCisgIC8qDQorICAgICogUmVhc3NpZ24g
-dGhlIENBUF9TWVNfUkVTT1VSQ0UgY2FwYWJpbGl0eQ0KKyAgICAqLw0KKyAgaWYgKGN1
-cnJlbnQtPmZsYWdzICYgUEZfS1RIUkVBRCkNCisgICBjYXBfcmFpc2UoKChzdHJ1Y3Qg
-Y3JlZCAqKWN1cnJlbnQtPmNyZWQpLT5jYXBfZWZmZWN0aXZlLCBDQVBfU1lTX1JFU09V
-UkNFKTsNCiAgIGlmIChyYyA8IDApIHsNCiAgICBlY3J5cHRmc19wcmludGsoS0VSTl9F
-UlIsICJFcnJvciBhdHRlbXB0aW5nICINCiAgICAgICJ0byB3cml0ZSBsb3dlciBwYWdl
-OyByYyA9IFslZF0iDQogIA0KIA==
+
+Signed-off-by: Cong Wang <amwang@redhat.com>
+---
+ fs/ecryptfs/mmap.c       |    4 ++--
+ fs/ecryptfs/read_write.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 6a44148..5e29bf4 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -146,7 +146,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
+ 			/* This is a header extent */
+ 			char *page_virt;
+ 
+-			page_virt = kmap_atomic(page, KM_USER0);
++			page_virt = kmap_atomic(page);
+ 			memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 			/* TODO: Support more than one header extent */
+ 			if (view_extent_num == 0) {
+@@ -159,7 +159,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
+ 							       crypt_stat,
+ 							       &written);
+ 			}
+-			kunmap_atomic(page_virt, KM_USER0);
++			kunmap_atomic(page_virt);
+ 			flush_dcache_page(page);
+ 			if (rc) {
+ 				printk(KERN_ERR "%s: Error reading xattr "
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 3745f7c..102719c8 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -151,7 +151,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
+ 
+ 		/*
+ 		 * pos: where we're now writing, offset: where the request was
+@@ -174,7 +174,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       (data + data_offset), num_bytes);
+ 			data_offset += num_bytes;
+ 		}
+-		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		kunmap_atomic(ecryptfs_page_virt);
+ 		flush_dcache_page(ecryptfs_page);
+ 		SetPageUptodate(ecryptfs_page);
+ 		unlock_page(ecryptfs_page);
+@@ -330,11 +330,11 @@ int ecryptfs_read(char *data, loff_t offset, size_t size,
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
+ 		memcpy((data + data_offset),
+ 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
+ 		       num_bytes);
+-		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		kunmap_atomic(ecryptfs_page_virt);
+ 		flush_dcache_page(ecryptfs_page);
+ 		SetPageUptodate(ecryptfs_page);
+ 		unlock_page(ecryptfs_page);
+-- 
+1.7.4.4
