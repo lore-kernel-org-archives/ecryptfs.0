@@ -1,86 +1,80 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: [PATCH 31/62] ecryptfs: remove the second argument of k[un]map_atomic()
-Date: Sun, 27 Nov 2011 13:27:11 +0800
-Message-ID: <1322371662-26166-32-git-send-email-amwang@redhat.com>
-References: <1322371662-26166-1-git-send-email-amwang@redhat.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH 1/1] fix d_revalidate oopsen on NFS exports
+Date: Thu, 1 Dec 2011 00:50:25 -0600
+Message-ID: <20111201065024.GB495@boyd>
+References: <1321861008-20611-1-git-send-email-chris@onthe.net.au>
+ <20111129082501.GA569@onthe.net.au>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51396 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754966Ab1K0Fef (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Sun, 27 Nov 2011 00:34:35 -0500
-In-Reply-To: <1322371662-26166-1-git-send-email-amwang@redhat.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:39645 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204Ab1LAGuc (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 1 Dec 2011 01:50:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20111129082501.GA569@onthe.net.au>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: akpm@linux-foundation.org, Cong Wang <amwang@redhat.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
+To: Chris Dunlop <chris@onthe.net.au>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>, David Howells <dhowells@redhat.com>, Jan Harkes <jaharkes@cs.cmu.edu>, "maintainer:CODA FILE SYSTEM" <coda@cs.cmu.edu>, Dave Kleikamp <shaggy@kernel.org>, Petr Vandrovec <petr@vandrovec.name>, Trond Myklebust <Trond.Myklebust@netapp.com>, Greg Kroah-Hartman <gregkh@suse.de>, Al Viro <viro@zeniv.linux.org.uk>, v9fs-developer@lists.sourceforge.net, linux-afs@lists.infradead.org, codalist@TELEMANN.coda.cs.cmu.edu, jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
-Signed-off-by: Cong Wang <amwang@redhat.com>
----
- fs/ecryptfs/mmap.c       |    4 ++--
- fs/ecryptfs/read_write.c |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+--wzJLGUyc3ArbnUjN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 6a44148..5e29bf4 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -146,7 +146,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
- 			/* This is a header extent */
- 			char *page_virt;
- 
--			page_virt = kmap_atomic(page, KM_USER0);
-+			page_virt = kmap_atomic(page);
- 			memset(page_virt, 0, PAGE_CACHE_SIZE);
- 			/* TODO: Support more than one header extent */
- 			if (view_extent_num == 0) {
-@@ -159,7 +159,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
- 							       crypt_stat,
- 							       &written);
- 			}
--			kunmap_atomic(page_virt, KM_USER0);
-+			kunmap_atomic(page_virt);
- 			flush_dcache_page(page);
- 			if (rc) {
- 				printk(KERN_ERR "%s: Error reading xattr "
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 3745f7c..102719c8 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -151,7 +151,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
-+		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
- 
- 		/*
- 		 * pos: where we're now writing, offset: where the request was
-@@ -174,7 +174,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			       (data + data_offset), num_bytes);
- 			data_offset += num_bytes;
- 		}
--		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
-+		kunmap_atomic(ecryptfs_page_virt);
- 		flush_dcache_page(ecryptfs_page);
- 		SetPageUptodate(ecryptfs_page);
- 		unlock_page(ecryptfs_page);
-@@ -330,11 +330,11 @@ int ecryptfs_read(char *data, loff_t offset, size_t size,
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
-+		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
- 		memcpy((data + data_offset),
- 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
- 		       num_bytes);
--		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
-+		kunmap_atomic(ecryptfs_page_virt);
- 		flush_dcache_page(ecryptfs_page);
- 		SetPageUptodate(ecryptfs_page);
- 		unlock_page(ecryptfs_page);
--- 
-1.7.4.4
+On 2011-11-29 19:25:01, Chris Dunlop wrote:
+> Hi,
+>=20
+> I haven't seen any response to this patch which fixes an Oops in
+> d_revalidate. I hit this using NFS, but various other file
+> systems look to be likewise vulnerable, hence the broadness of
+> the patch. The sequence leading to the Oops is:
+>=20
+> lookup_one_len() [fs/namei.c]
+>    calls __lookup_hash() [fs/namei.c] with nd =3D=3D NULL,
+>       which can then call the file system specific d_revalidate(), passin=
+g in nd =3D=3D NULL
+>          which will then Oops if nd is used without checking
+
+Hey Chris - Can you share what you were trying to do when you hit this?
+Were you stacking eCryptfs on top of NFS? Another stacked filesystem on
+top of NFS?
+
+Do you *need* a stacked filesystem to work on top of NFS? If so, we'll
+need to discuss a way forward. Al has previously shown a dislike of
+eCryptfs passing around nameidata (for good reason), but that is what
+NFS currently requires. I looked at doing this a few months back, but
+never got to the implementation stage.
+
+As David mentioned, Al's atomic open patches might solve all of this in
+the future, but I don't know much about that patchset. Is there any
+relevant info you could provide about those patches, Al?
+
+Tyler
+
+--wzJLGUyc3ArbnUjN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJO1yOwAAoJENaSAD2qAscKpgsP/jbJrsnjhcXnxKLTMRRMZ+Pn
+N2AQYEa74BEKGzSIA71kqhg4GlHH49M35BFl9APWaYPaAefUIEmkF9hVPUAekY72
+d3GaZAIsNAnydTD2eR4kPrzU+QiKizMGkFLe60E5TIkxESQ1cNu/YkvrA0TrJyEZ
+RFOY1/IIp605C/OXSeOjXAOPIylpVwEiJNy28xoH6Wa8eNLGuaoOJ2d6sZ30B01G
+3mhjQO+Iib+SA2NZTSNqtqBMmGu72+fbmHQVlF7qUrVMv3b9g34NKEbzNiz3meXH
+0cRdkb7C+tJUC5apdR0xr5Tp84UnOXERUlNW1CX/m6vVZ+cOgy86rGZ4EswA4Rfn
+mKaNhd/tMRajTud86TGzrywayKfXmdy7QxApdYQOIdVuczqQHfwaaPOrVqQyruU0
+zWt7T/LZVdKImvJH9B8KSeaS+lUE7VyBy/LslT4BAkplfavlivD4hyT9KQo7++uZ
+AdZ7gqWvrog8dCrysot//dVhK8v8Kg8PaX2RZwIi6bMtxUGlIbBwOljGglD4XNEZ
+Kw7AIZgZYztp4TmzEQl1sphidHC8DhTtOaLF4ia6qhQlHCNJH8mwJI/n3jY4ESw2
+meDExAgRfcbRS/ontjAicKv/Q0WIamtfd7tMUQikPWATfjFtfb8zKHR8FcE5lfA5
+e/AvHS+GLFmy73bkFvKv
+=G/79
+-----END PGP SIGNATURE-----
+
+--wzJLGUyc3ArbnUjN--
