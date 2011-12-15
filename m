@@ -1,95 +1,71 @@
-From: Christian Kujau <lists@nerdbynature.de>
-Subject: Re: ecryptfs & ssh authentication
-Date: Tue, 13 Dec 2011 00:25:39 -0800 (PST)
-Message-ID: <alpine.DEB.2.01.1112130002380.787@trent.utfs.org>
-References: <alpine.DEB.2.01.1112120042000.787@trent.utfs.org>
+From: Dustin Kirkland <dustin.kirkland@gazzang.com>
+Subject: Re: eCryptfs: how to submit a patch
+Date: Thu, 15 Dec 2011 17:00:40 -0600
+Message-ID: <CANT6BaOQVv6TnnEVqmHYadAAeFv-u7J1T7F1BuBo=WQoka_PMw@mail.gmail.com>
+References: <4EEA6267.2020509@qoben.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from trent.utfs.org ([194.246.123.103]:51924 "EHLO trent.utfs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753099Ab1LMIZm (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 13 Dec 2011 03:25:42 -0500
-Received: from trent.utfs.org (localhost [127.0.0.1])
-	by trent.utfs.org (Postfix) with ESMTP id 32A1B3DAD3
-	for <ecryptfs@vger.kernel.org>; Tue, 13 Dec 2011 09:25:39 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by trent.utfs.org (Postfix) with ESMTP id 1B2113DAD2
-	for <ecryptfs@vger.kernel.org>; Tue, 13 Dec 2011 09:25:39 +0100 (CET)
-In-Reply-To: <alpine.DEB.2.01.1112120042000.787@trent.utfs.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:39923 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759655Ab1LOXAk (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 15 Dec 2011 18:00:40 -0500
+Received: by pbdu13 with SMTP id u13so483994pbd.19
+        for <ecryptfs@vger.kernel.org>; Thu, 15 Dec 2011 15:00:40 -0800 (PST)
+In-Reply-To: <4EEA6267.2020509@qoben.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: Ben Siemerink <ben@qoben.com>
+Cc: Tyler C Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
 
-On Mon, 12 Dec 2011 at 03:06, Christian Kujau wrote:
-> But I also wanted to login via SSH keys - so I configured openssh to use  
-> /etc/ssh/authorized_keys.%u as its AuthorizedKeysFile and I can login with 
-> public key authentication - so far, so good.
-> 
-> For the first few logins the home directory is mounted - but then it 
-> stops and a few logins (and logouts) later I still can login via SSH
-> keys - but the home directory just isn't mounted any more.
+On Thu, Dec 15, 2011 at 3:11 PM, Ben Siemerink <ben@qoben.com> wrote:
+> Hello Douglas,
 
-After a very helpful chat in #ecryptfs I was told that sshd will have no 
-way to unlock $HOME when SSH keys are being used, since no passphrase is 
-provided. When logging in locally (via "login") or with password 
-authentication, $HOME is unlocked.
+Howdy, I go by "Dustin", FWIW...
 
-> 3) login joe    -> logged in, $HOME is mounted -> OK
-> 4) login via ssh, with keys/passwords a few times. After
->    some 5 or 10 logins the home directory is only mounted for
->    password logins. Logging in via key still succeeds, but
->    the home directory is not mounted any more
+> How are you?
+>
+> I am looking into eCryptfs and Ubuntu's auto-mounting private home
+> directory. I already use it on my laptop, but now want to secure the home
+> directories on my development computer as well.
+>
+> Anyway, I saw that the key length is hard-coded in the
+> mount.ecryptfs_private utility and tried to change it and recompile it.
+> Doing so I encountered the incorrect usage of the locally defined KEY_LENGTH
+> for the signature length, which should be ECRYPTFS_SIG_SIZE_HEX as defined
+> in ecryptfs.h.
 
-It was a bit of a mystery that it worked a few times and then suddenly 
-stopped. But it turned out that even after logging out (and $HOME being 
-unmounted), therer were leftover processes ("login" for local, "sshd" for 
-remote logins) which would not terminate until after a while. But 
-eventually these leftover process would clear and all what is left from 
-the logged-out user is a shared memory segment and a semaphore:
+I think you should be able to do this already, using the "ALIAS"
+feature, as described in the manpage:
+ * http://manpg.es/mount.ecryptfs_private
 
------------
-# ipcs
+> I have a patch ready, but have no experience with submitting code to
+> Launchpad. What is the preferred way to submit the code? Create a new branch
+> on Launchpad? Send you the patch by email?
 
------- Shared Memory Segments --------
-key        shmid      owner      perms      bytes      nattch     status
-0x3c81b7f5 32768      joe        666        4096       0
+Ah, well, that's a good question!  As a response, I just committed a
+new file to the repository, CONTRIBUTING, which you can see here:
+ * http://bazaar.launchpad.net/~ecryptfs/ecryptfs/trunk/view/head:/CONTRIBUTING
 
------- Semaphore Arrays --------
-key        semid      owner      perms      nsems
-0x3c81b7f6 32768      joe        666        1
+> Furthermore I would like the Private directory feature to accept various key
+> lengths (16, 24 and 32 bytes). I saw that the current code explicitly
+> ignores mount options in the alias.conf files. I guess that there may be
+> security reasons for doing so, perhaps because of the set-uid permission.
+> Could you please shed some light on it?
 
------- Message Queues --------
-key        msqid  
------------
+Right, it is essential that any user-provided input to
+mount.ecryptfs_private is *totally* sanitized, since it is a setuid
+binary.
 
-And while these things are still present, I could always login with 
-ssh-keys and $HOME would be unlocked & mounted every time (although it 
-should not!) and unmounted on logout.
+I'd suggest first that you try the aforementioned ALIAS feature, and
+see if that works well enough for you.  If it doesn't, then yeah, send
+your patch along!  We're always happy to have new contributions :-)
 
-As soon as I remove (ipcrm) the shm segment *and* the semaphore (I really 
-needed to remove both), this behaviour could not longer be reproduced and
-I had to use password logins ("login" or ssh-with-passord) to unlock
-(and mount) the $HOME directory - now it would work as expected!
-
-@Tyler: Yes, this shm business might just be a coincidence and maybe it
-        is. That's just what I'm currently seeing.
-
-But all this was with ecryptfs-utils-83-4 on a Debian/squeeze system and 
-could NOT be reproduced any more with ecryptfs-utils-92-0ubuntu1 
-(Ubuntu/oneiric) - except for those leftover processes. I've opened 
-#903582[0] for those to be looked at.
-
-So, this PowerPC system of mine was actually behaving correctly (it 
-eventually stopped unlocking my $HOME when ssh keys were used) while
-the faster i386 machine is acting erroneously - who would've thought? :-)
-
-Thanks for listening,
-Christian.
-
-[0] https://bugs.launchpad.net/ecryptfs/+bug/903582
 -- 
-BOFH excuse #82:
+:-Dustin
 
-Yeah, yo mama dresses you funny and you need a mouse to delete files.
+Dustin Kirkland
+Chief Architect
+Gazzang, Inc.
+www.gazzang.com
