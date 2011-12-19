@@ -1,71 +1,111 @@
-From: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Subject: Re: eCryptfs: how to submit a patch
-Date: Thu, 15 Dec 2011 17:00:40 -0600
-Message-ID: <CANT6BaOQVv6TnnEVqmHYadAAeFv-u7J1T7F1BuBo=WQoka_PMw@mail.gmail.com>
-References: <4EEA6267.2020509@qoben.com>
+From: Martin Steigerwald <ms@teamix.de>
+Subject: ecryptfs_write_metadata: Error writing metadata out to lower file; rc = [-13]
+Date: Mon, 19 Dec 2011 13:26:19 +0100
+Message-ID: <201112191326.20172.ms@teamix.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:39923 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759655Ab1LOXAk (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 15 Dec 2011 18:00:40 -0500
-Received: by pbdu13 with SMTP id u13so483994pbd.19
-        for <ecryptfs@vger.kernel.org>; Thu, 15 Dec 2011 15:00:40 -0800 (PST)
-In-Reply-To: <4EEA6267.2020509@qoben.com>
+Received: from postman.teamix.net ([194.150.191.120]:53724 "EHLO
+	rproxy.teamix.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752450Ab1LSMdt convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Dec 2011 07:33:49 -0500
+Received: from zimbra.of.teamix.net (unknown [172.21.242.23])
+	by rproxy.teamix.net (Postfix) with ESMTP id C8C2B7EEA
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:26:22 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by zimbra.of.teamix.net (Postfix) with ESMTP id BE85A146C23
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:26:22 +0100 (CET)
+Received: from zimbra.of.teamix.net ([127.0.0.1])
+	by localhost (zimbra.of.teamix.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id OnznxhHunZLW for <ecryptfs@vger.kernel.org>;
+	Mon, 19 Dec 2011 13:26:22 +0100 (CET)
+Received: from mango.localnet (mango.of.teamix.net [172.21.123.1])
+	by zimbra.of.teamix.net (Postfix) with ESMTPSA id 2F57E146BB8
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:26:22 +0100 (CET)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ben Siemerink <ben@qoben.com>
-Cc: Tyler C Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Content-Type: Text/Plain; charset="utf-8"
+To: ecryptfs@vger.kernel.org
 
-On Thu, Dec 15, 2011 at 3:11 PM, Ben Siemerink <ben@qoben.com> wrote:
-> Hello Douglas,
+Hi!
 
-Howdy, I go by "Dustin", FWIW...
+Today I tested again whether ecryptfs would be suitable to replace encf=
+s on my=20
+laptop. But I found several problems. The blocking one is:
 
-> How are you?
->
-> I am looking into eCryptfs and Ubuntu's auto-mounting private home
-> directory. I already use it on my laptop, but now want to secure the home
-> directories on my development computer as well.
->
-> Anyway, I saw that the key length is hard-coded in the
-> mount.ecryptfs_private utility and tried to change it and recompile it.
-> Doing so I encountered the incorrect usage of the locally defined KEY_LENGTH
-> for the signature length, which should be ECRYPTFS_SIG_SIZE_HEX as defined
-> in ecryptfs.h.
+ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning#2> LANG=3DC m=
+ake
+[=E2=80=A6]
+sed: couldn't open temporary file ./sedhqlAcd: Permission denied
+[=E2=80=A6]
 
-I think you should be able to do this already, using the "ALIAS"
-feature, as described in the manpage:
- * http://manpg.es/mount.ecryptfs_private
+ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> LANG=3DC ls =
+-l | tail=20
+-6
+ls: cannot access sedhqlAcd: No such file or directory
+ls: cannot access sedChky0a: No such file or directory
+ls: cannot access sed1eW8Ek: No such file or directory
+ls: cannot access sedEjR2oA: No such file or directory
+ls: cannot access sedb4JEiI: No such file or directory
+ls: cannot access sedy0KQnt: No such file or directory
+-?????????  ? ?  ?            ?            ? sedChky0a
+-?????????  ? ?  ?            ?            ? sedEjR2oA
+----------  1 ms teamix 1143445 Dec  5 10:01 sedNL1bTk
+-?????????  ? ?  ?            ?            ? sedb4JEiI
+-?????????  ? ?  ?            ?            ? sedhqlAcd
+-?????????  ? ?  ?            ?            ? sedy0KQnt
 
-> I have a patch ready, but have no experience with submitting code to
-> Launchpad. What is the preferred way to submit the code? Create a new branch
-> on Launchpad? Send you the patch by email?
 
-Ah, well, that's a good question!  As a response, I just committed a
-new file to the repository, CONTRIBUTING, which you can see here:
- * http://bazaar.launchpad.net/~ecryptfs/ecryptfs/trunk/view/head:/CONTRIBUTING
+Output in dmesg is:
 
-> Furthermore I would like the Private directory feature to accept various key
-> lengths (16, 24 and 32 bytes). I saw that the current code explicitly
-> ignores mount options in the alias.conf files. I guess that there may be
-> security reasons for doing so, perhaps because of the set-uid permission.
-> Could you please shed some light on it?
+ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> sudo tail -2=
+=20
+/var/log/syslog
+Dec 19 13:23:30 merkaba kernel: [50999.570071] ecryptfs_write_metadata:=
+ Error=20
+writing metadata out to lower file; rc =3D [-13]
+Dec 19 13:23:30 merkaba kernel: [50999.570083] Error writing headers; r=
+c =3D=20
+[-13]
 
-Right, it is essential that any user-provided input to
-mount.ecryptfs_private is *totally* sanitized, since it is a setuid
-binary.
 
-I'd suggest first that you try the aforementioned ALIAS feature, and
-see if that works well enough for you.  If it doesn't, then yeah, send
-your patch along!  We're always happy to have new contributions :-)
+Ecryptfs is configured as follows:
 
--- 
-:-Dustin
+merkaba:~> cat .ecryptfsrc
+ecryptfs_unlink_sigs
+ecryptfs_sig=3D[=E2=80=A6]
+ecryptfs_fnek_sig=3D[=E2=80=A6]
+ecryptfs_xattr
+ecryptfs_key_bytes=3D32
+ecryptfs_cipher=3Daes
+ecryptfs_passthrough=3Dn
 
-Dustin Kirkland
-Chief Architect
-Gazzang, Inc.
-www.gazzang.com
+I am using extended attributes to avoid the space waste of 8 KiB per fi=
+le.
+
+The underlying filesystem is:
+
+merkaba:~> grep /home /proc/mounts
+/dev/mapper/merkaba-home /home ext4=20
+rw,noatime,user_xattr,acl,barrier=3D1,stripe=3D128,data=3Dordered 0 0
+/home/.ms /home/ms ecryptfs=20
+rw,relatime,ecryptfs_fnek_sig=3D[=E2=80=A6],ecryptfs_sig=3D[=E2=80=A6],=
+ecryptfs_cipher=3Daes,ecryptfs_key_bytes=3D32,ecryptfs_xattr_metadata,e=
+cryptfs_unlink_sigs=20
+0 0
+
+Kernel is:
+
+ms@merkaba:~> cat /proc/version
+Linux version 3.2.0-rc4-amd64 (Debian 3.2~rc4-1~experimental.1)=20
+(ben@decadent.org.uk) (gcc version 4.6.2 (Debian 4.6.2-5) ) #1 SMP Sun =
+Dec 4=20
+18:38:24 UTC 2011
+
+
+With encfs or from my local workstation via NFS there is no such issue.
+
+Ciao,
+--=20
+Martin Steigerwald - teamix GmbH - http://www.teamix.de
+gpg: 19E3 8D42 896F D004 08AC A0CA 1E10 C593 0399 AE90
