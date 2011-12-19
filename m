@@ -1,68 +1,60 @@
 From: Martin Steigerwald <ms@teamix.de>
-Subject: encryption metadata not stored with filesystem
-Date: Mon, 19 Dec 2011 13:36:04 +0100
-Message-ID: <201112191336.05938.ms@teamix.de>
+Subject: rsync copies twice
+Date: Mon, 19 Dec 2011 14:17:38 +0100
+Message-ID: <201112191417.38799.ms@teamix.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from postman.teamix.net ([194.150.191.120]:54684 "EHLO
+Received: from postman.teamix.net ([194.150.191.120]:37686 "EHLO
 	rproxy.teamix.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751858Ab1LSMgK convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Dec 2011 07:36:10 -0500
+	with ESMTP id S1751974Ab1LSNRn (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Dec 2011 08:17:43 -0500
 Received: from zimbra.of.teamix.net (unknown [172.21.242.23])
-	by rproxy.teamix.net (Postfix) with ESMTP id 583187F39
-	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:36:09 +0100 (CET)
+	by rproxy.teamix.net (Postfix) with ESMTP id AAA7D7EEA
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 14:17:41 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-	by zimbra.of.teamix.net (Postfix) with ESMTP id 4C094146C9D
-	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:36:09 +0100 (CET)
+	by zimbra.of.teamix.net (Postfix) with ESMTP id 9C279146C9D
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 14:17:41 +0100 (CET)
 Received: from zimbra.of.teamix.net ([127.0.0.1])
 	by localhost (zimbra.of.teamix.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id y0Y0p6rPwpEX for <ecryptfs@vger.kernel.org>;
-	Mon, 19 Dec 2011 13:36:08 +0100 (CET)
+	with ESMTP id aRVtNV7C8A2j for <ecryptfs@vger.kernel.org>;
+	Mon, 19 Dec 2011 14:17:41 +0100 (CET)
 Received: from mango.localnet (mango.of.teamix.net [172.21.123.1])
-	by zimbra.of.teamix.net (Postfix) with ESMTPSA id F00B7146C74
-	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 13:36:08 +0100 (CET)
+	by zimbra.of.teamix.net (Postfix) with ESMTPSA id 4E57A146C87
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 14:17:41 +0100 (CET)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: Text/Plain; charset="utf-8"
+Content-Type: Text/Plain; charset="us-ascii"
 To: ecryptfs@vger.kernel.org
 
 Hi!
 
-On trying to work with ecryptfs I have found that I have to store ecryp=
-tfs=20
-configuration in an undocumented file ~/.ecryptfsrc like:
+I used something like
 
-merkaba:~> cat .ecryptfsrc=20
-ecryptfs_unlink_sigs
-ecryptfs_sig=3D[=E2=80=A6]
-ecryptfs_fnek_sig=3D[=E2=80=A6]
-ecryptfs_xattr
-ecryptfs_key_bytes=3D32
-ecryptfs_cipher=3Daes
-ecryptfs_passthrough=3Dn
+rsync -a -H --acls --xattrs -S -P /home/ms2/ /home/ms
 
-in order to mount ecryptfs without mount options.
+to migrate my data from encfs to ecryptfs where ms2 is the mounted encfs and 
+ms is the mounted ecryptfs.
 
-This makes handling of ecryptfs filesystem more complicated than encfs,=
- since=20
-encfs seems to store encryption metadata in the encrypted directory its=
-elf:
+This appeared to have worked.
 
-merkaba:~> ls -l /home/.ms2/.encfs5
--rw-r----- 1 root root 241 Mai 19  2008 /home/.ms2/.encfs5
+But: When I run the rsync again it will copy all files once again, while it 
+should notice that they are already copied and do not copy them again.
 
-Thus with ecryptfs I have to save the encrypted directory and the files=
-ystem=20
-settings for a backup while with encfs its enough to copy the encrypted=
-=20
-directory.
+Is there any known issue with ecryptfs and rsync? Might also be an issue with 
+encfs as source filesystem tough. I am now copying my encfs to another machine 
+via rsync+ssh onto a BTRFS filesystem to verify this. Okay, this works. On the 
+second attempt no files are copied anymore. So it seems that it is an ecryptfs 
+issue.
 
-Please consider to add this feature in ecryptfs.
+Together with the reported failure to create new files under certain 
+circumstances and the more complicated handling for now I switch back to encfs 
+even though it might be slower.
 
-It will also make setting up ecryptfs easier.
+But I am willing to test again. Most importantly with a fix for the file 
+creation issue I reported.
 
 Thanks,
---=20
+-- 
 Martin Steigerwald - teamix GmbH - http://www.teamix.de
 gpg: 19E3 8D42 896F D004 08AC A0CA 1E10 C593 0399 AE90
