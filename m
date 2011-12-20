@@ -1,118 +1,228 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] eCryptfs: Improve statfs reporting
-Date: Mon, 19 Dec 2011 14:44:58 -0800
-Message-ID: <CAGXu5jKj=UcH_8GXM5EHFbdxx09T_wk003mgGZmfrxKfvVwvVQ@mail.gmail.com>
-References: <1324313961-16531-1-git-send-email-tyhicks@canonical.com>
-	<CAGXu5jKPML0DB55umbVNc1bbZsLB6yosjTtYKNimctyQSytMEQ@mail.gmail.com>
-	<20111219194739.GD14413@boyd>
-Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [PATCH v2] eCryptfs: Improve statfs reporting
+Date: Mon, 19 Dec 2011 18:31:35 -0600
+Message-ID: <1324341095-14086-1-git-send-email-tyhicks@canonical.com>
+References: <CAGXu5jKj=UcH_8GXM5EHFbdxx09T_wk003mgGZmfrxKfvVwvVQ@mail.gmail.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:47057 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095Ab1LSWo6 convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Dec 2011 17:44:58 -0500
-Received: by iaeh11 with SMTP id h11so9213748iae.19
-        for <ecryptfs@vger.kernel.org>; Mon, 19 Dec 2011 14:44:58 -0800 (PST)
-In-Reply-To: <20111219194739.GD14413@boyd>
+Received: from youngberry.canonical.com ([91.189.89.112]:45171 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753641Ab1LTAbl (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Dec 2011 19:31:41 -0500
+In-Reply-To: <CAGXu5jKj=UcH_8GXM5EHFbdxx09T_wk003mgGZmfrxKfvVwvVQ@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, John Johansen <john.johansen@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
+Cc: John Johansen <john.johansen@canonical.com>, Kees Cook <keescook@chromium.org>
 
-On Mon, Dec 19, 2011 at 11:47 AM, Tyler Hicks <tyhicks@canonical.com> w=
-rote:
-> On 2011-12-19 09:35:44, Kees Cook wrote:
->> On Mon, Dec 19, 2011 at 8:59 AM, Tyler Hicks <tyhicks@canonical.com>=
- wrote:
->> > statfs() calls on eCryptfs files returned the wrong filesystem typ=
-e and,
->> > when using filename encryption, the wrong maximum filename length.
->>
->> Thanks for getting this fixed up!
->
-> I appreciate the review!
->
->> > +#define ENC_NAME_MAX_BLOCKLEN_8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A014=
-3
->> > +#define ENC_NAME_MAX_BLOCKLEN_16 =A0 =A0 =A0 143
->> ...
->> > + =A0 =A0 =A0 /* Return an exact amount for the common cases */
->> > + =A0 =A0 =A0 if (lower_namelen =3D=3D NAME_MAX) {
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cipher_blocksize =3D=3D 8) {
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*namelen) =3D ENC_N=
-AME_MAX_BLOCKLEN_8;
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (cipher_blocksize =3D=3D 1=
-6) {
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (*namelen) =3D ENC_N=
-AME_MAX_BLOCKLEN_16;
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->> > + =A0 =A0 =A0 }
->>
->> Why different paths here when the defines are the same?
->
-> I'll get that fixed. I had the 8 byte block size in as just a placeho=
-lder
-> until I could test the max length (I knew 16 byte block size max was =
-143
-> characters, but didn't know the 8 byte max). I should have merged the
-> two paths after discovering that they were both the same value.
->
->> Also, what math is used to determine the "143"?
->
-> No math involved. Just testing.
->
->> > + =A0 =A0 =A0 /* Return a safe estimate for the uncommon cases */
->> > + =A0 =A0 =A0 (*namelen) -=3D ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PRE=
-=46IX_SIZE;
->> > + =A0 =A0 =A0 /* Since this is the max decoded size, subtract 1 "d=
-ecoded block" len */
->> > + =A0 =A0 =A0 (*namelen) =3D ecryptfs_max_decoded_size(*namelen) -=
- 3;
->> > + =A0 =A0 =A0 (*namelen) -=3D ECRYPTFS_TAG_70_MAX_METADATA_SIZE;
->> > + =A0 =A0 =A0 (*namelen) -=3D ECRYPTFS_FILENAME_MIN_RANDOM_PREPEND=
-_BYTES;
->> > + =A0 =A0 =A0 /* Worst case is that the filename is padded nearly =
-a full block size */
->> > + =A0 =A0 =A0 (*namelen) -=3D cipher_blocksize - 1;
->
-> I should probably add a check here to make sure namelen isn't negativ=
-e at this point.
+statfs() calls on eCryptfs files returned the wrong filesystem type and,
+when using filename encryption, the wrong maximum filename length.
 
-Heh, good idea. :)
+If mount-wide filename encryption is enabled, the cipher block size and
+the lower filesystem's max filename length will determine the max
+eCryptfs filename length. Pre-tested, known good lengths are used when
+the lower filesystem's namelen is 255 and a cipher with 8 or 16 byte
+block sizes is used. In other, less common cases, we fall back to a safe
+rounded-down estimate when determining the eCryptfs namelen.
 
->> Would it be less fragile to just use this path for all the
->> calculations? Almost everything is a literal value.
->
-> I agree that just having one path would be cleaner, but this calculat=
-ion
-> is just a rounded down estimate and the hard-coded common cases above
-> should be sufficient the vast majority of the time.
->
-> For the most common case of lower_f_namelen being 255 and a
-> cipher_blocksize of 16, this math comes out to 130. To try to give
-> userspace apps a little more room to work with, I figured it would be
-> better to hard-code in the two common cases.
+https://launchpad.net/bugs/885744
 
-Ah-ha, okay, sounds good to me.
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Reported-by: Kees Cook <keescook@chromium.org>
+---
+Changes from v1:
+ - provide more clarity in the commit message
+ - unify code paths for setting namelen when lower_namelen == NAME_MAX and
+   cipher block size is 8 or 16 bytes
+ - change ecryptfs_set_f_namelen() parameter types from size_t to long, to
+   match the type of struct kstatfs.f_namelen
+ - check if (*namelen) is less than zero after going through the estimation
+   algorithm and, if so, set it to 0
 
->> Would it make sense to reproduce the sizing comments from here into
->> the #defines above, just to avoid losing this documentation?
->
-> These comments were actually a repeat of the comments right above thi=
-s
-> line. That comment section is still there and is what I consider the
-> "official" in-code documentation of a tag 70 packet. Here is the comm=
-ent
-> section:
+ fs/ecryptfs/crypto.c          |   68 ++++++++++++++++++++++++++++++++++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    5 +++
+ fs/ecryptfs/keystore.c        |    9 ++---
+ fs/ecryptfs/super.c           |   14 ++++++++-
+ 4 files changed, 82 insertions(+), 14 deletions(-)
 
-Ah-ha. Excellent. That's what I get for only reading the diff. ;)
-
--Kees
-
---=20
-Kees Cook
-ChromeOS Security
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 2a83425..d3c8776 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -2026,6 +2026,17 @@ out:
+ 	return;
+ }
+ 
++static size_t ecryptfs_max_decoded_size(size_t encoded_size)
++{
++	/* Not exact; conservatively long. Every block of 4
++	 * encoded characters decodes into a block of 3
++	 * decoded characters. This segment of code provides
++	 * the caller with the maximum amount of allocated
++	 * space that @dst will need to point to in a
++	 * subsequent call. */
++	return ((encoded_size + 1) * 3) / 4;
++}
++
+ /**
+  * ecryptfs_decode_from_filename
+  * @dst: If NULL, this function only sets @dst_size and returns. If
+@@ -2044,13 +2055,7 @@ ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+ 	size_t dst_byte_offset = 0;
+ 
+ 	if (dst == NULL) {
+-		/* Not exact; conservatively long. Every block of 4
+-		 * encoded characters decodes into a block of 3
+-		 * decoded characters. This segment of code provides
+-		 * the caller with the maximum amount of allocated
+-		 * space that @dst will need to point to in a
+-		 * subsequent call. */
+-		(*dst_size) = (((src_size + 1) * 3) / 4);
++		(*dst_size) = ecryptfs_max_decoded_size(src_size);
+ 		goto out;
+ 	}
+ 	while (src_byte_offset < src_size) {
+@@ -2275,3 +2280,52 @@ out_free:
+ out:
+ 	return rc;
+ }
++
++#define ENC_NAME_MAX_BLOCKLEN_8_OR_16	143
++
++int ecryptfs_set_f_namelen(long *namelen, long lower_namelen,
++			   struct ecryptfs_mount_crypt_stat *mount_crypt_stat)
++{
++	struct blkcipher_desc desc;
++	struct mutex *tfm_mutex;
++	size_t cipher_blocksize;
++	int rc;
++
++	if (!(mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)) {
++		(*namelen) = lower_namelen;
++		return 0;
++	}
++
++	rc = ecryptfs_get_tfm_and_mutex_for_cipher_name(&desc.tfm, &tfm_mutex,
++			mount_crypt_stat->global_default_fn_cipher_name);
++	if (unlikely(rc)) {
++		(*namelen) = 0;
++		return rc;
++	}
++
++	mutex_lock(tfm_mutex);
++	cipher_blocksize = crypto_blkcipher_blocksize(desc.tfm);
++	mutex_unlock(tfm_mutex);
++
++	/* Return an exact amount for the common cases */
++	if (lower_namelen == NAME_MAX
++	    && (cipher_blocksize == 8 || cipher_blocksize == 16)) {
++		(*namelen) = ENC_NAME_MAX_BLOCKLEN_8_OR_16;
++		return 0;
++	}
++
++	/* Return a safe estimate for the uncommon cases */
++	(*namelen) = lower_namelen;
++	(*namelen) -= ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX_SIZE;
++	/* Since this is the max decoded size, subtract 1 "decoded block" len */
++	(*namelen) = ecryptfs_max_decoded_size(*namelen) - 3;
++	(*namelen) -= ECRYPTFS_TAG_70_MAX_METADATA_SIZE;
++	(*namelen) -= ECRYPTFS_FILENAME_MIN_RANDOM_PREPEND_BYTES;
++	/* Worst case is that the filename is padded nearly a full block size */
++	(*namelen) -= cipher_blocksize - 1;
++
++	if ((*namelen) < 0)
++		(*namelen) = 0;
++
++	return 0;
++}
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index a9f29b1..7cad6b0 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -157,6 +157,9 @@ ecryptfs_get_key_payload_data(struct key *key)
+ #define ECRYPTFS_NON_NULL 0x42 /* A reasonable substitute for NULL */
+ #define MD5_DIGEST_SIZE 16
+ #define ECRYPTFS_TAG_70_DIGEST_SIZE MD5_DIGEST_SIZE
++#define ECRYPTFS_TAG_70_MIN_METADATA_SIZE (1 + 1 + ECRYPTFS_SIG_SIZE + 1 + 1)
++#define ECRYPTFS_TAG_70_MAX_METADATA_SIZE (ECRYPTFS_TAG_70_MIN_METADATA_SIZE \
++					   + 1)
+ #define ECRYPTFS_FEK_ENCRYPTED_FILENAME_PREFIX "ECRYPTFS_FEK_ENCRYPTED."
+ #define ECRYPTFS_FEK_ENCRYPTED_FILENAME_PREFIX_SIZE 23
+ #define ECRYPTFS_FNEK_ENCRYPTED_FILENAME_PREFIX "ECRYPTFS_FNEK_ENCRYPTED."
+@@ -696,6 +699,8 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
+ 			     size_t *packet_size,
+ 			     struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
+ 			     char *data, size_t max_packet_size);
++int ecryptfs_set_f_namelen(long *namelen, long lower_namelen,
++			   struct ecryptfs_mount_crypt_stat *mount_crypt_stat);
+ int ecryptfs_derive_iv(char *iv, struct ecryptfs_crypt_stat *crypt_stat,
+ 		       loff_t offset);
+ 
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index ac1ad48..06aab59 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -678,10 +678,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
+ 	 * Octets N3-N4: Block-aligned encrypted filename
+ 	 *  - Consists of a minimum number of random characters, a \0
+ 	 *    separator, and then the filename */
+-	s->max_packet_size = (1                   /* Tag 70 identifier */
+-			      + 3                 /* Max Tag 70 packet size */
+-			      + ECRYPTFS_SIG_SIZE /* FNEK sig */
+-			      + 1                 /* Cipher identifier */
++	s->max_packet_size = (ECRYPTFS_TAG_70_MAX_METADATA_SIZE
+ 			      + s->block_aligned_filename_size);
+ 	if (dest == NULL) {
+ 		(*packet_size) = s->max_packet_size;
+@@ -933,10 +930,10 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
+ 		goto out;
+ 	}
+ 	s->desc.flags = CRYPTO_TFM_REQ_MAY_SLEEP;
+-	if (max_packet_size < (1 + 1 + ECRYPTFS_SIG_SIZE + 1 + 1)) {
++	if (max_packet_size < ECRYPTFS_TAG_70_MIN_METADATA_SIZE) {
+ 		printk(KERN_WARNING "%s: max_packet_size is [%zd]; it must be "
+ 		       "at least [%d]\n", __func__, max_packet_size,
+-			(1 + 1 + ECRYPTFS_SIG_SIZE + 1 + 1));
++		       ECRYPTFS_TAG_70_MIN_METADATA_SIZE);
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+diff --git a/fs/ecryptfs/super.c b/fs/ecryptfs/super.c
+index dbd52d40..a04d9ef 100644
+--- a/fs/ecryptfs/super.c
++++ b/fs/ecryptfs/super.c
+@@ -30,6 +30,8 @@
+ #include <linux/seq_file.h>
+ #include <linux/file.h>
+ #include <linux/crypto.h>
++#include <linux/statfs.h>
++#include <linux/magic.h>
+ #include "ecryptfs_kernel.h"
+ 
+ struct kmem_cache *ecryptfs_inode_info_cache;
+@@ -103,10 +105,20 @@ static void ecryptfs_destroy_inode(struct inode *inode)
+ static int ecryptfs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
++	int rc;
+ 
+ 	if (!lower_dentry->d_sb->s_op->statfs)
+ 		return -ENOSYS;
+-	return lower_dentry->d_sb->s_op->statfs(lower_dentry, buf);
++
++	rc = lower_dentry->d_sb->s_op->statfs(lower_dentry, buf);
++	if (rc)
++		return rc;
++
++	buf->f_type = ECRYPTFS_SUPER_MAGIC;
++	rc = ecryptfs_set_f_namelen(&buf->f_namelen, buf->f_namelen,
++	       &ecryptfs_superblock_to_private(dentry->d_sb)->mount_crypt_stat);
++
++	return rc;
+ }
+ 
+ /**
+-- 
+1.7.5.4
