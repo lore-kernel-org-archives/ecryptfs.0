@@ -1,165 +1,190 @@
 From: Martin Steigerwald <ms@teamix.de>
 Subject: Re: ecryptfs_write_metadata: Error writing metadata out to lower file; rc = [-13]
-Date: Tue, 20 Dec 2011 09:46:13 +0100
-Message-ID: <201112200946.14550.ms@teamix.de>
-References: <201112191326.20172.ms@teamix.de> <20111220010617.GF14413@boyd>
+Date: Tue, 20 Dec 2011 10:45:04 +0100
+Message-ID: <201112201045.04553.ms@teamix.de>
+References: <201112191326.20172.ms@teamix.de> <20111220010617.GF14413@boyd> <201112200946.14550.ms@teamix.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from postman.teamix.net ([194.150.191.120]:49520 "EHLO
+Received: from postman.teamix.net ([194.150.191.120]:35871 "EHLO
 	rproxy.teamix.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751638Ab1LTIqS convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 20 Dec 2011 03:46:18 -0500
-In-Reply-To: <20111220010617.GF14413@boyd>
+	with ESMTP id S1751944Ab1LTJpI convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 20 Dec 2011 04:45:08 -0500
+In-Reply-To: <201112200946.14550.ms@teamix.de>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: Text/Plain; charset="utf-8"
 To: Tyler Hicks <tyhicks@canonical.com>
 Cc: ecryptfs@vger.kernel.org
 
-Am Dienstag, 20. Dezember 2011 schrieb Tyler Hicks:
-> On 2011-12-19 13:26:19, Martin Steigerwald wrote:
-> > Hi!
+Am Dienstag, 20. Dezember 2011 schrieb Martin Steigerwald:
+> > > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning#2> LANG=
+=3DC
+> > > make [=E2=80=A6]
+> > > sed: couldn't open temporary file ./sedhqlAcd: Permission denied
+> > > [=E2=80=A6]
+> > >
+> > >=20
+> > >
+> > > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> LANG=3D=
+C ls -l
+> > > | tail -6
+> > > ls: cannot access sedhqlAcd: No such file or directory
+> > > ls: cannot access sedChky0a: No such file or directory
+> > > ls: cannot access sed1eW8Ek: No such file or directory
+> > > ls: cannot access sedEjR2oA: No such file or directory
+> > > ls: cannot access sedb4JEiI: No such file or directory
+> > > ls: cannot access sedy0KQnt: No such file or directory
+> > > -?????????  ? ?  ?            ?            ? sedChky0a
+> > > -?????????  ? ?  ?            ?            ? sedEjR2oA
+> > > ----------  1 ms teamix 1143445 Dec  5 10:01 sedNL1bTk
+> > > -?????????  ? ?  ?            ?            ? sedb4JEiI
+> > > -?????????  ? ?  ?            ?            ? sedhqlAcd
+> > > -?????????  ? ?  ?            ?            ? sedy0KQnt
+> > >
+> > >=20
+> > >=20
+> > >
+> > > Output in dmesg is:
+> > >=20
+> > >
+> > > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> sudo t=
+ail -2
+> > > /var/log/syslog
+> > > Dec 19 13:23:30 merkaba kernel: [50999.570071] ecryptfs_write_met=
+adata:
+> > > Error writing metadata out to lower file; rc =3D [-13]
+> > > Dec 19 13:23:30 merkaba kernel: [50999.570083] Error writing head=
+ers;
+> > > rc =3D [-13]
+> > >
+> > >=20
+> > >=20
+> > >
+> > > Ecryptfs is configured as follows:
+> > >=20
+> > >
+> > > merkaba:~> cat .ecryptfsrc
+> > > ecryptfs_unlink_sigs
+> > > ecryptfs_sig=3D[=E2=80=A6]
+> > > ecryptfs_fnek_sig=3D[=E2=80=A6]
+> > > ecryptfs_xattr
+> > > ecryptfs_key_bytes=3D32
+> > > ecryptfs_cipher=3Daes
+> > > ecryptfs_passthrough=3Dn
+> > >
+> > >=20
+> > >
+> > > I am using extended attributes to avoid the space waste of 8 KiB =
+per
+> > > file.
+> >
 > >=20
-> > Today I tested again whether ecryptfs would be suitable to replace =
-encfs
-> > on my
+> >
+> > I must warn you that the ecryptfs_xattr_metadata option is rarely u=
+sed
+> > by anyone and gets little testing from me upstream. I understand th=
+e
+> > desire to save some space, but you should also consider stability h=
+ere.
+> > I'm working to automate some of that testing soon, so there is hope=
+ that
+> > things could get better in this area.
 >=20
-> > laptop. But I found several problems. The blocking one is:
-> Sorry, hopefully we can get them straightened out.
-
-Thanks for taking care.
-
-There is no hurry. Encfs basically works reliably. Only thing is, that =
-it is=20
-slow at times and tends to use quite a bit of CPU time even on this Thi=
-nkPad=20
-T520 with Intel Sandybridge i5 and Intel SSD 320. I hope that this will=
- be=20
-better with ecryptfs.
-=20
-> > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning#2> LANG=3D=
-C make
-> > [=E2=80=A6]
-> > sed: couldn't open temporary file ./sedhqlAcd: Permission denied
-> > [=E2=80=A6]
-> >=20
-> > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> LANG=3DC=
- ls -l |
-> > tail -6
-> > ls: cannot access sedhqlAcd: No such file or directory
-> > ls: cannot access sedChky0a: No such file or directory
-> > ls: cannot access sed1eW8Ek: No such file or directory
-> > ls: cannot access sedEjR2oA: No such file or directory
-> > ls: cannot access sedb4JEiI: No such file or directory
-> > ls: cannot access sedy0KQnt: No such file or directory
-> > -?????????  ? ?  ?            ?            ? sedChky0a
-> > -?????????  ? ?  ?            ?            ? sedEjR2oA
-> > ----------  1 ms teamix 1143445 Dec  5 10:01 sedNL1bTk
-> > -?????????  ? ?  ?            ?            ? sedb4JEiI
-> > -?????????  ? ?  ?            ?            ? sedhqlAcd
-> > -?????????  ? ?  ?            ?            ? sedy0KQnt
-> >=20
-> >=20
-> > Output in dmesg is:
-> >=20
-> > ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> sudo tai=
-l -2
-> > /var/log/syslog
-> > Dec 19 13:23:30 merkaba kernel: [50999.570071] ecryptfs_write_metad=
-ata:
-> > Error writing metadata out to lower file; rc =3D [-13]
-> > Dec 19 13:23:30 merkaba kernel: [50999.570083] Error writing header=
-s; rc
-> > =3D [-13]
-> >=20
-> >=20
-> > Ecryptfs is configured as follows:
-> >=20
-> > merkaba:~> cat .ecryptfsrc
-> > ecryptfs_unlink_sigs
-> > ecryptfs_sig=3D[=E2=80=A6]
-> > ecryptfs_fnek_sig=3D[=E2=80=A6]
-> > ecryptfs_xattr
-> > ecryptfs_key_bytes=3D32
-> > ecryptfs_cipher=3Daes
-> > ecryptfs_passthrough=3Dn
-> >=20
-> > I am using extended attributes to avoid the space waste of 8 KiB pe=
-r
-> > file.
+> Okay. Thanks for the warning.
 >=20
-> I must warn you that the ecryptfs_xattr_metadata option is rarely use=
-d
-> by anyone and gets little testing from me upstream. I understand the
-> desire to save some space, but you should also consider stability her=
-e.
-> I'm working to automate some of that testing soon, so there is hope t=
-hat
-> things could get better in this area.
-
-Okay. Thanks for the warning.
-
-Why is that? Obviously it seems to me that xattr has quite some advanta=
-ges? I=20
-find 8 KiB per file quite some space waste. Rsync can copy xattrs so ba=
-ckup is=20
-possible. But then the directory I want to encrypt is only about 63600 =
-files.=20
-That would make 508800 KiB. Well even that is about half an GiB. Well c=
-ould be=20
-acceptable for now since its at least an 300 GB SSD.
-
-But does it also mean more writes? Not that it should matter much. Migh=
-t make=20
-sense to test it this way anyway. When I understand it correctly, this =
-error=20
-should not happen then. I think I will try it.
-
-My other home directory has about 852550 files and there about 3,25 GiB=
- would=20
-be wasted. Too good that I do not plan to encrypt it right now. ;)
-
-Do you now about xfstests test suite? Maybe a suitable sub selection of=
- tests=20
-in there could help with testing ecryptfs.
-=20
-> > The underlying filesystem is:
-> >=20
-> > merkaba:~> grep /home /proc/mounts
-> > /dev/mapper/merkaba-home /home ext4
-> > rw,noatime,user_xattr,acl,barrier=3D1,stripe=3D128,data=3Dordered 0=
- 0
-> > /home/.ms /home/ms ecryptfs
-> > rw,relatime,ecryptfs_fnek_sig=3D[=E2=80=A6],ecryptfs_sig=3D[=E2=80=A6=
-],ecryptfs_cipher=3Daes,ec
-> > ryptfs_key_bytes=3D32,ecryptfs_xattr_metadata,ecryptfs_unlink_sigs =
-0 0
-> >=20
-> > Kernel is:
-> >=20
-> > ms@merkaba:~> cat /proc/version
-> > Linux version 3.2.0-rc4-amd64 (Debian 3.2~rc4-1~experimental.1)
+> Why is that? Obviously it seems to me that xattr has quite some advan=
+tages?
+> I  find 8 KiB per file quite some space waste. Rsync can copy xattrs =
+so
+> backup is possible. But then the directory I want to encrypt is only =
+about
+> 63600 files. That would make 508800 KiB. Well even that is about half=
+ an
+> GiB. Well could be acceptable for now since its at least an 300 GB SS=
+D.
 >=20
-> Ok, I was able to reproduce this on roughly the same kernel version b=
-y
-> untar'ing the kernel source.
->=20
-> I'll have to do some more investigation into how we can handle this
-> error better. ext4 is returning an error when we're trying to create =
-the
-> xattr upon file creation, so how we convey that to userspace through =
-the
-> creat() return value and how we clean up after ourselves is probably =
-the
-> issue here.
+> But does it also mean more writes? Not that it should matter much. Mi=
+ght
+> make  sense to test it this way anyway. When I understand it correctl=
+y,
+> this error should not happen then. I think I will try it.
 
-Why is Ext4 returning an error? Shouldn=C2=B4t it just set the attribut=
-e and thats=20
-it? Maybe it has an issue doing it upon file creation? Could an Ext4 bu=
-g be=20
-involved here? I am willing to report with to Ext4 developers if need b=
-e.
+Okay, I now tried without putting metadata in extended attributes.
+
+This works. Above issue didn=C2=B4t show up.
+
+Space waste is approximately as estimated:
+
+merkaba:~> du -s /home/ms=20
+13672464        /home/ms
+merkaba:~> du -s /home/ms2
+13155688        /home/ms2
+
+And generating slides for my linux trainings has become a *whole lot* f=
+aster.=20
+I didn't expect such a kind of performance improvement - more than twic=
+e as=20
+fast:
+
+encfs:
+
+ms@merkaba:/home/ms2/Training/TXS-svn/Linux_15_Performance_Tuning>=20
+/usr/bin/time -v make
+[=E2=80=A6]
+        Command being timed: "make"
+        User time (seconds): 40.25
+        System time (seconds): 4.41
+        Percent of CPU this job got: 87%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:51.01
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 1162240
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 68
+        Minor (reclaiming a frame) page faults: 219219
+        Voluntary context switches: 428959
+        Involuntary context switches: 14977
+        Swaps: 0
+        File system inputs: 179032
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+
+ecryptfs:
+
+ms@merkaba:~/Training/TXS-svn/Linux_15_Performance_Tuning> /usr/bin/tim=
+e -v=20
+make
+[=E2=80=A6]
+        Command being timed: "make"
+        User time (seconds): 42.11
+        System time (seconds): 1.39
+        Percent of CPU this job got: 191%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:22.70
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 1221664
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 162
+        Minor (reclaiming a frame) page faults: 238379
+        Voluntary context switches: 7180
+        Involuntary context switches: 13078
+        Swaps: 0
+        File system inputs: 195680
+        File system outputs: 64032
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
 
 Thanks,
 --=20
