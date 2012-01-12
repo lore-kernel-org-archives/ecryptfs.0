@@ -1,53 +1,61 @@
-From: Pekka Enberg <penberg@kernel.org>
+From: Sasha Levin <levinsasha928@gmail.com>
 Subject: Re: [PATCH] mm: Don't warn if memdup_user fails
-Date: Thu, 12 Jan 2012 09:12:12 +0200 (EET)
-Message-ID: <alpine.LFD.2.02.1201120909510.2652@tux.localdomain>
-References: <1326300636-29233-1-git-send-email-levinsasha928@gmail.com> <20120111141219.271d3a97.akpm@linux-foundation.org>
+Date: Thu, 12 Jan 2012 10:06:34 +0200
+Message-ID: <1326355594.1999.7.camel@lappy>
+References: <1326300636-29233-1-git-send-email-levinsasha928@gmail.com>
+	 <20120111141219.271d3a97.akpm@linux-foundation.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:64963 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533Ab2ALHMZ (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 02:12:25 -0500
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:51391 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804Ab2ALIGj (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 03:06:39 -0500
 In-Reply-To: <20120111141219.271d3a97.akpm@linux-foundation.org>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Sasha Levin <levinsasha928@gmail.com>, lizf@cn.fujitsu.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
+Cc: lizf@cn.fujitsu.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
 
-On Wed, 11 Jan 2012, Andrew Morton wrote:
->> diff --git a/mm/util.c b/mm/util.c
->> index 136ac4f..88bb4d4 100644
->> --- a/mm/util.c
->> +++ b/mm/util.c
->> @@ -91,7 +91,7 @@ void *memdup_user(const void __user *src, size_t len)
->>  	 * cause pagefault, which makes it pointless to use GFP_NOFS
->>  	 * or GFP_ATOMIC.
->>  	 */
->> -	p = kmalloc_track_caller(len, GFP_KERNEL);
->> +	p = kmalloc_track_caller(len, GFP_KERNEL | __GFP_NOWARN);
->>  	if (!p)
->>  		return ERR_PTR(-ENOMEM);
->
+On Wed, 2012-01-11 at 14:12 -0800, Andrew Morton wrote:
 > There's nothing particularly special about memdup_user(): there are
 > many ways in which userspace can trigger GFP_KERNEL allocations.
->
+> 
 > The problem here (one which your patch carefully covers up) is that
 > ecryptfs_miscdev_write() is passing an unchecked userspace-provided
 > `count' direct into kmalloc().  This is a bit problematic for other
 > reasons: it gives userspace a way to trigger heavy reclaim activity and
 > perhaps even to trigger the oom-killer.
->
+> 
 > A better fix here would be to validate the incoming arg before using
 > it.  Preferably by running ecryptfs_parse_packet_length() before taking
 > a copy of the data.  That would require adding a small copy_from_user()
-> to peek at the message header.
+> to peek at the message header. 
 
-Yup, right you are. I didn't think about the reclaim and oom issue. We 
-should add a big fat warning on top of memdup_user() to tell users to 
-check 'len' for sanity themselves. I think they're now fooled into 
-thinking memdup_user() automagically does the right thing.
+Let's split it to two parts: the specific ecryptfs issue I've given as
+an example here, and a general view about memdup_user().
 
- 			Pekka
+I fully agree that in the case of ecryptfs there's a missing validity
+check, and just calling memdup_user() with whatever the user has passed
+to it is wrong and dangerous. This should be fixed in the ecryptfs code
+and I'll send a patch to do that.
+
+The other part, is memdup_user() itself. Kernel warnings are usually
+reserved (AFAIK) to cases where it would be difficult to notify the user
+since it happens in a flow which the user isn't directly responsible
+for.
+
+memdup_user() is always located in path which the user has triggered,
+and is usually almost the first thing we try doing in response to the
+trigger. In those code flows it doesn't make sense to print a kernel
+warnings and taint the kernel, instead we can simply notify the user
+about that error and let him deal with it any way he wants.
+
+There are more reasons kalloc() can show warnings besides just trying to
+allocate too much, and theres no reason to dump kernel warnings when
+it's easier to notify the user.
+
+-- 
+
+Sasha.
