@@ -1,134 +1,189 @@
-From: Tyler Hicks <tyler.hicks@canonical.com>
+From: Tim Gardner <rtg.canonical@gmail.com>
 Subject: Re: [PATCH 1/2] ecryptfs: Improve metatdata read failure logging
-Date: Thu, 12 Jan 2012 13:00:45 +0100
-Message-ID: <20120112120044.GB4717@boyd>
-References: <1326301242-5817-1-git-send-email-tim.gardner@canonical.com>
- <1326301242-5817-2-git-send-email-tim.gardner@canonical.com>
+Date: Thu, 12 Jan 2012 17:45:04 +0100
+Message-ID: <4F0F0E10.1010107@canonical.com>
+References: <1326301242-5817-1-git-send-email-tim.gardner@canonical.com> <1326301242-5817-2-git-send-email-tim.gardner@canonical.com> <20120112120044.GB4717@boyd>
+Reply-To: tim.gardner@canonical.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
+Content-Type: multipart/mixed;
+ boundary="------------050500060302000800060906"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:58262 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481Ab2ALMAs (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 07:00:48 -0500
-Content-Disposition: inline
-In-Reply-To: <1326301242-5817-2-git-send-email-tim.gardner@canonical.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:42396 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514Ab2ALQpK (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 11:45:10 -0500
+In-Reply-To: <20120112120044.GB4717@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Tim Gardner <tim.gardner@canonical.com>
+To: Tyler Hicks <tyler.hicks@canonical.com>
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, ecryptfs@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050500060302000800060906
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---eJnRUKwClWJh1Khz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 01/12/2012 01:00 PM, Tyler Hicks wrote:
+> On 2012-01-11 18:00:41, Tim Gardner wrote:
+>> There are 3 read failure cases in ecryptfs_read_metadata(), but only 2
+>> of them are uniquely noted by kernel log messages. This patch
+>> identifies and logs each read failure case. It also correctly interprets
+>> a negative return value from ecryptfs_read_lower().
+>
+> I'm not sure that the negative return value was incorrectly interpreted.
+> See below.
+>
+>>
+>> Removes unnecessary variable initialization.
+>>
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: stable@vger.kernel.org
+>> Cc: Tyler Hicks<tyler.hicks@canonical.com>
+>> Signed-off-by: Tim Gardner<tim.gardner@canonical.com>
+>> ---
+>>   fs/ecryptfs/crypto.c |   17 +++++++++++------
+>>   1 files changed, 11 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+>> index d3c8776..ac063bd 100644
+>> --- a/fs/ecryptfs/crypto.c
+>> +++ b/fs/ecryptfs/crypto.c
+>> @@ -1590,8 +1590,8 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+>>    */
+>>   int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+>>   {
+>> -	int rc = 0;
+>> -	char *page_virt = NULL;
+>> +	int rc;
+>> +	char *page_virt;
+>>   	struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
+>>   	struct ecryptfs_crypt_stat *crypt_stat =
+>>   	&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+>> @@ -1611,10 +1611,15 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+>>   	}
+>>   	rc = ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
+>>   				 ecryptfs_inode);
+>> -	if (rc>= 0)
+>> -		rc = ecryptfs_read_headers_virt(page_virt, crypt_stat,
+>> -						ecryptfs_dentry,
+>> -						ECRYPTFS_VALIDATE_HEADER_SIZE);
+>> +	if (rc<  0) {
+>> +		printk(KERN_ERR "%s: Could not read %u bytes\n",
+>> +			__func__, crypt_stat->extent_size);
+>> +		goto out;
+>> +	}
+>
+> This may break things a bit for users that use the
+> ecryptfs_xattr_metadata mount option (which stores the metadata in an
+> xattr, rather than the header of the file). A failure to read the lower
+> file here doesn't matter because the metadata is likely stored in an
+> xattr, which will be found with the ecryptfs_read_xattr_region() call
+> below.
+>
+> I've never liked that ecryptfs potentially looks in both the header and
+> the xattr for metadata, but that's how it has been since the very early
+> days of eCryptfs. I've wanted to change this but there is the potential
+> to break things for users who have a mixture of files with metadata in
+> the header and in the header.
+>
+> Maybe we just go whole hog for 3.3 and only look in either the header or
+> xattr for metadata, depending on whether or not ecryptfs_xattr_metadata
+> is used?
+>
+> I could live with that, but I would definitely not want something like
+> that to go to the stable kernel. Any thoughts?
+>
+> Tyler
+>
 
-On 2012-01-11 18:00:41, Tim Gardner wrote:
-> There are 3 read failure cases in ecryptfs_read_metadata(), but only 2
-> of them are uniquely noted by kernel log messages. This patch
-> identifies and logs each read failure case. It also correctly interprets
-> a negative return value from ecryptfs_read_lower().
+I think you're right. Given the way the metadata checks are coded I 
+think its impossible to disambiguate the 2 failure scenarios. However, 
+its not really relevant that we know which one failed, only the inode of 
+the metadata read that _did_ fail is important.
 
-I'm not sure that the negative return value was incorrectly interpreted.
-See below.
+How about this much simpler patch that is also suitable for stable ? 
+Tested on 3.2.
 
->=20
-> Removes unnecessary variable initialization.
->=20
-> Cc: linux-kernel@vger.kernel.org
-> Cc: stable@vger.kernel.org
-> Cc: Tyler Hicks <tyler.hicks@canonical.com>
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-> ---
->  fs/ecryptfs/crypto.c |   17 +++++++++++------
->  1 files changed, 11 insertions(+), 6 deletions(-)
->=20
-> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> index d3c8776..ac063bd 100644
-> --- a/fs/ecryptfs/crypto.c
-> +++ b/fs/ecryptfs/crypto.c
-> @@ -1590,8 +1590,8 @@ int ecryptfs_read_and_validate_xattr_region(struct =
-dentry *dentry,
->   */
->  int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
->  {
-> -	int rc =3D 0;
-> -	char *page_virt =3D NULL;
-> +	int rc;
-> +	char *page_virt;
->  	struct inode *ecryptfs_inode =3D ecryptfs_dentry->d_inode;
->  	struct ecryptfs_crypt_stat *crypt_stat =3D
->  	    &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
-> @@ -1611,10 +1611,15 @@ int ecryptfs_read_metadata(struct dentry *ecryptf=
-s_dentry)
->  	}
->  	rc =3D ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
->  				 ecryptfs_inode);
-> -	if (rc >=3D 0)
-> -		rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
-> -						ecryptfs_dentry,
-> -						ECRYPTFS_VALIDATE_HEADER_SIZE);
-> +	if (rc < 0) {
-> +		printk(KERN_ERR "%s: Could not read %u bytes\n",
-> +			__func__, crypt_stat->extent_size);
-> +		goto out;
-> +	}
+rtg
+-- 
+Tim Gardner tim.gardner@canonical.com
 
-This may break things a bit for users that use the
-ecryptfs_xattr_metadata mount option (which stores the metadata in an
-xattr, rather than the header of the file). A failure to read the lower
-file here doesn't matter because the metadata is likely stored in an
-xattr, which will be found with the ecryptfs_read_xattr_region() call
-below.
+--------------050500060302000800060906
+Content-Type: text/x-patch;
+ name="0001-ecryptfs-Improve-metadata-read-failure-logging.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-ecryptfs-Improve-metadata-read-failure-logging.patch"
 
-I've never liked that ecryptfs potentially looks in both the header and
-the xattr for metadata, but that's how it has been since the very early
-days of eCryptfs. I've wanted to change this but there is the potential
-to break things for users who have a mixture of files with metadata in
-the header and in the header.
+From 48f75c409ddc00caec88162f53c3155196b17854 Mon Sep 17 00:00:00 2001
+From: Tim Gardner <tim.gardner@canonical.com>
+Date: Thu, 12 Jan 2012 16:31:55 +0100
+Subject: [PATCH 1/1 V2] ecryptfs: Improve metadata read failure logging
 
-Maybe we just go whole hog for 3.3 and only look in either the header or
-xattr for metadata, depending on whether or not ecryptfs_xattr_metadata
-is used?
+Print inode on metadata read failure. The only real
+way of dealing with metadata read failures is to delete
+the underlying file system file. Having the inode
+allows one to 'find . -inum INODE`.
 
-I could live with that, but I would definitely not want something like
-that to go to the stable kernel. Any thoughts?
+Cc: stable@vger.kernel.org
+Cc: Tyler Hicks <tyler.hicks@canonical.com>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+---
+ fs/ecryptfs/crypto.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
-Tyler
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index d3c8776..326d6ab 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -1590,8 +1590,8 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+  */
+ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ {
+-	int rc = 0;
+-	char *page_virt = NULL;
++	int rc;
++	char *page_virt;
+ 	struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+ 	    &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+@@ -1616,11 +1616,13 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ 						ecryptfs_dentry,
+ 						ECRYPTFS_VALIDATE_HEADER_SIZE);
+ 	if (rc) {
++		/* metadata is not in the file header, so try xattrs */
+ 		memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 		rc = ecryptfs_read_xattr_region(page_virt, ecryptfs_inode);
+ 		if (rc) {
+ 			printk(KERN_DEBUG "Valid eCryptfs headers not found in "
+-			       "file header region or xattr region\n");
++			       "file header region or xattr region, inode %lu\n",
++				ecryptfs_inode->i_ino);
+ 			rc = -EINVAL;
+ 			goto out;
+ 		}
+@@ -1629,7 +1631,8 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ 						ECRYPTFS_DONT_VALIDATE_HEADER_SIZE);
+ 		if (rc) {
+ 			printk(KERN_DEBUG "Valid eCryptfs headers not found in "
+-			       "file xattr region either\n");
++			       "file xattr region either, inode %lu\n",
++				ecryptfs_inode->i_ino);
+ 			rc = -EINVAL;
+ 		}
+ 		if (crypt_stat->mount_crypt_stat->flags
+@@ -1640,7 +1643,8 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ 			       "crypto metadata only in the extended attribute "
+ 			       "region, but eCryptfs was mounted without "
+ 			       "xattr support enabled. eCryptfs will not treat "
+-			       "this like an encrypted file.\n");
++			       "this like an encrypted file, inode %lu\n",
++				ecryptfs_inode->i_ino);
+ 			rc = -EINVAL;
+ 		}
+ 	}
+-- 
+1.7.8.3
 
-> +
-> +	rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
-> +					ecryptfs_dentry,
-> +					ECRYPTFS_VALIDATE_HEADER_SIZE);
->  	if (rc) {
->  		memset(page_virt, 0, PAGE_CACHE_SIZE);
->  		rc =3D ecryptfs_read_xattr_region(page_virt, ecryptfs_inode);
-> --=20
-> 1.7.8.3
->=20
 
---eJnRUKwClWJh1Khz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPDstsAAoJENaSAD2qAscKmEAP/0bMm8SIiI14k5S+DaoYljLV
-Uv3wg2coBpa71aSbFJeK7ZY7vRQJl3zQuZ8u5OFkhSf/l5Bk/EM2dOhLJTuWhSCb
-uv9B0Smv04YM/wAywea+s/vfiTPqPM6Vnbwxg9LlN3bx+OoZx0WaFZWc+Fatl5g4
-SD+22hZLT+SVORvc/bxf778WvJ5ypxjGV+moQ87v9tTqrRWgw3cKHBi8WEY/dauG
-Mtpnu2kk3AjvWl4adTGBHyc1kRpWwV4h52B1qbamm4NheMIUM1t1UeQexX6XpT5T
-QZT9Jwqq2FYPDGnI9O4iRQ7sGhqtLWh9cUtZzOj/s6cEvUoa63K1RBMaxrnT70Yi
-cOPcfUR6egl+BAuTzItco3KHsq2j5sqfc8ui+mkiKOF2bbky5T9ZyqLn5Gl3K+C7
-meqygxvMhzLLb1IwZAo3km0vO5ZmRGTQLbAaF5KTbXA5PMOC9HaFcUa1wuhtu+1y
-7wXwyzQz+HHUtFHdbfEmRyqJzM3qQe2LSQsalsShco8qYM8Q5i5MUTw/aiULCaxN
-RknDL2A7x1uGeGkNyeIKetPTXhRUjGQFXmAQWUmhARyRYE01PKqj9FuYzYhhPbsl
-0ejFDK2bDLF2F79ZvbGprU1pJhqbi7rjyQh8CCg6/6cd5QTh+fxbUdiirEiRVThN
-aoLQ5chMRFOD4RjMrQwq
-=wEBl
------END PGP SIGNATURE-----
-
---eJnRUKwClWJh1Khz--
+--------------050500060302000800060906--
