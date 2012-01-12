@@ -1,101 +1,134 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] mm: Don't warn if memdup_user fails
-Date: Thu, 12 Jan 2012 12:16:54 +0100
-Message-ID: <20120112111654.GA4717@boyd>
-References: <1326300636-29233-1-git-send-email-levinsasha928@gmail.com>
- <20120111141219.271d3a97.akpm@linux-foundation.org>
- <1326355594.1999.7.camel@lappy>
+From: Tyler Hicks <tyler.hicks@canonical.com>
+Subject: Re: [PATCH 1/2] ecryptfs: Improve metatdata read failure logging
+Date: Thu, 12 Jan 2012 13:00:45 +0100
+Message-ID: <20120112120044.GB4717@boyd>
+References: <1326301242-5817-1-git-send-email-tim.gardner@canonical.com>
+ <1326301242-5817-2-git-send-email-tim.gardner@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:58085 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:58262 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2ALLRE (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 06:17:04 -0500
+	with ESMTP id S1751481Ab2ALMAs (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 07:00:48 -0500
 Content-Disposition: inline
-In-Reply-To: <1326355594.1999.7.camel@lappy>
+In-Reply-To: <1326301242-5817-2-git-send-email-tim.gardner@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Sasha Levin <levinsasha928@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, lizf@cn.fujitsu.com, penberg@kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
---opJtzjQTFsWo+cga
+--eJnRUKwClWJh1Khz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-01-12 10:06:34, Sasha Levin wrote:
-> On Wed, 2012-01-11 at 14:12 -0800, Andrew Morton wrote:
-> > There's nothing particularly special about memdup_user(): there are
-> > many ways in which userspace can trigger GFP_KERNEL allocations.
-> >=20
-> > The problem here (one which your patch carefully covers up) is that
-> > ecryptfs_miscdev_write() is passing an unchecked userspace-provided
-> > `count' direct into kmalloc().  This is a bit problematic for other
-> > reasons: it gives userspace a way to trigger heavy reclaim activity and
-> > perhaps even to trigger the oom-killer.
-> >=20
-> > A better fix here would be to validate the incoming arg before using
-> > it.  Preferably by running ecryptfs_parse_packet_length() before taking
-> > a copy of the data.  That would require adding a small copy_from_user()
-> > to peek at the message header.=20
->=20
-> Let's split it to two parts: the specific ecryptfs issue I've given as
-> an example here, and a general view about memdup_user().
->=20
-> I fully agree that in the case of ecryptfs there's a missing validity
-> check, and just calling memdup_user() with whatever the user has passed
-> to it is wrong and dangerous. This should be fixed in the ecryptfs code
-> and I'll send a patch to do that.
+On 2012-01-11 18:00:41, Tim Gardner wrote:
+> There are 3 read failure cases in ecryptfs_read_metadata(), but only 2
+> of them are uniquely noted by kernel log messages. This patch
+> identifies and logs each read failure case. It also correctly interprets
+> a negative return value from ecryptfs_read_lower().
 
-I just wrote up a patch for the eCryptfs portion. I'll send it out a
-little later after I get a chance to test it.
+I'm not sure that the negative return value was incorrectly interpreted.
+See below.
+
+>=20
+> Removes unnecessary variable initialization.
+>=20
+> Cc: linux-kernel@vger.kernel.org
+> Cc: stable@vger.kernel.org
+> Cc: Tyler Hicks <tyler.hicks@canonical.com>
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+> ---
+>  fs/ecryptfs/crypto.c |   17 +++++++++++------
+>  1 files changed, 11 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index d3c8776..ac063bd 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -1590,8 +1590,8 @@ int ecryptfs_read_and_validate_xattr_region(struct =
+dentry *dentry,
+>   */
+>  int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+>  {
+> -	int rc =3D 0;
+> -	char *page_virt =3D NULL;
+> +	int rc;
+> +	char *page_virt;
+>  	struct inode *ecryptfs_inode =3D ecryptfs_dentry->d_inode;
+>  	struct ecryptfs_crypt_stat *crypt_stat =3D
+>  	    &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+> @@ -1611,10 +1611,15 @@ int ecryptfs_read_metadata(struct dentry *ecryptf=
+s_dentry)
+>  	}
+>  	rc =3D ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
+>  				 ecryptfs_inode);
+> -	if (rc >=3D 0)
+> -		rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
+> -						ecryptfs_dentry,
+> -						ECRYPTFS_VALIDATE_HEADER_SIZE);
+> +	if (rc < 0) {
+> +		printk(KERN_ERR "%s: Could not read %u bytes\n",
+> +			__func__, crypt_stat->extent_size);
+> +		goto out;
+> +	}
+
+This may break things a bit for users that use the
+ecryptfs_xattr_metadata mount option (which stores the metadata in an
+xattr, rather than the header of the file). A failure to read the lower
+file here doesn't matter because the metadata is likely stored in an
+xattr, which will be found with the ecryptfs_read_xattr_region() call
+below.
+
+I've never liked that ecryptfs potentially looks in both the header and
+the xattr for metadata, but that's how it has been since the very early
+days of eCryptfs. I've wanted to change this but there is the potential
+to break things for users who have a mixture of files with metadata in
+the header and in the header.
+
+Maybe we just go whole hog for 3.3 and only look in either the header or
+xattr for metadata, depending on whether or not ecryptfs_xattr_metadata
+is used?
+
+I could live with that, but I would definitely not want something like
+that to go to the stable kernel. Any thoughts?
 
 Tyler
 
->=20
-> The other part, is memdup_user() itself. Kernel warnings are usually
-> reserved (AFAIK) to cases where it would be difficult to notify the user
-> since it happens in a flow which the user isn't directly responsible
-> for.
->=20
-> memdup_user() is always located in path which the user has triggered,
-> and is usually almost the first thing we try doing in response to the
-> trigger. In those code flows it doesn't make sense to print a kernel
-> warnings and taint the kernel, instead we can simply notify the user
-> about that error and let him deal with it any way he wants.
->=20
-> There are more reasons kalloc() can show warnings besides just trying to
-> allocate too much, and theres no reason to dump kernel warnings when
-> it's easier to notify the user.
->=20
+> +
+> +	rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
+> +					ecryptfs_dentry,
+> +					ECRYPTFS_VALIDATE_HEADER_SIZE);
+>  	if (rc) {
+>  		memset(page_virt, 0, PAGE_CACHE_SIZE);
+>  		rc =3D ecryptfs_read_xattr_region(page_virt, ecryptfs_inode);
 > --=20
->=20
-> Sasha.
+> 1.7.8.3
 >=20
 
---opJtzjQTFsWo+cga
+--eJnRUKwClWJh1Khz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJPDsEmAAoJENaSAD2qAscKhLMP/jO4a+QYsOv/C/GB6W0mEEmY
-tcZIBm04+a8MiEXo9FPaF5/3j3Kgh+vVaQhWol1I4xnUf4Oi7mJbli4yhP9VzCMO
-DKDluE/nkTWWxSif/w1KBfH28WHS/otkobEi6JA5YDgXAQTj6jrtwrt/tBd+CxHk
-u/O8LsspMdl8VHF+k7K6whPzkG57idDrb6754qw1Ne1906Wo6kyjpYJL65XSzrQF
-9JUIkmGPbWLjV+q3NEDjbpATmYOshQcXmA9HUoQLbKibUyKmOEnyRfGnH8jTpMw2
-37gwwC3l6N6mPmHL04Eij9W6HvrD15sikENtQnIBr4HGZf1HkjHZU+siepW0JsO2
-SylWXfCPdRkx6oYKuqeoojHAi80bAZrHAQsV/MtnKcZuZQPqcZRdKzsj+dYu9JF5
-+GbTZNFdccejw1GARuaH0RYTSxGmG7FQcTKUoNl0gRUHChjeLqwz5ImSGjne0By7
-U+a/2G9pGSdaXT3gcYFHFfoV3hDGCeYLGI7SxpLYP3nMRI5NLDMaXEueAq0Y4VA4
-xSmWliP2QG3X0xknE7w7YhFfrdmkig7/OQ/dP1lxPxv+9pohh0MUJu+bupCKAlvn
-nYCZcE/9hK95cyCSOOrQTnLEGCBHOA6OjGMF54JshHcl63jO4fQzNRBT4WDFEPTd
-gIQYq/eREOJ7z7NiouD/
-=l6Vk
+iQIcBAEBCgAGBQJPDstsAAoJENaSAD2qAscKmEAP/0bMm8SIiI14k5S+DaoYljLV
+Uv3wg2coBpa71aSbFJeK7ZY7vRQJl3zQuZ8u5OFkhSf/l5Bk/EM2dOhLJTuWhSCb
+uv9B0Smv04YM/wAywea+s/vfiTPqPM6Vnbwxg9LlN3bx+OoZx0WaFZWc+Fatl5g4
+SD+22hZLT+SVORvc/bxf778WvJ5ypxjGV+moQ87v9tTqrRWgw3cKHBi8WEY/dauG
+Mtpnu2kk3AjvWl4adTGBHyc1kRpWwV4h52B1qbamm4NheMIUM1t1UeQexX6XpT5T
+QZT9Jwqq2FYPDGnI9O4iRQ7sGhqtLWh9cUtZzOj/s6cEvUoa63K1RBMaxrnT70Yi
+cOPcfUR6egl+BAuTzItco3KHsq2j5sqfc8ui+mkiKOF2bbky5T9ZyqLn5Gl3K+C7
+meqygxvMhzLLb1IwZAo3km0vO5ZmRGTQLbAaF5KTbXA5PMOC9HaFcUa1wuhtu+1y
+7wXwyzQz+HHUtFHdbfEmRyqJzM3qQe2LSQsalsShco8qYM8Q5i5MUTw/aiULCaxN
+RknDL2A7x1uGeGkNyeIKetPTXhRUjGQFXmAQWUmhARyRYE01PKqj9FuYzYhhPbsl
+0ejFDK2bDLF2F79ZvbGprU1pJhqbi7rjyQh8CCg6/6cd5QTh+fxbUdiirEiRVThN
+aoLQ5chMRFOD4RjMrQwq
+=wEBl
 -----END PGP SIGNATURE-----
 
---opJtzjQTFsWo+cga--
+--eJnRUKwClWJh1Khz--
