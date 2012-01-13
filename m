@@ -1,60 +1,98 @@
-From: David Rientjes <rientjes@google.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 Subject: Re: [PATCH] mm: Don't warn if memdup_user fails
-Date: Thu, 12 Jan 2012 14:29:10 -0800 (PST)
-Message-ID: <alpine.DEB.2.00.1201121418060.1124@chino.kir.corp.google.com>
-References: <1326300636-29233-1-git-send-email-levinsasha928@gmail.com> <20120111141219.271d3a97.akpm@linux-foundation.org> <1326355594.1999.7.camel@lappy> <CAOJsxLEYY=ZO8QrxiWL6qAxPzsPpZj3RsF9cXY0Q2L44+sn7JQ@mail.gmail.com>
- <alpine.DEB.2.00.1201121309340.17287@chino.kir.corp.google.com> <20120112135803.1fb98fd6.akpm@linux-foundation.org>
+Date: Fri, 13 Jan 2012 10:17:52 +0300
+Message-ID: <20120113071752.GA3802@mwanda>
+References: <1326300636-29233-1-git-send-email-levinsasha928@gmail.com>
+ <20120111141219.271d3a97.akpm@linux-foundation.org>
+ <1326355594.1999.7.camel@lappy>
+ <CAOJsxLEYY=ZO8QrxiWL6qAxPzsPpZj3RsF9cXY0Q2L44+sn7JQ@mail.gmail.com>
+ <alpine.DEB.2.00.1201121309340.17287@chino.kir.corp.google.com>
+ <20120112135803.1fb98fd6.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:42697 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072Ab2ALW3P (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 12 Jan 2012 17:29:15 -0500
-Received: by yhjj63 with SMTP id j63so1238079yhj.19
-        for <ecryptfs@vger.kernel.org>; Thu, 12 Jan 2012 14:29:14 -0800 (PST)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="/9DWx/yDrRhgMJTb"
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
 In-Reply-To: <20120112135803.1fb98fd6.akpm@linux-foundation.org>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>, Sasha Levin <levinsasha928@gmail.com>, lizf@cn.fujitsu.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
+Cc: David Rientjes <rientjes@google.com>, Pekka Enberg <penberg@kernel.org>, Sasha Levin <levinsasha928@gmail.com>, lizf@cn.fujitsu.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>, ecryptfs@vger.kernel.org
 
-On Thu, 12 Jan 2012, Andrew Morton wrote:
 
-> > I think it's good to fix ecryptfs like Tyler is doing and, at the same 
-> > time, ensure that the len passed to memdup_user() makes sense prior to 
+--/9DWx/yDrRhgMJTb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jan 12, 2012 at 01:58:03PM -0800, Andrew Morton wrote:
+> On Thu, 12 Jan 2012 13:19:54 -0800 (PST)
+> David Rientjes <rientjes@google.com> wrote:
+>=20
+> > On Thu, 12 Jan 2012, Pekka Enberg wrote:
+> >=20
+> > > I think you missed Andrew's point. We absolutely want to issue a
+> > > kernel warning here because ecryptfs is misusing the memdup_user()
+> > > API. We must not let userspace processes allocate large amounts of
+> > > memory arbitrarily.
+> > >=20
+> >=20
+> > I think it's good to fix ecryptfs like Tyler is doing and, at the same=
+=20
+> > time, ensure that the len passed to memdup_user() makes sense prior to=
+=20
 > > kmallocing memory with GFP_KERNEL.  Perhaps something like
-> > 
+> >=20
 > > 	if (WARN_ON(len > PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
 > > 		return ERR_PTR(-ENOMEM);
-> > 
+> >=20
 > > in which case __GFP_NOWARN is irrelevant.
-> 
+>=20
 > If someone is passing huge size_t's into kmalloc() and getting failures
-> then that's probably a bug.  So perhaps we should add a warning to
-> kmalloc itself if the size_t is out of bounds, and !__GFP_NOWARN.
-> 
+> then that's probably a bug.
 
-That's already done.  For slub, for example, the largest object size 
-handled by the allocator itself is an order-1 page; everything else gets 
-passed through to the page allocator and its limitation is MAX_ORDER, 
-which is the warning that we're seeing in Sasha's changelog when 
-!__GFP_NOWARN.
+It's pretty common to pass high values to kmalloc().  We've added
+a bunch of integer overflow checks recently where we do:
 
-> But none of this will be very effective.  If someone is passing an
-> unchecked size_t into kmalloc then normal testing will not reveal the
-> problem because the testers won't pass stupid numbers into their
-> syscalls.
-> 
+	if (n > ULONG_MAX / size)
+		return -EINVAL;
 
-They'll get the same warning that Sasha got, which is because the page 
-allocator can't handle larger than MAX_ORDER orders.  The intention in my 
-WARN_ON() above specifically for memdup_user() is to avoid the infinite 
-loop in the page allocator for GFP_KERNEL allocations where the order 
-is less than PAGE_ALLOC_COSTLY_ORDER and avoid the oom killer.  It returns 
-immediately rather than passing __GFP_NORETRY since we don't want to incur 
-the side-effects of direct reclaim or compaction as well.
+The problem is that we didn't set a maximum bound before and we
+can't know which maximum will break compatibility.
 
-The real fix would be to convert all callers to pass gfp flags into 
-memdup_user() to determine the behavior they want, though.
+Probably we shouldn't do that, I guess.
+
+regards,
+dan carpenter
+
+
+--/9DWx/yDrRhgMJTb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPD9qgAAoJEOnZkXI/YHqRu78QAIuERPPRIKr4MrMLicVuU2N/
+J480cGu4SnV+KYbndJpJsIwsgyZQyA+Kzwdb9PWlE+/C2dFkUcDnv+kqBrrat7I3
+AKPQ2fx+ThCELGvlF3OZv5iC69zotV+AqRLNiA5PX3tiUFdSz125CeUKPAQYyHxm
+FtZ3spPLmvw50H0epcXtCCjumUT3CoE+ICkK6wlXSrivBvn7vxDsmyKHHrlJDYGD
+yO/0JJuWKVo74ozElQR/tN9hN1Q5AuH5pQq10h4EkFjpa9ealyknPrUGAbI9DiFT
+NHNduYhbcWeNmSh9HJxUOa5qEdqiy1Ajhp4PwdTgTL+2BgnL44AHWSHbinvczkFP
+j0hS4Yoz5oRX0igVOmPljBcRJkFvuYrQwnucbTNwmWtH4m+Hk0fldIS2VxA8mG87
+DdJ48WhEcdaogPc0KxXOYn/bH54tPwVkCamxI9Kd0TR8XBKWIwLIvvqAkXzDpGqd
+oRHpKFblVsI1qQXK7is8K0bLyg+OWxrauXSJMiUj7vOHUD8Pqfhg42Pw7Uh0BRWo
+Vt+01mHpOlnkbuXgD9JxCgZcvUU/BG8qOio8Vj4wZ/dRnQ4phd+veqP8CNmwPFDb
+JY0ImhBF44xCx3gZAczCux3p4aza98gqwF9XAjMVSsWnHIYl0yo0VNg1aNdSWWa0
+PtJPIOXUvZiD+zL9Z2R3
+=+rJw
+-----END PGP SIGNATURE-----
+
+--/9DWx/yDrRhgMJTb--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
