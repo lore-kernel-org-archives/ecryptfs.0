@@ -1,102 +1,75 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH] eCryptfs: infinite loop bug
-Date: Wed, 18 Jan 2012 23:26:52 +0800
-Message-ID: <4F16E4BC.5080100@gmail.com>
-References: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
+Date: Wed, 18 Jan 2012 12:49:17 -0800
+Message-ID: <CA+55aFx7CV8wpDLfCr-pVVRxRyYgd2QdRXJSmp+UgrjSHyB1eA@mail.gmail.com>
+References: <7f1e961d.f528.134efaf8348.Coremail.dragonylffly@163.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000501060202090503000905"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <7f1e961d.f528.134efaf8348.Coremail.dragonylffly@163.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Li Wang <liwang@nudt.edu.cn>
-Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>
+Content-Type: text/plain; charset="iso-8859-1"
+To: dragonylffly <dragonylffly@163.com>
+Cc: tyhicks@canonical.com, john.johansen@canonical.com, dustin.kirkland@gazzang.com, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000501060202090503000905
-Content-Type: text/plain; charset=gbk; format=flowed
-Content-Transfer-Encoding: 7bit
+Hmm.
 
-On 01/18/2012 03:30 PM, Li Wang wrote:
+There are *two* cases where we do that "total_remaining_bytes"
+calculation. The same bug seems to exist both in ecryptfs_read() and
+ecryptfs_write().
+
+Possibly only the ecryptfs_write() one leads to an endless loop, but
+the read one looks suspicious too.
+
+Also, what protects things against this just being one nasty DoS
+attack - even if the code is fixed to not be an endless loop, it looks
+like a trivial "truncate()" can be used to generate a *practically*
+infinite write stream. At the very least, this should be KILLABLE. Or
+did I mis-read the code?
+
+Tyler, Dustin, others - comments? This looks nasty.
+
+                     Linus.
+
+2012/1/17 dragonylffly <dragonylffly@163.com>:
 > Hi,
->    There is an infinite loop bug in eCryptfs, to make it present,
-> just truncate to generate a huge file (>= 4G) on a 32-bit machine
-> under the plain text foleder mounted with eCryptfs, a simple command
+> =A0 There is an infinite loop bug in eCryptfs, to make it present,
+> just truncate to generate a huge file (>=3D 4G) on a 32-bit machine u=
+nder
+> the plain text foleder mounted with eCryptfs, a simple command
 > 'truncate -s 4G dummy' is enough. Note: 4GB is smaller than 4G,
-> therefore the following command 'truncate -s 4GB dummy' will not trigger this bug.
-> The bug comes from a data overflow, the patch below fixes it.
+> therefore the following command 'truncate -s 4GB dummy' will not
+> trigger=A0this bug. The bug comes from a data overflow, the patch bel=
+ow fixes
+> it.
+>
+> Cheers,
+> Li Wang
+>
+> ---
+>
+> signed-off-by: Li Wang <liwang@nudt.edu.cn>
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Yunchuan Wen (wenyunchuan@=
+kylinos.com.cn)
+>
+> --- read_write.c.orig=A02012-01-18 10:39:26.000000000 +0800
+> +++ read_write.c=A02012-01-18 19:48:41.484196221 +0800
+> @@ -130,7 +130,7 @@
+> =A0=A0=A0pgoff_t ecryptfs_page_idx =3D (pos >> PAGE_CACHE_SHIFT);
+> =A0=A0=A0size_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
+> =A0=A0=A0size_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page=
+);
+> -=A0=A0size_t total_remaining_bytes =3D ((offset + size) - pos);
+> +=A0=A0loff_t total_remaining_bytes =3D ((offset + size) - pos);
+>
+> =A0=A0=A0if (num_bytes > total_remaining_bytes)
+> =A0=A0=A0=A0num_bytes =3D total_remaining_bytes;
 >
 >
-
-Hi,
-
-Your patch is not correctly generated, you need to make the diff on top 
-of the source tree.
-
-Also, after reviewing the code, I think there are more places need to 
-fix. Can you try my patch below?
-
-Thanks.
-
----->
-
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-
-
-
---------------000501060202090503000905
-Content-Type: text/x-patch;
- name="ecryptfs-loff_t.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ecryptfs-loff_t.diff"
-
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index a9f29b1..9ca9c17 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -653,7 +653,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
- 			 loff_t offset, size_t size);
- int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
- 				      struct page *page_for_lower,
--				      size_t offset_in_page, size_t size);
-+				      loff_t offset_in_page, size_t size);
- int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_t size);
- int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
- 			struct inode *ecryptfs_inode);
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 3745f7c..93d80c4 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -72,7 +72,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
-  */
- int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
- 				      struct page *page_for_lower,
--				      size_t offset_in_page, size_t size)
-+				      loff_t offset_in_page, size_t size)
- {
- 	char *virt;
- 	loff_t offset;
-@@ -128,15 +128,15 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 		pos = offset;
- 	while (pos < (offset + size)) {
- 		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
--		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
--		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
--		size_t total_remaining_bytes = ((offset + size) - pos);
-+		loff_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
-+		loff_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
-+		loff_t total_remaining_bytes = ((offset + size) - pos);
- 
- 		if (num_bytes > total_remaining_bytes)
- 			num_bytes = total_remaining_bytes;
- 		if (pos < offset) {
- 			/* remaining zeros to write, up to destination offset */
--			size_t total_remaining_zeros = (offset - pos);
-+			loff_t total_remaining_zeros = (offset - pos);
- 
- 			if (num_bytes > total_remaining_zeros)
- 				num_bytes = total_remaining_zeros;
-
---------------000501060202090503000905--
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
+" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
