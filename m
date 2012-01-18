@@ -1,124 +1,50 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: ecryptfs / aladdin token
-Date: Tue, 17 Jan 2012 12:53:16 -0600
-Message-ID: <20120117185315.GB8155@boyd>
-References: <4F15A514.8050106@gmail.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: [PATCH] eCryptfs: infinite loop bug
+Date: Wed, 18 Jan 2012 15:30:05 +0800
+Message-ID: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47281 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754716Ab2AQSxW (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 17 Jan 2012 13:53:22 -0500
-Content-Disposition: inline
-In-Reply-To: <4F15A514.8050106@gmail.com>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:60825 "HELO nudt.edu.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751571Ab2ARHm0 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 18 Jan 2012 02:42:26 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Space Cake <spacecakex@gmail.com>
-Cc: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-
---mYCpIKhGyMATD0i+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-01-17 17:43:00, Space Cake wrote:
-> Hi,
->=20
-> I'm trying to use an aladdin token to access some sensitive information.
-> Unfortunately I'm getting the following error message
->=20
-> vlad@brutal ~ $ ecryptfs-manager
->=20
-> eCryptfs key management menu
-> -------------------------------
->     1. Add passphrase key to keyring
->     2. Add public key to keyring
->     3. Generate new public/private keypair
->     4. Exit
->=20
-> Make selection: 2
-> [opensc-pkcs11] reader-pcsc.c:896:pcsc_detect_readers: SCardListReaders
-> failed: 0x8010002e
-> [opensc-pkcs11] reader-pcsc.c:1015:pcsc_detect_readers: returning with:
-> No readers found
-> Select key type to use for newly created files:
->  1) tspi
->  2) passphrase
->  3) openssl
->  4) pkcs11-helper
-> Selection: 4
-> [opensc-pkcs11] reader-pcsc.c:896:pcsc_detect_readers: SCardListReaders
-> failed: 0x8010002e
-> [opensc-pkcs11] reader-pcsc.c:1015:pcsc_detect_readers: returning with:
-> No readers found
-> [opensc-pkcs11] reader-pcsc.c:896:pcsc_detect_readers: SCardListReaders
-> failed: 0x8010002e
-> [opensc-pkcs11] reader-pcsc.c:1015:pcsc_detect_readers: returning with:
-> No readers found
-> PKCS#11 Serialized ID:
-> Passphrase (empty for interactive):
-> Optional X.509 Certificate PEM file:
-> Error processing key generation decision graph; rc =3D [-5]
->=20
-> I can see the card from pkcs11-tool
->=20
-> vlad@brutal ~ $ pkcs11-tool -L
-> [opensc-pkcs11] reader-pcsc.c:896:pcsc_detect_readers: SCardListReaders
-> failed: 0x8010002e
-> [opensc-pkcs11] reader-pcsc.c:1015:pcsc_detect_readers: returning with:
-> No readers found
-> [opensc-pkcs11] reader-pcsc.c:896:pcsc_detect_readers: SCardListReaders
-> failed: 0x8010002e
-> [opensc-pkcs11] reader-pcsc.c:1015:pcsc_detect_readers: returning with:
-> No readers found
-> Available slots:
-> Slot 0           Aladdin eToken PRO
->   token label:   OpenSC Card (vlad)
->   token manuf:   OpenSC Project
->   token model:   PKCS#15
->   token flags:   login required, PIN initialized, token initialized
->   serial num  :  262119072909
->=20
-> any idea? same token is working for ssh login
-
-It is likely a bug with the eCryptfs pkcs11-helper key module. It
-doesn't get much use and neither of us eCryptfs maintainers have the
-appropriate hardware to test it (it was contributed by the pkcs11-helper
-maintainer, IIRC).
-
-Feel free to file a bug in launchpad:
-
-https://bugs.launchpad.net/ecryptfs/+filebug
-
-But do keep in mind that we don't have the needed hardware to fix it.
-I've looked into buying an eToken PRO for personal use, but sourcing
-just one in the US didn't seem to be very easy at the time.
-
-Tyler
-
---mYCpIKhGyMATD0i+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPFcObAAoJENaSAD2qAscKofsQAI1Qqw5JSYdyE1/Gn+etGHzj
-y5r0SgmCFj1GdcVrhfXc4RaOPbr2tIv9YuhZo9AwZRn9qS5ycqga37BKgnCQVqnw
-J/1tkLktO+F2mCndXBEjr2pGY0fbPvnF23MXH87dIro2AthRVyRFDNBm4KOTC9oV
-L4GDxNtZv2lHt2OHuG7Cf29LDqIQgmFxkOiHVswsN9yFC+hgOQ/VN/UjLQmigbmW
-w4e/bgsECKWTR+l7XO0QKDFBKQa6NOXIngcNm7FpC7pZMiXQSjkUkiOuLcTtbZ8z
-a9Bh2Q5EWQsE4Rr8PeGFcuHHNYzMkXwb+WMyK+ABBx/70MbQKO4wqFCzZx6Ec69T
-r8Hxz3xLgYH+fpSftb63Nrtulm6+XD6amgR0FBGJ7Ap0j2S9VMotiPhFR3fNOHXk
-akkoic8z1PeJVfqlUdPLTo97uTSflT1cFs5rl3ArsdMPYMjFKpC8gre09oHG2S93
-QiCUOklrdVFOOlzJhnoHduLHLaT+3+fUxFm960bWij3kmy8Y26U5PjDsc0fxj79i
-NLQTehli4vH+/gzfrEiBY8ZTgZMjuDulyVeBU3Gu5k6xluIoevl5Asm/UmHXPiu1
-qkzeOQtUCfwc83oRDuwd0akeyneJXLWAogVYbM9XuupAsPiJ7ByuI4z7liHt3rVC
-B+NVGJTvuDGIY2xiWPYY
-=vf1D
------END PGP SIGNATURE-----
-
---mYCpIKhGyMATD0i+--
+SGksDQogIFRoZXJlIGlzIGFuIGluZmluaXRlIGxvb3AgYnVnIGluIGVDcnlwdGZzLCB0
+byBtYWtlIGl0IHByZXNlbnQsDQpqdXN0IHRydW5jYXRlIHRvIGdlbmVyYXRlIGEgaHVn
+ZSBmaWxlICg+PSA0Rykgb24gYSAzMi1iaXQgbWFjaGluZSANCnVuZGVyIHRoZSBwbGFp
+biB0ZXh0IGZvbGVkZXIgbW91bnRlZCB3aXRoIGVDcnlwdGZzLCBhIHNpbXBsZSBjb21t
+YW5kDQondHJ1bmNhdGUgLXMgNEcgZHVtbXknIGlzIGVub3VnaC4gTm90ZTogNEdCIGlz
+IHNtYWxsZXIgdGhhbiA0RywNCnRoZXJlZm9yZSB0aGUgZm9sbG93aW5nIGNvbW1hbmQg
+J3RydW5jYXRlIC1zIDRHQiBkdW1teScgd2lsbCBub3QgdHJpZ2dlciB0aGlzIGJ1Zy4N
+ClRoZSBidWcgY29tZXMgZnJvbSBhIGRhdGEgb3ZlcmZsb3csIHRoZSBwYXRjaCBiZWxv
+dyBmaXhlcyBpdC4NCg0KQ2hlZXJzLA0KTGkgV2FuZw0KDQotLS0NCg0Kc2lnbmVkLW9m
+Zi1ieTogTGkgV2FuZyA8bGl3YW5nQG51ZHQuZWR1LmNuID4NCiAgICAgICAgICAgICAg
+IFl1bmNodWFuIFdlbiAod2VueXVuY2h1YW5Aa3lsaW5vcy5jb20uY24gKQ0KDQotLS0g
+cmVhZF93cml0ZS5jLm9yaWcgMjAxMi0wMS0xOCAxMDozOToyNi4wMDAwMDAwMDAgKzA4
+MDANCisrKyByZWFkX3dyaXRlLmMgMjAxMi0wMS0xOCAxOTo0ODo0MS40ODQxOTYyMjEg
+KzA4MDANCkBAIC0xMzAsNyArMTMwLDcgQEAgaW50IGVjcnlwdGZzX3dyaXRlKHN0cnVj
+dCBpbm9kZSAqZWNyeXB0Zg0KICAgcGdvZmZfdCBlY3J5cHRmc19wYWdlX2lkeCA9IChw
+b3MgPj4gUEFHRV9DQUNIRV9TSElGVCk7DQogICBzaXplX3Qgc3RhcnRfb2Zmc2V0X2lu
+X3BhZ2UgPSAocG9zICYgflBBR0VfQ0FDSEVfTUFTSyk7DQogICBzaXplX3QgbnVtX2J5
+dGVzID0gKFBBR0VfQ0FDSEVfU0laRSAtIHN0YXJ0X29mZnNldF9pbl9wYWdlKTsNCi0g
+IHNpemVfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUpIC0g
+cG9zKTsNCisgIGxvZmZfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCAr
+IHNpemUpIC0gcG9zKTsNCiANCiAgIGlmIChudW1fYnl0ZXMgPiB0b3RhbF9yZW1haW5p
+bmdfYnl0ZXMpDQogICAgbnVtX2J5dGVzID0gdG90YWxfcmVtYWluaW5nX2J5dGVzOw0K
+DQoNCg0KLS0tIHJlYWRfd3JpdGUuYy5vcmlnCTIwMTItMDEtMTggMTA6Mzk6MjYuMDAw
+MDAwMDAwICswODAwDQorKysgcmVhZF93cml0ZS5jCTIwMTItMDEtMTggMTk6NDg6NDEu
+NDg0MTk2MjIxICswODAwDQpAQCAtMTMwLDcgKzEzMCw3IEBAIGludCBlY3J5cHRmc193
+cml0ZShzdHJ1Y3QgaW5vZGUgKmVjcnlwdGYNCiAJCXBnb2ZmX3QgZWNyeXB0ZnNfcGFn
+ZV9pZHggPSAocG9zID4+IFBBR0VfQ0FDSEVfU0hJRlQpOw0KIAkJc2l6ZV90IHN0YXJ0
+X29mZnNldF9pbl9wYWdlID0gKHBvcyAmIH5QQUdFX0NBQ0hFX01BU0spOw0KIAkJc2l6
+ZV90IG51bV9ieXRlcyA9IChQQUdFX0NBQ0hFX1NJWkUgLSBzdGFydF9vZmZzZXRfaW5f
+cGFnZSk7DQotCQlzaXplX3QgdG90YWxfcmVtYWluaW5nX2J5dGVzID0gKChvZmZzZXQg
+KyBzaXplKSAtIHBvcyk7DQorCQlsb2ZmX3QgdG90YWxfcmVtYWluaW5nX2J5dGVzID0g
+KChvZmZzZXQgKyBzaXplKSAtIHBvcyk7DQogDQogCQlpZiAobnVtX2J5dGVzID4gdG90
+YWxfcmVtYWluaW5nX2J5dGVzKQ0KIAkJCW51bV9ieXRlcyA9IHRvdGFsX3JlbWFpbmlu
+Z19ieXRlczsNCg0K
