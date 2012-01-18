@@ -1,50 +1,102 @@
-From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: [PATCH] eCryptfs: infinite loop bug
-Date: Wed, 18 Jan 2012 15:30:05 +0800
-Message-ID: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH] eCryptfs: infinite loop bug
+Date: Wed, 18 Jan 2012 23:26:52 +0800
+Message-ID: <4F16E4BC.5080100@gmail.com>
+References: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:60825 "HELO nudt.edu.cn"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751571Ab2ARHm0 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Wed, 18 Jan 2012 02:42:26 -0500
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------000501060202090503000905"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Li Wang <liwang@nudt.edu.cn>
+Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <kirkland@canonical.com>
 
-SGksDQogIFRoZXJlIGlzIGFuIGluZmluaXRlIGxvb3AgYnVnIGluIGVDcnlwdGZzLCB0
-byBtYWtlIGl0IHByZXNlbnQsDQpqdXN0IHRydW5jYXRlIHRvIGdlbmVyYXRlIGEgaHVn
-ZSBmaWxlICg+PSA0Rykgb24gYSAzMi1iaXQgbWFjaGluZSANCnVuZGVyIHRoZSBwbGFp
-biB0ZXh0IGZvbGVkZXIgbW91bnRlZCB3aXRoIGVDcnlwdGZzLCBhIHNpbXBsZSBjb21t
-YW5kDQondHJ1bmNhdGUgLXMgNEcgZHVtbXknIGlzIGVub3VnaC4gTm90ZTogNEdCIGlz
-IHNtYWxsZXIgdGhhbiA0RywNCnRoZXJlZm9yZSB0aGUgZm9sbG93aW5nIGNvbW1hbmQg
-J3RydW5jYXRlIC1zIDRHQiBkdW1teScgd2lsbCBub3QgdHJpZ2dlciB0aGlzIGJ1Zy4N
-ClRoZSBidWcgY29tZXMgZnJvbSBhIGRhdGEgb3ZlcmZsb3csIHRoZSBwYXRjaCBiZWxv
-dyBmaXhlcyBpdC4NCg0KQ2hlZXJzLA0KTGkgV2FuZw0KDQotLS0NCg0Kc2lnbmVkLW9m
-Zi1ieTogTGkgV2FuZyA8bGl3YW5nQG51ZHQuZWR1LmNuID4NCiAgICAgICAgICAgICAg
-IFl1bmNodWFuIFdlbiAod2VueXVuY2h1YW5Aa3lsaW5vcy5jb20uY24gKQ0KDQotLS0g
-cmVhZF93cml0ZS5jLm9yaWcgMjAxMi0wMS0xOCAxMDozOToyNi4wMDAwMDAwMDAgKzA4
-MDANCisrKyByZWFkX3dyaXRlLmMgMjAxMi0wMS0xOCAxOTo0ODo0MS40ODQxOTYyMjEg
-KzA4MDANCkBAIC0xMzAsNyArMTMwLDcgQEAgaW50IGVjcnlwdGZzX3dyaXRlKHN0cnVj
-dCBpbm9kZSAqZWNyeXB0Zg0KICAgcGdvZmZfdCBlY3J5cHRmc19wYWdlX2lkeCA9IChw
-b3MgPj4gUEFHRV9DQUNIRV9TSElGVCk7DQogICBzaXplX3Qgc3RhcnRfb2Zmc2V0X2lu
-X3BhZ2UgPSAocG9zICYgflBBR0VfQ0FDSEVfTUFTSyk7DQogICBzaXplX3QgbnVtX2J5
-dGVzID0gKFBBR0VfQ0FDSEVfU0laRSAtIHN0YXJ0X29mZnNldF9pbl9wYWdlKTsNCi0g
-IHNpemVfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUpIC0g
-cG9zKTsNCisgIGxvZmZfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCAr
-IHNpemUpIC0gcG9zKTsNCiANCiAgIGlmIChudW1fYnl0ZXMgPiB0b3RhbF9yZW1haW5p
-bmdfYnl0ZXMpDQogICAgbnVtX2J5dGVzID0gdG90YWxfcmVtYWluaW5nX2J5dGVzOw0K
-DQoNCg0KLS0tIHJlYWRfd3JpdGUuYy5vcmlnCTIwMTItMDEtMTggMTA6Mzk6MjYuMDAw
-MDAwMDAwICswODAwDQorKysgcmVhZF93cml0ZS5jCTIwMTItMDEtMTggMTk6NDg6NDEu
-NDg0MTk2MjIxICswODAwDQpAQCAtMTMwLDcgKzEzMCw3IEBAIGludCBlY3J5cHRmc193
-cml0ZShzdHJ1Y3QgaW5vZGUgKmVjcnlwdGYNCiAJCXBnb2ZmX3QgZWNyeXB0ZnNfcGFn
-ZV9pZHggPSAocG9zID4+IFBBR0VfQ0FDSEVfU0hJRlQpOw0KIAkJc2l6ZV90IHN0YXJ0
-X29mZnNldF9pbl9wYWdlID0gKHBvcyAmIH5QQUdFX0NBQ0hFX01BU0spOw0KIAkJc2l6
-ZV90IG51bV9ieXRlcyA9IChQQUdFX0NBQ0hFX1NJWkUgLSBzdGFydF9vZmZzZXRfaW5f
-cGFnZSk7DQotCQlzaXplX3QgdG90YWxfcmVtYWluaW5nX2J5dGVzID0gKChvZmZzZXQg
-KyBzaXplKSAtIHBvcyk7DQorCQlsb2ZmX3QgdG90YWxfcmVtYWluaW5nX2J5dGVzID0g
-KChvZmZzZXQgKyBzaXplKSAtIHBvcyk7DQogDQogCQlpZiAobnVtX2J5dGVzID4gdG90
-YWxfcmVtYWluaW5nX2J5dGVzKQ0KIAkJCW51bV9ieXRlcyA9IHRvdGFsX3JlbWFpbmlu
-Z19ieXRlczsNCg0K
+This is a multi-part message in MIME format.
+--------------000501060202090503000905
+Content-Type: text/plain; charset=gbk; format=flowed
+Content-Transfer-Encoding: 7bit
+
+On 01/18/2012 03:30 PM, Li Wang wrote:
+> Hi,
+>    There is an infinite loop bug in eCryptfs, to make it present,
+> just truncate to generate a huge file (>= 4G) on a 32-bit machine
+> under the plain text foleder mounted with eCryptfs, a simple command
+> 'truncate -s 4G dummy' is enough. Note: 4GB is smaller than 4G,
+> therefore the following command 'truncate -s 4GB dummy' will not trigger this bug.
+> The bug comes from a data overflow, the patch below fixes it.
+>
+>
+
+Hi,
+
+Your patch is not correctly generated, you need to make the diff on top 
+of the source tree.
+
+Also, after reviewing the code, I think there are more places need to 
+fix. Can you try my patch below?
+
+Thanks.
+
+---->
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+
+
+
+--------------000501060202090503000905
+Content-Type: text/x-patch;
+ name="ecryptfs-loff_t.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ecryptfs-loff_t.diff"
+
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index a9f29b1..9ca9c17 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -653,7 +653,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
+ 			 loff_t offset, size_t size);
+ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+ 				      struct page *page_for_lower,
+-				      size_t offset_in_page, size_t size);
++				      loff_t offset_in_page, size_t size);
+ int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_t size);
+ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
+ 			struct inode *ecryptfs_inode);
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 3745f7c..93d80c4 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -72,7 +72,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
+  */
+ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+ 				      struct page *page_for_lower,
+-				      size_t offset_in_page, size_t size)
++				      loff_t offset_in_page, size_t size)
+ {
+ 	char *virt;
+ 	loff_t offset;
+@@ -128,15 +128,15 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 		pos = offset;
+ 	while (pos < (offset + size)) {
+ 		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
+-		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
+-		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
+-		size_t total_remaining_bytes = ((offset + size) - pos);
++		loff_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
++		loff_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
++		loff_t total_remaining_bytes = ((offset + size) - pos);
+ 
+ 		if (num_bytes > total_remaining_bytes)
+ 			num_bytes = total_remaining_bytes;
+ 		if (pos < offset) {
+ 			/* remaining zeros to write, up to destination offset */
+-			size_t total_remaining_zeros = (offset - pos);
++			loff_t total_remaining_zeros = (offset - pos);
+ 
+ 			if (num_bytes > total_remaining_zeros)
+ 				num_bytes = total_remaining_zeros;
+
+--------------000501060202090503000905--
