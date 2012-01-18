@@ -1,120 +1,144 @@
 From: Tyler Hicks <tyhicks@canonical.com>
 Subject: Re: [PATCH] eCryptfs: infinite loop bug
-Date: Wed, 18 Jan 2012 15:04:01 -0600
-Message-ID: <20120118210400.GB20576@boyd>
-References: <7f1e961d.f528.134efaf8348.Coremail.dragonylffly@163.com>
- <CA+55aFx7CV8wpDLfCr-pVVRxRyYgd2QdRXJSmp+UgrjSHyB1eA@mail.gmail.com>
+Date: Wed, 18 Jan 2012 15:40:51 -0600
+Message-ID: <20120118214051.GC20576@boyd>
+References: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
+ <4F16E4BC.5080100@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
+	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52416 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:52544 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753501Ab2ARVEK (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 18 Jan 2012 16:04:10 -0500
+	with ESMTP id S1751433Ab2ARVk7 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 18 Jan 2012 16:40:59 -0500
 Content-Disposition: inline
-In-Reply-To: <CA+55aFx7CV8wpDLfCr-pVVRxRyYgd2QdRXJSmp+UgrjSHyB1eA@mail.gmail.com>
+In-Reply-To: <4F16E4BC.5080100@gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: dragonylffly <dragonylffly@163.com>, john.johansen@canonical.com, dustin.kirkland@gazzang.com, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Li Wang <liwang@nudt.edu.cn>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dustin Kirkland <kirkland@canonical.com>
 
 
---qlTNgmc+xy1dBmNv
-Content-Type: text/plain; charset=iso-8859-1
+--Clx92ZfkiYIKRjnr
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-01-18 12:49:17, Linus Torvalds wrote:
-> Hmm.
+On 2012-01-18 23:26:52, Cong Wang wrote:
+> On 01/18/2012 03:30 PM, Li Wang wrote:
+> >Hi,
+> >   There is an infinite loop bug in eCryptfs, to make it present,
+> >just truncate to generate a huge file (>=3D 4G) on a 32-bit machine
+> >under the plain text foleder mounted with eCryptfs, a simple command
+> >'truncate -s 4G dummy' is enough. Note: 4GB is smaller than 4G,
+> >therefore the following command 'truncate -s 4GB dummy' will not trigger=
+ this bug.
+> >The bug comes from a data overflow, the patch below fixes it.
+> >
+> >
 >=20
-> There are *two* cases where we do that "total_remaining_bytes"
-> calculation. The same bug seems to exist both in ecryptfs_read() and
-> ecryptfs_write().
+> Hi,
+>=20
+> Your patch is not correctly generated, you need to make the diff on
+> top of the source tree.
+>=20
+> Also, after reviewing the code, I think there are more places need
+> to fix. Can you try my patch below?
 
-ecryptfs_read() is ifdef'ed out, and has been for years, so I'll just go
-ahead and kill that function for good.
+Thanks for the review and additional fixes. See my comments below.
 
 >=20
-> Possibly only the ecryptfs_write() one leads to an endless loop, but
-> the read one looks suspicious too.
+> Thanks.
 >=20
-> Also, what protects things against this just being one nasty DoS
-> attack - even if the code is fixed to not be an endless loop, it looks
-> like a trivial "truncate()" can be used to generate a *practically*
-> infinite write stream. At the very least, this should be KILLABLE. Or
-> did I mis-read the code?
+> ---->
+>=20
+> Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+>=20
+>=20
 
-I think you're right. I'll start off with making it killable and then
-see if there is anything else we can do.
+> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+> index a9f29b1..9ca9c17 100644
+> --- a/fs/ecryptfs/ecryptfs_kernel.h
+> +++ b/fs/ecryptfs/ecryptfs_kernel.h
+> @@ -653,7 +653,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode=
+, char *data,
+>  			 loff_t offset, size_t size);
+>  int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+>  				      struct page *page_for_lower,
+> -				      size_t offset_in_page, size_t size);
+> +				      loff_t offset_in_page, size_t size);
+>  int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_=
+t size);
+>  int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
+>  			struct inode *ecryptfs_inode);
+> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+> index 3745f7c..93d80c4 100644
+> --- a/fs/ecryptfs/read_write.c
+> +++ b/fs/ecryptfs/read_write.c
+> @@ -72,7 +72,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, =
+char *data,
+>   */
+>  int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+>  				      struct page *page_for_lower,
+> -				      size_t offset_in_page, size_t size)
+> +				      loff_t offset_in_page, size_t size)
+
+mm/filemap.c uses unsigned long for variables used to identify an offset
+into a single page. That's what I'm tempted to use for offset_in_page,
+rather than loff_t.
+
+>  {
+>  	char *virt;
+>  	loff_t offset;
+> @@ -128,15 +128,15 @@ int ecryptfs_write(struct inode *ecryptfs_inode, ch=
+ar *data, loff_t offset,
+>  		pos =3D offset;
+>  	while (pos < (offset + size)) {
+>  		pgoff_t ecryptfs_page_idx =3D (pos >> PAGE_CACHE_SHIFT);
+> -		size_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
+> -		size_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page);
+> -		size_t total_remaining_bytes =3D ((offset + size) - pos);
+> +		loff_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
+> +		loff_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page);
+
+unsigned long should work for start_offset_in_page and num_bytes, too.
 
 Tyler
 
->=20
-> Tyler, Dustin, others - comments? This looks nasty.
->=20
->                      Linus.
->=20
-> 2012/1/17 dragonylffly <dragonylffly@163.com>:
-> > Hi,
-> > =A0 There is an infinite loop bug in eCryptfs, to make it present,
-> > just truncate to generate a huge file (>=3D 4G) on a 32-bit machine und=
-er
-> > the plain text foleder mounted with eCryptfs, a simple command
-> > 'truncate -s 4G dummy' is enough. Note: 4GB is smaller than 4G,
-> > therefore the following command 'truncate -s 4GB dummy' will not
-> > trigger=A0this bug. The bug comes from a data overflow, the patch below=
- fixes
-> > it.
-> >
-> > Cheers,
-> > Li Wang
-> >
-> > ---
-> >
-> > signed-off-by: Li Wang <liwang@nudt.edu.cn>
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Yunchuan Wen (wenyunchuan@ky=
-linos.com.cn)
-> >
-> > --- read_write.c.orig=A02012-01-18 10:39:26.000000000 +0800
-> > +++ read_write.c=A02012-01-18 19:48:41.484196221 +0800
-> > @@ -130,7 +130,7 @@
-> > =A0=A0=A0pgoff_t ecryptfs_page_idx =3D (pos >> PAGE_CACHE_SHIFT);
-> > =A0=A0=A0size_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
-> > =A0=A0=A0size_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page);
-> > -=A0=A0size_t total_remaining_bytes =3D ((offset + size) - pos);
-> > +=A0=A0loff_t total_remaining_bytes =3D ((offset + size) - pos);
-> >
-> > =A0=A0=A0if (num_bytes > total_remaining_bytes)
-> > =A0=A0=A0=A0num_bytes =3D total_remaining_bytes;
-> >
-> >
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		loff_t total_remaining_bytes =3D ((offset + size) - pos);
+> =20
+>  		if (num_bytes > total_remaining_bytes)
+>  			num_bytes =3D total_remaining_bytes;
+>  		if (pos < offset) {
+>  			/* remaining zeros to write, up to destination offset */
+> -			size_t total_remaining_zeros =3D (offset - pos);
+> +			loff_t total_remaining_zeros =3D (offset - pos);
+> =20
+>  			if (num_bytes > total_remaining_zeros)
+>  				num_bytes =3D total_remaining_zeros;
 
---qlTNgmc+xy1dBmNv
+
+--Clx92ZfkiYIKRjnr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJPFzPAAAoJENaSAD2qAscKycgP/2hXWBSqY82PjqIvTOGQ6L7r
-u1oJ+Q7pbiQz+jCXqCtDBPmLXuUwfOZzxRRUeYZrEiXo7nfF6e3BjvnoMynnv4ZO
-i6sYOCZ4uLUxqBK2DTszacOwKBYI8BzqpT2OvWJGeBRtlmPlUGdvraQr8HuHPLWU
-cGncwP1q+72rz7nYKHTQmwe9lRa4uS2aepceRrBdhyWQZLOSiR5/Jo00m7uYf08B
-mpkWMfiA7XaMrzb2rBo1gEe0ZI6JZFnIBfHu5gnDHIhCdDm7jmCfjsChYJ8UDWCQ
-QnJriGcDf1tmX9HFAtt7MxyBPdWXtZjrpDyV44Q436ZiPm0rsShMD2EC1V1HszSY
-ziYYPL4thzoMrC9ewem/FXWEI+FUxVG6mWKxb0Iiuu2rTtk/7+VFhrlMuIFvoybs
-XdoiW3Y1ZT7F6iM9VJJlEiebUQPbVORQxbZizAcw46gYH8326nQx5RHbrZ4irMxY
-Hkv10ZlhrOr6pHWNl1i586zVlGk9hmdswlh09kUFD0/7vEl0rNFQ5vH/HtCleFOS
-MdPje03qrvMrUKsSgARt3pBiw6TGvr3m51Ej4azyzLn6DknwbYK5m5y9GUqwr+QD
-Gsnx0rYso1bJxZXqql4LhvntGwm4K7Cref80f8ddXXa2zecmVy4H/6bgRGbR33+J
-e/00j+tlJPEXux0nftvV
-=5yiE
+iQIcBAEBCgAGBQJPFzxjAAoJENaSAD2qAscKx5oP/A9b7rNeMc50oqHsviZYPvFI
+IoEpmFy+2wDNDqqIj7GtYQ724wjXrK6MdZ7fU8stSVbNeQFOOlPX9xuoupqwGg4z
+k0d20gWOBLhSD5IMxkV2ot6rsH0x//kvHRFeoFkwO3j0AZWt7dwpRjVuTJdV+Bvw
+9X51Lye5ljMGrVbyixZe6z1IaVEirvvGl65YU661Jymq+6UI6dFZCh8AoTckm2Rk
+pumSSwCbEv7Z5FvXUmeENW9FCh4hzpiBHH8RIqBfs3O891X2s5meNkLDMZBeP3oT
+oPPdFosXhWq64/hb6sltz6fdLRwzW9IGK4Ajn84WqK7OfYLYdUXnHr+0fL2H73g7
+TPA8s3dbpUkgcjk1BLgBZYe2g73H48Q8R/cunl4kmgHBTZhYbc05VHn4Ng+70VRN
+rugo05WKbWLrDQ3e1cw1Uyg+ulavCR5z8t+yNmPheMAKnsQQ6JskwyleGm/Q0HE/
+EFbKAwbd61ikg4f4zvbjBD5yVna8umltSh4j7v+3WMDsP1JVrC7mV81RKDrwZ0gu
+/Fk7uzrlKyeYzTDZENz7OZ9e5kFP1ocsiew2rVszkPj8QwDW0la6gVo1i/SfSi7K
+hyNdIG3FBOLrYZEOxR3ooHNTRSJSjFsb5xTaXX+ZYyKxwrUn7N1qP6i/IimIJeef
+RsQKJCf7MBjUFBG7iQb8
+=9Vts
 -----END PGP SIGNATURE-----
 
---qlTNgmc+xy1dBmNv--
+--Clx92ZfkiYIKRjnr--
