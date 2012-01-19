@@ -1,64 +1,31 @@
-From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: Re:Re: [PATCH] eCryptfs: infinite loop bug
-Date: Thu, 19 Jan 2012 09:44:36 +0800
-Message-ID: <12011909443668a7a65ff897afc93db177848236f08f@nudt.edu.cn>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] eCryptfs: infinite loop bug
+Date: Wed, 18 Jan 2012 19:43:06 -0800
+Message-ID: <CA+55aFwYufaD_vqwEvfPrfj6wVh9c80BNi3+qziV=qStVxN=3w@mail.gmail.com>
 References: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
- <4F16E4BC.5080100@gmail.com>
- <526922120.05125@eyou.net>
+ <4F16E4BC.5080100@gmail.com> <20120118214051.GC20576@boyd>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <526922120.05125@eyou.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:43990 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab2ASDn2 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 18 Jan 2012 22:43:28 -0500
+In-Reply-To: <20120118214051.GC20576@boyd>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dustin Kirkland <kirkland@canonical.com>, Cong Wang <xiyou.wangcong@gmail.com>, Tyler Hicks <tyhicks@canonical.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>, Li Wang <liwang@nudt.edu.cn>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dustin Kirkland <kirkland@canonical.com>
 
-DQoNCkhpLA0KICBUaGFua3MgQ29uZyBXYW5nIGZvciB0aGUga2luZCByZW1pbmRpbmcg
-cmVnYXJkaW5nIHRoZSBwYXRjaCBmb3JtYXQuDQogIFdlIGRpZCBub3RpY2UgdGhhdCB0
-aGUgdG90YWxfcmVtYWluaW5nX3plcm9lcyBuZWVkIGJlIHJldmlzZWQgYXMgd2VsbCwg
-DQphbmQgdGhlIHN0YXJ0X29mZnNldF9pbl9wYWdlLCBudW1fYnl0ZXMgbmVlZCBub3Qg
-YmUgcmV2aXNlZCAoYWx3YXlzIHNtYWxsZXIgDQp0aGFuIFBBR0VfQ0FDSEVfU0laRSwg
-ZXZlbiB0aGUgaHVnZSBwYWdlIHNpemUgaXMgc3VwcG9ydGVkLCANCnRoZSA0RyBwYWdl
-IHNpemUgaXMgbm90IHByZXNlbnQgaW4gdGhlIGN1cnJlbnQgd29ybGQ/KQ0KYnV0IHdl
-IGZvcmdldCB0byBpbmNsdWRlIHRoZSByZXZpc2lvbiBmb3IgdG90YWxfcmVtYWluaW5n
-X3plcm9lcywgc28gaGVyZSBjb21lcyB0aGUgcGF0Y2guDQoNCkNoZWVycywNCkxpIFdh
-bmcNCg0KU2lnbmVkLW9mZi1ieTogTGkgV2FuZyA8bGl3YW5nQG51ZHQuZWR1LmNuPg0K
-ICAgICAgICAgICAgICAgWXVuY2h1YW4gV2VuIDx3ZW55dW5jaHVhbkBreWxpbm9zLmNv
-bS5jbj4NCg0KLS0tDQoNCi0tLSBhL2ZzL2VjcnlwdGZzL3JlYWRfd3JpdGUuYwkyMDEy
-LTAxLTE5IDE3OjM0OjU0LjY2Njk0MDgyNCArMDgwMA0KKysrIGIvZnMvZWNyeXB0ZnMv
-cmVhZF93cml0ZS5jCTIwMTItMDEtMTkgMTc6MzU6MTYuMjU3OTQwODQwICswODAwDQpA
-QCAtMTMwLDEzICsxMzAsMTMgQEAgaW50IGVjcnlwdGZzX3dyaXRlKHN0cnVjdCBpbm9k
-ZSAqZWNyeXB0Zg0KIAkJcGdvZmZfdCBlY3J5cHRmc19wYWdlX2lkeCA9IChwb3MgPj4g
-UEFHRV9DQUNIRV9TSElGVCk7DQogCQlzaXplX3Qgc3RhcnRfb2Zmc2V0X2luX3BhZ2Ug
-PSAocG9zICYgflBBR0VfQ0FDSEVfTUFTSyk7DQogCQlzaXplX3QgbnVtX2J5dGVzID0g
-KFBBR0VfQ0FDSEVfU0laRSAtIHN0YXJ0X29mZnNldF9pbl9wYWdlKTsNCi0JCXNpemVf
-dCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUpIC0gcG9zKTsN
-CisJCWxvZmZfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUp
-IC0gcG9zKTsNCiANCiAJCWlmIChudW1fYnl0ZXMgPiB0b3RhbF9yZW1haW5pbmdfYnl0
-ZXMpDQogCQkJbnVtX2J5dGVzID0gdG90YWxfcmVtYWluaW5nX2J5dGVzOw0KIAkJaWYg
-KHBvcyA8IG9mZnNldCkgew0KIAkJCS8qIHJlbWFpbmluZyB6ZXJvcyB0byB3cml0ZSwg
-dXAgdG8gZGVzdGluYXRpb24gb2Zmc2V0ICovDQotCQkJc2l6ZV90IHRvdGFsX3JlbWFp
-bmluZ196ZXJvcyA9IChvZmZzZXQgLSBwb3MpOw0KKwkJCWxvZmZfdCB0b3RhbF9yZW1h
-aW5pbmdfemVyb3MgPSAob2Zmc2V0IC0gcG9zKTsNCiANCiAJCQlpZiAobnVtX2J5dGVz
-ID4gdG90YWxfcmVtYWluaW5nX3plcm9zKQ0KIAkJCQludW1fYnl0ZXMgPSB0b3RhbF9y
-ZW1haW5pbmdfemVyb3M7DQoNCg0KDQoNCg0KLS0tLS0tLS0tLSBPcmlnaW4gbWVzc2Fn
-ZSAtLS0tLS0tLS0tDQo+RnJvbaO6IlR5bGVyIEhpY2tzIiA8dHloaWNrc0BjYW5vbmlj
-YWwuY29tPg0KPlRvo7oiQ29uZyBXYW5nIiA8eGl5b3Uud2FuZ2NvbmdAZ21haWwuY29t
-Pg0KPlN1YmplY3SjulJlOiBbUEFUQ0hdIGVDcnlwdGZzOiBpbmZpbml0ZSBsb29wIGJ1
-Zw0KPkRhdGWjujIwMTItMDEtMTkgMDU6NDA6NTENCg0KT24gMjAxMi0wMS0xOCAyMzoy
-Njo1MiwgQ29uZyBXYW5nIHdyb3RlOg0KPiBPbiAwMS8xOC8yMDEyIDAzOjMwIFBNLCBM
-aSBXYW5nIHdyb3RlOg0KPiA+SGksDQo+ID4gVGhlcmUgaXMgYW4gaW5maW5pdGUgbG9v
-cCBidWcgaW4gZUNyeXB0ZnMsIHRvIG1ha2UgaXQgcHJlc2VudCwNCj4gPmp1c3QgdHJ1
-bmNhdGUgdG8gZ2VuZXJhdGUgYSBodWdlIGZpbGUgKD49IDRHKSBvbiBhIDMyLWJpdCBt
-YWNoaW5lDQo+ID51bmRlciB0aGUgcGxhaW4gdGV4dCBmb2xlZGVyIG1vdW50ZWQgd2l0
-aCBlQ3J5cHRmcywgYSBzaW1wbGUgY29tbWFuZA0KPiA+J3RydW5jYXRlIC1zIDRHIGR1
-bW15JyBpcyBlbm91Z2guIE5vdGU6IDRHQiBpcyBzbWFsbGVyIHRoYW4gNEcsDQo+ID50
-aGVyZWZvcmUgdGhlIGZvbGxvd2luZyBjb21tYW5kICd0cnVuY2F0ZSAtcyA0R0IgZHVt
-bXknIHdpbGwgbm90IHRyaWdnZXIgdGhpcyBidWcuDQo+ID5UaGUgYnVnIGNvbWVzIGZy
-b20gYSBkYXRhIG92ZXJmbG93LCB0aGUgcGF0Y2ggYmVsb3cgZml4ZXMgaXQuDQo+ID4N
-Cj4gPg0KPg0KPiBIaSwNCj4NCj4gWW91ciBwYXRjaCBpcyBub3QgY29ycmVjdGx5IGdl
-bmVyYXRlZCwgeW91IG5lZWQgdG8gbWFrZSB0aGUgZGlmZiBvbg0KPiB0b3Agb2YgdGhl
-IHNvdXJjZSB0cmVlLg0KPg0KPiBBbHNvLCBhZnRlciByZXZpZXdpbmcgdGhlIGNvZGUs
-IEkgdGhpbmsgdGhlcmUgYXJlIG1vcmUgcGxhY2VzIG5lZWQNCj4gdG8gZml4LiBDYW4g
-eW91IHRyeSBteSBwYXRjaCBiZWxvdz8NCg==
+On Wed, Jan 18, 2012 at 1:40 PM, Tyler Hicks <tyhicks@canonical.com> wrote:
+>
+> mm/filemap.c uses unsigned long for variables used to identify an offset
+> into a single page. That's what I'm tempted to use for offset_in_page,
+> rather than loff_t.
+
+Indeed. The offset within a page will fit fine even in an "unsigned
+int", and "loff_t" is crazy overkill - and usually generates horrible
+code on 32-bit architectures.
+
+                      Linus
