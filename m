@@ -1,144 +1,64 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] eCryptfs: infinite loop bug
-Date: Wed, 18 Jan 2012 15:40:51 -0600
-Message-ID: <20120118214051.GC20576@boyd>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: Re:Re: [PATCH] eCryptfs: infinite loop bug
+Date: Thu, 19 Jan 2012 09:44:36 +0800
+Message-ID: <12011909443668a7a65ff897afc93db177848236f08f@nudt.edu.cn>
 References: <12011815300568720b5d1587bb777fed0d5b016f0854@nudt.edu.cn>
  <4F16E4BC.5080100@gmail.com>
+ <526922120.05125@eyou.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52544 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433Ab2ARVk7 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 18 Jan 2012 16:40:59 -0500
-Content-Disposition: inline
-In-Reply-To: <4F16E4BC.5080100@gmail.com>
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <526922120.05125@eyou.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Li Wang <liwang@nudt.edu.cn>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dustin Kirkland <kirkland@canonical.com>
+Content-Type: text/plain; charset="iso-8859-1"
+To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dustin Kirkland <kirkland@canonical.com>, Cong Wang <xiyou.wangcong@gmail.com>, Tyler Hicks <tyhicks@canonical.com>
 
-
---Clx92ZfkiYIKRjnr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-01-18 23:26:52, Cong Wang wrote:
-> On 01/18/2012 03:30 PM, Li Wang wrote:
-> >Hi,
-> >   There is an infinite loop bug in eCryptfs, to make it present,
-> >just truncate to generate a huge file (>=3D 4G) on a 32-bit machine
-> >under the plain text foleder mounted with eCryptfs, a simple command
-> >'truncate -s 4G dummy' is enough. Note: 4GB is smaller than 4G,
-> >therefore the following command 'truncate -s 4GB dummy' will not trigger=
- this bug.
-> >The bug comes from a data overflow, the patch below fixes it.
-> >
-> >
->=20
-> Hi,
->=20
-> Your patch is not correctly generated, you need to make the diff on
-> top of the source tree.
->=20
-> Also, after reviewing the code, I think there are more places need
-> to fix. Can you try my patch below?
-
-Thanks for the review and additional fixes. See my comments below.
-
->=20
-> Thanks.
->=20
-> ---->
->=20
-> Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
->=20
->=20
-
-> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-> index a9f29b1..9ca9c17 100644
-> --- a/fs/ecryptfs/ecryptfs_kernel.h
-> +++ b/fs/ecryptfs/ecryptfs_kernel.h
-> @@ -653,7 +653,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode=
-, char *data,
->  			 loff_t offset, size_t size);
->  int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
->  				      struct page *page_for_lower,
-> -				      size_t offset_in_page, size_t size);
-> +				      loff_t offset_in_page, size_t size);
->  int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_=
-t size);
->  int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
->  			struct inode *ecryptfs_inode);
-> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-> index 3745f7c..93d80c4 100644
-> --- a/fs/ecryptfs/read_write.c
-> +++ b/fs/ecryptfs/read_write.c
-> @@ -72,7 +72,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, =
-char *data,
->   */
->  int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
->  				      struct page *page_for_lower,
-> -				      size_t offset_in_page, size_t size)
-> +				      loff_t offset_in_page, size_t size)
-
-mm/filemap.c uses unsigned long for variables used to identify an offset
-into a single page. That's what I'm tempted to use for offset_in_page,
-rather than loff_t.
-
->  {
->  	char *virt;
->  	loff_t offset;
-> @@ -128,15 +128,15 @@ int ecryptfs_write(struct inode *ecryptfs_inode, ch=
-ar *data, loff_t offset,
->  		pos =3D offset;
->  	while (pos < (offset + size)) {
->  		pgoff_t ecryptfs_page_idx =3D (pos >> PAGE_CACHE_SHIFT);
-> -		size_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
-> -		size_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page);
-> -		size_t total_remaining_bytes =3D ((offset + size) - pos);
-> +		loff_t start_offset_in_page =3D (pos & ~PAGE_CACHE_MASK);
-> +		loff_t num_bytes =3D (PAGE_CACHE_SIZE - start_offset_in_page);
-
-unsigned long should work for start_offset_in_page and num_bytes, too.
-
-Tyler
-
-> +		loff_t total_remaining_bytes =3D ((offset + size) - pos);
-> =20
->  		if (num_bytes > total_remaining_bytes)
->  			num_bytes =3D total_remaining_bytes;
->  		if (pos < offset) {
->  			/* remaining zeros to write, up to destination offset */
-> -			size_t total_remaining_zeros =3D (offset - pos);
-> +			loff_t total_remaining_zeros =3D (offset - pos);
-> =20
->  			if (num_bytes > total_remaining_zeros)
->  				num_bytes =3D total_remaining_zeros;
-
-
---Clx92ZfkiYIKRjnr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPFzxjAAoJENaSAD2qAscKx5oP/A9b7rNeMc50oqHsviZYPvFI
-IoEpmFy+2wDNDqqIj7GtYQ724wjXrK6MdZ7fU8stSVbNeQFOOlPX9xuoupqwGg4z
-k0d20gWOBLhSD5IMxkV2ot6rsH0x//kvHRFeoFkwO3j0AZWt7dwpRjVuTJdV+Bvw
-9X51Lye5ljMGrVbyixZe6z1IaVEirvvGl65YU661Jymq+6UI6dFZCh8AoTckm2Rk
-pumSSwCbEv7Z5FvXUmeENW9FCh4hzpiBHH8RIqBfs3O891X2s5meNkLDMZBeP3oT
-oPPdFosXhWq64/hb6sltz6fdLRwzW9IGK4Ajn84WqK7OfYLYdUXnHr+0fL2H73g7
-TPA8s3dbpUkgcjk1BLgBZYe2g73H48Q8R/cunl4kmgHBTZhYbc05VHn4Ng+70VRN
-rugo05WKbWLrDQ3e1cw1Uyg+ulavCR5z8t+yNmPheMAKnsQQ6JskwyleGm/Q0HE/
-EFbKAwbd61ikg4f4zvbjBD5yVna8umltSh4j7v+3WMDsP1JVrC7mV81RKDrwZ0gu
-/Fk7uzrlKyeYzTDZENz7OZ9e5kFP1ocsiew2rVszkPj8QwDW0la6gVo1i/SfSi7K
-hyNdIG3FBOLrYZEOxR3ooHNTRSJSjFsb5xTaXX+ZYyKxwrUn7N1qP6i/IimIJeef
-RsQKJCf7MBjUFBG7iQb8
-=9Vts
------END PGP SIGNATURE-----
-
---Clx92ZfkiYIKRjnr--
+DQoNCkhpLA0KICBUaGFua3MgQ29uZyBXYW5nIGZvciB0aGUga2luZCByZW1pbmRpbmcg
+cmVnYXJkaW5nIHRoZSBwYXRjaCBmb3JtYXQuDQogIFdlIGRpZCBub3RpY2UgdGhhdCB0
+aGUgdG90YWxfcmVtYWluaW5nX3plcm9lcyBuZWVkIGJlIHJldmlzZWQgYXMgd2VsbCwg
+DQphbmQgdGhlIHN0YXJ0X29mZnNldF9pbl9wYWdlLCBudW1fYnl0ZXMgbmVlZCBub3Qg
+YmUgcmV2aXNlZCAoYWx3YXlzIHNtYWxsZXIgDQp0aGFuIFBBR0VfQ0FDSEVfU0laRSwg
+ZXZlbiB0aGUgaHVnZSBwYWdlIHNpemUgaXMgc3VwcG9ydGVkLCANCnRoZSA0RyBwYWdl
+IHNpemUgaXMgbm90IHByZXNlbnQgaW4gdGhlIGN1cnJlbnQgd29ybGQ/KQ0KYnV0IHdl
+IGZvcmdldCB0byBpbmNsdWRlIHRoZSByZXZpc2lvbiBmb3IgdG90YWxfcmVtYWluaW5n
+X3plcm9lcywgc28gaGVyZSBjb21lcyB0aGUgcGF0Y2guDQoNCkNoZWVycywNCkxpIFdh
+bmcNCg0KU2lnbmVkLW9mZi1ieTogTGkgV2FuZyA8bGl3YW5nQG51ZHQuZWR1LmNuPg0K
+ICAgICAgICAgICAgICAgWXVuY2h1YW4gV2VuIDx3ZW55dW5jaHVhbkBreWxpbm9zLmNv
+bS5jbj4NCg0KLS0tDQoNCi0tLSBhL2ZzL2VjcnlwdGZzL3JlYWRfd3JpdGUuYwkyMDEy
+LTAxLTE5IDE3OjM0OjU0LjY2Njk0MDgyNCArMDgwMA0KKysrIGIvZnMvZWNyeXB0ZnMv
+cmVhZF93cml0ZS5jCTIwMTItMDEtMTkgMTc6MzU6MTYuMjU3OTQwODQwICswODAwDQpA
+QCAtMTMwLDEzICsxMzAsMTMgQEAgaW50IGVjcnlwdGZzX3dyaXRlKHN0cnVjdCBpbm9k
+ZSAqZWNyeXB0Zg0KIAkJcGdvZmZfdCBlY3J5cHRmc19wYWdlX2lkeCA9IChwb3MgPj4g
+UEFHRV9DQUNIRV9TSElGVCk7DQogCQlzaXplX3Qgc3RhcnRfb2Zmc2V0X2luX3BhZ2Ug
+PSAocG9zICYgflBBR0VfQ0FDSEVfTUFTSyk7DQogCQlzaXplX3QgbnVtX2J5dGVzID0g
+KFBBR0VfQ0FDSEVfU0laRSAtIHN0YXJ0X29mZnNldF9pbl9wYWdlKTsNCi0JCXNpemVf
+dCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUpIC0gcG9zKTsN
+CisJCWxvZmZfdCB0b3RhbF9yZW1haW5pbmdfYnl0ZXMgPSAoKG9mZnNldCArIHNpemUp
+IC0gcG9zKTsNCiANCiAJCWlmIChudW1fYnl0ZXMgPiB0b3RhbF9yZW1haW5pbmdfYnl0
+ZXMpDQogCQkJbnVtX2J5dGVzID0gdG90YWxfcmVtYWluaW5nX2J5dGVzOw0KIAkJaWYg
+KHBvcyA8IG9mZnNldCkgew0KIAkJCS8qIHJlbWFpbmluZyB6ZXJvcyB0byB3cml0ZSwg
+dXAgdG8gZGVzdGluYXRpb24gb2Zmc2V0ICovDQotCQkJc2l6ZV90IHRvdGFsX3JlbWFp
+bmluZ196ZXJvcyA9IChvZmZzZXQgLSBwb3MpOw0KKwkJCWxvZmZfdCB0b3RhbF9yZW1h
+aW5pbmdfemVyb3MgPSAob2Zmc2V0IC0gcG9zKTsNCiANCiAJCQlpZiAobnVtX2J5dGVz
+ID4gdG90YWxfcmVtYWluaW5nX3plcm9zKQ0KIAkJCQludW1fYnl0ZXMgPSB0b3RhbF9y
+ZW1haW5pbmdfemVyb3M7DQoNCg0KDQoNCg0KLS0tLS0tLS0tLSBPcmlnaW4gbWVzc2Fn
+ZSAtLS0tLS0tLS0tDQo+RnJvbaO6IlR5bGVyIEhpY2tzIiA8dHloaWNrc0BjYW5vbmlj
+YWwuY29tPg0KPlRvo7oiQ29uZyBXYW5nIiA8eGl5b3Uud2FuZ2NvbmdAZ21haWwuY29t
+Pg0KPlN1YmplY3SjulJlOiBbUEFUQ0hdIGVDcnlwdGZzOiBpbmZpbml0ZSBsb29wIGJ1
+Zw0KPkRhdGWjujIwMTItMDEtMTkgMDU6NDA6NTENCg0KT24gMjAxMi0wMS0xOCAyMzoy
+Njo1MiwgQ29uZyBXYW5nIHdyb3RlOg0KPiBPbiAwMS8xOC8yMDEyIDAzOjMwIFBNLCBM
+aSBXYW5nIHdyb3RlOg0KPiA+SGksDQo+ID4gVGhlcmUgaXMgYW4gaW5maW5pdGUgbG9v
+cCBidWcgaW4gZUNyeXB0ZnMsIHRvIG1ha2UgaXQgcHJlc2VudCwNCj4gPmp1c3QgdHJ1
+bmNhdGUgdG8gZ2VuZXJhdGUgYSBodWdlIGZpbGUgKD49IDRHKSBvbiBhIDMyLWJpdCBt
+YWNoaW5lDQo+ID51bmRlciB0aGUgcGxhaW4gdGV4dCBmb2xlZGVyIG1vdW50ZWQgd2l0
+aCBlQ3J5cHRmcywgYSBzaW1wbGUgY29tbWFuZA0KPiA+J3RydW5jYXRlIC1zIDRHIGR1
+bW15JyBpcyBlbm91Z2guIE5vdGU6IDRHQiBpcyBzbWFsbGVyIHRoYW4gNEcsDQo+ID50
+aGVyZWZvcmUgdGhlIGZvbGxvd2luZyBjb21tYW5kICd0cnVuY2F0ZSAtcyA0R0IgZHVt
+bXknIHdpbGwgbm90IHRyaWdnZXIgdGhpcyBidWcuDQo+ID5UaGUgYnVnIGNvbWVzIGZy
+b20gYSBkYXRhIG92ZXJmbG93LCB0aGUgcGF0Y2ggYmVsb3cgZml4ZXMgaXQuDQo+ID4N
+Cj4gPg0KPg0KPiBIaSwNCj4NCj4gWW91ciBwYXRjaCBpcyBub3QgY29ycmVjdGx5IGdl
+bmVyYXRlZCwgeW91IG5lZWQgdG8gbWFrZSB0aGUgZGlmZiBvbg0KPiB0b3Agb2YgdGhl
+IHNvdXJjZSB0cmVlLg0KPg0KPiBBbHNvLCBhZnRlciByZXZpZXdpbmcgdGhlIGNvZGUs
+IEkgdGhpbmsgdGhlcmUgYXJlIG1vcmUgcGxhY2VzIG5lZWQNCj4gdG8gZml4LiBDYW4g
+eW91IHRyeSBteSBwYXRjaCBiZWxvdz8NCg==
