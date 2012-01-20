@@ -1,54 +1,81 @@
-From: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Subject: Re: [PATCH] eCryptfs: infinite loop bug
-Date: Thu, 19 Jan 2012 10:17:55 -0600
-Message-ID: <CANT6BaO418KViOgCj11qCKi8keZ+tqbEAkCvBFvwNF4EtUziEA@mail.gmail.com>
-References: <7f1e961d.f528.134efaf8348.Coremail.dragonylffly@163.com>
-	<CA+55aFx7CV8wpDLfCr-pVVRxRyYgd2QdRXJSmp+UgrjSHyB1eA@mail.gmail.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: Re:Re: [PATCH] eCryptfs: truncate optimization (sometimes upto 25
+ 000x   fa ster)
+Date: Fri, 20 Jan 2012 19:00:02 +0800
+Message-ID: <1201201900027899fb5c49a2d6e23ac45af901a32fa1@nudt.edu.cn>
+References: <1201191719207c1a8e2a0d7a3f1e88c2fb8597295f6d@nudt.edu.cn>
+ <526986075.22208@eyou.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:60927 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499Ab2ASQR4 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 19 Jan 2012 11:17:56 -0500
-In-Reply-To: <CA+55aFx7CV8wpDLfCr-pVVRxRyYgd2QdRXJSmp+UgrjSHyB1eA@mail.gmail.com>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:36764 "HELO nudt.edu.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751733Ab2ATLMq (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Fri, 20 Jan 2012 06:12:46 -0500
+In-Reply-To: <526986075.22208@eyou.net>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: dragonylffly <dragonylffly@163.com>, tyhicks@canonical.com, john.johansen@canonical.com, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: dustin.kirkland@gazzang.com, torvalds@linux-foundation.org, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Cong Wang <xiyou.wangcong@gmail.com>, john.johansen@canonical.com, akpm@linux-foundation.org, Tyler Hicks <tyhicks@canonical.com>
 
-On Wed, Jan 18, 2012 at 2:49 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> There are *two* cases where we do that "total_remaining_bytes"
-> calculation. The same bug seems to exist both in ecryptfs_read() and
-> ecryptfs_write().
->
-> Possibly only the ecryptfs_write() one leads to an endless loop, but
-> the read one looks suspicious too.
->
-> Also, what protects things against this just being one nasty DoS
-> attack - even if the code is fixed to not be an endless loop, it looks
-> like a trivial "truncate()" can be used to generate a *practically*
-> infinite write stream. At the very least, this should be KILLABLE. Or
-> did I mis-read the code?
->
-> Tyler, Dustin, others - comments? This looks nasty.
-
-Definitely nasty, Linus.  This is almost certainly the source of a
-long-standing bug [1] we've had with tor-downloads into eCryptfs
-mounts hanging the OS.  Tor clients truncate a file at the start of
-the download large enough to handle the eventual result.
-
-Glad to see this finally triaged and a fix in the works, Li Wang and
-Yunchuan Wen.  Thanks for that.
-
-[1] https://bugs.launchpad.net/ecryptfs/+bug/431975
-
--- 
-:-Dustin
-
-Dustin Kirkland
-Chief Architect
-Gazzang, Inc.
-www.gazzang.com
+SGkgVHlsZXIsDQogIFRoYW5rcyBmb3IgeW91ciBjb21tZW50cy4gSSBhZ3JlZSB3aXRo
+IHRoYXQgdGhlIHBsYWludGV4dCBpbm9kZSBzaXplDQppcyBfX2ZyYWdpbGVfXywgYmVj
+YXVzZSBpdHMgY29uc2lzdGVuY2UgY2FuIGhhcmRseSBiZSBwcm90ZWN0ZWQgYnkgdGhl
+IGxvd2VyDQpmaWxlIHN5c3RlbSwgZXZlbiB0aGUgam91cm5hbCBpcyBzdXBwb3J0ZWQu
+IFNpbmNlIHRoZSBlQ3J5cHRmcw0KbWV0YWRhdGEgYXJlIGp1c3Qgbm9ybWFsIGZpbGUg
+ZGF0YSBzZWVuIGZyb20gbG93ZXIgZmlsZSBzeXN0ZW0sDQp0aGUgbG93ZXIgZmlsZSBz
+eXN0ZW0gaXMgbm90IGVhc3kgdG8gdHJlYXQgc2V2ZXJhbCBkYXRhIHBhZ2VzIChpbmNs
+dWRlDQplQ3J5cHRmcyBtZXRhZGF0YSB1cGRhdGUgYW5kIGZpbGUgZGF0YSB3cml0ZSkg
+dG9nZXRoZXIgYXMgYSBqb3VybmFsDQp0cmFuc2FjdGlvbi4NCiAgSG93ZXZlciwgSSBh
+bSBub3QgcXVpdGUgY29udmluY2VkIGJ5IHRoZSBwZXJmb3JtYW5jZSBhcmd1ZS4gRm9y
+IGN1cnJlbnQNCmltcGxlbWVudGF0aW9uLCBpdCBpbmN1cnMgdG9vIGhlYXZ5IHN0YXJ0
+dXAgY29zdC4gU29tZSBhcHBsaWNhdGlvbnMsDQpmb3IgZXhhbXBsZSwgYXMgZmFyIGFz
+IEkga25vdywgZm9yIHRoZSBvbGRlciB2ZXJzaW9uIFNhbWJhIHNlcnZlciAoSSBhbSBu
+b3QgcXVpdGUNCnN1cmUgYWJvdXQgdGhlIGxhdGVzdCB2ZXJzaW9uKSwgd2hlbiBleHBv
+cnRpbmcgZUNyeXB0ZnMgcGxhaW4gdGV4dCBmb2xkZXIgYnkgU2FtYmENCnRvIHRoZSBX
+aW5kb3dzIGNsaWVudCwgaWYgeW91IHVwbG9hZCBhIGJpZyBmaWxlIHRocm91Z2ggdGhl
+IFdpbmRvd3MgU2FtYmEgY2xpZW50LA0KdGhlIFNhbWJhIHNlcnZlciB3aWxsIGZpcnN0
+IHRydW5jYXRlIHRvIGdlbmVyYXRlIGFuIGVtcHR5IGZpbGUsIHRoZW4gc3RhcnQgd3Jp
+dGUuDQpJdCBqdXN0IGNvc3RzIHRvbyBtdWNoIHRpbWUgdG8gY3JlYXRlIHRoYXQgYmln
+IGZpbGUsIHVzZXIgYXMgd2VsbCBhcyBTYW1iYSB0b3RhbGx5DQpkb2VzIG5vdCBrbm93
+IHdoYXQgaXMgZ29pbmcgb24uIFNvbWV0aW1lcyBTYW1iYSBldmVuIGdpdmVzIHVwIHRo
+ZSB1cGxvYWQNCmJlY2F1c2Ugb2YgdG9vIG11Y2ggdGltZSBvZiB3YWl0aW5nLCB3aGlj
+aCBpcyBpbmNvcnJlY3RseSB0cmVhdGVkIGFzIGEgbmV0d29yaw0KY29ubmVjdGlvbiB0
+aW1lb3V0LiBXaXRoIHRoaXMgdHJ1bmNhdGUgb3B0aW1pemF0aW9uLCB0aGUgY29zdCBp
+cyBhdmVyYWdlZCwgdGhlIGZpbGUNCmlzIGV4cGFuZGVkIG9uLWRlbWFuZCwgdGhlIHVz
+ZXIgZXhwZXJpZW5jZSBpcyBpbXByb3ZlZCAoYXQgbGVhc3QsIGJvdGggdXNlciBhbmQN
+ClNhbWJhIGtub3dzIHRoYXQgdGhlIHdyaXRlIGlzIGdvaW5nIG9uIGluc3RlYWQgb2Yg
+bm8gcmVzcG9uc2UgZnJvbSBrZXJuZWwgYXQgYWxsKS4gIA0KDQoNCg0KDQoNCi0tLS0t
+LS0tLS0gT3JpZ2luIG1lc3NhZ2UgLS0tLS0tLS0tLQ0KPkZyb22juiJUeWxlciBIaWNr
+cyIgPHR5aGlja3NAY2Fub25pY2FsLmNvbT4NCj5Ub6O6IkxpIFdhbmciIDxsaXdhbmdA
+bnVkdC5lZHUuY24+DQo+U3ViamVjdKO6UmU6IFtQQVRDSF0gZUNyeXB0ZnM6IHRydW5j
+YXRlIG9wdGltaXphdGlvbiAoc29tZXRpbWVzIHVwdG8gMjUwMDB4IGZhIHN0ZXIpDQo+
+RGF0ZaO6MjAxMi0wMS0xOSAyMzoyNjo1NQ0KDQpPbiAyMDEyLTAxLTE5IDE3OjE5OjIw
+LCBMaSBXYW5nIHdyb3RlOg0KPiBIaSwNCj4gTWFueSBtb2Rlcm4gZGlzay1iYXNlZCBm
+aWxlIHN5c3RlbXMsIHN1Y2ggYXMgZXh0NCwNCj4gaGF2ZSB0aGUgdHJ1bmNhdGUgb3B0
+aW1pemF0aW9uIGZlYXR1cmUsIGtpbmQgb2YgZGVsYXllZCBhbGxvY2F0aW9uLCB0aGF0
+IGlzLA0KPiB3aGVuIHVzaW5nICd0cnVuY2F0ZScgdG8gcHJvZHVjZSBhIGJpZyBlbXB0
+eSBmaWxlLCB0aGUgZmlsZSBzeXN0ZW0gd2lsbCBub3QNCj4gYWxsb2NhdGUgZGlzayBz
+cGFjZSB1bnRpbCByZWFsIGRhdGEgYXJlIHdyaXR0ZW4gaW50bywgYXMgYSByZXN1bHQs
+DQo+IHRoZSBleGVjdXRpb24gb2YgdHJ1bmNhdGUgaXMgdmVyeSBmYXN0IGFuZCB0aGUg
+ZGlzayBzcGFjZSBhcmUgc2F2ZWQuDQo+IEhvd2V2ZXIsIGZvciBlQ3J5cHRmcywgaXQg
+d2lsbCBhY3R1YWxseSBjcmVhdGUgYSBlcXVhbC1zaXplIGZpbGUsIGFuZCB3cml0ZSB6
+ZXJvZXMgaW50byBpdCwNCj4gd2hpY2ggcmVzdWx0cyBpbiB0aGUgYWxsb2NhdGlvbiBv
+ZiBkaXNrIHNwYWNlIGFuZCBzbG93IGRpc2sgd3JpdGUgb3BlcmF0aW9ucy4NCj4gU2lu
+Y2UgZUNyeXB0ZnMgZG9lcyBub3QgcmVjb3JkIGhvbGUgaW5mb3JtYXRpb24gb24gZGlz
+aywgdGhlcmVmb3JlLA0KPiB3aGVuIHJlYWQgb3V0IGEgcGFnZSBvZiB6ZXJvZXMsIGVD
+cnlwdGZzIGNhbiBub3QgZGlzdGluZ3Vpc2ggYWN0dWFsIGRhdGENCj4gKGVuY3J5cHRl
+ZCBkYXRhIGhhcHBlbmVkIHRvIGJlIHdob2xlIHplcm9lcykgZnJvbSBob2xlLA0KPiB0
+aGVyZWZvcmUsIGVDcnlwdGZzIGNhbiBub3QgcmVseSBvbiB0aGUgbG93ZXIgZmlsZSBz
+eXN0ZW0gc3BlY2lmaWMgdHJ1bmNhdGUgaW1wbGVtZW50YXRpb24uDQo+IEhvd2V2ZXIs
+IHRoZXJlIGlzIG9uZSB0aGluZyBlQ3J5cHRmcyBjYW4gZG8gaXMgdGhhdCBlQ3J5cHRm
+cyBkb2VzIHJlY29yZCBmaWxlIHNpemUgaXRzZWxmDQo+IG9uIHRoZSBkaXNrLCBzbyB0
+aGF0IGl0IGNvdWxkIGJlIGF3YXJlIG9mIHRoZSBob2xlIGF0IHRoZSBlbmQgb2YgdGhl
+IGZpbGUuDQo+IFRoZSBuYXR1cmFsIG9wdGltaXphdGlvbiBpcywgd2hpbGUgdHJ1bmNh
+dGUgdG8gZXhwYW5kIGEgZmlsZSB0byBleGNlZWQgdGhlIG9yaWdpbmFsIHNpemUNCj4g
+KHdoaWNoIG9jY3VycyBpbiBtYW55IGNhc2VzIHdoaWxlIGRvaW5nIHRydW5jYXRlKSwN
+Cj4gcmVjb3JkIHRoZSBhY3R1YWwgZmlsZSBzaXplIChhZnRlciBleHBhbnNpb24pIGlu
+IHRoZSBlQ3J5cHRmcyBtZXRhZGF0YSwNCj4ga2VlcCB0aGUgb3JpZ2luYWwgc2l6ZSB1
+bmNoYW5nZWQgaW4gdGhlIGxvd2VyIGZpbGUgc3lzdGVtLg0KPiBXaGVuIHJlYWRpbmcs
+IGlmIHRoZSBmaWxlIHNpemUgc2VlbiBmcm9tIGVDcnlwdGZzIGlzIGJpZ2dlciB0aGFu
+IGZyb20g
