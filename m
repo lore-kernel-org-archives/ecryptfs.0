@@ -1,106 +1,108 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH 3/3] eCryptfs: Remove unused ecryptfs_read()
-Date: Fri, 20 Jan 2012 16:35:07 -0600
-Message-ID: <1327098907-28963-4-git-send-email-tyhicks@canonical.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: Re:[PATCH 2/3] eCryptfs: Check inode changes in setattr
+Date: Sat, 21 Jan 2012 15:57:58 +0800
+Message-ID: <120121155758aecba8095c7be7e9983b250416d86f0c@nudt.edu.cn>
 References: <1327098907-28963-1-git-send-email-tyhicks@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1327098907-28963-1-git-send-email-tyhicks@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
+ <527098189.19032@eyou.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: base64
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:55834 "HELO nudt.edu.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753270Ab2AUIKu (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Sat, 21 Jan 2012 03:10:50 -0500
+In-Reply-To: <527098189.19032@eyou.net>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, john.johansen@canonical.com, dustin.kirkland@gazzang.com, Cong Wang <xiyou.wangcong@gmail.com>, Li Wang <liwang@nudt.edu.cn>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Linus Torvalds <torvalds@linux-foundation.org>, john.johansen@canonical.com, dustin.kirkland@gazzang.com, Cong Wang <xiyou.wangcong@gmail.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
 
-ecryptfs_read() has been ifdef'ed out for years now and it was
-apparently unused before then. It is time to get rid of it for good.
-
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
----
- fs/ecryptfs/read_write.c |   73 ----------------------------------------------
- 1 files changed, 0 insertions(+), 73 deletions(-)
-
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 608c1c3..5c0106f 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -282,76 +282,3 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 	flush_dcache_page(page_for_ecryptfs);
- 	return rc;
- }
--
--#if 0
--/**
-- * ecryptfs_read
-- * @data: The virtual address into which to write the data read (and
-- *        possibly decrypted) from the lower file
-- * @offset: The offset in the decrypted view of the file from which to
-- *          read into @data
-- * @size: The number of bytes to read into @data
-- * @ecryptfs_file: The eCryptfs file from which to read
-- *
-- * Read an arbitrary amount of data from an arbitrary location in the
-- * eCryptfs page cache. This is done on an extent-by-extent basis;
-- * individual extents are decrypted and read from the lower page
-- * cache (via VFS reads). This function takes care of all the
-- * address translation to locations in the lower filesystem.
-- *
-- * Returns zero on success; non-zero otherwise
-- */
--int ecryptfs_read(char *data, loff_t offset, size_t size,
--		  struct file *ecryptfs_file)
--{
--	struct inode *ecryptfs_inode = ecryptfs_file->f_dentry->d_inode;
--	struct page *ecryptfs_page;
--	char *ecryptfs_page_virt;
--	loff_t ecryptfs_file_size = i_size_read(ecryptfs_inode);
--	loff_t data_offset = 0;
--	loff_t pos;
--	int rc = 0;
--
--	if ((offset + size) > ecryptfs_file_size) {
--		rc = -EINVAL;
--		printk(KERN_ERR "%s: Attempt to read data past the end of the "
--			"file; offset = [%lld]; size = [%td]; "
--		       "ecryptfs_file_size = [%lld]\n",
--		       __func__, offset, size, ecryptfs_file_size);
--		goto out;
--	}
--	pos = offset;
--	while (pos < (offset + size)) {
--		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
--		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
--		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
--		size_t total_remaining_bytes = ((offset + size) - pos);
--
--		if (num_bytes > total_remaining_bytes)
--			num_bytes = total_remaining_bytes;
--		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_inode,
--							 ecryptfs_page_idx);
--		if (IS_ERR(ecryptfs_page)) {
--			rc = PTR_ERR(ecryptfs_page);
--			printk(KERN_ERR "%s: Error getting page at "
--			       "index [%ld] from eCryptfs inode "
--			       "mapping; rc = [%d]\n", __func__,
--			       ecryptfs_page_idx, rc);
--			goto out;
--		}
--		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
--		memcpy((data + data_offset),
--		       ((char *)ecryptfs_page_virt + start_offset_in_page),
--		       num_bytes);
--		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
--		flush_dcache_page(ecryptfs_page);
--		SetPageUptodate(ecryptfs_page);
--		unlock_page(ecryptfs_page);
--		page_cache_release(ecryptfs_page);
--		pos += num_bytes;
--		data_offset += num_bytes;
--	}
--out:
--	return rc;
--}
--#endif  /*  0  */
--- 
-1.7.8.3
+SGkgVHlsZXIsDQogIFBsZWFzZSBjb25zaWRlciB0aGUgZm9sbG93aW5nIHR3byB0aGlu
+Z3MsDQoxLiBXaGlsZSBpbnZva2luZyBpbm9kZV9uZXdzaXplX29rL2lub2RlX2NoYW5n
+ZV9vaywgaXQganVzdCBtYWtlIHN1cmUgdGhlIG5ldyBmaWxlIHNpemUgc2VlbiBmcm9t
+DQplQ3J5cHRmcyB3aWxsIG5vdCBleGNlZWQgdGhlIHdoYXRldmVyIGtpbmRzIG9mIGZp
+bGUgc2l6ZSBsaW1pdCwgd2hhdCBhYm91dCB0aGUgbmV3IHNpemUgZG9lcyBub3QNCmV4
+Y2VlZCB0aGUgbGltaXQsIHBsdXMgZWNyeXB0ZnNfbG93ZXJfaGVhZGVyX3NpemUgd2ls
+bC4gVGhlcmVmb3JlIHRoZSBzYWZlc3Qgd2F5IGlzIHRvIGNoZWNrIHRoZQ0KbmV3IHNp
+emUgc2VlbiBmcm9tIGxvd2VyIGZpbGUgc3lzdGVtLCB3aGljaCBpcyBlY3J5cHRmc19s
+b3dlcl9oZWFkZXJfc2l6ZSBiaWdnZXIuICANCjIuIFRoZSBzZW5tYXRpY3Mgb2Ygc2It
+PnNfbWF4Ynl0ZXMsIGlzIHRoZSBtYXhpbXVtIGZpbGUgc2l6ZSBhbGxvd2VkIGJ5IHRo
+ZSBmaWxlIHN5c3RlbSANCnJlcHNlbnRlZCBieSBzYi4gRm9yIGVDcnlwdGZzLCBpdCBz
+aG91bGQgYmUgbG93ZXJfc2ItPnNfbWF4Ynl0ZXMgLSBlY3J5cHRmc19sb3dlcl9oZWFk
+ZXJfc2l6ZSwgDQpyYXRoZXIgdGhhbiBlcXVhbCB0byBsb3dlcl9zYi0+c19tYXhieXRl
+cy4gSG93ZXZlciwgdGhlIGVjcnlwdGZzX2xvd2VyX2hlYWRlcl9zaXplIGlzIGRpZmZl
+cmVudA0KZmlsZSBieSBmaWxlLCBub3QgYSBmaWxlIHN5c3RlbSB3aWRlIGNvbnN0YW50
+LiBJdCBpcywga2luZCBvZiBuYXN0eSBhbmQgd2UgY2Fubm90IHRydXN0IGl0LiANCkNv
+bWJpbmVkIHdpdGggdGhlIHJlYXNvbiAxLCB3ZSBwcmVmZXIgdG8gZXhlY3V0ZSBhbiBl
+eHRyYSBuZXcgc2l6ZSBjaGVjayBvbiBsb3dlciBpbm9kZQ0KYWZ0ZXIgaW5vZGVfY2hh
+bmdlX29rIG9uIGVjcnlwdGZzIGlub2RlLiBGb3IgZWNyeXB0ZnNfdHJ1bmNhdGUsIGRp
+cmVjdGx5IHBlcmZvcm0gbmV3IHNpemUgY2hlY2sNCm9uIGxvd2VyIGlub2RlLiANCiAg
+UGxlYXNlIGNoZWNrIHRoZSBwYXRjaCBiZWxvdy4NCg0KQ2hlZXJzLA0KTGkgV2FuZw0K
+DQpTaWduZWQtb2ZmLWJ5OiBMaSBXYW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+DQogICAg
+ICAgICAgICAgICBZdW5jaHVhbiBXZW4gPHdlbnl1bmNodWFuQGt5bGlub3MuY29tLmNu
+Pg0KDQotLS0NCg0KZGlmZiAtcHJOdSBhL2ZzL2VjcnlwdGZzL2lub2RlLmMgYi9mcy9l
+Y3J5cHRmcy9pbm9kZS5jDQotLS0gYS9mcy9lY3J5cHRmcy9pbm9kZS5jCTIwMTItMDEt
+MDUgMDc6NTU6NDQuMDAwMDAwMDAwICswODAwDQorKysgYi9mcy9lY3J5cHRmcy9pbm9k
+ZS5jCTIwMTItMDEtMjEgMTU6NTU6MjEuMDAwMDAwMDAwICswODAwDQpAQCAtODQxLDE4
+ICs4NDEsNiBAQCBzdGF0aWMgaW50IHRydW5jYXRlX3VwcGVyKHN0cnVjdCBkZW50cnkg
+DQogCQlzaXplX3QgbnVtX3plcm9zID0gKFBBR0VfQ0FDSEVfU0laRQ0KIAkJCQkgICAg
+LSAoaWEtPmlhX3NpemUgJiB+UEFHRV9DQUNIRV9NQVNLKSk7DQogDQotDQotCQkvKg0K
+LQkJICogWFhYKHRydW5jYXRlKSB0aGlzIHNob3VsZCByZWFsbHkgaGFwcGVuIGF0IHRo
+ZSBiZWdnaW5uaW5nDQotCQkgKiBvZiAtPnNldGF0dHIuICBCdXQgdGhlIGNvZGUgaXMg
+dG9vIG1lc3N5IHRvIHRoYXQgYXMgcGFydA0KLQkJICogb2YgYSBsYXJnZXIgcGF0Y2gu
+ICBlY3J5cHRmcyBpcyBhbHNvIHRvdGFsbHkgbWlzc2luZyBvdXQNCi0JCSAqIG9uIHRo
+ZSBpbm9kZV9jaGFuZ2Vfb2sgY2hlY2sgYXQgdGhlIGJlZ2lubmluZyBvZg0KLQkJICog
+LT5zZXRhdHRyIHdoaWxlIHdvdWxkIGluY2x1ZGUgdGhpcy4NCi0JCSAqLw0KLQkJcmMg
+PSBpbm9kZV9uZXdzaXplX29rKGlub2RlLCBpYS0+aWFfc2l6ZSk7DQotCQlpZiAocmMp
+DQotCQkJZ290byBvdXQ7DQotDQogCQlpZiAoIShjcnlwdF9zdGF0LT5mbGFncyAmIEVD
+UllQVEZTX0VOQ1JZUFRFRCkpIHsNCiAJCQl0cnVuY2F0ZV9zZXRzaXplKGlub2RlLCBp
+YS0+aWFfc2l6ZSk7DQogCQkJbG93ZXJfaWEtPmlhX3NpemUgPSBpYS0+aWFfc2l6ZTsN
+CkBAIC05MTYsOCArOTA0LDE0IEBAIGludCBlY3J5cHRmc190cnVuY2F0ZShzdHJ1Y3Qg
+ZGVudHJ5ICpkZW4NCiB7DQogCXN0cnVjdCBpYXR0ciBpYSA9IHsgLmlhX3ZhbGlkID0g
+QVRUUl9TSVpFLCAuaWFfc2l6ZSA9IG5ld19sZW5ndGggfTsNCiAJc3RydWN0IGlhdHRy
+IGxvd2VyX2lhID0geyAuaWFfdmFsaWQgPSAwIH07DQorCXN0cnVjdCBlY3J5cHRmc19j
+cnlwdF9zdGF0ICpjcnlwdF9zdGF0Ow0KIAlpbnQgcmM7DQotDQorCQ0KKwljcnlwdF9z
+dGF0ID0gJmVjcnlwdGZzX2lub2RlX3RvX3ByaXZhdGUoZGVudHJ5LT5kX2lub2RlKS0+
+Y3J5cHRfc3RhdDsNCisJcmMgPSBpbm9kZV9uZXdzaXplX29rKGVjcnlwdGZzX2lub2Rl
+X3RvX2xvd2VyKGRlbnRyeS0+ZF9pbm9kZSksIG5ld19sZW5ndGggKyBlY3J5cHRmc19s
+b3dlcl9oZWFkZXJfc2l6ZShjcnlwdF9zdGF0KSk7DQorCWlmIChyYykNCisJCXJldHVy
+biByYzsNCisJDQogCXJjID0gdHJ1bmNhdGVfdXBwZXIoZGVudHJ5LCAmaWEsICZsb3dl
+cl9pYSk7DQogCWlmICghcmMgJiYgbG93ZXJfaWEuaWFfdmFsaWQgJiBBVFRSX1NJWkUp
+IHsNCiAJCXN0cnVjdCBkZW50cnkgKmxvd2VyX2RlbnRyeSA9IGVjcnlwdGZzX2RlbnRy
+eV90b19sb3dlcihkZW50cnkpOw0KQEAgLTk5Nyw2ICs5OTEsMTUgQEAgc3RhdGljIGlu
+dCBlY3J5cHRmc19zZXRhdHRyKHN0cnVjdCBkZW50cg0KIAkJfQ0KIAl9DQogCW11dGV4
+X3VubG9jaygmY3J5cHRfc3RhdC0+Y3NfbXV0ZXgpOw0KKwkNCisJcmMgPSBpbm9kZV9j
+aGFuZ2Vfb2soaW5vZGUsIGlhKTsNCisJaWYgKHJjKQ0KKwkJZ290byBvdXQ7DQorCWlm
+IChpYS0+aWFfdmFsaWQgJiBBVFRSX1NJWkUpDQorCQlyYyA9IGlub2RlX25ld3NpemVf
+b2sobG93ZXJfaW5vZGUsIGlhLT5pYV9zaXplICsgZWNyeXB0ZnNfbG93ZXJfaGVhZGVy
+X3NpemUoY3J5cHRfc3RhdCkpOw0KKwlpZiAocmMpDQorCQlnb3RvIG91dDsNCisJDQog
+CWlmIChTX0lTUkVHKGlub2RlLT5pX21vZGUpKSB7DQogCQlyYyA9IGZpbGVtYXBfd3Jp
+dGVfYW5kX3dhaXQoaW5vZGUtPmlfbWFwcGluZyk7DQogCQlpZiAocmMpDQoNCg0KDQoN
+Cg0KLS0tLS0tLS0tLSBPcmlnaW4gbWVzc2FnZSAtLS0tLS0tLS0tDQo+RnJvbaO6IlR5
+bGVyIEhpY2tzIiA8dHloaWNrc0BjYW5vbmljYWwuY29tPg0KPlRvo7plY3J5cHRmc0B2
+Z2VyLmtlcm5lbC5vcmcsIGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcsIGxpbnV4
+LWZzZGV2ZWxAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdKO6W1BBVENIIDIvM10gZUNy
+eXB0ZnM6IENoZWNrIGlub2RlIGNoYW5nZXMgaW4gc2V0YXR0cg0KPkRhdGWjujIwMTIt
+MDEtMjEgMDY6MzU6MDYNCg0KTW9zdCBmaWxlc3lzdGVtcyBjYWxsIGlub2RlX2NoYW5n
+ZV9vaygpIHZlcnkgZWFybHkgaW4gLT5zZXRhdHRyKCksIGJ1dA0KZUNyeXB0ZnMgZGlk
+bid0IGNhbGwgaXQgYXQgYWxsLiBJdCBhbGxvd2VkIHRoZSBsb3dlciBmaWxlc3lzdGVt
+IHRvIG1ha2UNCnRoZSBjYWxsIGluIGl0cyAtPnNldGF0dHIoKSBmdW5jdGlvbi4gVGhl
+biwgZUNyeXB0ZnMgd291bGQgY29weSB0aGUNCmFwcHJvcHJpYXRlIGlub2RlIGF0dHJp
+YnV0ZXMgZnJvbSB0aGUgbG93ZXIgaW5vZGUgdG8gdGhlIGVDcnlwdGZzIGlub2RlLg0K
+DQpUaGlzIHBhdGNoIGNoYW5nZXMgdGhhdCBhbmQgYWN0dWFsbHkgY2FsbHMgaW5vZGVf
+Y2hhbmdlX29rKCkgb24gdGhlDQplQ3J5cHRmcyBpbm9kZSwgZmFpcmx5IGVhcmx5IGlu
+IGVjcnlwdGZzX3NldGF0dHIoKS4gSWRlYWxseSwgdGhlIGNhbGwNCndvdWxkIGhhcHBl
+biBlYXJsaWVyIGluIGVjcnlwdGZzX3NldGF0dHIoKSwgYnV0IHRoZXJlIGlzIHNvbWUg
+cG9zc2libGUNCmlub2RlIGluaXRpYWxpemF0aW9uIHRoYXQgbXVzdCBoYXBwZW4gZmly
+c3QuDQoNClNpbmNlIHRoZSBjYWxsIHdhcyBhbHJlYWR5IGJlaW5nIG1hZGUgb24gdGhl
+IGxvd2VyIGlub2RlLCB0aGUgY2hhbmdlIGluDQpmdW5jdGlvbmFsaXR5IHNob3VsZCBi
+ZSBtaW5pbWFsLCBleGNlcHQgZm9yIHRoZSBjYXNlIG9mIGEgZmlsZSBleHRlbmRpbmcN
+CnRydW5jYXRlIGNhbGwuIEluIHRoYXQgY2FzZSwgaW5vZGVfbmV3c2l6ZV9vaygpIHdh
+cyBuZXZlciBiZWluZw0KY2FsbGVkIG9uIHRoZSBlQ3J5cHRmcyBpbm9kZS4gUmF0aGVy
+IHRoYW4gaW5vZGVfbmV3c2l6ZV9vaygpIGNhdGNoaW5nDQplcnJvcnMgZWFybHkgb24s
+IGVDcnlwdGZzIHdvdWxkIGVuY3J5cHQgemVyb2VkIHBhZ2VzIGFuZCB3cml0ZSB0aGVt
+IHRvDQp0aGUgbG93ZXIgZmlsZXN5c3RlbSB1bnRpbCB0aGUgbG93ZXIgZmlsZXN5c3Rl
+bSdzIHdyaXRlIHBhdGggY2F1Z2h0IHRoZQ0KZXJyb3IgaW4gZ2VuZXJpY193cml0ZV9j
+aGVja3MoKS4NCg0KSW4gc3VtbWFyeSB0aGlzIGNoYW5nZSBwcmV2ZW50cyBlQ3J5cHRm
+cyB0cnVuY2F0ZSBvcGVyYXRpb25zIChhbmQgdGhlDQpyZXN1bHRpbmcgcGFnZSBlbmNy
+eXB0aW9ucyksIHdoaWNoIHdvdWxkIGV4Y2VlZCB0aGUgbG93ZXIgZmlsZXN5c3RlbSA=
