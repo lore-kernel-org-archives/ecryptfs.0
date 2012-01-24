@@ -1,69 +1,51 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: Incorrect eCryptfs list archive link
-Date: Tue, 24 Jan 2012 02:44:02 -0600
-Message-ID: <20120124084401.GC5692@boyd>
-References: <20120124081320.GB5692@boyd>
- <20120124.033007.600221047699375229.davem@davemloft.net>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: Re:[PATCH 2/3 v2] eCryptfs: Check inode changes in setattr
+Date: Tue, 24 Jan 2012 22:14:24 +0800
+Message-ID: <120124221424f4f1daa3ab344ab8e4d4ba1bae21070f@nudt.edu.cn>
+References: <20120124063246.GA5692@boyd>
+ <527389872.29922@eyou.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="p2kqVDKq5asng8Dg"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43425 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab2AXIoH (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 24 Jan 2012 03:44:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20120124.033007.600221047699375229.davem@davemloft.net>
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <527389872.29922@eyou.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: David Miller <davem@davemloft.net>
-Cc: postmaster@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Linus Torvalds <torvalds@linux-foundation.org>, john.johansen@canonical.com, dustin.kirkland@gazzang.com, Cong Wang <xiyou.wangcong@gmail.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
 
-
---p2kqVDKq5asng8Dg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2012-01-24 03:30:07, David Miller wrote:
-> From: Tyler Hicks <tyhicks@canonical.com>
-> Date: Tue, 24 Jan 2012 02:13:21 -0600
->=20
-> > Hello - It was brought to our attention that the archive link for the
-> > eCryptfs list on vger (http://vger.kernel.org/vger-lists.html#ecryptfs)
-> > points to the wrong place on the gmane.org site.
-> >=20
-> > If you could update it to the following address, at your convenience, it
-> > would be much appreciated:
-> >=20
-> > http://dir.gmane.org/gmane.comp.file-systems.ecryptfs.general
->=20
-> Done.
-
-That was quick. Thanks!
-
-Tyler
-
---p2kqVDKq5asng8Dg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPHm9RAAoJENaSAD2qAscKdFEQAMuRNhaAIZcoEwM1mQlReapa
-RAUiuD/LKbgSTL7t0eVJInGbgkQh1pEoj5GZR2KLbFWY2ehSz86QHqspIXfe3zeg
-9li9Lv9pddugalat9biFvkCUdsakCVoh9UD55VwiScCrq8J42kazMkfVPbIB4yt0
-kleELLeC79SASluqWZPU6XrmUgM6xg5/RXutzI0eWT7LcNJ9GeUPN15w02fJK2Rg
-bqJJDmN6TgVhx0NpVR8Gr0JzCgmiN0SpaCYKG74SuE6PPkxIsVb9JzFTRbAIH0at
-7t2tiC3YEx1zFjvXjLwFp8obFhVfF54EiX2cdQdaO6VmpjKOwRsdWsfbYJ1tn0Pq
-tnVF96TfMHtXPCg2AdfbWz0A9ZOFQpR9BgmrMEAJR+QrkYuMT6jpyyRhaz0q6h6i
-lBTKk413EBlZ84IG/39ssCVxw8X1UGXN398AEbZiflYqLfb0h561HGH3NxL5Fgzn
-5RgMeY0Kw5oJNQv68YwnPUJmLGhOgO97fyJ1x6vvQOz7uGW7lgoDSFy8rY7mCr4D
-XwH5H8wswurvzlrj0IqFY8/Sjs5nr7RBl6Jg9SuSbIHDaUqTqu3UxN9AxBEyn+S+
-+hlUpU4q+lS8lsE1SV3xfneExdoL2nPPWrE5GHJZmMOiEP8n8u6tOmydlh5I6+s3
-jLcAFZd8g1iNM7hjVCji
-=Xkcf
------END PGP SIGNATURE-----
-
---p2kqVDKq5asng8Dg--
+SGkgVHlsZXIsDQogIFdlIHRoaW5rIHRoYXQgaXMgZ29vZCwgZXhjZXB0IGl0IGlzIG5v
+dCB2ZXJ5IGVsZWdhbnQgdG8gaW52b2tlIA0KaW5vZGVfbmV3c2l6ZV9vayB3aXRoIHRo
+ZSBlY3J5cHRmcyAodXBwZXIpIGlub2RlIGFuZCBsb3dlciBzaXplLCBuZXZlcnRoZWxl
+c3MsIHdlIGRvbm90IGhhdmUgb3RoZXIgYmV0dGVyIGNob2ljZXMgYW5kIGl0IGlzIHdy
+YXBwZWQgaW4gDQplY3J5cHRmc19pbm9kZV9uZXdzaXplX29rLi4uDQogIEluIGEgd29y
+ZCwgd2UgYXJlIHdpdGggeW91Lg0KDQpDaGVlcnMsDQpMaSBXYW5nDQoNCg0KDQoNCg0K
+LS0tLS0tLS0tLSBPcmlnaW4gbWVzc2FnZSAtLS0tLS0tLS0tDQo+RnJvbaO6IlR5bGVy
+IEhpY2tzIiA8dHloaWNrc0BjYW5vbmljYWwuY29tPg0KPlRvo7plY3J5cHRmc0B2Z2Vy
+Lmtlcm5lbC5vcmcsIGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcsIGxpbnV4LWZz
+ZGV2ZWxAdmdlci5rZXJuZWwub3JnDQo+U3ViamVjdKO6W1BBVENIIDIvMyB2Ml0gZUNy
+eXB0ZnM6IENoZWNrIGlub2RlIGNoYW5nZXMgaW4gc2V0YXR0cg0KPkRhdGWjujIwMTIt
+MDEtMjQgMTU6Mzc6MzINCg0KTW9zdCBmaWxlc3lzdGVtcyBjYWxsIGlub2RlX2NoYW5n
+ZV9vaygpIHZlcnkgZWFybHkgaW4gLT5zZXRhdHRyKCksIGJ1dA0KZUNyeXB0ZnMgZGlk
+bid0IGNhbGwgaXQgYXQgYWxsLiBJdCBhbGxvd2VkIHRoZSBsb3dlciBmaWxlc3lzdGVt
+IHRvIG1ha2UNCnRoZSBjYWxsIGluIGl0cyAtPnNldGF0dHIoKSBmdW5jdGlvbi4gVGhl
+biwgZUNyeXB0ZnMgd291bGQgY29weSB0aGUNCmFwcHJvcHJpYXRlIGlub2RlIGF0dHJp
+YnV0ZXMgZnJvbSB0aGUgbG93ZXIgaW5vZGUgdG8gdGhlIGVDcnlwdGZzIGlub2RlLg0K
+DQpUaGlzIHBhdGNoIGNoYW5nZXMgdGhhdCBhbmQgYWN0dWFsbHkgY2FsbHMgaW5vZGVf
+Y2hhbmdlX29rKCkgb24gdGhlDQplQ3J5cHRmcyBpbm9kZSwgZmFpcmx5IGVhcmx5IGlu
+IGVjcnlwdGZzX3NldGF0dHIoKS4gSWRlYWxseSwgdGhlIGNhbGwNCndvdWxkIGhhcHBl
+biBlYXJsaWVyIGluIGVjcnlwdGZzX3NldGF0dHIoKSwgYnV0IHRoZXJlIGFyZSBzb21l
+IHBvc3NpYmxlDQppbm9kZSBpbml0aWFsaXphdGlvbiBzdGVwcyB0aGF0IG11c3QgaGFw
+cGVuIGZpcnN0Lg0KDQpTaW5jZSB0aGUgY2FsbCB3YXMgYWxyZWFkeSBiZWluZyBtYWRl
+IG9uIHRoZSBsb3dlciBpbm9kZSwgdGhlIGNoYW5nZSBpbg0KZnVuY3Rpb25hbGl0eSBz
+aG91bGQgYmUgbWluaW1hbCwgZXhjZXB0IGZvciB0aGUgY2FzZSBvZiBhIGZpbGUgZXh0
+ZW5kaW5nDQp0cnVuY2F0ZSBjYWxsLiBJbiB0aGF0IGNhc2UsIGlub2RlX25ld3NpemVf
+b2soKSB3YXMgbmV2ZXIgYmVpbmcNCmNhbGxlZCBvbiB0aGUgZUNyeXB0ZnMgaW5vZGUu
+IFJhdGhlciB0aGFuIGlub2RlX25ld3NpemVfb2soKSBjYXRjaGluZw0KbWF4aW11bSBm
+aWxlIHNpemUgZXJyb3JzIGVhcmx5IG9uLCBlQ3J5cHRmcyB3b3VsZCBlbmNyeXB0IHpl
+cm9lZCBwYWdlcw0KYW5kIHdyaXRlIHRoZW0gdG8gdGhlIGxvd2VyIGZpbGVzeXN0ZW0g
+dW50aWwgdGhlIGxvd2VyIGZpbGVzeXN0ZW0ncw0Kd3JpdGUgcGF0aCBjYXVnaHQgdGhl
+IGVycm9yIGluIGdlbmVyaWNfd3JpdGVfY2hlY2tzKCkuIFRoaXMgcGF0Y2gNCmludHJv
+ZHVjZXMgYSBuZXcgZnVuY3Rpb24sIGNhbGxlZCBlY3J5cHRmc19pbm9kZV9uZXdzaXpl
+X29rKCksIHdoaWNoDQpjaGVja3MgaWYgdGhlIG5ldyBsb3dlciBmaWxlIHNpemUgaXMg
+d2l0aGluIHRoZSBhcHByb3ByaWF0ZSBsaW1pdHMgd2hlbg0KdGhlIHRydW5jYXRlIG9w
+ZXJhdGlvbiB3aWxsIGJlIGdyb3dpbmcgdGhlIGxvd2VyIGZpbGUuIA==
