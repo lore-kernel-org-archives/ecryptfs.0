@@ -1,104 +1,133 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.3-rc2
-Date: Wed, 25 Jan 2012 16:12:50 -0600
-Message-ID: <20120125221249.GH16865@boyd>
+Subject: Re: [PATCH] eCryptfs: write optimization
+Date: Wed, 25 Jan 2012 17:05:45 -0600
+Message-ID: <20120125230545.GI16865@boyd>
+References: <527503333.04197@eyou.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="dMdWWqg3F2Dv/qfw"
+	protocol="application/pgp-signature"; boundary="3CAnR4CLEnEWqRMR"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:51445 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:51609 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab2AYWM4 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 25 Jan 2012 17:12:56 -0500
+	with ESMTP id S1750880Ab2AYXFu (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 25 Jan 2012 18:05:50 -0500
 Content-Disposition: inline
+In-Reply-To: <527503333.04197@eyou.net>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: Li Wang <liwang@nudt.edu.cn>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
 
---dMdWWqg3F2Dv/qfw
+--3CAnR4CLEnEWqRMR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Linus - Here's a pile of eCryptfs bug fixes.
+On 2012-01-25 23:08:58, Li Wang wrote:
+> Hi,
+>   ecryptfs_write_begin() grabs a page from page cache for writing.=20
+> If the page does not contain valid data, or the data are older than=20
+> the counterpart on the disk, eCryptfs will read out the corresponding dat=
+a=20
+> from the disk into the eCryptfs page cache, decrypt them,=20
+> then perform writing. However, for current page, if the length of=20
+> the data to be written into is equal to page size, that means the whole=
+=20
+> page of data will be overwritten, in which case, it does not matter whate=
+ver=20
+> the data were before, it is beneficial to perform writing directly.
+>=20
+> This is useful while using eCryptfs in backup situation, user copies file
+> out from eCryptfs folder, modifies, and copies the revised file back to
+> replace the original one.=20
+>=20
+> With this optimization, according to our test, iozone 'write' operation o=
+n an existing=20
+> file with write size being multiple of page size will enjoy a steady 3x s=
+peedup.
 
-Tim's logging message update will be really helpful to users when
-they're trying to locate a problematic file in the lower filesystem with
-filename encryption enabled.
+I've coded this same optimization up once before and did see the nice
+performance boost it provides.
 
-You'll recognize the fix from Li, as you commented on that.
+What stopped me from committing it is that I noticed a short copy is
+possible during the iov_iter_copy_from_user_atomic() call in
+generic_perform_write().
 
-You should also be familiar with my setattr/truncate improvements, since
-you were the one that pointed them out to us (thanks again!). Andrew
-noted the /dev/ecryptfs write count sanitization needed to be improved,
-so I've got a fix in there for that along with some other less important
-cleanups of the /dev/ecryptfs read/write code.
+I didn't ever follow up to figure out the best way to handle the short
+copy in ecryptfs_write_end() and then forgot about it all. :/
 
-They've all sat in -next for at least a day, while some have been there
-around a week, I believe.
+How do you propose that case be handled? I suppose we could *detect* it
+by not marking the page uptodate in ecryptfs_write_begin() and then if
+ecryptfs_write_end() sees a non-uptodate page and len is less than
+PAGE_CACHE_SIZE, we would know a short copy happened. But I'm not sure
+what the acceptable options are to *handle* that case. Just return an
+error? Try to fill the page in ecryptfs_write_end() (ugly, IMO)?
 
-I'll get signed tags going for the next pull request I send. That was my
-intention this time, but it just hit me that I forgot to do it.
+Adding linux-fsdevel for suggestions, since I assume other filesystems
+may be doing this.
 
-Thanks,
 Tyler
 
-The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+>=20
+> Signed-off-by: Li Wang <liwang@nudt.edu.cn>
+> 		Yunchuan Wen <wenyunchuan@kylinos.com.cn>
+>=20
+> ---
+>=20
+>  fs/ecryptfs/mmap.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index 6a44148..9724ef2 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -346,7 +346,8 @@ static int ecryptfs_write_begin(struct file *file,
+>  			if (prev_page_end_size
+>  			    >=3D i_size_read(page->mapping->host)) {
+>  				zero_user(page, 0, PAGE_CACHE_SIZE);
+> -			} else {
+> +				SetPageUptodate(page);
+> +			} else if (len < PAGE_CACHE_SIZE) {
+>  				rc =3D ecryptfs_decrypt_page(page);
+>  				if (rc) {
+>  					printk(KERN_ERR "%s: Error decrypting "
+> @@ -356,8 +357,8 @@ static int ecryptfs_write_begin(struct file *file,
+>  					ClearPageUptodate(page);
+>  					goto out;
+>  				}
+> +				SetPageUptodate(page);
+>  			}
+> -			SetPageUptodate(page);
+>  		}
+>  	}
+>  	/* If creating a page or more of holes, zero them out via truncate. =20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git for-linus
-
-Dustin Kirkland (1):
-      MAINTAINERS: Update eCryptfs maintainer address
-
-Li Wang (1):
-      eCryptfs: Infinite loop due to overflow in ecryptfs_write()
-
-Tim Gardner (2):
-      ecryptfs: Improve metadata read failure logging
-      ecryptfs: Remove unnecessary variable initialization
-
-Tyler Hicks (7):
-      eCryptfs: Sanitize write counts of /dev/ecryptfs
-      eCryptfs: Report errors in writes to /dev/ecryptfs
-      eCryptfs: Replace miscdev read/write magic numbers
-      eCryptfs: Make truncate path killable
-      eCryptfs: Check inode changes in setattr
-      eCryptfs: Remove unused ecryptfs_read()
-      eCryptfs: Fix oops when printing debug info in extent crypto functions
-
- MAINTAINERS                   |    2 +-
- fs/ecryptfs/crypto.c          |   54 +++-------------
- fs/ecryptfs/ecryptfs_kernel.h |    5 ++
- fs/ecryptfs/inode.c           |   48 +++++++++++----
- fs/ecryptfs/keystore.c        |    5 +-
- fs/ecryptfs/miscdev.c         |  140 +++++++++++++++++++++++++----------------
- fs/ecryptfs/read_write.c      |   96 +++++-----------------------
- 7 files changed, 155 insertions(+), 195 deletions(-)
-
---dMdWWqg3F2Dv/qfw
+--3CAnR4CLEnEWqRMR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJPIH5hAAoJENaSAD2qAscKo+0P/3Zr22MgWwd9cnvoW5izn0T7
-YezTFTbR2BZ8vRRuE0HAgmUdQDtMmv/UpZLs5WvUfAFk0BcYQHiN+N7dHbFNqY4q
-g9ok9V2pBtFVYzFuTqy83JkGVzVkLutg4Bils9JE+K9dfOLTMQQiEwrD+qL8AfrY
-rac5ICUUZsXrri24L9zOFMt+PxHTJ6Hhod89tvTosgxYhnfaUqGlWBG/wrNBUr1i
-Msw98Cmjd7YkUbWa6FqGSgb1k0YODXek6wd5ah3MS1k1Ujuh+XElgGXu2LQLKfHS
-IkRuhu1hhUS0JkXkPYd33d1wjxcDOj/BFdyJAwSMz7LDYg8J5BaSnPxO/1gH6Wp9
-kKhcGytoS2jttbUkoC8ViN4lpvJOGWLjAtzp9lkuN8AtGE3yCE3JVc+ZbR+4ZLmx
-HDTab1DNywOb3EjcrT0hW9OzDPgXfUivPeWjLZoW1lEI2hfDwt7Uxx5H+Il+B/CR
-ycn7kO0av7O+7Pr7lEsRA8WuUi7wjuBLVP6LqF1mLQAL0/g4GdkPUtYhJuvdUiST
-knzMxA6vLojg9wa5zPnVMlJMTnhL7ml/bwhZy5I0Fg6aUfnBVeOdLv95eeZ1k5jK
-L13BMeBo8XNnlHhAyerLqgImD0F5oZLwWTvtxp9QjUVPTpv9V6dsBN6iij0EDN/T
-ezAdSa2SJ5Vm0XPL9/hF
-=PY6L
+iQIcBAEBCgAGBQJPIIrJAAoJENaSAD2qAscK4xkP/i+2Wr9/I2p0SKF+7w8nzJ3i
+T1iogUqN0SEnkQsgg5cSrRlV4YxG9vR9bJK7HUysra9HxoyrU+UGjAyfrOIs9MDk
+u+HVvslZKEBsftQPWvAoWgBnwr36CYumEykYyn2FyrLAcxgg7DQ/6g5B+9TqLoAR
+5FNqad/UnFmNTB3WD/eMI98dWV3rGErm8svU6YsrZcjoMj0hReKbdDrK8dPWskVC
+jlBvSjApQFFYbyLZPZnFcJX7VqSBSr9kczbIy91LXZUtqJQaueQIhI3kWstaseLV
+Le2CxKF34lFjcPVZ9IvCbpsWlxU48IzcpkXrMwX+wl4ZstmEaWMZYjAkHd00C1FO
+RoBnmn37YIE1FxNfRo3qtVBLHwFxuIcgY1zSUtMSPykQfnvLfXBHiYUjw5LDXeRi
+huGvqYfTJBHATunEfaewNq1VwD0Jwsq9TMgdl8tubsLUw9hI9zxqG7Bha1aP/tbP
+jVBh/ArTpgKiOu5CTj31OIOeWxLvz8cQcpQJ+wivEq/lCe9r9Fd8/iIUrUH3yJUl
+E+wVKuuZbf5HGFA9az1nyq4BxvPscrDrtUFY6VBdT2CsdF4rerpvSvl68hPTos0b
+PHCnH6QFHP+evrflANsQzLGWky6aVrYkbxlFQlqc/4fgRvOO9TffgKtHdN9UoHYJ
+K3FGFyp7DS8vGvlg4hh6
+=/oYB
 -----END PGP SIGNATURE-----
 
---dMdWWqg3F2Dv/qfw--
+--3CAnR4CLEnEWqRMR--
