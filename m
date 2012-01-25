@@ -1,43 +1,66 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: [PATCH] eCryptfs: move misleading function comments
-Date: Wed, 25 Jan 2012 15:40:31 +0800
-Message-ID: <12012515403122cc486cc632c5642319c03f14a594bc@nudt.edu.cn>
-References: <20120124063246.GA5692@boyd>
- <527389872.29922@eyou.net>
+Subject: [PATCH] eCryptfs: write optimization
+Date: Wed, 25 Jan 2012 23:08:58 +0800
+Message-ID: <527503333.04197@eyou.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <527389872.29922@eyou.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:59430 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751275Ab2AYPJK convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 25 Jan 2012 10:09:10 -0500
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="windows-1254"
-To: Linus Torvalds <torvalds@linux-foundation.org>, john.johansen@canonical.com, dustin.kirkland@gazzang.com, Cong Wang <xiyou.wangcong@gmail.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SGksDQogIFRoZSBkYXRhIGVuY3J5cHRpb24gd2FzIG1vdmVkIGZyb20gZWNyeXB0ZnNf
-d3JpdGVfZW5kIGludG8gZWNyeXB0ZnNfd3JpdGVwYWdlLA0KdGhpcyBwYXRjaCBtb3Zl
-cyB0aGUgY29ycmVzcG9uZGluZyBmdW5jdGlvbiBjb21tZW50cyB0byBiZSBjb25zaXN0
-ZW50IHdpdGggDQp0aGUgbW9kaWZpY2F0aW9uLg0KDQpTaWduZWQtb2ZmLWJ5OiBMaSBX
-YW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+DQoNCi0tLQ0KDQpmcy9lY3J5cHRmcy9tbWFw
-LmMgfCAgICA4ICsrKystLS0tDQoxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygr
-KSwgNCBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2ZzL2VjcnlwdGZzL21tYXAu
-YyBiL2ZzL2VjcnlwdGZzL21tYXAuYw0KaW5kZXggNmE0NDE0OC4uMTBlYzY5NSAxMDA2
-NDQNCi0tLSBhL2ZzL2VjcnlwdGZzL21tYXAuYw0KKysrIGIvZnMvZWNyeXB0ZnMvbW1h
-cC5jDQpAQCAtNTcsNiArNTcsMTAgQEAgc3RydWN0IHBhZ2UgKmVjcnlwdGZzX2dldF9s
-b2NrZWRfcGFnZShzdHJ1Y3QgaW5vZGUgKmlub2RlLCBsb2ZmX3QgaW5kZXgpDQogICog
-QHBhZ2U6IFBhZ2UgdGhhdCBpcyBsb2NrZWQgYmVmb3JlIHRoaXMgY2FsbCBpcyBtYWRl
-DQogICoNCiAgKiBSZXR1cm5zIHplcm8gb24gc3VjY2Vzczsgbm9uLXplcm8gb3RoZXJ3
-aXNlDQorICoNCisgKiBUaGlzIGlzIHdoZXJlIHdlIGVuY3J5cHQgdGhlIGRhdGEgYW5k
-IHBhc3MgdGhlIGVuY3J5cHRlZCBkYXRhIHRvDQorICogdGhlIGxvd2VyIGZpbGVzeXN0
-ZW0uICBJbiBPcGVuUEdQLWNvbXBhdGlibGUgbW9kZSwgd2Ugb3BlcmF0ZSBvbg0KKyAq
-IGVudGlyZSB1bmRlcmx5aW5nIHBhY2tldHMuDQogICovDQogc3RhdGljIGludCBlY3J5
-cHRmc193cml0ZXBhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UsIHN0cnVjdCB3cml0ZWJhY2tf
-Y29udHJvbCAqd2JjKQ0KIHsNCkBAIC00ODEsMTAgKzQ4NSw2IEBAIGludCBlY3J5cHRm
-c193cml0ZV9pbm9kZV9zaXplX3RvX21ldGFkYXRhKHN0cnVjdCBpbm9kZSAqZWNyeXB0
-ZnNfaW5vZGUpDQogICogQGNvcGllZDogVGhlIGFtb3VudCBvZiBkYXRhIGNvcGllZA0K
-ICAqIEBwYWdlOiBUaGUgZUNyeXB0ZnMgcGFnZQ0KICAqIEBmc2RhdGE6IFRoZSBmc2Rh
-dGEgKHVudXNlZCkNCi0gKg0KLSAqIFRoaXMgaXMgd2hlcmUgd2UgZW5jcnlwdCB0aGUg
-ZGF0YSBhbmQgcGFzcyB0aGUgZW5jcnlwdGVkIGRhdGEgdG8NCi0gKiB0aGUgbG93ZXIg
-ZmlsZXN5c3RlbS4gIEluIE9wZW5QR1AtY29tcGF0aWJsZSBtb2RlLCB3ZSBvcGVyYXRl
-IG9uDQotICogZW50aXJlIHVuZGVybHlpbmcgcGFja2V0cy4NCiAgKi8NCiBzdGF0aWMg
-aW50IGVjcnlwdGZzX3dyaXRlX2VuZChzdHJ1Y3QgZmlsZSAqZmlsZSwNCiAJCQlzdHJ1
-Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZywNCg0K
+Hi,
+  ecryptfs_write_begin() grabs a page from page cache for writing. 
+If the page does not contain valid data, or the data are older than 
+the counterpart on the disk, eCryptfs will read out the corresponding data 
+from the disk into the eCryptfs page cache, decrypt them, 
+then perform writing. However, for current page, if the length of 
+the data to be written into is equal to page size, that means the whole 
+page of data will be overwritten, in which case, it does not matter whatever 
+the data were before, it is beneficial to perform writing directly.
+
+This is useful while using eCryptfs in backup situation, user copies file
+out from eCryptfs folder, modifies, and copies the revised file back to
+replace the original one. 
+
+With this optimization, according to our test, iozone 'write' operation on an existing 
+file with write size being multiple of page size will enjoy a steady 3x speedup.
+
+Signed-off-by: Li Wang <liwang@nudt.edu.cn>
+		Yunchuan Wen <wenyunchuan@kylinos.com.cn>
+
+---
+
+ fs/ecryptfs/mmap.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 6a44148..9724ef2 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -346,7 +346,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 			if (prev_page_end_size
+ 			    >= i_size_read(page->mapping->host)) {
+ 				zero_user(page, 0, PAGE_CACHE_SIZE);
+-			} else {
++				SetPageUptodate(page);
++			} else if (len < PAGE_CACHE_SIZE) {
+ 				rc = ecryptfs_decrypt_page(page);
+ 				if (rc) {
+ 					printk(KERN_ERR "%s: Error decrypting "
+@@ -356,8 +357,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 					ClearPageUptodate(page);
+ 					goto out;
+ 				}
++				SetPageUptodate(page);
+ 			}
+-			SetPageUptodate(page);
+ 		}
+ 	}
+ 	/* If creating a page or more of holes, zero them out via truncate.  
