@@ -1,66 +1,55 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: [PATCH] eCryptfs: write optimization
-Date: Wed, 25 Jan 2012 23:08:58 +0800
-Message-ID: <527503333.04197@eyou.net>
+Date: Wed, 25 Jan 2012 23:10:58 +0800
+Message-ID: <120125231058365612da29f3ab1c3bb2d794f83e9305@nudt.edu.cn>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:59430 "HELO eyou.net"
+Received: from mail.nudt.edu.cn ([61.187.54.11]:48957 "HELO nudt.edu.cn"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751275Ab2AYPJK convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 25 Jan 2012 10:09:10 -0500
+	id S1752993Ab2AYPYc (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 25 Jan 2012 10:24:32 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: ecryptfs <ecryptfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi,
-  ecryptfs_write_begin() grabs a page from page cache for writing. 
-If the page does not contain valid data, or the data are older than 
-the counterpart on the disk, eCryptfs will read out the corresponding data 
-from the disk into the eCryptfs page cache, decrypt them, 
-then perform writing. However, for current page, if the length of 
-the data to be written into is equal to page size, that means the whole 
-page of data will be overwritten, in which case, it does not matter whatever 
-the data were before, it is beneficial to perform writing directly.
-
-This is useful while using eCryptfs in backup situation, user copies file
-out from eCryptfs folder, modifies, and copies the revised file back to
-replace the original one. 
-
-With this optimization, according to our test, iozone 'write' operation on an existing 
-file with write size being multiple of page size will enjoy a steady 3x speedup.
-
-Signed-off-by: Li Wang <liwang@nudt.edu.cn>
-		Yunchuan Wen <wenyunchuan@kylinos.com.cn>
-
----
-
- fs/ecryptfs/mmap.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 6a44148..9724ef2 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -346,7 +346,8 @@ static int ecryptfs_write_begin(struct file *file,
- 			if (prev_page_end_size
- 			    >= i_size_read(page->mapping->host)) {
- 				zero_user(page, 0, PAGE_CACHE_SIZE);
--			} else {
-+				SetPageUptodate(page);
-+			} else if (len < PAGE_CACHE_SIZE) {
- 				rc = ecryptfs_decrypt_page(page);
- 				if (rc) {
- 					printk(KERN_ERR "%s: Error decrypting "
-@@ -356,8 +357,8 @@ static int ecryptfs_write_begin(struct file *file,
- 					ClearPageUptodate(page);
- 					goto out;
- 				}
-+				SetPageUptodate(page);
- 			}
--			SetPageUptodate(page);
- 		}
- 	}
- 	/* If creating a page or more of holes, zero them out via truncate.  
+SGksDQogIGVjcnlwdGZzX3dyaXRlX2JlZ2luKCkgZ3JhYnMgYSBwYWdlIGZyb20gcGFn
+ZSBjYWNoZSBmb3Igd3JpdGluZy4gDQpJZiB0aGUgcGFnZSBkb2VzIG5vdCBjb250YWlu
+IHZhbGlkIGRhdGEsIG9yIHRoZSBkYXRhIGFyZSBvbGRlciB0aGFuIA0KdGhlIGNvdW50
+ZXJwYXJ0IG9uIHRoZSBkaXNrLCBlQ3J5cHRmcyB3aWxsIHJlYWQgb3V0IHRoZSBjb3Jy
+ZXNwb25kaW5nIGRhdGEgDQpmcm9tIHRoZSBkaXNrIGludG8gdGhlIGVDcnlwdGZzIHBh
+Z2UgY2FjaGUsIGRlY3J5cHQgdGhlbSwgDQp0aGVuIHBlcmZvcm0gd3JpdHRpbmcuIEhv
+d2V2ZXIsIGZvciBjdXJyZW50IHBhZ2UsIGlmIHRoZSBsZW5ndGggb2YgDQp0aGUgZGF0
+YSB0byBiZSB3cml0dGVuIGludG8gaXMgZXF1YWwgdG8gcGFnZSBzaXplLCB0aGF0IG1l
+YW5zIHRoZSB3aG9sZSANCnBhZ2Ugb2YgZGF0YSB3aWxsIGJlIG92ZXJ3cml0dGVuLCBp
+biB3aGljaCBjYXNlLCBpdCBkb2VzIG5vdCBtYXR0ZXIgd2hhdGV2ZXIgDQp0aGUgZGF0
+YSB3ZXJlIGJlZm9yZSwgaXQgaXMgYmVuZWZpY2lhbCB0byBwZXJmb3JtIHdyaXR0aW5n
+IGRpcmVjdGx5Lg0KDQpUaGlzIGlzIHVzZWZ1bCB3aGlsZSB1c2luZyBlQ3J5cHRmcyBp
+biBiYWNrdXAgc2l0dWF0aW9uLCB1c2VyIGNvcGllcyBmaWxlDQpvdXQgZnJvbSBlQ3J5
+cHRmcyBmb2xkZXIsIG1vZGlmaWVzLCBhbmQgY29waWVzIHRoZSByZXZpc2VkIGZpbGUg
+YmFjayB0bw0KcmVwbGFjZSB0aGUgb3JpZ2luYWwgb25lLiANCg0KV2l0aCB0aGlzIG9w
+dGltaXphdGlvbiwgYWNjb3JkaW5nIHRvIG91ciB0ZXN0LCBpb3pvbmUgJ3dyaXRlJyBv
+cGVyYXRpb24gb24gYW4gZXhpc3RpbmcgDQpmaWxlIHdpdGggd3JpdGUgc2l6ZSBiZWlu
+ZyBtdWx0aXBsZSBvZiBwYWdlIHNpemUgd2lsbCBlbmpveSBhIHN0ZWFkeSAzeCBzcGVl
+ZHVwLg0KDQpTaWduZWQtb2ZmLWJ5OiBMaSBXYW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+
+DQoJCVl1bmNodWFuIFdlbiA8d2VueXVuY2h1YW5Aa3lsaW5vcy5jb20uY24+DQoNCi0t
+LQ0KDQogZnMvZWNyeXB0ZnMvbW1hcC5jIHwgICAgNSArKystLQ0KIDEgZmlsZXMgY2hh
+bmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0
+IGEvZnMvZWNyeXB0ZnMvbW1hcC5jIGIvZnMvZWNyeXB0ZnMvbW1hcC5jDQppbmRleCA2
+YTQ0MTQ4Li45NzI0ZWYyIDEwMDY0NA0KLS0tIGEvZnMvZWNyeXB0ZnMvbW1hcC5jDQor
+KysgYi9mcy9lY3J5cHRmcy9tbWFwLmMNCkBAIC0zNDYsNyArMzQ2LDggQEAgc3RhdGlj
+IGludCBlY3J5cHRmc193cml0ZV9iZWdpbihzdHJ1Y3QgZmlsZSAqZmlsZSwNCiAJCQlp
+ZiAocHJldl9wYWdlX2VuZF9zaXplDQogCQkJICAgID49IGlfc2l6ZV9yZWFkKHBhZ2Ut
+Pm1hcHBpbmctPmhvc3QpKSB7DQogCQkJCXplcm9fdXNlcihwYWdlLCAwLCBQQUdFX0NB
+Q0hFX1NJWkUpOw0KLQkJCX0gZWxzZSB7DQorCQkJCVNldFBhZ2VVcHRvZGF0ZShwYWdl
+KTsNCisJCQl9IGVsc2UgaWYgKGxlbiA8IFBBR0VfQ0FDSEVfU0laRSkgew0KIAkJCQly
+YyA9IGVjcnlwdGZzX2RlY3J5cHRfcGFnZShwYWdlKTsNCiAJCQkJaWYgKHJjKSB7DQog
+CQkJCQlwcmludGsoS0VSTl9FUlIgIiVzOiBFcnJvciBkZWNyeXB0aW5nICINCkBAIC0z
+NTYsOCArMzU3LDggQEAgc3RhdGljIGludCBlY3J5cHRmc193cml0ZV9iZWdpbihzdHJ1
+Y3QgZmlsZSAqZmlsZSwNCiAJCQkJCUNsZWFyUGFnZVVwdG9kYXRlKHBhZ2UpOw0KIAkJ
+CQkJZ290byBvdXQ7DQogCQkJCX0NCisJCQkJU2V0UGFnZVVwdG9kYXRlKHBhZ2UpOw0K
+IAkJCX0NCi0JCQlTZXRQYWdlVXB0b2RhdGUocGFnZSk7DQogCQl9DQogCX0NCiAJLyog
+SWYgY3JlYXRpbmcgYSBwYWdlIG9yIG1vcmUgb2YgaG9sZXMsIHplcm8gdGhlbSBvdXQg
+dmlhIHRydW5jYXRlLiAg
