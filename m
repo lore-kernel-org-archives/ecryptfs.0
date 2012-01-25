@@ -1,55 +1,104 @@
-From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: [PATCH] eCryptfs: write optimization
-Date: Wed, 25 Jan 2012 23:10:58 +0800
-Message-ID: <120125231058365612da29f3ab1c3bb2d794f83e9305@nudt.edu.cn>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 3.3-rc2
+Date: Wed, 25 Jan 2012 16:12:50 -0600
+Message-ID: <20120125221249.GH16865@boyd>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="dMdWWqg3F2Dv/qfw"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:48957 "HELO nudt.edu.cn"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752993Ab2AYPYc (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:24:32 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:51445 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab2AYWM4 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 25 Jan 2012 17:12:56 -0500
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs <ecryptfs@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-SGksDQogIGVjcnlwdGZzX3dyaXRlX2JlZ2luKCkgZ3JhYnMgYSBwYWdlIGZyb20gcGFn
-ZSBjYWNoZSBmb3Igd3JpdGluZy4gDQpJZiB0aGUgcGFnZSBkb2VzIG5vdCBjb250YWlu
-IHZhbGlkIGRhdGEsIG9yIHRoZSBkYXRhIGFyZSBvbGRlciB0aGFuIA0KdGhlIGNvdW50
-ZXJwYXJ0IG9uIHRoZSBkaXNrLCBlQ3J5cHRmcyB3aWxsIHJlYWQgb3V0IHRoZSBjb3Jy
-ZXNwb25kaW5nIGRhdGEgDQpmcm9tIHRoZSBkaXNrIGludG8gdGhlIGVDcnlwdGZzIHBh
-Z2UgY2FjaGUsIGRlY3J5cHQgdGhlbSwgDQp0aGVuIHBlcmZvcm0gd3JpdHRpbmcuIEhv
-d2V2ZXIsIGZvciBjdXJyZW50IHBhZ2UsIGlmIHRoZSBsZW5ndGggb2YgDQp0aGUgZGF0
-YSB0byBiZSB3cml0dGVuIGludG8gaXMgZXF1YWwgdG8gcGFnZSBzaXplLCB0aGF0IG1l
-YW5zIHRoZSB3aG9sZSANCnBhZ2Ugb2YgZGF0YSB3aWxsIGJlIG92ZXJ3cml0dGVuLCBp
-biB3aGljaCBjYXNlLCBpdCBkb2VzIG5vdCBtYXR0ZXIgd2hhdGV2ZXIgDQp0aGUgZGF0
-YSB3ZXJlIGJlZm9yZSwgaXQgaXMgYmVuZWZpY2lhbCB0byBwZXJmb3JtIHdyaXR0aW5n
-IGRpcmVjdGx5Lg0KDQpUaGlzIGlzIHVzZWZ1bCB3aGlsZSB1c2luZyBlQ3J5cHRmcyBp
-biBiYWNrdXAgc2l0dWF0aW9uLCB1c2VyIGNvcGllcyBmaWxlDQpvdXQgZnJvbSBlQ3J5
-cHRmcyBmb2xkZXIsIG1vZGlmaWVzLCBhbmQgY29waWVzIHRoZSByZXZpc2VkIGZpbGUg
-YmFjayB0bw0KcmVwbGFjZSB0aGUgb3JpZ2luYWwgb25lLiANCg0KV2l0aCB0aGlzIG9w
-dGltaXphdGlvbiwgYWNjb3JkaW5nIHRvIG91ciB0ZXN0LCBpb3pvbmUgJ3dyaXRlJyBv
-cGVyYXRpb24gb24gYW4gZXhpc3RpbmcgDQpmaWxlIHdpdGggd3JpdGUgc2l6ZSBiZWlu
-ZyBtdWx0aXBsZSBvZiBwYWdlIHNpemUgd2lsbCBlbmpveSBhIHN0ZWFkeSAzeCBzcGVl
-ZHVwLg0KDQpTaWduZWQtb2ZmLWJ5OiBMaSBXYW5nIDxsaXdhbmdAbnVkdC5lZHUuY24+
-DQoJCVl1bmNodWFuIFdlbiA8d2VueXVuY2h1YW5Aa3lsaW5vcy5jb20uY24+DQoNCi0t
-LQ0KDQogZnMvZWNyeXB0ZnMvbW1hcC5jIHwgICAgNSArKystLQ0KIDEgZmlsZXMgY2hh
-bmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0
-IGEvZnMvZWNyeXB0ZnMvbW1hcC5jIGIvZnMvZWNyeXB0ZnMvbW1hcC5jDQppbmRleCA2
-YTQ0MTQ4Li45NzI0ZWYyIDEwMDY0NA0KLS0tIGEvZnMvZWNyeXB0ZnMvbW1hcC5jDQor
-KysgYi9mcy9lY3J5cHRmcy9tbWFwLmMNCkBAIC0zNDYsNyArMzQ2LDggQEAgc3RhdGlj
-IGludCBlY3J5cHRmc193cml0ZV9iZWdpbihzdHJ1Y3QgZmlsZSAqZmlsZSwNCiAJCQlp
-ZiAocHJldl9wYWdlX2VuZF9zaXplDQogCQkJICAgID49IGlfc2l6ZV9yZWFkKHBhZ2Ut
-Pm1hcHBpbmctPmhvc3QpKSB7DQogCQkJCXplcm9fdXNlcihwYWdlLCAwLCBQQUdFX0NB
-Q0hFX1NJWkUpOw0KLQkJCX0gZWxzZSB7DQorCQkJCVNldFBhZ2VVcHRvZGF0ZShwYWdl
-KTsNCisJCQl9IGVsc2UgaWYgKGxlbiA8IFBBR0VfQ0FDSEVfU0laRSkgew0KIAkJCQly
-YyA9IGVjcnlwdGZzX2RlY3J5cHRfcGFnZShwYWdlKTsNCiAJCQkJaWYgKHJjKSB7DQog
-CQkJCQlwcmludGsoS0VSTl9FUlIgIiVzOiBFcnJvciBkZWNyeXB0aW5nICINCkBAIC0z
-NTYsOCArMzU3LDggQEAgc3RhdGljIGludCBlY3J5cHRmc193cml0ZV9iZWdpbihzdHJ1
-Y3QgZmlsZSAqZmlsZSwNCiAJCQkJCUNsZWFyUGFnZVVwdG9kYXRlKHBhZ2UpOw0KIAkJ
-CQkJZ290byBvdXQ7DQogCQkJCX0NCisJCQkJU2V0UGFnZVVwdG9kYXRlKHBhZ2UpOw0K
-IAkJCX0NCi0JCQlTZXRQYWdlVXB0b2RhdGUocGFnZSk7DQogCQl9DQogCX0NCiAJLyog
-SWYgY3JlYXRpbmcgYSBwYWdlIG9yIG1vcmUgb2YgaG9sZXMsIHplcm8gdGhlbSBvdXQg
-dmlhIHRydW5jYXRlLiAg
+
+--dMdWWqg3F2Dv/qfw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus - Here's a pile of eCryptfs bug fixes.
+
+Tim's logging message update will be really helpful to users when
+they're trying to locate a problematic file in the lower filesystem with
+filename encryption enabled.
+
+You'll recognize the fix from Li, as you commented on that.
+
+You should also be familiar with my setattr/truncate improvements, since
+you were the one that pointed them out to us (thanks again!). Andrew
+noted the /dev/ecryptfs write count sanitization needed to be improved,
+so I've got a fix in there for that along with some other less important
+cleanups of the /dev/ecryptfs read/write code.
+
+They've all sat in -next for at least a day, while some have been there
+around a week, I believe.
+
+I'll get signed tags going for the next pull request I send. That was my
+intention this time, but it just hit me that I forgot to do it.
+
+Thanks,
+Tyler
+
+The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+
+  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git for-linus
+
+Dustin Kirkland (1):
+      MAINTAINERS: Update eCryptfs maintainer address
+
+Li Wang (1):
+      eCryptfs: Infinite loop due to overflow in ecryptfs_write()
+
+Tim Gardner (2):
+      ecryptfs: Improve metadata read failure logging
+      ecryptfs: Remove unnecessary variable initialization
+
+Tyler Hicks (7):
+      eCryptfs: Sanitize write counts of /dev/ecryptfs
+      eCryptfs: Report errors in writes to /dev/ecryptfs
+      eCryptfs: Replace miscdev read/write magic numbers
+      eCryptfs: Make truncate path killable
+      eCryptfs: Check inode changes in setattr
+      eCryptfs: Remove unused ecryptfs_read()
+      eCryptfs: Fix oops when printing debug info in extent crypto functions
+
+ MAINTAINERS                   |    2 +-
+ fs/ecryptfs/crypto.c          |   54 +++-------------
+ fs/ecryptfs/ecryptfs_kernel.h |    5 ++
+ fs/ecryptfs/inode.c           |   48 +++++++++++----
+ fs/ecryptfs/keystore.c        |    5 +-
+ fs/ecryptfs/miscdev.c         |  140 +++++++++++++++++++++++++----------------
+ fs/ecryptfs/read_write.c      |   96 +++++-----------------------
+ 7 files changed, 155 insertions(+), 195 deletions(-)
+
+--dMdWWqg3F2Dv/qfw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJPIH5hAAoJENaSAD2qAscKo+0P/3Zr22MgWwd9cnvoW5izn0T7
+YezTFTbR2BZ8vRRuE0HAgmUdQDtMmv/UpZLs5WvUfAFk0BcYQHiN+N7dHbFNqY4q
+g9ok9V2pBtFVYzFuTqy83JkGVzVkLutg4Bils9JE+K9dfOLTMQQiEwrD+qL8AfrY
+rac5ICUUZsXrri24L9zOFMt+PxHTJ6Hhod89tvTosgxYhnfaUqGlWBG/wrNBUr1i
+Msw98Cmjd7YkUbWa6FqGSgb1k0YODXek6wd5ah3MS1k1Ujuh+XElgGXu2LQLKfHS
+IkRuhu1hhUS0JkXkPYd33d1wjxcDOj/BFdyJAwSMz7LDYg8J5BaSnPxO/1gH6Wp9
+kKhcGytoS2jttbUkoC8ViN4lpvJOGWLjAtzp9lkuN8AtGE3yCE3JVc+ZbR+4ZLmx
+HDTab1DNywOb3EjcrT0hW9OzDPgXfUivPeWjLZoW1lEI2hfDwt7Uxx5H+Il+B/CR
+ycn7kO0av7O+7Pr7lEsRA8WuUi7wjuBLVP6LqF1mLQAL0/g4GdkPUtYhJuvdUiST
+knzMxA6vLojg9wa5zPnVMlJMTnhL7ml/bwhZy5I0Fg6aUfnBVeOdLv95eeZ1k5jK
+L13BMeBo8XNnlHhAyerLqgImD0F5oZLwWTvtxp9QjUVPTpv9V6dsBN6iij0EDN/T
+ezAdSa2SJ5Vm0XPL9/hF
+=PY6L
+-----END PGP SIGNATURE-----
+
+--dMdWWqg3F2Dv/qfw--
