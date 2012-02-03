@@ -1,137 +1,143 @@
-From: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Subject: =?ISO-8859-1?Q?Re=3A_ecryptfs_doesn=B4t_like_noauto_and_noatime?=
-Date: Mon, 30 Jan 2012 12:49:56 -0600
-Message-ID: <CANT6BaMtS0C0iHBBbB7JMvYHqx2qMUnZMeHkpdDDzf+kB01zTQ@mail.gmail.com>
-References: <201201161044.21718.Martin@lichtvoll.de>
-	<201201170937.10613.Martin@lichtvoll.de>
-	<4F154383.6040201@gmail.com>
-	<201201301158.36957.ms@teamix.de>
+From: 'Tyler Hicks' <tyhicks@canonical.com>
+Subject: Re: [PATCH v2] eCryptfs: write optimization
+Date: Fri, 3 Feb 2012 01:05:14 -0600
+Message-ID: <20120203070514.GA27331@boyd>
+References: <527531938.27851@eyou.net>
+ <527553462.07149@eyou.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:43505 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972Ab2A3St5 convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 30 Jan 2012 13:49:57 -0500
-Received: by pbaa10 with SMTP id a10so3994363pba.19
-        for <ecryptfs@vger.kernel.org>; Mon, 30 Jan 2012 10:49:57 -0800 (PST)
-In-Reply-To: <201201301158.36957.ms@teamix.de>
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <527553462.07149@eyou.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="windows-1252"
-To: Martin Steigerwald <ms@teamix.de>
-Cc: Jakob Unterwurzacher <jakobunt@gmail.com>, Martin Steigerwald <Martin@lichtvoll.de>, ecryptfs@vger.kernel.org
+To: Li Wang <liwang@nudt.edu.cn>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Mon, Jan 30, 2012 at 4:58 AM, Martin Steigerwald <ms@teamix.de> wrot=
-e:
->
-> Hi Jakob,
->
-> Am Dienstag, 17. Januar 2012 schrieb Jakob Unterwurzacher:
-> > On 17.01.2012 09:37, Martin Steigerwald wrote:
-> > > Am Dienstag, 17. Januar 2012 schrieb Jakob Unterwurzacher:
-> > >> On 16.01.2012 10:44, Martin Steigerwald wrote:
-> > >>> Hi!
-> > >>>
-> > >>> I have
-> > >>>
-> > >>> merkaba:~> grep ecrypt /etc/fstab
-> > >>> /home/.ms =A0 =A0 =A0 =A0 =A0 =A0 =A0 /home/ms =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0ecryptfs
-> > >>> noatime,noauto =A00 =A0 =A0 =A0 0
-> > >>>
-> > >>> And get:
-> > >>>
-> > >>> merkaba:~> mount /home/ms
-> > >
-> > >>> Passphrase:
-> > > [=85]
-> > >
-> > >>> Error mounting eCryptfs: [-5] Input/output error
-> > >
-> > > [=85]
-> > >
-> > >>> Still it works.
-> > >>>
-> > >>>
-> > >>> In dmesg I see:
-> > >>>
-> > >>> [ 2657.888355] ecryptfs_parse_options: eCryptfs: unrecognized o=
-ption
-> > >>> [noauto]
-> > >>> [ 2657.888359] ecryptfs_parse_options: eCryptfs: unrecognized o=
-ption
-> > >>> [noatime]
-> > >>> [ 2657.913215] alg: No test for __gcm-aes-aesni
-> > >>> (__driver-gcm-aes-aesni)
-> > >>>
-> > >>>
-> > >>> Thus I removed at least noatime, but then I still see:
-> > >>>
-> > >>> [ 2839.460200] ecryptfs_parse_options: eCryptfs: unrecognized o=
-ption
-> > >>> [noauto]
-> > >
-> > > [=85]
-> > >
-> > >>> Without noatime it would ask me the passwort upon boot, but I d=
-o not
-> > >>> like that since I do not use that user everytime.
-> > >
-> > > noauto that is.
-> > >
-> > >>> I could use mounting via pam, but I like to have a different pa=
-ssword
-> > >>> for the user stored in /etc/shadow than the password from the
-> > >>> filesystem itself.
-> > >>
-> > >> Note that this should work by creating ~/.ecryptfs/wrapping-inde=
-pendent
-> > >> . Pam will ask for the ecryptfs password explicitely then.
-> > >
-> > > Thanks.
-> > >
-> > > Would that also work within a display manager like kdm?
-> > >
-> > > Ciao,
-> >
-> > Yes! It will ask for two passwords on login.
->
-> Hmmm, I think this won't work for me.
->
-> This is used by ecryptfs-mount-private it seems, but I am not only en=
-crypting
-> /home/$USER/Private, but /home/$USER itself. Thus I'd like to mount ~=
- as is
-> with a different passphrase than my PAM login password.
->
-> I tried putting an empty ~/.ecryptfs/wrapping-independent, which has =
-the sig-
-> cache.txt for the /home/ms mount but this doesn't do the trick, I am =
-not asked
-> for a password and home directory remains empty. I could put
->
-> Is it true that PAM ecryptfs stuff is only for a ~/Private directory?
 
-Definitely not.  pam_ecryptfs.so is the method by which keys are
-loaded into your keyring at login time, by unwrapping
-~/.ecryptfs/wrapped-passphrase using your login passphrase.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It should work with either a randomly generated one, or one of your
-choosing.  It doesn't really care what's inside of
-~/.ecryptfs/wrapped-passphrase -- just that your login passphrase can
-symmetrically decrypt it.
+On 2012-01-26 13:04:34, Li Wang wrote:
+> Hi,
+>   The new version adds the code to handle short copy issue which may occu=
+re
+> in iov_iter_copy_from_user_atomic(). The idea is to let ecryptfs_write_en=
+d() return zero,
+> therefore, give iov_iter_fault_in_readable() a chance to handle the page =
+fault=20
+> for the current iovec, then restart the copy operation.
 
-Now, getting a passphrase of your choosing into that file requires
-running ecryptfs-setup-private by hand, rather than using wrappers,
-like the Ubuntu installer or the adduser utility.
+Hi Li - This approach looks like it will work. Thanks for reworking the
+patch! I've been testing it and it seems to be holding up.
 
-> Then that would be a reason for me to make a feature request ;).
+I'd like you to respin the patch one last time to fix up the commit
+message. You've gotten several eCryptfs patches in now, and I expect
+more from you in the future, so I'd like to be able to simply apply
+your patches rather than having to fix up the commit message myself.
 
---=20
-:-Dustin
+Keep in mind that the commit message should make sense to someone
+reading the "git log" years from now. This particular message only makes
+sense if someone looks at my review of v1 of this patch. You would want
+to put this type of text underneath the --- separator below because that
+text automatically gets stripped out when I used "git am" to apply your
+patch.
 
-Dustin Kirkland
-Chief Architect
-Gazzang, Inc.
-www.gazzang.com
+Check out Documentation/SubmittingPatches for suggestions on writing
+good commit messages.
+
+>=20
+> Cheers,
+> Li Wang
+>=20
+> Signed-off-by: Li Wang <liwang@nudt.edu.cn>
+>                Yunchuan Wen <wenyunchuan@kylinos.com.cn>
+
+You always seem to list Yunchuan. You'll need another Signed-off-by: tag
+on that line. Does Yunchuan help in the development of the patches or
+just perform review? See Documentation/development-process/5.Posting to
+identify the correct tag to use for either situation. Also, you may want
+to cc Yunchuan on these patches.
+
+Sorry to hold up this patch with "process" stuff, but getting the right
+commit message is important. Thanks!
+
+Tyler
+
+>=20
+> ---
+> =20
+> fs/ecryptfs/mmap.c |   12 ++++++++++--
+> 1 files changed, 10 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index 6a44148..b3fa499 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -346,7 +346,8 @@ static int ecryptfs_write_begin(struct file *file,
+>  			if (prev_page_end_size
+>  			    >=3D i_size_read(page->mapping->host)) {
+>  				zero_user(page, 0, PAGE_CACHE_SIZE);
+> -			} else {
+> +				SetPageUptodate(page);
+> +			} else if (len < PAGE_CACHE_SIZE) {
+>  				rc =3D ecryptfs_decrypt_page(page);
+>  				if (rc) {
+>  					printk(KERN_ERR "%s: Error decrypting "
+> @@ -356,8 +357,8 @@ static int ecryptfs_write_begin(struct file *file,
+>  					ClearPageUptodate(page);
+>  					goto out;
+>  				}
+> +				SetPageUptodate(page);
+>  			}
+> -			SetPageUptodate(page);
+>  		}
+>  	}
+>  	/* If creating a page or more of holes, zero them out via truncate.
+> @@ -512,6 +513,13 @@ static int ecryptfs_write_end(struct file *file,
+>  		}
+>  		goto out;
+>  	}
+> +	if (!PageUptodate(page)) {
+> +		if (copied < PAGE_CACHE_SIZE) {
+> +			rc =3D 0;
+> +			goto out;
+> +		}
+> +		SetPageUptodate(page);
+> +	}
+>  	/* Fills in zeros if 'to' goes beyond inode size */
+>  	rc =3D fill_zeros_to_end_of_page(page, to);
+>  	if (rc) {
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJPK4cqAAoJENaSAD2qAscKB10P/ApPVvvW+j3tZ9gHIMrHBYoB
+tTJa0hcQM3cOc7ZHiQCCXlbmgPpHnowSqQflym3GQ36xtpH+IJ8Pr1NAaKsxqEjo
+BullTG5zHB6lGsnmLbtsBmq2FCBrAySGLThhoMgal7j0Mzp055WNFUlrAhHMU7N6
+DVhGqC+MyppHGHUndAQ8hYosgtXtvXj/oR4V6ldbsg4COQU4JXEvElk2dQE9mkxZ
+2E3z1kB6POLaLiaFX2y47E+tpPJU9GHT4Ilw9I//A/Ci1U9bSaTg+az94PQWT/pn
+NwpURIF6smaNRE8lWW6Z9d/hcLUP0NESglSIAUbAvAh1GKaLt3O3M4Da9CXh5u4f
+SlGZ/XmnluUnveoTIPKX/Ug49hIEPfQNEdGKvYGgv7Bq2M0guQy2MYsaJNVcfXZh
+tbvLOx2FwJ/ctfFJm98Zx+K6LQk7eM1pTXeoneDjVEU4D/bVwZ3Ef6JO9NJYmoh2
+KsZfXJo9r8+Fsvc+kau/75mhuMG9za7zdKFg0zXJKxVUcTwqK8Z8Z2PFsgZXs64Q
+PseJUKDw8mZ73MAeSweM3LruDRwAjUaKZt6af+dqa15GdH+ytPK4p5csqfl7sZVW
+VblkkmTeCwIbTPAEV1CuFaqXLUZP+IpTdN9F8dlbmm9UorNkO5ROHTxhimsBN3R7
+MnKzFLEsHulvdw11tmoX
+=0oH8
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
