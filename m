@@ -1,136 +1,93 @@
-From: Space Cake <spacecakex@gmail.com>
-Subject: dumb question or not?
-Date: Fri, 03 Feb 2012 18:35:32 +0100
-Message-ID: <4F2C1AE4.2040104@gmail.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: [PATCH v2] eCryptfs: Write optimization for non-uptodate page
+Date: Sun, 5 Feb 2012 23:33:51 +0800
+Message-ID: <528455107.21568@eyou.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms070804020805080103050408"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44386 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757295Ab2BCRgb (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 3 Feb 2012 12:36:31 -0500
-Received: by eekc14 with SMTP id c14so1226876eek.19
-        for <ecryptfs@vger.kernel.org>; Fri, 03 Feb 2012 09:36:29 -0800 (PST)
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <000801cce41b$927ae800$b770b800$@edu.cn>
+Content-Language: zh-cn
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: tyhicks@canonical.com
+Cc: ecryptfs@vger.kernel.org, wenyunchuan@kylinos.com.cn, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+ecryptfs_write_begin() grabs a page from page cache for writing. 
+If the page does not contain valid data, or the data are older than 
+the counterpart on the disk, eCryptfs will read out the corresponding data 
+from the disk into the eCryptfs page cache, decrypt them, 
+then perform writing. However, for current page, if the length of 
+the data to be written into is equal to page size, that means the whole 
+page of data will be overwritten, in which case, it does not matter whatever
 
---------------ms070804020805080103050408
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+the data were before, it is beneficial to perform writing directly.
 
-Hi,
+This is especially useful while using eCryptfs in backup situation, user
+copies file
+out from eCryptfs folder, modifies, and copies the revised file back to
+replace the original one. 
 
-After some kernel update and I've got the following error when I try to
-mount .private
+With this optimization, according to our test on a machine with IntelR Core
+T 2 Duo processor, 
+iozone 'write' operation on an existing file with write size being multiple
+of page size will 
+enjoy a steady 3x speedup.
 
-setreuid: Operation not permitted
-ERROR:  Could not mount private ecryptfs directory
+Signed-off-by: Li Wang <liwang@nudt.edu.cn>
+Signed-off-by: Yunchuan Wen <wenyunchuan@kylinos.com.cn>
+Reviewed-by: Tyler Hicks <tyhicks@canonical.com>
 
-same error when I try to re-create encrypted directory... what's wrong?
+--- 
 
-Thank you
-L:
+Changes from v1:
 
+The new version adds the code to handle short copy issue which may occure
+in iov_iter_copy_from_user_atomic(). The idea is to let ecryptfs_write_end()
+return zero,
+in order to give iov_iter_fault_in_readable() a chance to handle the page
+fault 
+for the current iovec, then restart the copy operation.
 
+ fs/ecryptfs/mmap.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 10ec695..c6f665e 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -350,7 +350,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 			if (prev_page_end_size
+ 			    >= i_size_read(page->mapping->host)) {
+ 				zero_user(page, 0, PAGE_CACHE_SIZE);
+-			} else {
++				SetPageUptodate(page);
++			} else if (len < PAGE_CACHE_SIZE) {
+ 				rc = ecryptfs_decrypt_page(page);
+ 				if (rc) {
+ 					printk(KERN_ERR "%s: Error
+decrypting "
+@@ -360,8 +361,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 					ClearPageUptodate(page);
+ 					goto out;
+ 				}
++				SetPageUptodate(page);
+ 			}
+-			SetPageUptodate(page);
+ 		}
+ 	}
+ 	/* If creating a page or more of holes, zero them out via truncate.
+@@ -512,6 +513,13 @@ static int ecryptfs_write_end(struct file *file,
+ 		}
+ 		goto out;
+ 	}
++	if (!PageUptodate(page)) {
++		if (copied < PAGE_CACHE_SIZE) {
++			rc = 0;
++			goto out;
++		}
++		SetPageUptodate(page);
++	}
+ 	/* Fills in zeros if 'to' goes beyond inode size */
+ 	rc = fill_zeros_to_end_of_page(page, to);
+ 	if (rc) {
 
---------------ms070804020805080103050408
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIO2TCC
-BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
-BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
-bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
-NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
-dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
-LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
-NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
-lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
-vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
-hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
-9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
-A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
-BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
-cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
-ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
-54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
-g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
-WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
-Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
-XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIFGjCCBAKgAwIBAgIQbRnqpxlPajMi
-5iIyeqpx3jANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
-FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
-MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
-Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMTA0MjgwMDAwMDBa
-Fw0yMDA1MzAxMDQ4MzhaMIGTMQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5j
-aGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE5
-MDcGA1UEAxMwQ09NT0RPIENsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgU2VjdXJlIEVtYWls
-IENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkoSEW0tXmNReL4uk4UDIo1NY
-X2Zl8TJO958yfVXQeExVt0KU4PkncQfFxmmkuTLE8UAakMwnVmJ/F7Vxaa7lIBvky2NeYMqi
-QfZq4aP/uN8fSG1lQ4wqLitjOHffsReswtqCAtbUMmrUZ28gE49cNfrlVICv2HEKHTcKAlBT
-bJUdqRAUtJmVWRIx/wmi0kzcUtve4kABW0ho3cVKtODtJB86r3FfB+OsvxQ7sCVxaD30D9YX
-WEYVgTxoi4uDD216IVfmNLDbMn7jSuGlUnJkJpFOpZIP/+CxYP0ab2hRmWONGoulzEKbm30i
-Y9OpoPzOnpDfRBn0XFs1uhbzp5v/wQIDAQABo4IBSzCCAUcwHwYDVR0jBBgwFoAUiYJnfcSd
-JnAAS7RQSHzePa4Ebn0wHQYDVR0OBBYEFHoTTgB0W8Z4Y2QnwS/ioFu8ecV7MA4GA1UdDwEB
-/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMBEGA1UdIAQKMAgwBgYEVR0gADBYBgNVHR8E
-UTBPME2gS6BJhkdodHRwOi8vY3JsLnVzZXJ0cnVzdC5jb20vVVROLVVTRVJGaXJzdC1DbGll
-bnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDB0BggrBgEFBQcBAQRoMGYwPQYIKwYBBQUH
-MAKGMWh0dHA6Ly9jcnQudXNlcnRydXN0LmNvbS9VVE5BZGRUcnVzdENsaWVudF9DQS5jcnQw
-JQYIKwYBBQUHMAGGGWh0dHA6Ly9vY3NwLnVzZXJ0cnVzdC5jb20wDQYJKoZIhvcNAQEFBQAD
-ggEBAIXWvnhXVW0zf0RS/kLVBqgBA4CK+w2y/Uq/9q9BSfUbWsXSrRtzbj7pJnzmTJjBMCjf
-y/tCPKElPgp11tA9OYZm0aGbtU2bb68obB2v5ep0WqjascDxdXovnrqTecr+4pEeVnSy+I3T
-4ENyG+2P/WA5IEf7i686ZUg8mD2lJb+972DgSeUWyOs/Q4Pw4O4NwdPNM1+b0L1garM7/vrU
-yTo8H+2b/5tJM75CKTmD7jNpLoKdRU2oadqAGx490hpdfEeZpZsIbRKZhtZdVwcbpzC+S0lE
-uJB+ytF5OOu0M/qgOl0mWJ5hVRi0IdWZ1eBDQEIwvuql55TSsP7zdfl/bucwggUpMIIEEaAD
-AgECAhB4lZvrCQN/1THlEHJFjAQ+MA0GCSqGSIb3DQEBBQUAMIGTMQswCQYDVQQGEwJHQjEb
-MBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQK
-ExFDT01PRE8gQ0EgTGltaXRlZDE5MDcGA1UEAxMwQ09NT0RPIENsaWVudCBBdXRoZW50aWNh
-dGlvbiBhbmQgU2VjdXJlIEVtYWlsIENBMB4XDTExMDkyNDAwMDAwMFoXDTEyMDkyMzIzNTk1
-OVowJTEjMCEGCSqGSIb3DQEJARYUc3BhY2VjYWtleEBnbWFpbC5jb20wggEiMA0GCSqGSIb3
-DQEBAQUAA4IBDwAwggEKAoIBAQCl2qcfHw4HaOIFkK62M8OQWcEkRHHySvlpnMu+zBpzQgMq
-OQsHSj+rEJxKeZFtlAmh7fiI+M2Zw1sym5ywXOxzuitMHJdIUPm3KptblcKnCtiqZPUMcNME
-5WI2Dxr62zks+V7aHvUXRVn7uim+6MoiBLavqyl+xrg0m7V/d4eK1BBGVp2h1mfBZBJD4V77
-Bz7deci+voCo04ODcgeL7yZ4ys34+5Lf5BvQYyhFreoR2uHX7ZppTXfTN7mNeqlEGcV+XvC3
-qtmRViNBNFzf5iJ94Ff+MUzYVgnUL53ozzNn7/uP4VRUgIEkPLHBM4ZJ64A/x/TQRiaAfD9S
-65WxwPDRAgMBAAGjggHkMIIB4DAfBgNVHSMEGDAWgBR6E04AdFvGeGNkJ8Ev4qBbvHnFezAd
-BgNVHQ4EFgQUg9CneOWq4X0Q4Xq/e0DwGGoIXnkwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB
-/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEBAwUCMBEGCWCGSAGG+EIBAQQE
-AwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkGCCsGAQUFBwIBFh1odHRwczov
-L3NlY3VyZS5jb21vZG8ubmV0L0NQUzBXBgNVHR8EUDBOMEygSqBIhkZodHRwOi8vY3JsLmNv
-bW9kb2NhLmNvbS9DT01PRE9DbGllbnRBdXRoZW50aWNhdGlvbmFuZFNlY3VyZUVtYWlsQ0Eu
-Y3JsMIGIBggrBgEFBQcBAQR8MHowUgYIKwYBBQUHMAKGRmh0dHA6Ly9jcnQuY29tb2RvY2Eu
-Y29tL0NPTU9ET0NsaWVudEF1dGhlbnRpY2F0aW9uYW5kU2VjdXJlRW1haWxDQS5jcnQwJAYI
-KwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTAfBgNVHREEGDAWgRRzcGFjZWNh
-a2V4QGdtYWlsLmNvbTANBgkqhkiG9w0BAQUFAAOCAQEADMPnq5Flnsd/3F+Cdxz0lKPd8fwZ
-1zcSwQteVGIQYY9LNynk+5F2n6/pjhG9tIZw+5+K4foQZBKM9Clmy1fCgsZ5mHiwzSfxeYEg
-C+WCWy1icht7Gj7wdGBv1zpkz3cQJsihP02icFHKEawVQu+YUIAs7o2suoD3EMQRGoo3tTj4
-p4RVJg7JA27pBlzjNxcknXxOLVY9Lig34PC8KNC6Y0FCCQ5Q9KIl7R0Bd7H3iAG36H6FD++O
-zXKCGS3ZRL62QuPoR8PdzuzqJ3raP6Lh+iGjmc+BuUdbN4JCDTT9w9w5k+2JITtpBA+htrxt
-zmEkNQbesQW69YqozgXHGw7CPTGCBAwwggQIAgEBMIGoMIGTMQswCQYDVQQGEwJHQjEbMBkG
-A1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRowGAYDVQQKExFD
-T01PRE8gQ0EgTGltaXRlZDE5MDcGA1UEAxMwQ09NT0RPIENsaWVudCBBdXRoZW50aWNhdGlv
-biBhbmQgU2VjdXJlIEVtYWlsIENBAhB4lZvrCQN/1THlEHJFjAQ+MAkGBSsOAwIaBQCgggI4
-MBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTEyMDIwMzE3MzUz
-MlowIwYJKoZIhvcNAQkEMRYEFFxg3sLVPelcQ2Bg8cjJBMfhDY+iMF8GCSqGSIb3DQEJDzFS
-MFAwCwYJYIZIAWUDBAECMAoGCCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0D
-AgIBQDAHBgUrDgMCBzANBggqhkiG9w0DAgIBKDCBuQYJKwYBBAGCNxAEMYGrMIGoMIGTMQsw
-CQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYDVQQHEwdTYWxm
-b3JkMRowGAYDVQQKExFDT01PRE8gQ0EgTGltaXRlZDE5MDcGA1UEAxMwQ09NT0RPIENsaWVu
-dCBBdXRoZW50aWNhdGlvbiBhbmQgU2VjdXJlIEVtYWlsIENBAhB4lZvrCQN/1THlEHJFjAQ+
-MIG7BgsqhkiG9w0BCRACCzGBq6CBqDCBkzELMAkGA1UEBhMCR0IxGzAZBgNVBAgTEkdyZWF0
-ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEaMBgGA1UEChMRQ09NT0RPIENBIExp
-bWl0ZWQxOTA3BgNVBAMTMENPTU9ETyBDbGllbnQgQXV0aGVudGljYXRpb24gYW5kIFNlY3Vy
-ZSBFbWFpbCBDQQIQeJWb6wkDf9Ux5RByRYwEPjANBgkqhkiG9w0BAQEFAASCAQBupP62WKrN
-7hPGbHKRNXi5ep7oEhJON5uBR6e82aigux/RN0at0XuFjfy14+m2VJEgCg7KgAS7ADid9SL1
-lNom79d3EJ2XIQ8Oa05dR73FUNod8dePcn119Vx8H34V6F1PhQxyLbtSnhzjaUApSIwKjoYR
-GA9mM5yysFU4jP9kESWL2/loESugKSUm4n9hhc9wxHcyG1DFv9dLH/GKxDCMAmYncrPHKL5/
-kqHgw4Rmj2D7r02Uv/BuNk4Z91epP/mFCgagUo1SYQAe3SHSezE/xMTErvAJtWNfKR+MU+AK
-7FaFZq4XfHPpc9cPP1mB9m5zRswafBRZXjAd6J/pQUa6AAAAAAAA
---------------ms070804020805080103050408--
