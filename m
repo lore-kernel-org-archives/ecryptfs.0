@@ -1,50 +1,114 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: Copy up lower inode attrs after setting lower xattr
-Date: Tue,  7 Feb 2012 18:12:44 -0600
-Message-ID: <1328659964-31816-1-git-send-email-tyhicks@canonical.com>
+From: Li Wang <liwang@nudt.edu.cn>
+Subject: [PATCH] eCryptfs: Quota check incorrectly ignored
+Date: Thu,  9 Feb 2012 19:39:32 +0800
+Message-ID: <528758144.13258@eyou.net>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45381 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756227Ab2BHAMy (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 7 Feb 2012 19:12:54 -0500
+Received: from mail.nudt.edu.cn ([61.187.54.11]:39212 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1757896Ab2BIDpN (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 8 Feb 2012 22:45:13 -0500
+Message-Id: <1328787572-2030-1-git-send-email-liwang@nudt.edu.cn>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: John Johansen <john.johansen@canonical.com>
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.cz>, Yong Peng <pengyong@kylinos.com.cn>, Li Wang <liwang@nudt.edu.cn>
 
-After passing through a ->setxattr() call, eCryptfs needs to copy the
-inode attributes from the lower inode to the eCryptfs inode, as they
-may have changed in the lower filesystem's ->setxattr() path.
+eCryptfs recently modified the write path to perform encryption
+and write down in ecryptfs_writepage(). This function invokes vfs_write()
+to write down the encrypted data to lower page cache. vfs_write() will
+first make sure this write will not exceed the quota limit for the owner
+of the file being written into, if quota is supported by 
+the underlying file system, and it is turned on. Normally, it accomplishs
+this job by calling check_idq()/check_bdq() (fs/quota/dquot.c). When system
+dirty ratio is not high, ecryptfs_writepage() is normally invoked by the 
+write back kernel thread, who has the capability CAP_SYS_RESOURCE, 
+this priority will let check_idq()/check_bdq() directly bypass the quota
+check. This sometimes makes data safely written into the disk in spite of
+exceeding the quota limit.
 
-One example is if an extended attribute containing a POSIX Access
-Control List is being set. The new ACL may cause the lower filesystem to
-modify the mode of the lower inode and the eCryptfs inode would need to
-be updated to reflect the new mode.
+This patch temporarily removes the CAP_SYS_RESOURCE capability from the kernel
+thread before invoking vfs_write_lower(), to let it undergo quota check by
+the lower file system, if necessary. After that, reassign the capability.
 
-https://launchpad.net/bugs/926292
-
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Reported-by: Sebastien Bacher <seb128@ubuntu.com>
-Cc: John Johansen <john.johansen@canonical.com>
+Signed-off-by: Li Wang <liwang@nudt.edu.cn>
+Singed-off-by: Yong Peng <pengyong@kylinos.com.cn>
 ---
- fs/ecryptfs/inode.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 19892d7..ab35b11 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -1085,6 +1085,8 @@ ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 	}
+To repeat this bug, 
+	mount -o usrquota /dev/sda3 /tmp
+	cd /tmp
+	edquota -u foo // set the disk quota limit for user foo be m1 bytes
+	quotaon -a
+	mount -t ecryptfs cipher plain
+
+	login the system as user foo
+	cd /tmp/plain
+	execute the following simple program
+	
+	int main()
+	{
+		char buf[m2]; // m2>m1
+		FILE *f = fopen("dummy", "w");
+		fwrite(buf, 1, m2, f);
+		sleep(60); // let the kernel thread do the write back job
+		fclose(f);
+		return 0;
+	}
+	
+	This program can write as much of data as it wants, provided sleep enough long time before closing the file.
+
+ fs/ecryptfs/crypto.c |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
+
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 63ab245..2c1da29 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -457,6 +457,7 @@ int ecryptfs_encrypt_page(struct page *page)
+ 	struct page *enc_extent_page = NULL;
+ 	loff_t extent_offset;
+ 	int rc = 0;
++	struct cred *cred;
  
- 	rc = vfs_setxattr(lower_dentry, name, value, size, flags);
-+	if (!rc)
-+		fsstack_copy_attr_all(dentry->d_inode, lower_dentry->d_inode);
- out:
- 	return rc;
- }
+ 	ecryptfs_inode = page->mapping->host;
+ 	crypt_stat =
+@@ -487,8 +488,34 @@ int ecryptfs_encrypt_page(struct page *page)
+ 				   * (PAGE_CACHE_SIZE
+ 				      / crypt_stat->extent_size))
+ 				  + extent_offset), crypt_stat);
++		if (current->flags & PF_KTHREAD) {
++			/*
++                         * Temporarily remove the CAP_SYS_RESOURCE capability
++                         * from the write back kernel thread to let it undergo
++                         * quota check by the lower file system
++                         */
++			cred = prepare_creds();
++			if (unlikely(!cred)) {
++				rc = -ENOMEM;
++				goto out;
++			}
++			cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
++			commit_creds(cred);
++		}
+ 		rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
+ 					  offset, crypt_stat->extent_size);
++		if (current->flags & PF_KTHREAD) {
++			/*
++                         * Reassign the CAP_SYS_RESOURCE capability
++                         */
++			cred = prepare_creds();
++			if (unlikely(!cred)) {
++				rc = -ENOMEM;
++				goto out;
++			}
++			cap_raise(cred->cap_effective, CAP_SYS_RESOURCE);
++			commit_creds(cred);
++		}
+ 		if (rc < 0) {
+ 			ecryptfs_printk(KERN_ERR, "Error attempting "
+ 					"to write lower page; rc = [%d]"
 -- 
-1.7.8.3
+1.7.6.5
