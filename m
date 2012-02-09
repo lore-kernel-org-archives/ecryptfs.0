@@ -1,14 +1,10 @@
 From: Li Wang <liwang@nudt.edu.cn>
 Subject: [PATCH] eCryptfs: Quota check incorrectly ignored
 Date: Thu,  9 Feb 2012 19:39:32 +0800
-Message-ID: <528758144.13258@eyou.net>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:39212 "HELO eyou.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1757896Ab2BIDpN (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Wed, 8 Feb 2012 22:45:13 -0500
+Message-ID: <1328787572-2030-1-git-send-email-liwang__42968.5319112197$1328759159$gmane$org@nudt.edu.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Message-Id: <1328787572-2030-1-git-send-email-liwang@nudt.edu.cn>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
