@@ -1,247 +1,124 @@
-From: 'Tyler Hicks' <tyhicks@canonical.com>
-Subject: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-Date: Fri, 10 Feb 2012 13:41:42 -0600
-Message-ID: <20120210194142.GB15606@boyd>
-References: <1328787572-2030-1-git-send-email-liwang@nudt.edu.cn>
- <528868922.02520@eyou.net>
- <000001cce802$709bf770$51d3e650$@edu.cn>
- <20120210193148.GA15606@boyd>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH 29/60] ecryptfs: remove the second argument of
+ k[un]map_atomic()
+Date: Fri, 10 Feb 2012 14:16:06 -0600
+Message-ID: <20120210201605.GC15606@boyd>
+References: <1328852421-19678-1-git-send-email-amwang@redhat.com>
+ <1328852421-19678-30-git-send-email-amwang@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="UHN/qo2QbUvPLonB"
+	protocol="application/pgp-signature"; boundary="sHrvAb52M6C8blB9"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59103 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:59294 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932389Ab2BJTlt (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 10 Feb 2012 14:41:49 -0500
+	with ESMTP id S1758575Ab2BJUQM (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 10 Feb 2012 15:16:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20120210193148.GA15606@boyd>
+In-Reply-To: <1328852421-19678-30-git-send-email-amwang@redhat.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Li Wang <liwang@nudt.edu.cn>
-Cc: 'Jan Kara' <jack@suse.cz>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 'Yong Peng' <pengyong@kylinos.com.cn>, viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, Thieu Le <thieule@chromium.org>
+To: Cong Wang <amwang@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
 
---UHN/qo2QbUvPLonB
+--sHrvAb52M6C8blB9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-02-10 13:31:49, 'Tyler Hicks' wrote:
-> On 2012-02-10 22:44:05, Li Wang wrote:
-> > > -----Original Message-----
-> > > From: Jan Kara [mailto:jack@suse.cz]
-> > > Sent: Friday, February 10, 2012 6:32 PM
-> > > To: Li Wang
-> > > Cc: Tyler Hicks; ecryptfs@vger.kernel.org; linux-kernel@vger.kernel.o=
-rg;
-> > Jan
-> > > Kara; Yong Peng
-> > > Subject: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-> > >=20
-> > > On Thu 09-02-12 19:39:32, Li Wang wrote:
-> > > > eCryptfs recently modified the write path to perform encryption
-> > > > and write down in ecryptfs_writepage(). This function invokes
-> > vfs_write()
-> > > > to write down the encrypted data to lower page cache. vfs_write() w=
-ill
-> > > > first make sure this write will not exceed the quota limit for the =
-owner
-> > > > of the file being written into, if quota is supported by
-> > > > the underlying file system, and it is turned on. Normally, it
-> > accomplishs
-> > > > this job by calling check_idq()/check_bdq() (fs/quota/dquot.c). When
-> > system
-> > > > dirty ratio is not high, ecryptfs_writepage() is normally invoked b=
-y the
-> > > > write back kernel thread, who has the capability CAP_SYS_RESOURCE,
-> > > > this priority will let check_idq()/check_bdq() directly bypass the =
-quota
-> > > > check. This sometimes makes data safely written into the disk in sp=
-ite
-> > of
-> > > > exceeding the quota limit.
-> > > >
-> > > > This patch temporarily removes the CAP_SYS_RESOURCE capability from=
- the
-> > > kernel
-> > > > thread before invoking vfs_write_lower(), to let it undergo quota c=
-heck
-> > by
-> > > > the lower file system, if necessary. After that, reassign the
-> > capability.
-> > >   Hmm, but then the error will just be thrown away by the flusher thr=
-ead
-> > > and the application never learns about it? That doesn't sound like a =
-good
-> > > solution.
-> > >=20
-> > > 								Honza
-> >=20
-> > Yes. we are aware of that, but we have not found better solution, since=
- it
-> > seems=20
-> > VFS does not supply a file system independent interface to check quota =
-early
-> > and only
-> > (fix us if we are wrong), The file systems just perform the quota check=
- in
-> > their own way,=20
-> > the routine is wrapped deeply inside the file system specific code path.
-> > Maybe we could
-> > copy some codes from _dquot_alloc_space() & dquot_alloc_inode
-> > (fs/quota/dquot.c) to=20
-> > perform quota check on lower inode ourselves, but that is ugly, and we =
-are
-> > not sure if it works
-> > for any file system or not..., On the other side, due to the existence =
-of
-> > write buffer, and io schedule,
-> > the successful write call does not gurantee the data will be written in=
-to
-> > disk, in terms of that,
-> > we do not change much of the semantic of write call.=20
->=20
-> Maybe I should just revert 57db4e8d73ef2b5e94a3f412108dff2576670a8a
-> (and friends) and go back to the write-through cache model for eCryptfs.
-> The write-back model has some nice performance improvements, but we keep
-> running into little issues like this. For write-through to work
-> reliably, we're going to need some support from the VFS that isn't there
-> yet.
+On 2012-02-10 13:39:50, Cong Wang wrote:
+> Signed-off-by: Cong Wang <amwang@redhat.com>
 
-Sorry, that should be "For write-back to work reliably, we're going to
-need some support from the VFS that isn't there yet."
+Thanks - Looks good to me.
+
+I'm not sure if you want me to pick this up or if you want to continue
+to keep track of the entire pile of patches. Either way, I went ahead
+and pushed it to
+git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git#next
 
 Tyler
 
+> ---
+>  fs/ecryptfs/mmap.c       |    4 ++--
+>  fs/ecryptfs/read_write.c |    4 ++--
+>  2 files changed, 4 insertions(+), 4 deletions(-)
 >=20
-> Handling ENOSPC correctly is another area that is lacking after the
-> switch to write-back. Currently, an application will continue to write
-> out data without having any indication that the disk is full. Thieu
-> proposed a fix, but it was never merged:
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index 10ec695..a46b3a8 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -150,7 +150,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *p=
+age,
+>  			/* This is a header extent */
+>  			char *page_virt;
+> =20
+> -			page_virt =3D kmap_atomic(page, KM_USER0);
+> +			page_virt =3D kmap_atomic(page);
+>  			memset(page_virt, 0, PAGE_CACHE_SIZE);
+>  			/* TODO: Support more than one header extent */
+>  			if (view_extent_num =3D=3D 0) {
+> @@ -163,7 +163,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *p=
+age,
+>  							       crypt_stat,
+>  							       &written);
+>  			}
+> -			kunmap_atomic(page_virt, KM_USER0);
+> +			kunmap_atomic(page_virt);
+>  			flush_dcache_page(page);
+>  			if (rc) {
+>  				printk(KERN_ERR "%s: Error reading xattr "
+> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+> index 5c0106f..b2a34a1 100644
+> --- a/fs/ecryptfs/read_write.c
+> +++ b/fs/ecryptfs/read_write.c
+> @@ -156,7 +156,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char=
+ *data, loff_t offset,
+>  			       ecryptfs_page_idx, rc);
+>  			goto out;
+>  		}
+> -		ecryptfs_page_virt =3D kmap_atomic(ecryptfs_page, KM_USER0);
+> +		ecryptfs_page_virt =3D kmap_atomic(ecryptfs_page);
+> =20
+>  		/*
+>  		 * pos: where we're now writing, offset: where the request was
+> @@ -179,7 +179,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char=
+ *data, loff_t offset,
+>  			       (data + data_offset), num_bytes);
+>  			data_offset +=3D num_bytes;
+>  		}
+> -		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
+> +		kunmap_atomic(ecryptfs_page_virt);
+>  		flush_dcache_page(ecryptfs_page);
+>  		SetPageUptodate(ecryptfs_page);
+>  		unlock_page(ecryptfs_page);
+> --=20
+> 1.7.7.6
 >=20
-> http://article.gmane.org/gmane.linux.kernel/1209265
->=20
-> So, what do folks think about going back to a write-through cache until
-> we have the ability to alert the application of these error conditions?
->=20
-> Tyler
->=20
-> > =20
-> > >=20
-> > >=20
-> > > >
-> > > > Signed-off-by: Li Wang <liwang@nudt.edu.cn>
-> > > > Singed-off-by: Yong Peng <pengyong@kylinos.com.cn>
-> > > > ---
-> > > >
-> > > > To repeat this bug,
-> > > > 	mount -o usrquota /dev/sda3 /tmp
-> > > > 	cd /tmp
-> > > > 	edquota -u foo // set the disk quota limit for user foo be m1 bytes
-> > > > 	quotaon -a
-> > > > 	mount -t ecryptfs cipher plain
-> > > >
-> > > > 	login the system as user foo
-> > > > 	cd /tmp/plain
-> > > > 	execute the following simple program
-> > > >
-> > > > 	int main()
-> > > > 	{
-> > > > 		char buf[m2]; // m2>m1
-> > > > 		FILE *f =3D fopen("dummy", "w");
-> > > > 		fwrite(buf, 1, m2, f);
-> > > > 		sleep(60); // let the kernel thread do the write back job
-> > > > 		fclose(f);
-> > > > 		return 0;
-> > > > 	}
-> > > >
-> > > > 	This program can write as much of data as it wants, provided sleep
-> > > enough long time before closing the file.
-> > > >
-> > > >  fs/ecryptfs/crypto.c |   27 +++++++++++++++++++++++++++
-> > > >  1 files changed, 27 insertions(+), 0 deletions(-)
-> > > >
-> > > > diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> > > > index 63ab245..2c1da29 100644
-> > > > --- a/fs/ecryptfs/crypto.c
-> > > > +++ b/fs/ecryptfs/crypto.c
-> > > > @@ -457,6 +457,7 @@ int ecryptfs_encrypt_page(struct page *page)
-> > > >  	struct page *enc_extent_page =3D NULL;
-> > > >  	loff_t extent_offset;
-> > > >  	int rc =3D 0;
-> > > > +	struct cred *cred;
-> > > >
-> > > >  	ecryptfs_inode =3D page->mapping->host;
-> > > >  	crypt_stat =3D
-> > > > @@ -487,8 +488,34 @@ int ecryptfs_encrypt_page(struct page *page)
-> > > >  				   * (PAGE_CACHE_SIZE
-> > > >  				      / crypt_stat->extent_size))
-> > > >  				  + extent_offset), crypt_stat);
-> > > > +		if (current->flags & PF_KTHREAD) {
-> > > > +			/*
-> > > > +                         * Temporarily remove the
-> > > CAP_SYS_RESOURCE capability
-> > > > +                         * from the write back kernel thread to le=
-t it
-> > > undergo
-> > > > +                         * quota check by the lower file system
-> > > > +                         */
-> > > > +			cred =3D prepare_creds();
-> > > > +			if (unlikely(!cred)) {
-> > > > +				rc =3D -ENOMEM;
-> > > > +				goto out;
-> > > > +			}
-> > > > +			cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-> > > > +			commit_creds(cred);
-> > > > +		}
-> > > >  		rc =3D ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
-> > > >  					  offset, crypt_stat->extent_size);
-> > > > +		if (current->flags & PF_KTHREAD) {
-> > > > +			/*
-> > > > +                         * Reassign the CAP_SYS_RESOURCE
-> > > capability
-> > > > +                         */
-> > > > +			cred =3D prepare_creds();
-> > > > +			if (unlikely(!cred)) {
-> > > > +				rc =3D -ENOMEM;
-> > > > +				goto out;
-> > > > +			}
-> > > > +			cap_raise(cred->cap_effective, CAP_SYS_RESOURCE);
-> > > > +			commit_creds(cred);
-> > > > +		}
-> > > >  		if (rc < 0) {
-> > > >  			ecryptfs_printk(KERN_ERR, "Error attempting "
-> > > >  					"to write lower page; rc =3D [%d]"
-> > > > --
-> > > > 1.7.6.5
-> > > --
-> > > Jan Kara <jack@suse.cz>
-> > > SUSE Labs, CR
-> >=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-
---UHN/qo2QbUvPLonB
+--sHrvAb52M6C8blB9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJPNXL2AAoJENaSAD2qAscKM5gP/0xgOUD6+J8kgnT715O6OAQT
-3ZHpEBqt+hDFpX+ZZKkDT415epqznc4MAhjWJlB8fnD1RDLC5WIksK+gzF4eab9s
-cfC6PC+v+UFFywGg5kKuD5VdAvXdGCkF+DlatpWj4+3r34G5C4IxDAy2K/OVRBAQ
-vYVgdBoNQdbUqRVG2B54C6cVmp8XtsD4NOM+89jObFEg3NrzBYqGtTxfuAXgJAkw
-d1tcYbDw3i862uIdqxeBSrv4KnhL2WMO7Qi95oX3tGvYjuGnMppvT9sm4oBL1Gqw
-9t16oOgINg3wI6vpr5M3S6FtqLcu6omXlqq+5A/7rLD46DWqLxIZPyDFZNxhDtWp
-cbdOdnoKj2KyU072L9SMfhSiwZv93Dh6zwSnP3ywav1jPC/fKP8DbH/CvFJ7o6C5
-cXGdqcXCTZfqXyaDt1EO99UbxRqZscpioKNfkxTPk490aCe53gjCSnqRBmPtGlRT
-4G4oo1b7oE4XcXfDZf8PRJvnpPob4Yr0aBcjTev19W6kmK5H31oU0V+jDKHvmCyz
-kOXOy/X0I3okVjHLr2mpEQjYxd+kgUi/g2bAIkM5DYcCuJXFJ/RhI2as2PeDf90l
-d4mERyd1lEOof7r3J0yPpB5KnNInQH3EmpnOVBMZ/8AdFP6tRI6MgDW+IAd/KtYl
-x7vzhLtj6LNc/765UJg/
-=isQ4
+iQIcBAEBCgAGBQJPNXsFAAoJENaSAD2qAscK23UP/1dn27t6G6VNBhJORlDCEmRD
+mG7rO4BGLMHS76Hukg5cwmhOUb1BVrxfZL5/8aJ8eDqiVpPMtlsxxZ1LKtHPU9V6
+BxD65oVwoTMV8mI1PZpbne8lRZPXi31IENUi50Po/UzLfqqiSJh2fuo1p+me3+zV
+q82ZCfdgW1xvvieCglbeY4i7IZdnn7fWPBqUPbbs0MtBhYER4zpRRM0wgNr6J/mE
+2+mdLYzjczRTRiCsMpT3eze7TPqYC2UcsT/WW3UxFN96ej9XF67YAFcEZ6NvXGpc
+em6ocnGKQKmkStUi6gjsb/uG0axBdPOaQqg57BB7zL8oBkdTqgWYjbQ5YIb17pWl
+X1Th5cyor9WfLgpEO09jUHXeRLxLcXLfRLA+19o4qh4yNxOrPH/SUNbaLecgeD13
+CMtnQL7Ko2YhkNfWpLHMbql0hVrKFXqpYF6dnQMK2r2pUWLsiMCm7kfnxsM8Rb/b
+v1lJyA0hAtleozwPKc93p9Z5eRLZoknFn11/xQJqtAFjkvXrDnn2xUjtqTgwJZcM
+zfZbrOLLWApmf0D5jl1f5u+Aj70hFAKz44foQuYe1VvFxd8pFkUB+qnSmjOnHBkn
+zYLOgVpyBUExm8Kh6+xXHQdzChI2hgguMFmksySlq62eajjNHOWKw0RwgMFaLdhn
+6zP/Csug8aj77EEHWnQ7
+=qw8c
 -----END PGP SIGNATURE-----
 
---UHN/qo2QbUvPLonB--
+--sHrvAb52M6C8blB9--
