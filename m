@@ -1,15 +1,19 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: RE: [PATCH] eCryptfs: Quota check incorrectly ignored
 Date: Fri, 10 Feb 2012 22:44:05 +0800
-Message-ID: <000001cce802$709bf770$51d3e650$__23223.481528885$1328885092$gmane$org@edu.cn>
+Message-ID: <000001cce802$709bf770$51d3e650$__19966.13457236$1328885095$gmane$org@edu.cn>
 References: <1328787572-2030-1-git-send-email-liwang@nudt.edu.cn> <528868922.02520@eyou.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:49278 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1759379Ab2BJOoL (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Fri, 10 Feb 2012 09:44:11 -0500
 In-Reply-To: <528868922.02520@eyou.net>
 Message-ID: <000001cce802$709bf770$51d3e650$@edu.cn>
 Content-Language: zh-cn
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: 'Jan Kara' <jack@suse.cz>
@@ -161,4 +165,3 @@ we do not change much of the semantic of write call.
 > --
 > Jan Kara <jack@suse.cz>
 > SUSE Labs, CR
-
