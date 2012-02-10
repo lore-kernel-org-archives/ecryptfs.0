@@ -1,110 +1,67 @@
-From: Li Wang <liwang@nudt.edu.cn>
-Subject: [PATCH] eCryptfs: Quota check incorrectly ignored
-Date: Thu,  9 Feb 2012 19:39:32 +0800
-Message-ID: <1328787572-2030-1-git-send-email-liwang__42968.5319112197$1328759159$gmane$org@nudt.edu.cn>
+From: Cong Wang <amwang@redhat.com>
+Subject: [PATCH 29/60] ecryptfs: remove the second argument of k[un]map_atomic()
+Date: Fri, 10 Feb 2012 13:39:50 +0800
+Message-ID: <1328852421-19678-30-git-send-email-amwang@redhat.com>
+References: <1328852421-19678-1-git-send-email-amwang@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Message-Id: <1328787572-2030-1-git-send-email-liwang@nudt.edu.cn>
+In-Reply-To: <1328852421-19678-1-git-send-email-amwang@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Jan Kara <jack@suse.cz>, Yong Peng <pengyong@kylinos.com.cn>, Li Wang <liwang@nudt.edu.cn>
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Cong Wang <amwang@redhat.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
-eCryptfs recently modified the write path to perform encryption
-and write down in ecryptfs_writepage(). This function invokes vfs_write()
-to write down the encrypted data to lower page cache. vfs_write() will
-first make sure this write will not exceed the quota limit for the owner
-of the file being written into, if quota is supported by 
-the underlying file system, and it is turned on. Normally, it accomplishs
-this job by calling check_idq()/check_bdq() (fs/quota/dquot.c). When system
-dirty ratio is not high, ecryptfs_writepage() is normally invoked by the 
-write back kernel thread, who has the capability CAP_SYS_RESOURCE, 
-this priority will let check_idq()/check_bdq() directly bypass the quota
-check. This sometimes makes data safely written into the disk in spite of
-exceeding the quota limit.
-
-This patch temporarily removes the CAP_SYS_RESOURCE capability from the kernel
-thread before invoking vfs_write_lower(), to let it undergo quota check by
-the lower file system, if necessary. After that, reassign the capability.
-
-Signed-off-by: Li Wang <liwang@nudt.edu.cn>
-Singed-off-by: Yong Peng <pengyong@kylinos.com.cn>
+Signed-off-by: Cong Wang <amwang@redhat.com>
 ---
+ fs/ecryptfs/mmap.c       |    4 ++--
+ fs/ecryptfs/read_write.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-To repeat this bug, 
-	mount -o usrquota /dev/sda3 /tmp
-	cd /tmp
-	edquota -u foo // set the disk quota limit for user foo be m1 bytes
-	quotaon -a
-	mount -t ecryptfs cipher plain
-
-	login the system as user foo
-	cd /tmp/plain
-	execute the following simple program
-	
-	int main()
-	{
-		char buf[m2]; // m2>m1
-		FILE *f = fopen("dummy", "w");
-		fwrite(buf, 1, m2, f);
-		sleep(60); // let the kernel thread do the write back job
-		fclose(f);
-		return 0;
-	}
-	
-	This program can write as much of data as it wants, provided sleep enough long time before closing the file.
-
- fs/ecryptfs/crypto.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
-
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 63ab245..2c1da29 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -457,6 +457,7 @@ int ecryptfs_encrypt_page(struct page *page)
- 	struct page *enc_extent_page = NULL;
- 	loff_t extent_offset;
- 	int rc = 0;
-+	struct cred *cred;
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 10ec695..a46b3a8 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -150,7 +150,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
+ 			/* This is a header extent */
+ 			char *page_virt;
  
- 	ecryptfs_inode = page->mapping->host;
- 	crypt_stat =
-@@ -487,8 +488,34 @@ int ecryptfs_encrypt_page(struct page *page)
- 				   * (PAGE_CACHE_SIZE
- 				      / crypt_stat->extent_size))
- 				  + extent_offset), crypt_stat);
-+		if (current->flags & PF_KTHREAD) {
-+			/*
-+                         * Temporarily remove the CAP_SYS_RESOURCE capability
-+                         * from the write back kernel thread to let it undergo
-+                         * quota check by the lower file system
-+                         */
-+			cred = prepare_creds();
-+			if (unlikely(!cred)) {
-+				rc = -ENOMEM;
-+				goto out;
-+			}
-+			cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-+			commit_creds(cred);
-+		}
- 		rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
- 					  offset, crypt_stat->extent_size);
-+		if (current->flags & PF_KTHREAD) {
-+			/*
-+                         * Reassign the CAP_SYS_RESOURCE capability
-+                         */
-+			cred = prepare_creds();
-+			if (unlikely(!cred)) {
-+				rc = -ENOMEM;
-+				goto out;
-+			}
-+			cap_raise(cred->cap_effective, CAP_SYS_RESOURCE);
-+			commit_creds(cred);
-+		}
- 		if (rc < 0) {
- 			ecryptfs_printk(KERN_ERR, "Error attempting "
- 					"to write lower page; rc = [%d]"
+-			page_virt = kmap_atomic(page, KM_USER0);
++			page_virt = kmap_atomic(page);
+ 			memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 			/* TODO: Support more than one header extent */
+ 			if (view_extent_num == 0) {
+@@ -163,7 +163,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
+ 							       crypt_stat,
+ 							       &written);
+ 			}
+-			kunmap_atomic(page_virt, KM_USER0);
++			kunmap_atomic(page_virt);
+ 			flush_dcache_page(page);
+ 			if (rc) {
+ 				printk(KERN_ERR "%s: Error reading xattr "
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 5c0106f..b2a34a1 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -156,7 +156,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
+ 
+ 		/*
+ 		 * pos: where we're now writing, offset: where the request was
+@@ -179,7 +179,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       (data + data_offset), num_bytes);
+ 			data_offset += num_bytes;
+ 		}
+-		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		kunmap_atomic(ecryptfs_page_virt);
+ 		flush_dcache_page(ecryptfs_page);
+ 		SetPageUptodate(ecryptfs_page);
+ 		unlock_page(ecryptfs_page);
 -- 
-1.7.6.5
+1.7.7.6
