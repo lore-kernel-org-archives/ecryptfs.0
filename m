@@ -1,15 +1,15 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: RE: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
 Date: Mon, 13 Feb 2012 17:25:17 +0800
-Message-ID: <003e01ccea31$6e381cd0$4aa85670$__2068.67895690284$1329125158$gmane$org@edu.cn>
+Message-ID: <003e01ccea31$6e381cd0$4aa85670$__45267.2489489943$1329125180$gmane$org@edu.cn>
 References: <20120210194142.GB15606@boyd> <528913714.17261@eyou.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <528913714.17261@eyou.net>
 Message-ID: <003e01ccea31$6e381cd0$4aa85670$@edu.cn>
 Content-Language: zh-cn
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: 'Tyler Hicks' <tyhicks@canonical.com>
@@ -260,3 +260,4 @@ Tyler
 > >
 
 ----- End forwarded message -----
+
