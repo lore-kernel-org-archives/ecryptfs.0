@@ -1,263 +1,28 @@
-From: "Li Wang" <liwang@nudt.edu.cn>
-Subject: RE: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-Date: Mon, 13 Feb 2012 17:25:17 +0800
-Message-ID: <003e01ccea31$6e381cd0$4aa85670$__45267.2489489943$1329125180$gmane$org@edu.cn>
-References: <20120210194142.GB15606@boyd> <528913714.17261@eyou.net>
+From: =?UTF-8?Q?Stefan_Dr=C3=B6ge?= <stefan@sdroege.de>
+Subject: ecryptfs with aes-ni slower bug
+Date: Wed, 15 Feb 2012 11:43:21 +0100
+Message-ID: <CAB89gJErehp2bw6XuWghBXT9D4632rgtowUVqSsna2ng8XQ5Sw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <528913714.17261@eyou.net>
-Message-ID: <003e01ccea31$6e381cd0$4aa85670$@edu.cn>
-Content-Language: zh-cn
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:61578 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757080Ab2BOKnl (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 15 Feb 2012 05:43:41 -0500
+Received: by obcva7 with SMTP id va7so1330327obc.19
+        for <ecryptfs@vger.kernel.org>; Wed, 15 Feb 2012 02:43:41 -0800 (PST)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: 'Tyler Hicks' <tyhicks@canonical.com>
-Cc: 'Jan Kara' <jack@suse.cz>, 'Yong Peng' <pengyong@kylinos.com.cn>, viro@zeniv.linux.org.uk, akpm@linux-foundation.org, taysom@chromium.org, 'Thieu Le' <thieule@chromium.org>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
-It is a pity to have to cancel this optimization due to such small probability events. It does bring obvious
-write speedups, especially when the system load is not high, it offloads the encryption task from the
-processes, and makes the write call nearly 1x faster according to our test, comparable to the lower file system
-throughput, and it avoids, to some extent, repeated encryptions when the same part of data being multiple written.
+Hi all,
+A while ago I read at phoronix, that ecryptfs is actually slower when
+having loaded the aesni-intel kernel module.
+Out of curiosiy I checked whether this problem still exists in the
+Ubuntu 12.04 alpha2, and it does.
+I tried to find infos to this in the mailing list archive, but I found nothing.
 
-Again, thanks Thieu.
+So my question: Is somebody working on this?
 
-
------Original Message-----
-From: liwang@nudt.edu.cn [mailto:liwang@nudt.edu.cn] On Behalf Of Tyler Hicks
-Sent: Saturday, February 11, 2012 6:58 AM
-To: ecryptfs@vger.kernel.org; linux-kernel@vger.kernel.org; linux-fsdevel@vger.kernel.org
-Cc: Li Wang; Jan Kara; Yong Peng; viro@zeniv.linux.org.uk; akpm@linux-foundation.org; taysom@chromium.org; Thieu Le
-Subject: Fwd: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-
-Thieu says his emails to the vger.kernel.org lists are bouncing.
-Forwarding for completeness.
-
-Tyler
-
------ Forwarded message from Thieu Le <thieule@chromium.org> -----
-
-> Date: Fri, 10 Feb 2012 14:31:12 -0800
-> From: Thieu Le <thieule@chromium.org>
-> To: Tyler Hicks <tyhicks@canonical.com>
-> Cc: Li Wang <liwang@nudt.edu.cn>, Jan Kara <jack@suse.cz>, ecryptfs@vger.kernel.org,
-> 	linux-kernel@vger.kernel.org, Yong Peng <pengyong@kylinos.com.cn>, viro@zeniv.linux.org.uk,
-> 	linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, taysom@chromium.org
-> Subject: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-> 
-> +taysom
-> 
-> I am onboard with backing out the write-back cache patch.  It looks like
-> we're just peeling the layers of this onion.
-> 
-> On Fri, Feb 10, 2012 at 11:41 AM, Tyler Hicks <tyhicks@canonical.com> wrote:
-> 
-> > On 2012-02-10 13:31:49, 'Tyler Hicks' wrote:
-> > > On 2012-02-10 22:44:05, Li Wang wrote:
-> > > > > -----Original Message-----
-> > > > > From: Jan Kara [mailto:jack@suse.cz]
-> > > > > Sent: Friday, February 10, 2012 6:32 PM
-> > > > > To: Li Wang
-> > > > > Cc: Tyler Hicks; ecryptfs@vger.kernel.org;
-> > linux-kernel@vger.kernel.org;
-> > > > Jan
-> > > > > Kara; Yong Peng
-> > > > > Subject: Re: [PATCH] eCryptfs: Quota check incorrectly ignored
-> > > > >
-> > > > > On Thu 09-02-12 19:39:32, Li Wang wrote:
-> > > > > > eCryptfs recently modified the write path to perform encryption
-> > > > > > and write down in ecryptfs_writepage(). This function invokes
-> > > > vfs_write()
-> > > > > > to write down the encrypted data to lower page cache. vfs_write()
-> > will
-> > > > > > first make sure this write will not exceed the quota limit for the
-> > owner
-> > > > > > of the file being written into, if quota is supported by
-> > > > > > the underlying file system, and it is turned on. Normally, it
-> > > > accomplishs
-> > > > > > this job by calling check_idq()/check_bdq() (fs/quota/dquot.c).
-> > When
-> > > > system
-> > > > > > dirty ratio is not high, ecryptfs_writepage() is normally invoked
-> > by the
-> > > > > > write back kernel thread, who has the capability CAP_SYS_RESOURCE,
-> > > > > > this priority will let check_idq()/check_bdq() directly bypass the
-> > quota
-> > > > > > check. This sometimes makes data safely written into the disk in
-> > spite
-> > > > of
-> > > > > > exceeding the quota limit.
-> > > > > >
-> > > > > > This patch temporarily removes the CAP_SYS_RESOURCE capability
-> > from the
-> > > > > kernel
-> > > > > > thread before invoking vfs_write_lower(), to let it undergo quota
-> > check
-> > > > by
-> > > > > > the lower file system, if necessary. After that, reassign the
-> > > > capability.
-> > > > >   Hmm, but then the error will just be thrown away by the flusher
-> > thread
-> > > > > and the application never learns about it? That doesn't sound like a
-> > good
-> > > > > solution.
-> > > > >
-> > > > >                                                           Honza
-> > > >
-> > > > Yes. we are aware of that, but we have not found better solution,
-> > since it
-> > > > seems
-> > > > VFS does not supply a file system independent interface to check quota
-> > early
-> > > > and only
-> > > > (fix us if we are wrong), The file systems just perform the quota
-> > check in
-> > > > their own way,
-> > > > the routine is wrapped deeply inside the file system specific code
-> > path.
-> > > > Maybe we could
-> > > > copy some codes from _dquot_alloc_space() & dquot_alloc_inode
-> > > > (fs/quota/dquot.c) to
-> > > > perform quota check on lower inode ourselves, but that is ugly, and we
-> > are
-> > > > not sure if it works
-> > > > for any file system or not..., On the other side, due to the existence
-> > of
-> > > > write buffer, and io schedule,
-> > > > the successful write call does not gurantee the data will be written
-> > into
-> > > > disk, in terms of that,
-> > > > we do not change much of the semantic of write call.
-> > >
-> > > Maybe I should just revert 57db4e8d73ef2b5e94a3f412108dff2576670a8a
-> > > (and friends) and go back to the write-through cache model for eCryptfs.
-> > > The write-back model has some nice performance improvements, but we keep
-> > > running into little issues like this. For write-through to work
-> > > reliably, we're going to need some support from the VFS that isn't there
-> > > yet.
-> >
-> > Sorry, that should be "For write-back to work reliably, we're going to
-> > need some support from the VFS that isn't there yet."
-> >
-> > Tyler
-> >
-> > >
-> > > Handling ENOSPC correctly is another area that is lacking after the
-> > > switch to write-back. Currently, an application will continue to write
-> > > out data without having any indication that the disk is full. Thieu
-> > > proposed a fix, but it was never merged:
-> > >
-> > > http://article.gmane.org/gmane.linux.kernel/1209265
-> > >
-> > > So, what do folks think about going back to a write-through cache until
-> > > we have the ability to alert the application of these error conditions?
-> > >
-> > > Tyler
-> > >
-> > > >
-> > > > >
-> > > > >
-> > > > > >
-> > > > > > Signed-off-by: Li Wang <liwang@nudt.edu.cn>
-> > > > > > Singed-off-by: Yong Peng <pengyong@kylinos.com.cn>
-> > > > > > ---
-> > > > > >
-> > > > > > To repeat this bug,
-> > > > > >         mount -o usrquota /dev/sda3 /tmp
-> > > > > >         cd /tmp
-> > > > > >         edquota -u foo // set the disk quota limit for user foo be
-> > m1 bytes
-> > > > > >         quotaon -a
-> > > > > >         mount -t ecryptfs cipher plain
-> > > > > >
-> > > > > >         login the system as user foo
-> > > > > >         cd /tmp/plain
-> > > > > >         execute the following simple program
-> > > > > >
-> > > > > >         int main()
-> > > > > >         {
-> > > > > >                 char buf[m2]; // m2>m1
-> > > > > >                 FILE *f = fopen("dummy", "w");
-> > > > > >                 fwrite(buf, 1, m2, f);
-> > > > > >                 sleep(60); // let the kernel thread do the write
-> > back job
-> > > > > >                 fclose(f);
-> > > > > >                 return 0;
-> > > > > >         }
-> > > > > >
-> > > > > >         This program can write as much of data as it wants,
-> > provided sleep
-> > > > > enough long time before closing the file.
-> > > > > >
-> > > > > >  fs/ecryptfs/crypto.c |   27 +++++++++++++++++++++++++++
-> > > > > >  1 files changed, 27 insertions(+), 0 deletions(-)
-> > > > > >
-> > > > > > diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> > > > > > index 63ab245..2c1da29 100644
-> > > > > > --- a/fs/ecryptfs/crypto.c
-> > > > > > +++ b/fs/ecryptfs/crypto.c
-> > > > > > @@ -457,6 +457,7 @@ int ecryptfs_encrypt_page(struct page *page)
-> > > > > >         struct page *enc_extent_page = NULL;
-> > > > > >         loff_t extent_offset;
-> > > > > >         int rc = 0;
-> > > > > > +       struct cred *cred;
-> > > > > >
-> > > > > >         ecryptfs_inode = page->mapping->host;
-> > > > > >         crypt_stat =
-> > > > > > @@ -487,8 +488,34 @@ int ecryptfs_encrypt_page(struct page *page)
-> > > > > >                                    * (PAGE_CACHE_SIZE
-> > > > > >                                       / crypt_stat->extent_size))
-> > > > > >                                   + extent_offset), crypt_stat);
-> > > > > > +               if (current->flags & PF_KTHREAD) {
-> > > > > > +                       /*
-> > > > > > +                         * Temporarily remove the
-> > > > > CAP_SYS_RESOURCE capability
-> > > > > > +                         * from the write back kernel thread to
-> > let it
-> > > > > undergo
-> > > > > > +                         * quota check by the lower file system
-> > > > > > +                         */
-> > > > > > +                       cred = prepare_creds();
-> > > > > > +                       if (unlikely(!cred)) {
-> > > > > > +                               rc = -ENOMEM;
-> > > > > > +                               goto out;
-> > > > > > +                       }
-> > > > > > +                       cap_lower(cred->cap_effective,
-> > CAP_SYS_RESOURCE);
-> > > > > > +                       commit_creds(cred);
-> > > > > > +               }
-> > > > > >                 rc = ecryptfs_write_lower(ecryptfs_inode,
-> > enc_extent_virt,
-> > > > > >                                           offset,
-> > crypt_stat->extent_size);
-> > > > > > +               if (current->flags & PF_KTHREAD) {
-> > > > > > +                       /*
-> > > > > > +                         * Reassign the CAP_SYS_RESOURCE
-> > > > > capability
-> > > > > > +                         */
-> > > > > > +                       cred = prepare_creds();
-> > > > > > +                       if (unlikely(!cred)) {
-> > > > > > +                               rc = -ENOMEM;
-> > > > > > +                               goto out;
-> > > > > > +                       }
-> > > > > > +                       cap_raise(cred->cap_effective,
-> > CAP_SYS_RESOURCE);
-> > > > > > +                       commit_creds(cred);
-> > > > > > +               }
-> > > > > >                 if (rc < 0) {
-> > > > > >                         ecryptfs_printk(KERN_ERR, "Error
-> > attempting "
-> > > > > >                                         "to write lower page; rc =
-> > [%d]"
-> > > > > > --
-> > > > > > 1.7.6.5
-> > > > > --
-> > > > > Jan Kara <jack@suse.cz>
-> > > > > SUSE Labs, CR
-> > > >
-> >
-> >
-> >
-
------ End forwarded message -----
-
+Regards, Stefan
