@@ -1,12 +1,16 @@
 From: Li Wang <liwang@nudt.edu.cn>
 Subject: [PATCH 3/3] eCryptfs: Remove unreached codes
 Date: Fri, 17 Feb 2012 00:36:50 +0800
-Message-ID: <529380713.15452@eyou.net>
+Message-ID: <1329410210-2712-3-git-send-email-liwang__6227.52743443034$1329381783$gmane$org@nudt.edu.cn>
 References: <1329410210-2712-1-git-send-email-liwang@nudt.edu.cn>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:38322 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1755597Ab2BPIme (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Thu, 16 Feb 2012 03:42:34 -0500
 Message-Id: <1329410210-2712-3-git-send-email-liwang@nudt.edu.cn>
 In-Reply-To: <1329410210-2712-1-git-send-email-liwang@nudt.edu.cn>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
