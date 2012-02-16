@@ -1,14 +1,10 @@
 From: Li Wang <liwang@nudt.edu.cn>
 Subject: [PATCH 1/3] eCryptfs: Write bug for non-ecryptfs file
 Date: Fri, 17 Feb 2012 00:36:48 +0800
-Message-ID: <529380691.15452@eyou.net>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:38170 "HELO eyou.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754729Ab2BPImP (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Thu, 16 Feb 2012 03:42:15 -0500
+Message-ID: <1329410210-2712-1-git-send-email-liwang__1643.02594862438$1329381755$gmane$org@nudt.edu.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Message-Id: <1329410210-2712-1-git-send-email-liwang@nudt.edu.cn>
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
