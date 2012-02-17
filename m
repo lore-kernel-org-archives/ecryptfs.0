@@ -1,72 +1,80 @@
-From: Li Wang <liwang@nudt.edu.cn>
-Subject: [PATCH 3/3] eCryptfs: Remove unreached codes
-Date: Fri, 17 Feb 2012 00:36:50 +0800
-Message-ID: <1329410210-2712-3-git-send-email-liwang__6227.52743443034$1329381783$gmane$org@nudt.edu.cn>
-References: <1329410210-2712-1-git-send-email-liwang@nudt.edu.cn>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 3.3-rc4
+Date: Thu, 16 Feb 2012 18:31:29 -0600
+Message-ID: <20120217003128.GA20071@boyd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:38322 "HELO eyou.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755597Ab2BPIme (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Thu, 16 Feb 2012 03:42:34 -0500
-Message-Id: <1329410210-2712-3-git-send-email-liwang@nudt.edu.cn>
-In-Reply-To: <1329410210-2712-1-git-send-email-liwang@nudt.edu.cn>
+Received: from youngberry.canonical.com ([91.189.89.112]:55342 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355Ab2BQAbc (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 16 Feb 2012 19:31:32 -0500
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Li Wang <liwang@nudt.edu.cn>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-The code segment handles the ECRYPTFS_VIEW_AS_ENCRYPTED option in
-ecryptfs_write_begin(mmap.c) is unreached, since this option is
-enabled only when eCryptfs is mounted with RDONLY.
 
-Signed-off-by: Li Wang <liwang@nudt.edu.cn>
----
- fs/ecryptfs/mmap.c |   29 +----------------------------
- 1 files changed, 1 insertions(+), 28 deletions(-)
+--9jxsPFA5p3P2qPhR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 59a8e57..a4802a6 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -320,35 +320,8 @@ static int ecryptfs_write_begin(struct file *file,
- 				goto out;
- 			} else
- 				SetPageUptodate(page);
--		} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
--			if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
--				rc = ecryptfs_copy_up_encrypted_with_header(
--					page, crypt_stat);
--				if (rc) {
--					printk(KERN_ERR "%s: Error attempting "
--					       "to copy the encrypted content "
--					       "from the lower file whilst "
--					       "inserting the metadata from "
--					       "the xattr into the header; rc "
--					       "= [%d]\n", __func__, rc);
--					ClearPageUptodate(page);
--					goto out;
--				}
--				SetPageUptodate(page);
--			} else {
--				rc = ecryptfs_read_lower_page_segment(
--					page, index, 0, PAGE_CACHE_SIZE,
--					mapping->host);
--				if (rc) {
--					printk(KERN_ERR "%s: Error reading "
--					       "page; rc = [%d]\n",
--					       __func__, rc);
--					ClearPageUptodate(page);
--					goto out;
--				}
--				SetPageUptodate(page);
--			}
- 		} else {
-+			BUG_ON(crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED);
- 			if (prev_page_end_size
- 			    >= i_size_read(page->mapping->host)) {
- 				zero_user(page, 0, PAGE_CACHE_SIZE);
--- 
-1.7.6.5
+The following changes since commit c38e23456278e967f094b08247ffc3711b1029b2:
+
+  i387: fix sense of sanity check (2012-02-15 08:05:18 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git ecryptfs-3.3-rc4-fixes
+
+for you to fetch changes up to 465c9343c5b746ec2325a220fa3e50cc647d2db7:
+
+  ecryptfs: remove the second argument of k[un]map_atomic() (2012-02-16 16:06:27 -0600)
+
+----------------------------------------------------------------
+Fixes maximum filename length and filesystem type reporting in statfs() calls
+and also fixes stale inode mode bits on eCryptfs inodes after a POSIX ACL was
+set on the lower filesystem's inode.
+
+----------------------------------------------------------------
+Cong Wang (1):
+      ecryptfs: remove the second argument of k[un]map_atomic()
+
+Tyler Hicks (2):
+      eCryptfs: Improve statfs reporting
+      eCryptfs: Copy up lower inode attrs after setting lower xattr
+
+ fs/ecryptfs/crypto.c          |   68 ++++++++++++++++++++++++++++++++++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    6 +++
+ fs/ecryptfs/inode.c           |    2 +
+ fs/ecryptfs/keystore.c        |    9 ++---
+ fs/ecryptfs/mmap.c            |    4 +-
+ fs/ecryptfs/read_write.c      |    4 +-
+ fs/ecryptfs/super.c           |   14 ++++++++-
+ 7 files changed, 89 insertions(+), 18 deletions(-)
+
+--9jxsPFA5p3P2qPhR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJPPZ/gAAoJENaSAD2qAscK4EwP/jMw6V9QM0qQBaPte3v3paN2
+XGUUAFdTCmOLdmgMSXre+1tOpCsTXmtIqoS++So05oEkNQL3Sd1et9RP7ferTwNG
+CHhOMXF+cvbbnBPB1KIu3aL7zJHGq15X01fnXRWT7j9OoEcf3q+rCS1FzdpKyNNA
+WzVU2lo/pkQSuUYkrkeCT4alJwNnLHlg0/RlCOTROq+yuwcCRrFOq4HqgDFAT5ZE
+hYe6DUq+TN8atNPjmbvTqKF+XvfJ0RV8NWDS2l7RNTjuWUDOnRSKlEs0jpFuh7F0
+CEI2NfaLTMzdLwxFvA3eXG5bBDGR8Rt7coPQqD1WKPwLrKxfpBzkaRfhlofUm5RE
+z2iPZvvSrnVtHxuU8ZHP5xRNJeb/CYd5X7rsNPf+AXe8nRABQj56HB0wa2FDHMjM
+C5CqLgONi8ASiwV86Tk4NRb8rXDdTh554P3tlgfOtYCheE6B2sj8uG4exrb8vouP
+yLqkRyfeUYgTLJvpAmg2V6306GDZudtTve2jDGdYtZqxoPQoE89H9iOnHqQZklP7
+ABvCZ2p71yukVIV5bWabP5ReebWxj5SQ8xKAoIROin59bw/4uJb7EzkHtxbGZk+j
+cs2vaWWjUjO9VP15eU+MAT/YOpaqsXKt+xJqL9Xbmb+EZls5z1x5kDwqnjFek1EF
+S2UdIa0O3BhDwXtSIBYB
+=yCXF
+-----END PGP SIGNATURE-----
+
+--9jxsPFA5p3P2qPhR--
