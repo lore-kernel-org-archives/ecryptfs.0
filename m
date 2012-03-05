@@ -1,86 +1,166 @@
-From: Tyler Hicks <tyhicks@canonical.com>
+From: Ted Ts'o <tytso@mit.edu>
 Subject: Re: Linus GIT (3.3.0-rc6+) -- INFO: possible circular locking
  dependency detected
-Date: Mon, 5 Mar 2012 15:46:22 -0600
-Message-ID: <20120305214621.GC29910@boyd>
+Date: Mon, 5 Mar 2012 16:46:28 -0500
+Message-ID: <20120305214628.GA7717@thunk.org>
 References: <CAHFgRy-V3ZFK6QrC2++Rvyi4e_f-03Xdr9sj4PUJORVq21GiEw@mail.gmail.com>
- <20120305132334.e3fc92cb.akpm@linux-foundation.org>
- <20120305213557.GO23916@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="s9fJI615cBHmzTOP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from li9-11.members.linode.com ([67.18.176.11]:56044 "EHLO
+	test.thunk.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753887Ab2CEV7v (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 5 Mar 2012 16:59:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20120305213557.GO23916@ZenIV.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <CAHFgRy-V3ZFK6QrC2++Rvyi4e_f-03Xdr9sj4PUJORVq21GiEw@mail.gmail.com>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Miles Lane <miles.lane@gmail.com>, LKML <linux-kernel@vger.kernel.org>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger.kernel@dilger.ca>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Miles Lane <miles.lane@gmail.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, ecryptfs@vger.kernel.org
 
+I've added ecryptfs to the list since this looks like it's caused by
+ecryptfs (i.e., it won't happen without ecryptfs).
 
---s9fJI615cBHmzTOP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This seems to be caused by an munmap of an ecryptfs file, which has
+dirty pages; ecryptfs is then calling into ext4 while the mmap is
+still holding the mmap_sem, and then when ext4 calls the generic
+function generic_file_aio_write(), it tries to grab the inode's
+i_mutex, and that's what's causing the possible circular locking
+dependency.
 
-On 2012-03-05 21:35:58, Al Viro wrote:
-> On Mon, Mar 05, 2012 at 01:23:34PM -0800, Andrew Morton wrote:
-> > mmap_sem nests inside i_mutex.
-> >=20
-> > On the path
-> >=20
-> > 	munmap
-> > 	->ecryptfs_vma_close
-> > 	  ->filemap_write_and_wait
-> > 	    ->generic_file_aio_write
-> >=20
-> > we're taking i_mutex inside mmap_sem.  So the problem is triggered by
-> > ecryptfs_vma_close() calling filemap_write_and_wait() inside munmap()'s
-> > mmap_sem.
-> >=20
-> > Question is: what did we recently change to cause this to happen?
->=20
-> AFAICS, it's commit 32001d6fe9ac6b0423e674a3093aa56740849f3b
-> Author: Tyler Hicks <tyhicks@canonical.com>
-> Date:   Mon Nov 21 17:31:29 2011 -0600
->=20
->     eCryptfs: Flush file in vma close
+The other locking order is caused by vfs_readdir() grabbing i_mutex,
+and then filldir() calling writing to user memory, which means it
+calls might_fault(), and might_fault() calls
+might_lock_read(&current->mm->mmap_sem) since if the page needs to be
+faulted in, *that* will require taking a read lock of mmap_sem.
 
-Yes, it is definitely this commit. This is mainly what brought about my
-patch to fix the incorrect logic around lockdep_set_class() in
-lockdep_annotate_inode_mutex_key(). With that patch, I no longer saw
-these lockdep warnings, so I wrote it off. Al has since made it clear
-that this locking order is wrong.
+In any case, all of the locks in question are being taken by generic
+code, and it's the fact that ecryptfs needs to try to initiate page
+writeout at munmap() time, which holds mmap_sem, which is causing the
+circular dependency.
 
-This should fix itself when I revert
-57db4e8d73ef2b5e94a3f412108dff2576670a8a. We'll no longer need this
-flush in vma_close(), so 32001d6fe9ac6b0423e674a3093aa56740849f3b will
-be reverted, too. I was planning on waiting until 3.4 to do all of that
-since it will be a somewhat big change (even though it is mainly
-reverting of patches).
+i.e., this particular problem can and will happen with any file system
+(which uses generic filemap infrastructure); ext4 just happens to
+appear in the stack trace because that's the underlying file system
+used by ecryptfs.
 
-Tyler
+Regards,
 
---s9fJI615cBHmzTOP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+					- Ted
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPVTQtAAoJENaSAD2qAscKaKAQAKgD+08pJ0NuSDt/AmXwNOaV
-zfF1LSFB/CBxXcTO79RgEaY/bnoIRPijjFrf4BE8m200MfgBRjXGAtBDlJknjd6U
-bSiDYmEirVpNVUfvfHVHHFBXDIkq0wP2YnlgLQ4uBO4Yk4VYg2d4yjuf6jw8ZExz
-LaQeNp13VG//sRnKi1puhnPcwOwGfnMpD9UhiqSZg5qTjq9vcGUVi1bsuPgrmKHE
-dZAHOzjagcpCMzJAJKvL4hcakPvAZP+MjBUKoEZdlnL+d6fviTWxtk0qFj24UgL9
-bajnSFKXCZrgfIeCJNRAzLGLOVGmKjjw2LRnq4oxlFxUSWPlvzzunWrXvphotBPE
-XmQ/xdOjD41ICOsjpSbmyfn8KTNufPyyeyYD9XZzwcn7D/b6F96NM8CZUg2bhttf
-mohRZnZrtYF+5NSSIpUvzPZsseTDouEor8b8YaQIw4qErigIHfzmQ2Kb0zeAK9be
-/kpePIWMYK9KBkityK74VMwPxEk5YdZGLEUo8YNbwMdtS/nrkb1UD62UuUqNyocZ
-VdYW7sST0P37nVzQu6IO8YHbs4yyLUBkvGeZKoVm02UPDeV5jy6mcMshOQ1UblWx
-3mBBWzi0C+LpF6aYD/ZNlMY23X+b9OPNn3/kVdTQl+K0fAog+ZAk51pErtBMLRzr
-20AJokvL2ll8rdjFIhiQ
-=jeX9
------END PGP SIGNATURE-----
-
---s9fJI615cBHmzTOP--
+On Mon, Mar 05, 2012 at 04:08:55PM -0500, Miles Lane wrote:
+> [  107.839605] [ INFO: possible circular locking dependency detected ]
+> [  107.839608] 3.3.0-rc6+ #14 Not tainted
+> [  107.839609] -------------------------------------------------------
+> [  107.839611] gvfsd-metadata/2314 is trying to acquire lock:
+> [  107.839612]  (&sb->s_type->i_mutex_key#13){+.+.+.}, at:
+> [<ffffffff810ae65a>] generic_file_aio_write+0x45/0xbc
+> [  107.839622]
+> [  107.839623] but task is already holding lock:
+> [  107.839624]  (&mm->mmap_sem){++++++}, at: [<ffffffff810ca534>]
+> sys_munmap+0x36/0x5b
+> [  107.839630]
+> [  107.839630] which lock already depends on the new lock.
+> [  107.839631]
+> [  107.839632]
+> [  107.839632] the existing dependency chain (in reverse order) is:
+> [  107.839634]
+> [  107.839634] -> #1 (&mm->mmap_sem){++++++}:
+> [  107.839638]        [<ffffffff8107402d>] lock_acquire+0x8a/0xa7
+> [  107.839642]        [<ffffffff810c3363>] might_fault+0x7b/0x9e
+> [  107.839646]        [<ffffffff810f5246>] filldir+0x6a/0xc2
+> [  107.839649]        [<ffffffff81143b91>] call_filldir+0x91/0xb8
+> [  107.839653]        [<ffffffff81143eb2>] ext4_readdir+0x1b2/0x519
+> [  107.839656]        [<ffffffff810f548c>] vfs_readdir+0x76/0xac
+> [  107.839658]        [<ffffffff810f559e>] sys_getdents+0x79/0xc9
+> [  107.839661]        [<ffffffff813a1fb9>] system_call_fastpath+0x16/0x1b
+> [  107.839665]
+> [  107.839665] -> #0 (&sb->s_type->i_mutex_key#13){+.+.+.}:
+> [  107.839669]        [<ffffffff81073918>] __lock_acquire+0xa81/0xd75
+> [  107.839672]        [<ffffffff8107402d>] lock_acquire+0x8a/0xa7
+> [  107.839675]        [<ffffffff8139acfe>] __mutex_lock_common+0x61/0x456
+> [  107.839679]        [<ffffffff8139b1da>] mutex_lock_nested+0x36/0x3b
+> [  107.839681]        [<ffffffff810ae65a>] generic_file_aio_write+0x45/0xbc
+> [  107.839684]        [<ffffffff8114478e>] ext4_file_write+0x1e2/0x23a
+> [  107.839687]        [<ffffffff810e5bb5>] do_sync_write+0xbd/0xfd
+> [  107.839691]        [<ffffffff810e6333>] vfs_write+0xa7/0xee
+> [  107.839694]        [<ffffffffa037f266>]
+> ecryptfs_write_lower+0x4e/0x73 [ecryptfs]
+> [  107.839700]        [<ffffffffa03803d3>]
+> ecryptfs_encrypt_page+0x11c/0x182 [ecryptfs]
+> [  107.839704]        [<ffffffffa037e967>]
+> ecryptfs_writepage+0x31/0x73 [ecryptfs]
+> [  107.839708]        [<ffffffff810b448b>] __writepage+0x12/0x31
+> [  107.839710]        [<ffffffff810b4b25>] write_cache_pages+0x1e6/0x310
+> [  107.839713]        [<ffffffff810b4c8d>] generic_writepages+0x3e/0x54
+> [  107.839716]        [<ffffffff810b5e05>] do_writepages+0x26/0x28
+> [  107.839719]        [<ffffffff810ae1e4>] __filemap_fdatawrite_range+0x4e/0x50
+> [  107.839722]        [<ffffffff810aed55>] filemap_fdatawrite+0x1a/0x1c
+> [  107.839725]        [<ffffffff810aed72>] filemap_write_and_wait+0x1b/0x36
+> [  107.839727]        [<ffffffffa037c1bb>]
+> ecryptfs_vma_close+0x17/0x19 [ecryptfs]
+> [  107.839731]        [<ffffffff810c9374>] remove_vma+0x3b/0x71
+> [  107.839733]        [<ffffffff810ca40c>] do_munmap+0x2ed/0x306
+> [  107.839735]        [<ffffffff810ca542>] sys_munmap+0x44/0x5b
+> [  107.839738]        [<ffffffff813a1fb9>] system_call_fastpath+0x16/0x1b
+> [  107.839741]
+> [  107.839741] other info that might help us debug this:
+> [  107.839741]
+> [  107.839743]  Possible unsafe locking scenario:
+> [  107.839743]
+> [  107.839744]        CPU0                    CPU1
+> [  107.839746]        ----                    ----
+> [  107.839747]   lock(&mm->mmap_sem);
+> [  107.839749]                                lock(&sb->s_type->i_mutex_key#13);
+> [  107.839753]                                lock(&mm->mmap_sem);
+> [  107.839755]   lock(&sb->s_type->i_mutex_key#13);
+> [  107.839758]
+> [  107.839758]  *** DEADLOCK ***
+> [  107.839759]
+> [  107.839761] 1 lock held by gvfsd-metadata/2314:
+> [  107.839762]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff810ca534>]
+> sys_munmap+0x36/0x5b
+> [  107.839767]
+> [  107.839767] stack backtrace:
+> [  107.839769] Pid: 2314, comm: gvfsd-metadata Not tainted 3.3.0-rc6+ #14
+> [  107.839771] Call Trace:
+> [  107.839775]  [<ffffffff813956a2>] print_circular_bug+0x1f8/0x209
+> [  107.839778]  [<ffffffff81073918>] __lock_acquire+0xa81/0xd75
+> [  107.839781]  [<ffffffff81073bfd>] ? __lock_acquire+0xd66/0xd75
+> [  107.839784]  [<ffffffff8107402d>] lock_acquire+0x8a/0xa7
+> [  107.839787]  [<ffffffff810ae65a>] ? generic_file_aio_write+0x45/0xbc
+> [  107.839790]  [<ffffffff8139acfe>] __mutex_lock_common+0x61/0x456
+> [  107.839792]  [<ffffffff810ae65a>] ? generic_file_aio_write+0x45/0xbc
+> [  107.839795]  [<ffffffff81071a96>] ? mark_lock+0x2d/0x258
+> [  107.839798]  [<ffffffff810ae65a>] ? generic_file_aio_write+0x45/0xbc
+> [  107.839801]  [<ffffffff8107299e>] ? lock_is_held+0x92/0x9d
+> [  107.839803]  [<ffffffff8139b1da>] mutex_lock_nested+0x36/0x3b
+> [  107.839806]  [<ffffffff810ae65a>] generic_file_aio_write+0x45/0xbc
+> [  107.839810]  [<ffffffff811a013f>] ? scatterwalk_map+0x2b/0x5d
+> [  107.839813]  [<ffffffff810570d4>] ? get_parent_ip+0xe/0x3e
+> [  107.839816]  [<ffffffff8114478e>] ext4_file_write+0x1e2/0x23a
+> [  107.839818]  [<ffffffff81071a96>] ? mark_lock+0x2d/0x258
+> [  107.839821]  [<ffffffff810e5bb5>] do_sync_write+0xbd/0xfd
+> [  107.839824]  [<ffffffff8139b2fd>] ? __mutex_unlock_slowpath+0x11e/0x152
+> [  107.839828]  [<ffffffff81197092>] ? security_file_permission+0x29/0x2e
+> [  107.839831]  [<ffffffff810e60b2>] ? rw_verify_area+0xab/0xc8
+> [  107.839834]  [<ffffffff810e6333>] vfs_write+0xa7/0xee
+> [  107.839838]  [<ffffffffa037f266>] ecryptfs_write_lower+0x4e/0x73 [ecryptfs]
+> [  107.839842]  [<ffffffffa03803d3>] ecryptfs_encrypt_page+0x11c/0x182
+> [ecryptfs]
+> [  107.839846]  [<ffffffffa037e967>] ecryptfs_writepage+0x31/0x73 [ecryptfs]
+> [  107.839849]  [<ffffffff810b448b>] __writepage+0x12/0x31
+> [  107.839851]  [<ffffffff810b4b25>] write_cache_pages+0x1e6/0x310
+> [  107.839854]  [<ffffffff810b4479>] ? bdi_set_max_ratio+0x6a/0x6a
+> [  107.839857]  [<ffffffff813a03c1>] ? sub_preempt_count+0x90/0xa3
+> [  107.839860]  [<ffffffff810b4c8d>] generic_writepages+0x3e/0x54
+> [  107.839863]  [<ffffffff810b5e05>] do_writepages+0x26/0x28
+> [  107.839866]  [<ffffffff810ae1e4>] __filemap_fdatawrite_range+0x4e/0x50
+> [  107.839869]  [<ffffffff810aed55>] filemap_fdatawrite+0x1a/0x1c
+> [  107.839871]  [<ffffffff810aed72>] filemap_write_and_wait+0x1b/0x36
+> [  107.839875]  [<ffffffffa037c1bb>] ecryptfs_vma_close+0x17/0x19 [ecryptfs]
+> [  107.839877]  [<ffffffff810c9374>] remove_vma+0x3b/0x71
+> [  107.839879]  [<ffffffff810ca40c>] do_munmap+0x2ed/0x306
+> [  107.839882]  [<ffffffff810ca542>] sys_munmap+0x44/0x5b
+> [  107.839884]  [<ffffffff813a1fb9>] system_call_fastpath+0x16/0x1b
