@@ -1,10 +1,14 @@
 From: Li Wang <liwang@nudt.edu.cn>
 Subject: [PATCH] eCryptfs: Fix kernel bug for writing mmaped non-eCryptfs file
 Date: Tue, 13 Mar 2012 19:39:49 +0800
-Message-ID: <1331638789-3770-1-git-send-email-liwang__15330.1829043359$1331610339$gmane$org@nudt.edu.cn>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Message-ID: <1331638789-3770-1-git-send-email-liwang__34125.7740547464$1331610345$gmane$org@nudt.edu.cn>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:59949 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1759616Ab2CMDpL (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 12 Mar 2012 23:45:11 -0400
 Message-Id: <1331638789-3770-1-git-send-email-liwang@nudt.edu.cn>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -85,4 +89,3 @@ index 10ec695..a4be0e9 100644
  	 * Refuse to write the page out if we are called from reclaim context
 -- 
 1.7.6.5
-
