@@ -1,15 +1,19 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: RE: [PATCH] eCryptfs: Fix kernel bug for writing mmaped non-eCryptfs file
 Date: Tue, 20 Mar 2012 09:44:43 +0800
-Message-ID: <532207070.20372@eyou.net>
+Message-ID: <001801cd063b$0858b200$190a1600$__3686.08018984578$1332207903$gmane$org@edu.cn>
 References: <1331638789-3770-1-git-send-email-liwang@nudt.edu.cn> <531757825.11205@eyou.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:42949 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752469Ab2CTBo4 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 19 Mar 2012 21:44:56 -0400
 In-Reply-To: <531757825.11205@eyou.net>
 Message-ID: <001801cd063b$0858b200$190a1600$@edu.cn>
 Content-Language: zh-cn
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: 'Tyler Hicks' <tyhicks@canonical.com>
@@ -147,4 +151,3 @@ an eCryptfs mount
 > -- 
 > 1.7.6.5
 > 
-
