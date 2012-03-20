@@ -1,29 +1,50 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] eCryptfs: Fix kernel bug for writing mmaped non-eCryptfs
- file
-Date: Wed, 14 Mar 2012 15:56:03 -0500
-Message-ID: <20120314205603.GA4484@boyd>
-References: <1331638789-3770-1-git-send-email-liwang@nudt.edu.cn>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: RE: [PATCH] eCryptfs: Fix kernel bug for writing mmaped non-eCryptfs file
+Date: Tue, 20 Mar 2012 09:44:43 +0800
+Message-ID: <532207070.20372@eyou.net>
+References: <1331638789-3770-1-git-send-email-liwang@nudt.edu.cn> <531757825.11205@eyou.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Kj7319i9nmIyA2yE"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50167 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761374Ab2CNU4R (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 14 Mar 2012 16:56:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1331638789-3770-1-git-send-email-liwang@nudt.edu.cn>
-Sender: ecryptfs-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <531757825.11205@eyou.net>
+Message-ID: <001801cd063b$0858b200$190a1600$@edu.cn>
+Content-Language: zh-cn
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Li Wang <liwang@nudt.edu.cn>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>, Linus Torvalds <torvalds@linux-foundation.org>, Yunchuan Wen <wenyunchuan@kylinos.com.cn>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: 'Tyler Hicks' <tyhicks@canonical.com>
+Cc: 'Dustin Kirkland' <dustin.kirkland@gazzang.com>, 'Linus Torvalds' <torvalds@linux-foundation.org>, 'Yunchuan Wen' <wenyunchuan@kylinos.com.cn>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi Tyler,
+  There are three ways to go for non-eCryptfs files accessed from eCryptfs mount,
+1 Fully access
+2 Read only
+3 No access
 
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Personally, we prefer the first way, the reasons are as follows, the idea behind eCryptfs is tranparent
+encrption/decryption file system,
+Transparent is in terms of applications, that is, applications do not know the existence of encryption/decrption, rather
+than people.
+If make the non-eCryptfs files read-only/no-access from eCryptfs mount against the traditional unix file rwx permission, to
+some extent,
+it is no longer apparent to applications. And, some times, people want to mix plain/cipher text files in his folder, for
+example, some big
+video/audio files for fun are not wanted to be encrypted, some small private photos/ documents files are. If choose 3rd
+option, people have
+to access the files inside same folder from different places.
+
+Nevertheless, for any option, we are happy to help to get a corresponding patch, it is up to your decisions.
+
+Cheers,
+Li Wang
+
+-----Original Message-----
+From: Tyler Hicks [mailto:tyhicks@canonical.com] 
+Sent: Thursday, March 15, 2012 4:56 AM
+To: Li Wang
+Cc: Dustin Kirkland; Linus Torvalds; Yunchuan Wen; ecryptfs@vger.kernel.org; linux-fsdevel@vger.kernel.org;
+linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] eCryptfs: Fix kernel bug for writing mmaped non-eCryptfs file
 
 On 2012-03-13 19:39:49, Li Wang wrote:
 > eCryptfs did not handle the writing for mmaped non-eCryptfs file.
@@ -56,65 +77,62 @@ its current form. Any thoughts?
 
 Tyler
 
->=20
+> 
 > ---
->=20
+> 
 > To make the bug present
->=20
+> 
 > cd cipher // enter eCryptfs cipher text folder
 > echo "123" > foo // make non-eCryptfs file
 > cd ..
-> mount -t ecryptfs cipher plain -o ecryptfs_passthrough // allow for non-e=
-Cryptfs files to be read and written from within an eCryptfs mount
+> mount -t ecryptfs cipher plain -o ecryptfs_passthrough // allow for non-eCryptfs files to be read and written from within
+an eCryptfs mount
 > cd plain
 > run the following program
->=20
+> 
 > int main()
 > {
-> 	int fd =3D open("foo", O_RDWR);
+> 	int fd = open("foo", O_RDWR);
 > 	char * addr;
-> 	addr =3D (char *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED, fd,=
- 0);
-> 	add[0] =3D '3';
+> 	addr = (char *)mmap(NULL, 256, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+> 	add[0] = '3';
 > 	munmap(addr, 256);
 > 	close(fd);
 > 	return 0;
 > }
->=20
+> 
 > Signed-off-by: Li Wang <liwang@nudt.edu.cn>
 > Signed-off-by: Yunchuan Wen <wenyunchuan@kylinos.com.cn>
 > ---
 >  fs/ecryptfs/mmap.c |   26 ++++++++++++++++++++++++++
 >  1 files changed, 26 insertions(+), 0 deletions(-)
->=20
+> 
 > diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
 > index 10ec695..a4be0e9 100644
 > --- a/fs/ecryptfs/mmap.c
 > +++ b/fs/ecryptfs/mmap.c
-> @@ -65,6 +65,32 @@ struct page *ecryptfs_get_locked_page(struct inode *in=
-ode, loff_t index)
->  static int ecryptfs_writepage(struct page *page, struct writeback_contro=
-l *wbc)
+> @@ -65,6 +65,32 @@ struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index)
+>  static int ecryptfs_writepage(struct page *page, struct writeback_control *wbc)
 >  {
 >  	int rc;
 > +	struct inode *inode;
 > +	struct ecryptfs_crypt_stat *crypt_stat;
 > +
-> +	inode =3D page->mapping->host;
-> +	crypt_stat =3D &ecryptfs_inode_to_private(inode)->crypt_stat;
+> +	inode = page->mapping->host;
+> +	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
 > +	if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
 > +		size_t size;
-> +		loff_t file_size =3D i_size_read(inode);
-> +		pgoff_t end_page_index =3D file_size >> PAGE_CACHE_SHIFT;
+> +		loff_t file_size = i_size_read(inode);
+> +		pgoff_t end_page_index = file_size >> PAGE_CACHE_SHIFT;
 > +
 > +		if (end_page_index < page->index)
-> +			size =3D 0;
-> +		else if (end_page_index =3D=3D page->index)
-> +			size =3D file_size & ~PAGE_CACHE_MASK;
+> +			size = 0;
+> +		else if (end_page_index == page->index)
+> +			size = file_size & ~PAGE_CACHE_MASK;
 > +		else
-> +			size =3D PAGE_CACHE_SIZE;
+> +			size = PAGE_CACHE_SIZE;
 > +
-> +		rc =3D ecryptfs_write_lower_page_segment(inode, page, 0, size);
+> +		rc = ecryptfs_write_lower_page_segment(inode, page, 0, size);
 > +		if (unlikely(rc)) {
 > +			ecryptfs_printk(KERN_WARNING, "Error write "
 > +					"page (upper index [0x%.16lx])\n", page->index);
@@ -123,33 +141,10 @@ l *wbc)
 > +			SetPageUptodate(page);
 > +		goto out;
 > +	}
-> =20
+>  
 >  	/*
 >  	 * Refuse to write the page out if we are called from reclaim context
-> --=20
+> -- 
 > 1.7.6.5
->=20
+> 
 
---Kj7319i9nmIyA2yE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJPYQXiAAoJENaSAD2qAscKMaYP/1zeOjWlpI0IV9MYgvkUEn5C
-LFZuOxroGWz02BN0bGlOTASD6lzCDs7srRA4lKTAuJnIZM8LkFcLLtqKNTjihcwb
-E55CNdJJf2zvxuY5qSzN2L2Ev0dKzSHdjK0eU4WYQW2H1hUrMVu1mbECyAZ03ine
-GqoD3hV8njJNfS/0J5XWjDln+7xssX/wrYEaRVnW0Kk6PcqJKXCaMkLTts9VonZk
-Kpmd4QwFK+S34CSmFdtMnM0skHVeHGFyE7AGhjtnXz5x0EcUEbnh94yl/YZicdSp
-X5AQiO3nND1yeHQfscEjodxDkGYV4c/vEKK0YZ3qkfqaFo/fRD3VpF5C2CIPTVPC
-0iDvCZXTxMFCo9PKDyXy4Y5LYgHWL5NpxnegOZF8+beDHQ+6VBaLQJnwA5kHv9fb
-tiByx45R8WLs411spUln/kgwqzE84fEjdRtqMlUWTuGMOC6PRFle+5gbEGYVhJqF
-mbvhHlcG8imu8kuLAJI75mgq3Awekm/v8t9mWFsS/93JxopRjLzTk4rbbH+QeLIM
-dA1Du2LMSX7YMCKKDDGz3gj8iqLiXqmOxbBnHALHe1YJcO+Cq4MoJ3ViY6YNVgfi
-2BMvR8JX2xYBLsR8fScqEgVHU9hlafH5EuzEpDtn+c1St5Vu81ZTuo96sOi4EPUh
-QwZ7FydpucTuoRwj1K0N
-=A95j
------END PGP SIGNATURE-----
-
---Kj7319i9nmIyA2yE--
