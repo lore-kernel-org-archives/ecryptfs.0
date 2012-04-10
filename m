@@ -1,17 +1,13 @@
 From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: [RFC] eCryptfs file system with HMAC verification
 Date: Tue, 10 Apr 2012 21:26:58 +0800
-Message-ID: <534063324.06707@eyou.net>
+Message-ID: <000a01cd171d$9e6c23b0$db446b10$__12058.5802979351$1334064454$gmane$org@edu.cn>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.nudt.edu.cn ([61.187.54.11]:45199 "HELO eyou.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752762Ab2DJN1R (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 10 Apr 2012 09:27:17 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Message-ID: <000a01cd171d$9e6c23b0$db446b10$@edu.cn>
 Content-Language: zh-cn
-Sender: ecryptfs-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Tyler Hicks <tyhicks@canonical.com>, dustin.kirkland@gazzang.com, torvalds@linux-foundation.org, akpm@linux-foundation.org
@@ -27,3 +23,4 @@ we think it should be useful.
 
 Cheers,
 Li Wang
+
