@@ -1,14 +1,15 @@
-From: "Li Wang" <dragonylffly@163.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
 Subject: [RFC] eCryptfs file system with HMAC verification
-Date: Tue, 10 Apr 2012 21:22:24 +0800
-Message-ID: <000301cd171c$f8bb4cc0$ea31e640$@com>
+Date: Tue, 10 Apr 2012 21:26:58 +0800
+Message-ID: <534063324.06707@eyou.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from m50-132.163.com ([123.125.50.132]:41005 "EHLO m50-132.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752762Ab2DJNXp (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 10 Apr 2012 09:23:45 -0400
+Received: from mail.nudt.edu.cn ([61.187.54.11]:45199 "HELO eyou.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752762Ab2DJN1R (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Tue, 10 Apr 2012 09:27:17 -0400
+Message-ID: <000a01cd171d$9e6c23b0$db446b10$@edu.cn>
 Content-Language: zh-cn
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
@@ -26,4 +27,3 @@ we think it should be useful.
 
 Cheers,
 Li Wang
-
