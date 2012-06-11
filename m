@@ -1,40 +1,38 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] eCryptfs: fix ecryptfs_privileged_open() for read only files
-Date: Sat, 9 Jun 2012 12:11:29 +0300
-Message-ID: <20120609091129.GD877@elgon.mountain>
+From: =?ISO-8859-15?Q?Georg_Sch=F6nberger?= 
+	<gschoenberger@thomas-krenn.com>
+Subject: ecryptfs o_direct
+Date: Mon, 11 Jun 2012 08:54:15 +0200
+Message-ID: <4FD59617.1010608@thomas-krenn.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:32255 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235Ab2FIJLk (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sat, 9 Jun 2012 05:11:40 -0400
-Content-Disposition: inline
+Received: from mail.thomas-krenn.com ([217.7.54.186]:40753 "EHLO
+	mail.thomas-krenn.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130Ab2FKHDr (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 11 Jun 2012 03:03:47 -0400
+Received: from iris.tks.local (iris.tks.local [192.168.10.63])
+	by mail.thomas-krenn.com (Postfix) with ESMTP id 15C2DBE114
+	for <ecryptfs@vger.kernel.org>; Mon, 11 Jun 2012 08:54:25 +0200 (CEST)
+Received: from localhost (ate.tks.local [192.168.10.78])
+	by iris.tks.local (Postfix) with ESMTP id BDD4840605
+	for <ecryptfs@vger.kernel.org>; Mon, 11 Jun 2012 08:54:24 +0200 (CEST)
+Received: from mail.thomas-krenn.com ([127.0.0.1])
+	by localhost (ate.TKS.local [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id CWn8kH4K8Ruc for <ecryptfs@vger.kernel.org>;
+	Mon, 11 Jun 2012 08:54:15 +0200 (CEST)
+Received: from [10.1.102.103] (unknown [91.223.201.22])
+	by mail.thomas-krenn.com (Postfix) with ESMTPSA
+	for <ecryptfs@vger.kernel.org>; Mon, 11 Jun 2012 08:54:15 +0200 (CEST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-The intent here is to handle read only opens differently.  For example,
-if we don't want to create the file if it doesn't exist.  The problem
-here is that O_RDONLY is 0 and if (x & 0) {... is always false.
+Hello everyone,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-This is a static checker bug, and I am not very familiar with eCryptfs.
-Please review carefully.
+is there a short explanation available why ecryptfs is not working with
+direct I/O?
+According to Jens Axboe I cannot use FIO with option "direct=1" because
+my encrypted home partition with ecryptfs is not supporting O_DIRECT.
 
-diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
-index 69f994a..d01b364 100644
---- a/fs/ecryptfs/kthread.c
-+++ b/fs/ecryptfs/kthread.c
-@@ -149,7 +149,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
- 	(*lower_file) = dentry_open(lower_dentry, lower_mnt, flags, cred);
- 	if (!IS_ERR(*lower_file))
- 		goto out;
--	if (flags & O_RDONLY) {
-+	if (!(flags & O_RDWR)) {
- 		rc = PTR_ERR((*lower_file));
- 		goto out;
- 	}
+-Georg
