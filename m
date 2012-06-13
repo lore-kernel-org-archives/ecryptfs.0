@@ -1,108 +1,129 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH 1/3] eCryptfs: Gracefully refuse miscdev file ops on inherited/passed files
-Date: Tue, 12 Jun 2012 17:05:38 -0700
-Message-ID: <1339545940-11736-2-git-send-email-tyhicks@canonical.com>
-References: <1338061161.4284.16.camel@lappy>
- <1339545940-11736-1-git-send-email-tyhicks@canonical.com>
+Subject: [PATCH 1/2] eCryptfs: Unlink lower inode when ecryptfs_create() fails
+Date: Tue, 12 Jun 2012 19:30:46 -0700
+Message-ID: <1339554647-17445-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54050 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:54408 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261Ab2FMAF7 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Jun 2012 20:05:59 -0400
-In-Reply-To: <1339545940-11736-1-git-send-email-tyhicks@canonical.com>
+	with ESMTP id S1751988Ab2FMCaw (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Jun 2012 22:30:52 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: ecryptfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Sasha Levin <levinsasha928@gmail.com>
+Cc: John Johansen <john.johansen@canonical.com>, Colin Ian King <colin.king@canonical.com>
 
-File operations on /dev/ecryptfs would BUG() when the operations were
-performed by processes other than the process that originally opened the
-file. This could happen with open files inherited after fork() or file
-descriptors passed through IPC mechanisms. Rather than calling BUG(), an
-error code can be safely returned in most situations.
+ecryptfs_create() creates a lower inode, allocates an eCryptfs inode,
+initializes the eCryptfs inode and cryptographic metadata attached to
+the inode, and then writes the metadata to the header of the file.
 
-In ecryptfs_miscdev_release(), eCryptfs still needs to handle the
-release even if the last file reference is being held by a process that
-didn't originally open the file. ecryptfs_find_daemon_by_euid() will not
-be successful, so a pointer to the daemon is stored in the file's
-private_data. The private_data pointer is initialized when the miscdev
-file is opened and only used when the file is released.
+If an error was to occur after the lower inode was created, an empty
+lower file would be left in the lower filesystem. This is a problem
+because ecryptfs_open() refuses to open any lower files which do not
+have the appropriate metadata in the file header.
 
-https://launchpad.net/bugs/994247
+This patch properly unlinks the lower inode when an error occurs in the
+later stages of ecryptfs_create(), reducing the chance that an empty
+lower file will be left in the lower filesystem.
+
+https://launchpad.net/bugs/872905
 
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Reported-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Colin Ian King <colin.king@canonical.com>
 ---
- fs/ecryptfs/miscdev.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ fs/ecryptfs/inode.c |   55 ++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 23 deletions(-)
 
-diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
-index 3a06f40..2cd9c3f 100644
---- a/fs/ecryptfs/miscdev.c
-+++ b/fs/ecryptfs/miscdev.c
-@@ -49,7 +49,10 @@ ecryptfs_miscdev_poll(struct file *file, poll_table *pt)
- 	mutex_lock(&ecryptfs_daemon_hash_mux);
- 	/* TODO: Just use file->private_data? */
- 	rc = ecryptfs_find_daemon_by_euid(&daemon, euid, current_user_ns());
--	BUG_ON(rc || !daemon);
-+	if (rc || !daemon) {
-+		mutex_unlock(&ecryptfs_daemon_hash_mux);
-+		return -EINVAL;
-+	}
- 	mutex_lock(&daemon->mux);
- 	mutex_unlock(&ecryptfs_daemon_hash_mux);
- 	if (daemon->flags & ECRYPTFS_DAEMON_ZOMBIE) {
-@@ -122,6 +125,7 @@ ecryptfs_miscdev_open(struct inode *inode, struct file *file)
- 		goto out_unlock_daemon;
- 	}
- 	daemon->flags |= ECRYPTFS_DAEMON_MISCDEV_OPEN;
-+	file->private_data = daemon;
- 	atomic_inc(&ecryptfs_num_miscdev_opens);
- out_unlock_daemon:
- 	mutex_unlock(&daemon->mux);
-@@ -152,9 +156,9 @@ ecryptfs_miscdev_release(struct inode *inode, struct file *file)
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index a07441a..65efe5f 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -143,6 +143,31 @@ static int ecryptfs_interpose(struct dentry *lower_dentry,
+ 	return 0;
+ }
  
- 	mutex_lock(&ecryptfs_daemon_hash_mux);
- 	rc = ecryptfs_find_daemon_by_euid(&daemon, euid, current_user_ns());
--	BUG_ON(rc || !daemon);
-+	if (rc || !daemon)
-+		daemon = file->private_data;
- 	mutex_lock(&daemon->mux);
--	BUG_ON(daemon->pid != task_pid(current));
- 	BUG_ON(!(daemon->flags & ECRYPTFS_DAEMON_MISCDEV_OPEN));
- 	daemon->flags &= ~ECRYPTFS_DAEMON_MISCDEV_OPEN;
- 	atomic_dec(&ecryptfs_num_miscdev_opens);
-@@ -269,8 +273,16 @@ ecryptfs_miscdev_read(struct file *file, char __user *buf, size_t count,
- 	mutex_lock(&ecryptfs_daemon_hash_mux);
- 	/* TODO: Just use file->private_data? */
- 	rc = ecryptfs_find_daemon_by_euid(&daemon, euid, current_user_ns());
--	BUG_ON(rc || !daemon);
-+	if (rc || !daemon) {
-+		mutex_unlock(&ecryptfs_daemon_hash_mux);
-+		return -EINVAL;
++static int ecryptfs_do_unlink(struct inode *dir, struct dentry *dentry,
++			      struct inode *inode)
++{
++	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
++	struct inode *lower_dir_inode = ecryptfs_inode_to_lower(dir);
++	struct dentry *lower_dir_dentry;
++	int rc;
++
++	dget(lower_dentry);
++	lower_dir_dentry = lock_parent(lower_dentry);
++	rc = vfs_unlink(lower_dir_inode, lower_dentry);
++	if (rc) {
++		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
++		goto out_unlock;
 +	}
- 	mutex_lock(&daemon->mux);
-+	if (task_pid(current) != daemon->pid) {
-+		mutex_unlock(&daemon->mux);
-+		mutex_unlock(&ecryptfs_daemon_hash_mux);
-+		return -EPERM;
-+	}
- 	if (daemon->flags & ECRYPTFS_DAEMON_ZOMBIE) {
- 		rc = 0;
- 		mutex_unlock(&ecryptfs_daemon_hash_mux);
-@@ -307,9 +319,6 @@ check_list:
- 		 * message from the queue; try again */
- 		goto check_list;
++	fsstack_copy_attr_times(dir, lower_dir_inode);
++	set_nlink(inode, ecryptfs_inode_to_lower(inode)->i_nlink);
++	inode->i_ctime = dir->i_ctime;
++	d_drop(dentry);
++out_unlock:
++	unlock_dir(lower_dir_dentry);
++	dput(lower_dentry);
++	return rc;
++}
++
+ /**
+  * ecryptfs_do_create
+  * @directory_inode: inode of the new file's dentry's parent in ecryptfs
+@@ -182,8 +207,10 @@ ecryptfs_do_create(struct inode *directory_inode,
  	}
--	BUG_ON(euid != daemon->euid);
--	BUG_ON(current_user_ns() != daemon->user_ns);
--	BUG_ON(task_pid(current) != daemon->pid);
- 	msg_ctx = list_first_entry(&daemon->msg_ctx_out_queue,
- 				   struct ecryptfs_msg_ctx, daemon_out_list);
- 	BUG_ON(!msg_ctx);
+ 	inode = __ecryptfs_get_inode(lower_dentry->d_inode,
+ 				     directory_inode->i_sb);
+-	if (IS_ERR(inode))
++	if (IS_ERR(inode)) {
++		vfs_unlink(lower_dir_dentry->d_inode, lower_dentry);
+ 		goto out_lock;
++	}
+ 	fsstack_copy_attr_times(directory_inode, lower_dir_dentry->d_inode);
+ 	fsstack_copy_inode_size(directory_inode, lower_dir_dentry->d_inode);
+ out_lock:
+@@ -265,7 +292,9 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
+ 	 * that this on disk file is prepared to be an ecryptfs file */
+ 	rc = ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
+ 	if (rc) {
+-		drop_nlink(ecryptfs_inode);
++		ecryptfs_do_unlink(directory_inode, ecryptfs_dentry,
++				   ecryptfs_inode);
++		make_bad_inode(ecryptfs_inode);
+ 		unlock_new_inode(ecryptfs_inode);
+ 		iput(ecryptfs_inode);
+ 		goto out;
+@@ -477,27 +506,7 @@ out_lock:
+ 
+ static int ecryptfs_unlink(struct inode *dir, struct dentry *dentry)
+ {
+-	int rc = 0;
+-	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
+-	struct inode *lower_dir_inode = ecryptfs_inode_to_lower(dir);
+-	struct dentry *lower_dir_dentry;
+-
+-	dget(lower_dentry);
+-	lower_dir_dentry = lock_parent(lower_dentry);
+-	rc = vfs_unlink(lower_dir_inode, lower_dentry);
+-	if (rc) {
+-		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
+-		goto out_unlock;
+-	}
+-	fsstack_copy_attr_times(dir, lower_dir_inode);
+-	set_nlink(dentry->d_inode,
+-		  ecryptfs_inode_to_lower(dentry->d_inode)->i_nlink);
+-	dentry->d_inode->i_ctime = dir->i_ctime;
+-	d_drop(dentry);
+-out_unlock:
+-	unlock_dir(lower_dir_dentry);
+-	dput(lower_dentry);
+-	return rc;
++	return ecryptfs_do_unlink(dir, dentry, dentry->d_inode);
+ }
+ 
+ static int ecryptfs_symlink(struct inode *dir, struct dentry *dentry,
 -- 
 1.7.9.5
