@@ -1,12 +1,14 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH 1/2] eCryptfs: Unlink lower inode when ecryptfs_create() fails
-Date: Tue, 12 Jun 2012 19:30:46 -0700
-Message-ID: <1339554647-17445-1-git-send-email-tyhicks@canonical.com>
+Subject: [PATCH 2/2] eCryptfs: Initialize empty lower files when opening them
+Date: Tue, 12 Jun 2012 19:30:47 -0700
+Message-ID: <1339554647-17445-2-git-send-email-tyhicks@canonical.com>
+References: <1339554647-17445-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54408 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:54410 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988Ab2FMCaw (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Jun 2012 22:30:52 -0400
+	with ESMTP id S1752439Ab2FMCay (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Jun 2012 22:30:54 -0400
+In-Reply-To: <1339554647-17445-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
@@ -15,115 +17,154 @@ Content-Transfer-Encoding: 7bit
 To: ecryptfs@vger.kernel.org
 Cc: John Johansen <john.johansen@canonical.com>, Colin Ian King <colin.king@canonical.com>
 
-ecryptfs_create() creates a lower inode, allocates an eCryptfs inode,
-initializes the eCryptfs inode and cryptographic metadata attached to
-the inode, and then writes the metadata to the header of the file.
+Historically, eCryptfs has only initialized lower files in the
+ecryptfs_create() path. Lower file initialization is the act of writing
+the cryptographic metadata from the inode's crypt_stat to the header of
+the file. The ecryptfs_open() path already expects that metadata to be
+in the header of the file.
 
-If an error was to occur after the lower inode was created, an empty
-lower file would be left in the lower filesystem. This is a problem
-because ecryptfs_open() refuses to open any lower files which do not
-have the appropriate metadata in the file header.
+A number of users have reported empty lower files in beneath their
+eCryptfs mounts. Most of the causes for those empty files being left
+around have been addressed, but the presence of empty files causes
+problems due to the lack of proper cryptographic metadata.
 
-This patch properly unlinks the lower inode when an error occurs in the
-later stages of ecryptfs_create(), reducing the chance that an empty
-lower file will be left in the lower filesystem.
+To transparently solve this problem, this patch initializes empty lower
+files in the ecryptfs_open() error path. If the metadata is unreadable
+due to the lower inode size being 0, plaintext passthrough support is
+not in use, and the metadata is stored in the header of the file (as
+opposed to the user.ecryptfs extended attribute), the lower file will be
+initialized.
 
-https://launchpad.net/bugs/872905
+The number of nested conditionals in ecryptfs_open() was getting out of
+hand, so a helper function was created. To avoid the same nested
+conditional problem, the conditional logic was reversed inside of the
+helper function.
+
+https://launchpad.net/bugs/911507
 
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 Cc: John Johansen <john.johansen@canonical.com>
 Cc: Colin Ian King <colin.king@canonical.com>
 ---
- fs/ecryptfs/inode.c |   55 ++++++++++++++++++++++++++++++---------------------
- 1 file changed, 32 insertions(+), 23 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h |    2 ++
+ fs/ecryptfs/file.c            |   69 +++++++++++++++++++++++++----------------
+ fs/ecryptfs/inode.c           |    4 +--
+ 3 files changed, 47 insertions(+), 28 deletions(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index a07441a..65efe5f 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -143,6 +143,31 @@ static int ecryptfs_interpose(struct dentry *lower_dentry,
- 	return 0;
- }
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 867b64c..56e3aa5 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -568,6 +568,8 @@ struct ecryptfs_open_req {
+ struct inode *ecryptfs_get_inode(struct inode *lower_inode,
+ 				 struct super_block *sb);
+ void ecryptfs_i_size_init(const char *page_virt, struct inode *inode);
++int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
++			     struct inode *ecryptfs_inode);
+ int ecryptfs_decode_and_decrypt_filename(char **decrypted_name,
+ 					 size_t *decrypted_name_size,
+ 					 struct dentry *ecryptfs_dentry,
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 2b17f2f..cb8dd72 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -161,6 +161,48 @@ static int ecryptfs_file_mmap(struct file *file, struct vm_area_struct *vma)
  
-+static int ecryptfs_do_unlink(struct inode *dir, struct dentry *dentry,
-+			      struct inode *inode)
+ struct kmem_cache *ecryptfs_file_info_cache;
+ 
++static int read_or_initialize_metadata(struct dentry *dentry)
 +{
-+	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
-+	struct inode *lower_dir_inode = ecryptfs_inode_to_lower(dir);
-+	struct dentry *lower_dir_dentry;
++	struct inode *inode = dentry->d_inode;
++	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
++	struct ecryptfs_crypt_stat *crypt_stat;
 +	int rc;
 +
-+	dget(lower_dentry);
-+	lower_dir_dentry = lock_parent(lower_dentry);
-+	rc = vfs_unlink(lower_dir_inode, lower_dentry);
-+	if (rc) {
-+		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
-+		goto out_unlock;
++	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
++	mount_crypt_stat = &ecryptfs_superblock_to_private(
++						inode->i_sb)->mount_crypt_stat;
++	mutex_lock(&crypt_stat->cs_mutex);
++
++	if (crypt_stat->flags & ECRYPTFS_POLICY_APPLIED &&
++	    crypt_stat->flags & ECRYPTFS_KEY_VALID) {
++		rc = 0;
++		goto out;
 +	}
-+	fsstack_copy_attr_times(dir, lower_dir_inode);
-+	set_nlink(inode, ecryptfs_inode_to_lower(inode)->i_nlink);
-+	inode->i_ctime = dir->i_ctime;
-+	d_drop(dentry);
-+out_unlock:
-+	unlock_dir(lower_dir_dentry);
-+	dput(lower_dentry);
++
++	rc = ecryptfs_read_metadata(dentry);
++	if (!rc)
++		goto out;
++
++	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED) {
++		crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
++				       | ECRYPTFS_ENCRYPTED);
++		rc = 0;
++		goto out;
++	}
++
++	if (!(mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED) &&
++	    !i_size_read(ecryptfs_inode_to_lower(inode))) {
++		rc = ecryptfs_initialize_file(dentry, inode);
++		if (!rc)
++			goto out;
++	}
++
++	rc = -EIO;
++out:
++	mutex_unlock(&crypt_stat->cs_mutex);
 +	return rc;
 +}
 +
  /**
-  * ecryptfs_do_create
-  * @directory_inode: inode of the new file's dentry's parent in ecryptfs
-@@ -182,8 +207,10 @@ ecryptfs_do_create(struct inode *directory_inode,
- 	}
- 	inode = __ecryptfs_get_inode(lower_dentry->d_inode,
- 				     directory_inode->i_sb);
--	if (IS_ERR(inode))
-+	if (IS_ERR(inode)) {
-+		vfs_unlink(lower_dir_dentry->d_inode, lower_dentry);
- 		goto out_lock;
-+	}
- 	fsstack_copy_attr_times(directory_inode, lower_dir_dentry->d_inode);
- 	fsstack_copy_inode_size(directory_inode, lower_dir_dentry->d_inode);
- out_lock:
-@@ -265,7 +292,9 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
- 	 * that this on disk file is prepared to be an ecryptfs file */
- 	rc = ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
- 	if (rc) {
--		drop_nlink(ecryptfs_inode);
-+		ecryptfs_do_unlink(directory_inode, ecryptfs_dentry,
-+				   ecryptfs_inode);
-+		make_bad_inode(ecryptfs_inode);
- 		unlock_new_inode(ecryptfs_inode);
- 		iput(ecryptfs_inode);
+  * ecryptfs_open
+  * @inode: inode speciying file to open
+@@ -236,32 +278,7 @@ static int ecryptfs_open(struct inode *inode, struct file *file)
+ 		rc = 0;
  		goto out;
-@@ -477,27 +506,7 @@ out_lock:
- 
- static int ecryptfs_unlink(struct inode *dir, struct dentry *dentry)
- {
--	int rc = 0;
--	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
--	struct inode *lower_dir_inode = ecryptfs_inode_to_lower(dir);
--	struct dentry *lower_dir_dentry;
--
--	dget(lower_dentry);
--	lower_dir_dentry = lock_parent(lower_dentry);
--	rc = vfs_unlink(lower_dir_inode, lower_dentry);
--	if (rc) {
--		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
--		goto out_unlock;
+ 	}
+-	mutex_lock(&crypt_stat->cs_mutex);
+-	if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
+-	    || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
+-		rc = ecryptfs_read_metadata(ecryptfs_dentry);
+-		if (rc) {
+-			ecryptfs_printk(KERN_DEBUG,
+-					"Valid headers not found\n");
+-			if (!(mount_crypt_stat->flags
+-			      & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)) {
+-				rc = -EIO;
+-				printk(KERN_WARNING "Either the lower file "
+-				       "is not in a valid eCryptfs format, "
+-				       "or the key could not be retrieved. "
+-				       "Plaintext passthrough mode is not "
+-				       "enabled; returning -EIO\n");
+-				mutex_unlock(&crypt_stat->cs_mutex);
+-				goto out_put;
+-			}
+-			rc = 0;
+-			crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
+-					       | ECRYPTFS_ENCRYPTED);
+-			mutex_unlock(&crypt_stat->cs_mutex);
+-			goto out;
+-		}
 -	}
--	fsstack_copy_attr_times(dir, lower_dir_inode);
--	set_nlink(dentry->d_inode,
--		  ecryptfs_inode_to_lower(dentry->d_inode)->i_nlink);
--	dentry->d_inode->i_ctime = dir->i_ctime;
--	d_drop(dentry);
--out_unlock:
--	unlock_dir(lower_dir_dentry);
--	dput(lower_dentry);
--	return rc;
-+	return ecryptfs_do_unlink(dir, dentry, dentry->d_inode);
- }
- 
- static int ecryptfs_symlink(struct inode *dir, struct dentry *dentry,
+-	mutex_unlock(&crypt_stat->cs_mutex);
++	rc = read_or_initialize_metadata(ecryptfs_dentry);
+ 	ecryptfs_printk(KERN_DEBUG, "inode w/ addr = [0x%p], i_ino = "
+ 			"[0x%.16lx] size: [0x%.16llx]\n", inode, inode->i_ino,
+ 			(unsigned long long)i_size_read(inode));
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 65efe5f..2d4143f 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -227,8 +227,8 @@ out:
+  *
+  * Returns zero on success
+  */
+-static int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
+-				    struct inode *ecryptfs_inode)
++int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
++			     struct inode *ecryptfs_inode)
+ {
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+ 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
 -- 
 1.7.9.5
