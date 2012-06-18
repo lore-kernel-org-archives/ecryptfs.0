@@ -1,256 +1,257 @@
-From: dragonylffly <dragonylffly@163.com>
-Subject: Re:Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
-Date: Sat, 16 Jun 2012 19:12:44 +0800 (CST)
-Message-ID: <2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
+From: Thieu Le <thieule@google.com>
+Subject: Re: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
+Date: Mon, 18 Jun 2012 10:17:29 -0700
+Message-ID: <CAEcckGp22vMzEocMT54ksHRtunKrQmoVgP7LeZCvWV9wuzKu0A@mail.gmail.com>
 References: <1339589670-12189-1-git-send-email-colin.king@canonical.com>
- <1339589670-12189-2-git-send-email-colin.king@canonical.com>
- <20120613161124.GB21062@boyd>
- <CAEcckGpMt1O+2syGbCQYC5ERCmXwCCvYjTYrHEeqZtQsA-qLLg@mail.gmail.com>
- <CAEcckGqhvz4gyvTHk0bSXf7pn5yEmWk7N+jT1BGrWxwGBX9wvQ@mail.gmail.com>
- <20120613211706.GD22116@boyd>
- <CAEcckGqhy9Yx9-vGYDVHBT8utsPR7cYaGjnAoRXM5ejnUonPyg@mail.gmail.com>
- <20120613222043.GE22116@boyd> <539626322.30300@eyou.net>
+	<1339589670-12189-2-git-send-email-colin.king@canonical.com>
+	<20120613161124.GB21062@boyd>
+	<CAEcckGpMt1O+2syGbCQYC5ERCmXwCCvYjTYrHEeqZtQsA-qLLg@mail.gmail.com>
+	<CAEcckGqhvz4gyvTHk0bSXf7pn5yEmWk7N+jT1BGrWxwGBX9wvQ@mail.gmail.com>
+	<20120613211706.GD22116@boyd>
+	<CAEcckGqhy9Yx9-vGYDVHBT8utsPR7cYaGjnAoRXM5ejnUonPyg@mail.gmail.com>
+	<20120613222043.GE22116@boyd>
+	<539626322.30300@eyou.net>
+	<2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from m13-46.163.com ([220.181.13.46]:44061 "EHLO m13-46.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756325Ab2FPL2E convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sat, 16 Jun 2012 07:28:04 -0400
-In-Reply-To: <539626322.30300@eyou.net>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:48970 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab2FRRRa convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 18 Jun 2012 13:17:30 -0400
+Received: by ghrr11 with SMTP id r11so3869587ghr.19
+        for <ecryptfs@vger.kernel.org>; Mon, 18 Jun 2012 10:17:29 -0700 (PDT)
+In-Reply-To: <2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Thieu Le <thieule@google.com>
+Content-Type: text/plain; charset="iso-8859-1"
+To: dragonylffly <dragonylffly@163.com>
 Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Colin King <colin.king@canonical.com>
 
-HI,
-   I did not think it thoroughly, I have two questions,
-1 For asynchronous encryption, although it may enjoy a throughput=20
-improvement for a bunch of pages, however, it seems that each dirty=20
-page will now more likely have a longer time to be written back after
-marked PG_WRITEBACK,
-in other words, it is being locked for a longer time, what if a write
-happens on that locked page? so it seems it may slow down the
-performance on some REWRITE cases.
+Inline.
 
-2 It is not very clear that why it could speed up read performance,  =20
-from the Linux source code, it seems the kernel will wait for the
-non uptodate page being uptodate (do_generic_file_read) before trying n=
-ext page.
+On Sat, Jun 16, 2012 at 4:12 AM, dragonylffly <dragonylffly@163.com> wr=
+ote:
+> HI,
+> =A0 I did not think it thoroughly, I have two questions,
+> 1 For asynchronous encryption, although it may enjoy a throughput
+> improvement for a bunch of pages, however, it seems that each dirty
+> page will now more likely have a longer time to be written back after
+> marked PG_WRITEBACK,
+> in other words, it is being locked for a longer time, what if a write
+> happens on that locked page? so it seems it may slow down the
+> performance on some REWRITE cases.
 
-Cheers,
-Li Wang
+If I understand you correctly, I think there could be some slowdown in
+your scenario if we assume the sync and async crypto code paths are
+similar or the async path is longer.  However, if there are are
+multiple extents per page, the async approach will allow us to run the
+crypto requests in parallel thereby lowering the amount of time under
+page lock.
 
-At=C2=A02012-06-14=C2=A006:25:28,"Thieu=C2=A0Le"=C2=A0<thieule@google.c=
-om>=C2=A0wrote:
->Kewl=C2=A0:)
+
 >
->Let=C2=A0me=C2=A0know=C2=A0if=C2=A0you=C2=A0have=C2=A0more=C2=A0questi=
-ons.
+> 2 It is not very clear that why it could speed up read performance,
+> from the Linux source code, it seems the kernel will wait for the
+> non uptodate page being uptodate (do_generic_file_read) before trying=
+ next page.
+
+There are two ways that this patch can speed up performance in the read=
+ path:
+
+1. If the page contains multiple extents, this patch will submit the
+extent decryption requests to the crypto API in parallel.
+
+2. The readahead does not wait for the page to be read thereby
+allowing us to submit multiple extents decryption requests in
+parallel.
+
+
 >
+> Cheers,
+> Li Wang
 >
->On=C2=A0Wed,=C2=A0Jun=C2=A013,=C2=A02012=C2=A0at=C2=A03:20=C2=A0PM,=C2=
-=A0Tyler=C2=A0Hicks=C2=A0<tyhicks@canonical.com>=C2=A0wrote:
->>=C2=A0On=C2=A02012-06-13=C2=A015:03:42,=C2=A0Thieu=C2=A0Le=C2=A0wrote=
-:
->>>=C2=A0On=C2=A0Wed,=C2=A0Jun=C2=A013,=C2=A02012=C2=A0at=C2=A02:17=C2=A0=
-PM,=C2=A0Tyler=C2=A0Hicks=C2=A0<tyhicks@canonical.com>=C2=A0wrote:
->>>=C2=A0>=C2=A0On=C2=A0Wed,=C2=A0Jun=C2=A013,=C2=A02012=C2=A0at=C2=A01=
-1:53=C2=A0AM,=C2=A0Thieu=C2=A0Le=C2=A0<thieule@google.com>=C2=A0wrote:
->>>=C2=A0>>
->>>=C2=A0>>=C2=A0Hi=C2=A0Tyler,=C2=A0I=C2=A0believe=C2=A0the=C2=A0perfo=
-rmance=C2=A0improvement=C2=A0from=C2=A0the=C2=A0async
->>>=C2=A0>>=C2=A0interface=C2=A0comes=C2=A0from=C2=A0the=C2=A0ability=C2=
-=A0to=C2=A0fully=C2=A0utilize=C2=A0the=C2=A0crypto
->>>=C2=A0>>=C2=A0hardware.
->>>=C2=A0>>
->>>=C2=A0>>=C2=A0Firstly,=C2=A0being=C2=A0able=C2=A0to=C2=A0submit=C2=A0=
-multiple=C2=A0outstanding=C2=A0requests=C2=A0fills
->>>=C2=A0>>=C2=A0the=C2=A0crypto=C2=A0engine=C2=A0pipeline=C2=A0which=C2=
-=A0allows=C2=A0it=C2=A0to=C2=A0run=C2=A0more=C2=A0efficiently
->>>=C2=A0>>=C2=A0(ie.=C2=A0minimal=C2=A0cycles=C2=A0are=C2=A0wasted=C2=A0=
-waiting=C2=A0for=C2=A0the=C2=A0next=C2=A0crypto=C2=A0request).
->>>=C2=A0>>=C2=A0=C2=A0This=C2=A0perf=C2=A0improvement=C2=A0is=C2=A0sim=
-ilar=C2=A0to=C2=A0network=C2=A0transfer=C2=A0efficiency.
->>>=C2=A0>>=C2=A0=C2=A0Sending=C2=A0a=C2=A01GB=C2=A0file=C2=A0via=C2=A0=
-4K=C2=A0packets=C2=A0synchronously=C2=A0is=C2=A0not=C2=A0going=C2=A0to
->>>=C2=A0>>=C2=A0fully=C2=A0saturate=C2=A0a=C2=A0gigabit=C2=A0link=C2=A0=
-but=C2=A0queuing=C2=A0a=C2=A0bunch=C2=A0of=C2=A04K=C2=A0packets=C2=A0to
->>>=C2=A0>>=C2=A0send=C2=A0will.
->>>=C2=A0>
->>>=C2=A0>=C2=A0Ok,=C2=A0it=C2=A0is=C2=A0clicking=C2=A0for=C2=A0me=C2=A0=
-now.=C2=A0Additionally,=C2=A0I=C2=A0imagine=C2=A0that=C2=A0the=C2=A0asy=
-nc
->>>=C2=A0>=C2=A0interface=C2=A0helps=C2=A0in=C2=A0the=C2=A0multicore/mu=
-ltiprocessor=C2=A0case.
->>>=C2=A0>
->>>=C2=A0>>=C2=A0Secondly,=C2=A0if=C2=A0you=C2=A0have=C2=A0crypto=C2=A0=
-hardware=C2=A0that=C2=A0has=C2=A0multiple=C2=A0crypto
->>>=C2=A0>>=C2=A0engines,=C2=A0then=C2=A0the=C2=A0multiple=C2=A0outstan=
-ding=C2=A0requests=C2=A0allow=C2=A0the=C2=A0crypto
->>>=C2=A0>>=C2=A0hardware=C2=A0to=C2=A0put=C2=A0all=C2=A0of=C2=A0those=C2=
-=A0engines=C2=A0to=C2=A0work.
->>>=C2=A0>>
->>>=C2=A0>>=C2=A0To=C2=A0answer=C2=A0your=C2=A0question=C2=A0about=C2=A0=
-page_crypt_req,=C2=A0it=C2=A0is=C2=A0used=C2=A0to=C2=A0track
->>>=C2=A0>>=C2=A0all=C2=A0of=C2=A0the=C2=A0extent_crypt_reqs=C2=A0for=C2=
-=A0a=C2=A0particular=C2=A0page.=C2=A0=C2=A0When=C2=A0we=C2=A0write=C2=A0=
-a
->>>=C2=A0>>=C2=A0page,=C2=A0we=C2=A0break=C2=A0the=C2=A0page=C2=A0up=C2=
-=A0into=C2=A0extents=C2=A0and=C2=A0encrypt=C2=A0each=C2=A0extent.
->>>=C2=A0>>=C2=A0=C2=A0For=C2=A0each=C2=A0extent,=C2=A0we=C2=A0submit=C2=
-=A0the=C2=A0encrypt=C2=A0request=C2=A0using
->>>=C2=A0>>=C2=A0extent_crypt_req.=C2=A0=C2=A0To=C2=A0determine=C2=A0wh=
-en=C2=A0the=C2=A0entire=C2=A0page=C2=A0has=C2=A0been
->>>=C2=A0>>=C2=A0encrypted,=C2=A0we=C2=A0create=C2=A0one=C2=A0page_cryp=
-t_req=C2=A0and=C2=A0associates=C2=A0the
->>>=C2=A0>>=C2=A0extent_crypt_req=C2=A0to=C2=A0the=C2=A0page=C2=A0by=C2=
-=A0incrementing
->>>=C2=A0>>=C2=A0page_crypt_req::num_refs.=C2=A0=C2=A0As=C2=A0the=C2=A0=
-extent=C2=A0encrypt=C2=A0request=C2=A0completes,
->>>=C2=A0>>=C2=A0we=C2=A0decrement=C2=A0num_refs.=C2=A0=C2=A0The=C2=A0e=
-ntire=C2=A0page=C2=A0is=C2=A0encrypted=C2=A0when=C2=A0num_refs
->>>=C2=A0>>=C2=A0goes=C2=A0to=C2=A0zero,=C2=A0at=C2=A0which=C2=A0point,=
-=C2=A0we=C2=A0end=C2=A0the=C2=A0page=C2=A0writeback.
->>>=C2=A0>
->>>=C2=A0>=C2=A0Alright,=C2=A0that=C2=A0is=C2=A0what=C2=A0I=C2=A0had=C2=
-=A0understood=C2=A0from=C2=A0reviewing=C2=A0the=C2=A0code.=C2=A0No
->>>=C2=A0>=C2=A0surprises=C2=A0there.
->>>=C2=A0>
->>>=C2=A0>=C2=A0What=C2=A0I'm=C2=A0suggesting=C2=A0is=C2=A0to=C2=A0do=C2=
-=A0away=C2=A0with=C2=A0the=C2=A0page_crypt_req=C2=A0and=C2=A0simply=C2=A0=
-have
->>>=C2=A0>=C2=A0ecryptfs_encrypt_page_async()=C2=A0keep=C2=A0track=C2=A0=
-of=C2=A0the=C2=A0extent_crypt_reqs=C2=A0for
->>>=C2=A0>=C2=A0the=C2=A0page=C2=A0it=C2=A0is=C2=A0encrypting.=C2=A0Its=
-=C2=A0prototype=C2=A0would=C2=A0look=C2=A0like=C2=A0this:
->>>=C2=A0>
->>>=C2=A0>=C2=A0int=C2=A0ecryptfs_encrypt_page_async(struct=C2=A0page=C2=
-=A0*page);
->>>=C2=A0>
->>>=C2=A0>=C2=A0An=C2=A0example=C2=A0of=C2=A0how=C2=A0it=C2=A0would=C2=A0=
-be=C2=A0called=C2=A0would=C2=A0be=C2=A0something=C2=A0like=C2=A0this:
->>>=C2=A0>
->>>=C2=A0>=C2=A0static=C2=A0int=C2=A0ecryptfs_writepage(struct=C2=A0pag=
-e=C2=A0*page,=C2=A0struct=C2=A0writeback_control=C2=A0*wbc)
->>>=C2=A0>=C2=A0{
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0int=C2=A0rc=C2=
-=A0=3D=C2=A00;
->>>=C2=A0>
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0/*
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*=C2=A0=
-Refuse=C2=A0to=C2=A0write=C2=A0the=C2=A0page=C2=A0out=C2=A0if=C2=A0we=C2=
-=A0are=C2=A0called=C2=A0from=C2=A0reclaim=C2=A0context
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*=C2=A0=
-since=C2=A0our=C2=A0writepage()=C2=A0path=C2=A0may=C2=A0potentially=C2=A0=
-allocate=C2=A0memory=C2=A0when
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*=C2=A0=
-calling=C2=A0into=C2=A0the=C2=A0lower=C2=A0fs=C2=A0vfs_write()=C2=A0whi=
-ch=C2=A0may=C2=A0in=C2=A0turn=C2=A0invoke
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*=C2=A0=
-us=C2=A0again.
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0*/
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if=C2=A0(curr=
-ent->flags=C2=A0&=C2=A0PF_MEMALLOC)=C2=A0{
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0redirty_page_for_writepage(wbc,=C2=A0p=
-age);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0goto=C2=A0out;
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
->>>=C2=A0>
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0set_page_writ=
-eback(page);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0rc=C2=A0=3D=C2=
-=A0ecryptfs_encrypt_page_async(page);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if=C2=A0(unli=
-kely(rc))=C2=A0{
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0ecryptfs_printk(KERN_WARNING,=C2=A0"Er=
-ror=C2=A0encrypting=C2=A0"
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0"page=C2=A0(up=
-per=C2=A0index=C2=A0[0x%.16lx])\n",=C2=A0page->index);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0ClearPageUptodate(page);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0SetPageError(page);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}=C2=A0else=C2=
+> At=A02012-06-14=A006:25:28,"Thieu=A0Le"=A0<thieule@google.com>=A0wrot=
+e:
+>>Kewl=A0:)
+>>
+>>Let=A0me=A0know=A0if=A0you=A0have=A0more=A0questions.
+>>
+>>
+>>On=A0Wed,=A0Jun=A013,=A02012=A0at=A03:20=A0PM,=A0Tyler=A0Hicks=A0<tyh=
+icks@canonical.com>=A0wrote:
+>>>=A0On=A02012-06-13=A015:03:42,=A0Thieu=A0Le=A0wrote:
+>>>>=A0On=A0Wed,=A0Jun=A013,=A02012=A0at=A02:17=A0PM,=A0Tyler=A0Hicks=A0=
+<tyhicks@canonical.com>=A0wrote:
+>>>>=A0>=A0On=A0Wed,=A0Jun=A013,=A02012=A0at=A011:53=A0AM,=A0Thieu=A0Le=
+=A0<thieule@google.com>=A0wrote:
+>>>>=A0>>
+>>>>=A0>>=A0Hi=A0Tyler,=A0I=A0believe=A0the=A0performance=A0improvement=
+=A0from=A0the=A0async
+>>>>=A0>>=A0interface=A0comes=A0from=A0the=A0ability=A0to=A0fully=A0uti=
+lize=A0the=A0crypto
+>>>>=A0>>=A0hardware.
+>>>>=A0>>
+>>>>=A0>>=A0Firstly,=A0being=A0able=A0to=A0submit=A0multiple=A0outstand=
+ing=A0requests=A0fills
+>>>>=A0>>=A0the=A0crypto=A0engine=A0pipeline=A0which=A0allows=A0it=A0to=
+=A0run=A0more=A0efficiently
+>>>>=A0>>=A0(ie.=A0minimal=A0cycles=A0are=A0wasted=A0waiting=A0for=A0th=
+e=A0next=A0crypto=A0request).
+>>>>=A0>>=A0=A0This=A0perf=A0improvement=A0is=A0similar=A0to=A0network=A0=
+transfer=A0efficiency.
+>>>>=A0>>=A0=A0Sending=A0a=A01GB=A0file=A0via=A04K=A0packets=A0synchron=
+ously=A0is=A0not=A0going=A0to
+>>>>=A0>>=A0fully=A0saturate=A0a=A0gigabit=A0link=A0but=A0queuing=A0a=A0=
+bunch=A0of=A04K=A0packets=A0to
+>>>>=A0>>=A0send=A0will.
+>>>>=A0>
+>>>>=A0>=A0Ok,=A0it=A0is=A0clicking=A0for=A0me=A0now.=A0Additionally,=A0=
+I=A0imagine=A0that=A0the=A0async
+>>>>=A0>=A0interface=A0helps=A0in=A0the=A0multicore/multiprocessor=A0ca=
+se.
+>>>>=A0>
+>>>>=A0>>=A0Secondly,=A0if=A0you=A0have=A0crypto=A0hardware=A0that=A0ha=
+s=A0multiple=A0crypto
+>>>>=A0>>=A0engines,=A0then=A0the=A0multiple=A0outstanding=A0requests=A0=
+allow=A0the=A0crypto
+>>>>=A0>>=A0hardware=A0to=A0put=A0all=A0of=A0those=A0engines=A0to=A0wor=
+k.
+>>>>=A0>>
+>>>>=A0>>=A0To=A0answer=A0your=A0question=A0about=A0page_crypt_req,=A0i=
+t=A0is=A0used=A0to=A0track
+>>>>=A0>>=A0all=A0of=A0the=A0extent_crypt_reqs=A0for=A0a=A0particular=A0=
+page.=A0=A0When=A0we=A0write=A0a
+>>>>=A0>>=A0page,=A0we=A0break=A0the=A0page=A0up=A0into=A0extents=A0and=
+=A0encrypt=A0each=A0extent.
+>>>>=A0>>=A0=A0For=A0each=A0extent,=A0we=A0submit=A0the=A0encrypt=A0req=
+uest=A0using
+>>>>=A0>>=A0extent_crypt_req.=A0=A0To=A0determine=A0when=A0the=A0entire=
+=A0page=A0has=A0been
+>>>>=A0>>=A0encrypted,=A0we=A0create=A0one=A0page_crypt_req=A0and=A0ass=
+ociates=A0the
+>>>>=A0>>=A0extent_crypt_req=A0to=A0the=A0page=A0by=A0incrementing
+>>>>=A0>>=A0page_crypt_req::num_refs.=A0=A0As=A0the=A0extent=A0encrypt=A0=
+request=A0completes,
+>>>>=A0>>=A0we=A0decrement=A0num_refs.=A0=A0The=A0entire=A0page=A0is=A0=
+encrypted=A0when=A0num_refs
+>>>>=A0>>=A0goes=A0to=A0zero,=A0at=A0which=A0point,=A0we=A0end=A0the=A0=
+page=A0writeback.
+>>>>=A0>
+>>>>=A0>=A0Alright,=A0that=A0is=A0what=A0I=A0had=A0understood=A0from=A0=
+reviewing=A0the=A0code.=A0No
+>>>>=A0>=A0surprises=A0there.
+>>>>=A0>
+>>>>=A0>=A0What=A0I'm=A0suggesting=A0is=A0to=A0do=A0away=A0with=A0the=A0=
+page_crypt_req=A0and=A0simply=A0have
+>>>>=A0>=A0ecryptfs_encrypt_page_async()=A0keep=A0track=A0of=A0the=A0ex=
+tent_crypt_reqs=A0for
+>>>>=A0>=A0the=A0page=A0it=A0is=A0encrypting.=A0Its=A0prototype=A0would=
+=A0look=A0like=A0this:
+>>>>=A0>
+>>>>=A0>=A0int=A0ecryptfs_encrypt_page_async(struct=A0page=A0*page);
+>>>>=A0>
+>>>>=A0>=A0An=A0example=A0of=A0how=A0it=A0would=A0be=A0called=A0would=A0=
+be=A0something=A0like=A0this:
+>>>>=A0>
+>>>>=A0>=A0static=A0int=A0ecryptfs_writepage(struct=A0page=A0*page,=A0s=
+truct=A0writeback_control=A0*wbc)
+>>>>=A0>=A0{
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0int=A0rc=A0=3D=A00;
+>>>>=A0>
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0/*
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0*=A0Refuse=A0to=A0write=A0the=A0page=
+=A0out=A0if=A0we=A0are=A0called=A0from=A0reclaim=A0context
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0*=A0since=A0our=A0writepage()=A0path=
+=A0may=A0potentially=A0allocate=A0memory=A0when
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0*=A0calling=A0into=A0the=A0lower=A0f=
+s=A0vfs_write()=A0which=A0may=A0in=A0turn=A0invoke
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0*=A0us=A0again.
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0*/
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0if=A0(current->flags=A0&=A0PF_MEMALLOC)=
 =A0{
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0SetPageUptodate(page);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0end_page_writ=
-eback(page);
->>>=C2=A0>=C2=A0out:
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unlock_page(p=
-age);
->>>=C2=A0>=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return=C2=A0r=
-c;
->>>=C2=A0>=C2=A0}
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0redirty_page_fo=
+r_writepage(wbc,=A0page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0goto=A0out;
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0}
+>>>>=A0>
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0set_page_writeback(page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0rc=A0=3D=A0ecryptfs_encrypt_page_async(=
+page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0if=A0(unlikely(rc))=A0{
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ecryptfs_printk=
+(KERN_WARNING,=A0"Error=A0encrypting=A0"
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0"page=A0(upper=A0index=A0[0x%.16lx])\n=
+",=A0page->index);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ClearPageUptoda=
+te(page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0SetPageError(pa=
+ge);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0}=A0else=A0{
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0SetPageUptodate=
+(page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0}
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0end_page_writeback(page);
+>>>>=A0>=A0out:
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0unlock_page(page);
+>>>>=A0>=A0=A0=A0=A0=A0=A0=A0=A0return=A0rc;
+>>>>=A0>=A0}
+>>>>
+>>>>=A0Will=A0this=A0make=A0ecryptfs_encrypt_page_async()=A0block=A0unt=
+il=A0all=A0of=A0the
+>>>>=A0extents=A0are=A0encrypted=A0and=A0written=A0to=A0the=A0lower=A0f=
+ile=A0before=A0returning?
+>>>>
+>>>>=A0In=A0the=A0current=A0patch,=A0ecryptfs_encrypt_page_async()=A0re=
+turns
+>>>>=A0immediately=A0after=A0the=A0extents=A0are=A0submitted=A0to=A0the=
+=A0crypto=A0layer.
+>>>>=A0ecryptfs_writepage()=A0will=A0also=A0return=A0before=A0the=A0enc=
+ryption=A0and=A0write
+>>>>=A0to=A0the=A0lower=A0file=A0completes.=A0=A0This=A0allows=A0the=A0=
+OS=A0to=A0start=A0writing
+>>>>=A0other=A0pending=A0pages=A0without=A0being=A0blocked.
 >>>
->>>=C2=A0Will=C2=A0this=C2=A0make=C2=A0ecryptfs_encrypt_page_async()=C2=
-=A0block=C2=A0until=C2=A0all=C2=A0of=C2=A0the
->>>=C2=A0extents=C2=A0are=C2=A0encrypted=C2=A0and=C2=A0written=C2=A0to=C2=
-=A0the=C2=A0lower=C2=A0file=C2=A0before=C2=A0returning?
+>>>=A0Ok,=A0now=A0I=A0see=A0the=A0source=A0of=A0my=A0confusion.=A0The=A0=
+wait_for_completion()
+>>>=A0added=A0in=A0ecryptfs_encrypt_page()=A0was=A0throwing=A0me=A0off.=
+=A0I=A0initially
+>>>=A0noticed=A0that=A0and=A0didn't=A0realize=A0that=A0wait_for_complet=
+ion()=A0was=A0*not*
+>>>=A0being=A0called=A0in=A0ecryptfs_writepage().
 >>>
->>>=C2=A0In=C2=A0the=C2=A0current=C2=A0patch,=C2=A0ecryptfs_encrypt_pag=
-e_async()=C2=A0returns
->>>=C2=A0immediately=C2=A0after=C2=A0the=C2=A0extents=C2=A0are=C2=A0sub=
-mitted=C2=A0to=C2=A0the=C2=A0crypto=C2=A0layer.
->>>=C2=A0ecryptfs_writepage()=C2=A0will=C2=A0also=C2=A0return=C2=A0befo=
-re=C2=A0the=C2=A0encryption=C2=A0and=C2=A0write
->>>=C2=A0to=C2=A0the=C2=A0lower=C2=A0file=C2=A0completes.=C2=A0=C2=A0Th=
-is=C2=A0allows=C2=A0the=C2=A0OS=C2=A0to=C2=A0start=C2=A0writing
->>>=C2=A0other=C2=A0pending=C2=A0pages=C2=A0without=C2=A0being=C2=A0blo=
-cked.
->>
->>=C2=A0Ok,=C2=A0now=C2=A0I=C2=A0see=C2=A0the=C2=A0source=C2=A0of=C2=A0=
-my=C2=A0confusion.=C2=A0The=C2=A0wait_for_completion()
->>=C2=A0added=C2=A0in=C2=A0ecryptfs_encrypt_page()=C2=A0was=C2=A0throwi=
-ng=C2=A0me=C2=A0off.=C2=A0I=C2=A0initially
->>=C2=A0noticed=C2=A0that=C2=A0and=C2=A0didn't=C2=A0realize=C2=A0that=C2=
-=A0wait_for_completion()=C2=A0was=C2=A0*not*
->>=C2=A0being=C2=A0called=C2=A0in=C2=A0ecryptfs_writepage().
->>
->>=C2=A0I=C2=A0hope=C2=A0to=C2=A0give=C2=A0the=C2=A0rest=C2=A0of=C2=A0t=
-he=C2=A0patch=C2=A0a=C2=A0thorough=C2=A0review=C2=A0by=C2=A0the=C2=A0en=
-d=C2=A0of=C2=A0the
->>=C2=A0week.=C2=A0Thanks=C2=A0for=C2=A0your=C2=A0help!
->>
->>=C2=A0Tyler
->>
+>>>=A0I=A0hope=A0to=A0give=A0the=A0rest=A0of=A0the=A0patch=A0a=A0thorou=
+gh=A0review=A0by=A0the=A0end=A0of=A0the
+>>>=A0week.=A0Thanks=A0for=A0your=A0help!
 >>>
+>>>=A0Tyler
 >>>
->>>=C2=A0>
->>>=C2=A0>
->>>=C2=A0>>=C2=A0We=C2=A0can=C2=A0get=C2=A0rid=C2=A0of=C2=A0page_crypt_=
-req=C2=A0if=C2=A0we=C2=A0can=C2=A0guarantee=C2=A0that=C2=A0the=C2=A0ext=
-ent
->>>=C2=A0>>=C2=A0size=C2=A0and=C2=A0page=C2=A0size=C2=A0are=C2=A0the=C2=
-=A0same.
->>>=C2=A0>
->>>=C2=A0>=C2=A0We=C2=A0can't=C2=A0guarantee=C2=A0that=C2=A0but=C2=A0th=
-at=C2=A0doesn't=C2=A0matter=C2=A0because
->>>=C2=A0>=C2=A0ecryptfs_encrypt_page_async()=C2=A0already=C2=A0handles=
-=C2=A0that=C2=A0problem.=C2=A0Its=C2=A0caller=C2=A0doesn't
->>>=C2=A0>=C2=A0care=C2=A0if=C2=A0the=C2=A0extent=C2=A0size=C2=A0is=C2=A0=
-less=C2=A0than=C2=A0the=C2=A0page=C2=A0size.
->>>=C2=A0>
->>>=C2=A0>=C2=A0Tyler
->>>=C2=A0--
->>>=C2=A0To=C2=A0unsubscribe=C2=A0from=C2=A0this=C2=A0list:=C2=A0send=C2=
-=A0the=C2=A0line=C2=A0"unsubscribe=C2=A0ecryptfs"=C2=A0in
->>>=C2=A0the=C2=A0body=C2=A0of=C2=A0a=C2=A0message=C2=A0to=C2=A0majordo=
-mo@vger.kernel.org
->>>=C2=A0More=C2=A0majordomo=C2=A0info=C2=A0at=C2=A0=C2=A0http://vger.k=
-ernel.org/majordomo-info.html
->--
->To=C2=A0unsubscribe=C2=A0from=C2=A0this=C2=A0list:=C2=A0send=C2=A0the=C2=
-=A0line=C2=A0"unsubscribe=C2=A0ecryptfs"=C2=A0in
->the=C2=A0body=C2=A0of=C2=A0a=C2=A0message=C2=A0to=C2=A0majordomo@vger.=
-kernel.org
->More=C2=A0majordomo=C2=A0info=C2=A0at=C2=A0=C2=A0http://vger.kernel.or=
-g/majordomo-info.html
+>>>>
+>>>>
+>>>>=A0>
+>>>>=A0>
+>>>>=A0>>=A0We=A0can=A0get=A0rid=A0of=A0page_crypt_req=A0if=A0we=A0can=A0=
+guarantee=A0that=A0the=A0extent
+>>>>=A0>>=A0size=A0and=A0page=A0size=A0are=A0the=A0same.
+>>>>=A0>
+>>>>=A0>=A0We=A0can't=A0guarantee=A0that=A0but=A0that=A0doesn't=A0matte=
+r=A0because
+>>>>=A0>=A0ecryptfs_encrypt_page_async()=A0already=A0handles=A0that=A0p=
+roblem.=A0Its=A0caller=A0doesn't
+>>>>=A0>=A0care=A0if=A0the=A0extent=A0size=A0is=A0less=A0than=A0the=A0p=
+age=A0size.
+>>>>=A0>
+>>>>=A0>=A0Tyler
+>>>>=A0--
+>>>>=A0To=A0unsubscribe=A0from=A0this=A0list:=A0send=A0the=A0line=A0"un=
+subscribe=A0ecryptfs"=A0in
+>>>>=A0the=A0body=A0of=A0a=A0message=A0to=A0majordomo@vger.kernel.org
+>>>>=A0More=A0majordomo=A0info=A0at=A0=A0http://vger.kernel.org/majordo=
+mo-info.html
+>>--
+>>To=A0unsubscribe=A0from=A0this=A0list:=A0send=A0the=A0line=A0"unsubsc=
+ribe=A0ecryptfs"=A0in
+>>the=A0body=A0of=A0a=A0message=A0to=A0majordomo@vger.kernel.org
+>>More=A0majordomo=A0info=A0at=A0=A0http://vger.kernel.org/majordomo-in=
+fo.html
