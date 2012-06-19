@@ -1,8 +1,9 @@
-From: 'Tyler Hicks' <tyhicks@canonical.com>
+From: Tyler Hicks <tyhicks@canonical.com>
 Subject: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
-Date: Mon, 18 Jun 2012 20:47:24 -0700
-Message-ID: <20120619034723.GA8811@boyd>
-References: <20120613161124.GB21062@boyd>
+Date: Mon, 18 Jun 2012 20:52:30 -0700
+Message-ID: <20120619035229.GB8811@boyd>
+References: <1339589670-12189-2-git-send-email-colin.king@canonical.com>
+ <20120613161124.GB21062@boyd>
  <CAEcckGpMt1O+2syGbCQYC5ERCmXwCCvYjTYrHEeqZtQsA-qLLg@mail.gmail.com>
  <CAEcckGqhvz4gyvTHk0bSXf7pn5yEmWk7N+jT1BGrWxwGBX9wvQ@mail.gmail.com>
  <20120613211706.GD22116@boyd>
@@ -10,69 +11,29 @@ References: <20120613161124.GB21062@boyd>
  <20120613222043.GE22116@boyd>
  <539626322.30300@eyou.net>
  <2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
- <540039783.18266@eyou.net>
- <001501cd4dca$67c32ff0$37498fd0$@edu.cn>
+ <CAEcckGp22vMzEocMT54ksHRtunKrQmoVgP7LeZCvWV9wuzKu0A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+	protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50594 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:50611 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab2FSDrd (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 18 Jun 2012 23:47:33 -0400
+	with ESMTP id S1752838Ab2FSDwf (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 18 Jun 2012 23:52:35 -0400
 Content-Disposition: inline
-In-Reply-To: <001501cd4dca$67c32ff0$37498fd0$@edu.cn>
+In-Reply-To: <CAEcckGp22vMzEocMT54ksHRtunKrQmoVgP7LeZCvWV9wuzKu0A@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Li Wang <liwang@nudt.edu.cn>
-Cc: 'Thieu Le' <thieule@google.com>, ecryptfs@vger.kernel.org, 'Colin King' <colin.king@canonical.com>
+To: Thieu Le <thieule@google.com>
+Cc: dragonylffly <dragonylffly@163.com>, ecryptfs@vger.kernel.org, Colin King <colin.king@canonical.com>
 
 
---UlVJffcvxoiEqYs2
+--KFztAG8eRSV9hGtP
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2012-06-19 11:19:52, Li Wang wrote:
-> Hi,
->   If I am not wrong, the readahead is turned off by eCryptfs. And, I think
-> it should be very careful to turn it on for eCryptfs, since the encryptio=
-n overhead
-> introduced, and the page being read aheaded may not be used.
-
-I don't recall anything in eCryptfs that disables readahead. Thinking
-back to various debugging sessions I've done, I'm fairly certain that
-readahead is enabled on eCryptfs files.
-
->   Generally, I think it is very good job to turn the encryption job async=
-hronously,
-> I suggest we may consider first adopt some more flexible way, for example,
-> give the user chance to choose between synchronous and asynchronous.
-
-This won't happen mainly because I don't think users would really care
-about this. Sure, a few curious users would want to experiment but the
-vast majority of users wouldn't even know what this option meant. It is
-up to us to determine what the best mode of operation is (sync or async)
-and make that decision for the user.
-
-Also, I generally try to avoid adding new code paths in the read/write
-code that would increase the amount of testing required. There has to be
-a *really* good reason to add a new path.
-
-Tyler
-
->=20
-> Cheers,
-> Li Wang
->=20
->=20
-> -----Original Message-----
-> From: liwang@nudt.edu.cn [mailto:liwang@nudt.edu.cn] On Behalf Of Thieu Le
-> Sent: Tuesday, June 19, 2012 1:17 AM
-> To: dragonylffly
-> Cc: Tyler Hicks; ecryptfs@vger.kernel.org; Colin King
-> Subject: Re: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
->=20
+On 2012-06-18 10:17:29, Thieu Le wrote:
 > Inline.
 >=20
 > On Sat, Jun 16, 2012 at 4:12 AM, dragonylffly <dragonylffly@163.com> wrot=
@@ -110,6 +71,13 @@ ath:
 > 2. The readahead does not wait for the page to be read thereby
 > allowing us to submit multiple extents decryption requests in
 > parallel.
+
+I'm repeating myself from earlier in the thread, but I think that
+implementing ->readpages would be easy and could really benefit from an
+async patch.
+
+Tyler
+
 >=20
 >=20
 > >
@@ -297,36 +265,27 @@ be=A0ecryptfs"=A0in
 > >>the=A0body=A0of=A0a=A0message=A0to=A0majordomo@vger.kernel.org
 > >>More=A0majordomo=A0info=A0at=A0=A0http://vger.kernel.org/majordomo-info=
 =2Ehtml
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---UlVJffcvxoiEqYs2
+--KFztAG8eRSV9hGtP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJP3/ZLAAoJENaSAD2qAscKorsP/1c7dk2/qOp/w9a1Fy2x6fwo
-RMwMxfCEZc9Swe7PNLf/IVdvqlzk/jen+tgfKv8h5B/6burn+/OXdW1lYuuumHOy
-BfOD+QujyLgvvgYJzW04vViFuvzGGObswUCmaPitjgpeF/d5uw0qiA7pFALkkbNC
-wPamLdKLphuKiqT5smwNrJLiaFcO38GlEUTm85futpYq9BfP84zGxOVjF1gkxZE0
-SY7owDpstGlnMscoK+U0p/jhIGxE2u0o/oU9WZO2iHHps23GFzBBorDitic7/cPH
-zjVx4yVHe3wEz8nyBjNNysenDromL/J+iUOmc3yLRaEwUVXiTQjYEOv5t1BkjXO8
-cRn8QN1QXd+b5gid2Sgt7VZp63aItJjcto9ghJDJjFW7Ken7lxP3BgMHq3h6WLvo
-seFszVpX0KMkjlRA3HsKHzB/ZU47105MUvWCeI4I3xSA88pbNc7Laj8tWlVzQceS
-fTL2x3CXgZqD90swcHNtH8D3r5xD49m1S8664VHqciOvcfnLmhFRSaTEK9Aw+ZJj
-gmdhLrbDKjtqBY6rV5icM9N9Sdyq9g9JhBiEQ3kSFj3AY/80pAQ9NI7TM8MMnckA
-DO74M9U5MnZ/5KWWJCIAJpFbcuXforBykOJ3/SIALzpMwy8jbUXldPvK8Sr4wi/M
-8D4lMx4tUQDosdCRCuTP
-=T7Ef
+iQIcBAEBCgAGBQJP3/d9AAoJENaSAD2qAscKLO8P/3nK4ofjeXCDHHRVRaAH1DBB
+xCS5Q+SAVIBXUW4bt2f+4Cb0bWcJRTiliGgnGDSQ2gGtNOMUxj+HwzSku/mGC2DP
+p7grNJdZiT4BJcCEv7vNl50NFFium0QhTlo5UT+kLLIcGePeUoVsRic0wM6bXPLd
+DgOUQthCnzJzmYrZzdzf7ORjiA8IHPrC6Qt42yEIMqb6h/esJmWMylbmKUv21GoL
+iIfisGXZv72eLRsmvKNmrZTbWra+VitMD6T9Qk7YDh3V1n4ZKNthTuzTazNfsbsY
+9VoLNWb7ZKpvcW3RebbVaCOszkgjpiepyllpJJigWRovdxxDSv/PYIaETZlJXvc9
+ZAwigIhAldv0HmPeCyTNTgcmrYxkbd84+3dos8fKuZ7DqasmBsjmPOSHgIJs+sxR
+qdUDTqNTPbRQXe6NvP+wYnIRNNkgIUVOfNN5yCnaFUCRB1xpxocK70ksDgpt0Zkx
+tIrkEZ2up1+sTb3fzZjIsP5ig3hIUlO5LY7V5ri9gbSJKLQvfErpyfocBncYbdI8
+l+hRZZglneGE1HFaEb2KhSOyq+Joc+xyPxGQWSqXqPkpctMqLmItp7E5JyFHCTSj
+dxDPewd2fvpnkyXwwEHco5r8ecC9sU2BgfoqU8dnOvXfdAWCWjzSpzZFQ5LeRYQh
+Dr63eLpu6+Kzf8KO0K6S
+=MwqY
 -----END PGP SIGNATURE-----
 
---UlVJffcvxoiEqYs2--
+--KFztAG8eRSV9hGtP--
