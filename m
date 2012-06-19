@@ -1,32 +1,46 @@
-From: Thieu Le <thieule@google.com>
-Subject: Re: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
-Date: Mon, 18 Jun 2012 10:17:29 -0700
-Message-ID: <CAEcckGp22vMzEocMT54ksHRtunKrQmoVgP7LeZCvWV9wuzKu0A@mail.gmail.com>
-References: <1339589670-12189-1-git-send-email-colin.king@canonical.com>
-	<1339589670-12189-2-git-send-email-colin.king@canonical.com>
-	<20120613161124.GB21062@boyd>
-	<CAEcckGpMt1O+2syGbCQYC5ERCmXwCCvYjTYrHEeqZtQsA-qLLg@mail.gmail.com>
-	<CAEcckGqhvz4gyvTHk0bSXf7pn5yEmWk7N+jT1BGrWxwGBX9wvQ@mail.gmail.com>
-	<20120613211706.GD22116@boyd>
-	<CAEcckGqhy9Yx9-vGYDVHBT8utsPR7cYaGjnAoRXM5ejnUonPyg@mail.gmail.com>
-	<20120613222043.GE22116@boyd>
-	<539626322.30300@eyou.net>
-	<2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
+From: "Li Wang" <liwang@nudt.edu.cn>
+Subject: RE: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
+Date: Tue, 19 Jun 2012 11:19:52 +0800
+Message-ID: <001501cd4dca$67c32ff0$37498fd0$@edu.cn>
+References: <1339589670-12189-1-git-send-email-colin.king@canonical.com>	<1339589670-12189-2-git-send-email-colin.king@canonical.com>	<20120613161124.GB21062@boyd>	<CAEcckGpMt1O+2syGbCQYC5ERCmXwCCvYjTYrHEeqZtQsA-qLLg@mail.gmail.com>	<CAEcckGqhvz4gyvTHk0bSXf7pn5yEmWk7N+jT1BGrWxwGBX9wvQ@mail.gmail.com>	<20120613211706.GD22116@boyd>	<CAEcckGqhy9Yx9-vGYDVHBT8utsPR7cYaGjnAoRXM5ejnUonPyg@mail.gmail.com>	<20120613222043.GE22116@boyd>	<539626322.30300@eyou.net>	<2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com> <540039783.18266@eyou.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:48970 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254Ab2FRRRa convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 18 Jun 2012 13:17:30 -0400
-Received: by ghrr11 with SMTP id r11so3869587ghr.19
-        for <ecryptfs@vger.kernel.org>; Mon, 18 Jun 2012 10:17:29 -0700 (PDT)
-In-Reply-To: <2e4d61d7.159a5.137f4febf0f.Coremail.dragonylffly@163.com>
+Received: from mail.nudt.edu.cn ([61.187.54.11]:41862 "HELO nudt.edu.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751509Ab2FSD0B convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 18 Jun 2012 23:26:01 -0400
+In-Reply-To: <540039783.18266@eyou.net>
+Content-Language: zh-cn
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="iso-8859-1"
-To: dragonylffly <dragonylffly@163.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Colin King <colin.king@canonical.com>
+To: 'Thieu Le' <thieule@google.com>
+Cc: 'Tyler Hicks' <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, 'Colin King' <colin.king@canonical.com>
+
+Hi,
+  If I am not wrong, the readahead is turned off by eCryptfs. And, I th=
+ink
+it should be very careful to turn it on for eCryptfs, since the encrypt=
+ion overhead
+introduced, and the page being read aheaded may not be used.
+  Generally, I think it is very good job to turn the encryption job asy=
+nchronously,
+I suggest we may consider first adopt some more flexible way, for examp=
+le,
+give the user chance to choose between synchronous and asynchronous.
+
+Cheers,
+Li Wang
+
+
+-----Original Message-----
+=46rom: liwang@nudt.edu.cn [mailto:liwang@nudt.edu.cn] On Behalf Of Thi=
+eu Le
+Sent: Tuesday, June 19, 2012 1:17 AM
+To: dragonylffly
+Cc: Tyler Hicks; ecryptfs@vger.kernel.org; Colin King
+Subject: Re: Re: [PATCH 1/1] ecryptfs: Migrate to ablkcipher API
 
 Inline.
 
