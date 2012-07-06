@@ -1,82 +1,199 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.5-rc6
-Date: Fri, 6 Jul 2012 17:27:15 -0500
-Message-ID: <20120706222714.GA30388@boyd>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Subject: [PATCH] eCryptfs: Revert to a writethrough cache model
+Date: Fri,  6 Jul 2012 17:40:32 -0500
+Message-ID: <1341614432-1106-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38571 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:38592 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab2GFW1U (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Jul 2012 18:27:20 -0400
-Content-Disposition: inline
+	with ESMTP id S1756992Ab2GFWkp (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Jul 2012 18:40:45 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
+Cc: Colin King <colin.king@canonical.com>, Thieu Le <thieule@google.com>
 
+A change was made about a year ago to get eCryptfs to better utilize its
+page cache during writes. The idea was to do the page encryption
+operations during page writeback, rather than doing them when initially
+writing into the page cache, to reduce the number of page encryption
+operations during sequential writes. This meant that the encrypted page
+would only be written to the lower filesystem during page writeback,
+which was a change from how eCryptfs had previously wrote to the lower
+filesystem in ecryptfs_write_end().
 
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The change caused a few eCryptfs-internal bugs that were shook out.
+Unfortunately, more grave side effects have been identified that will
+force changes outside of eCryptfs. Because the lower filesystem isn't
+consulted until page writeback, eCryptfs has no way to pass lower write
+errors (ENOSPC, mainly) back to userspace. Additionaly, it was reported
+that quotas could be bypassed because of the way eCryptfs may sometimes
+open the lower filesystem using a privileged kthread.
 
-Hi Linus,
+It would be nice to resolve the latest issues, but it is best if the
+eCryptfs commits be reverted to the old behavior in the meantime.
 
-The following changes since commit ff826b2b5b269ad440afa686ede879ccabfda387:
+This reverts:
+32001d6f "eCryptfs: Flush file in vma close"
+5be79de2 "eCryptfs: Flush dirty pages in setattr"
+57db4e8d "ecryptfs: modify write path to encrypt page in writepage"
 
-  Merge tag 'sound-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound (2012-07-03 11:10:18 -0700)
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Cc: Colin King <colin.king@canonical.com>
+Cc: Thieu Le <thieule@google.com>
+---
+ fs/ecryptfs/file.c  |   33 ++-------------------------------
+ fs/ecryptfs/inode.c |    6 ------
+ fs/ecryptfs/mmap.c  |   39 +++++++++++++--------------------------
+ 3 files changed, 15 insertions(+), 63 deletions(-)
 
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.5-rc6-fixes
-
-for you to fetch changes up to 8dc6780587c99286c0d3de747a2946a76989414a:
-
-  eCryptfs: Gracefully refuse miscdev file ops on inherited/passed files (2012-07-06 15:51:12 -0500)
-
-----------------------------------------------------------------
-Fixes an incorrect access mode check when preparing to open a file in the lower
-filesystem. This isn't an urgent fix, but it is simple and the check was
-obviously incorrect.
-
-Also fixes a couple important bugs in the eCryptfs miscdev interface. These
-changes are low risk due to the small number of users that use the miscdev
-interface. I was able to keep the changes minimal and I have some cleaner, more
-complete changes queued up for the next merge window that will build on these
-patches.
-
-----------------------------------------------------------------
-Tyler Hicks (3):
-      eCryptfs: Properly check for O_RDONLY flag before doing privileged open
-      eCryptfs: Fix lockdep warning in miscdev operations
-      eCryptfs: Gracefully refuse miscdev file ops on inherited/passed files
-
- fs/ecryptfs/kthread.c |    2 +-
- fs/ecryptfs/miscdev.c |   48 +++++++++++++++++++++++++++++-------------------
- 2 files changed, 30 insertions(+), 20 deletions(-)
-
---xHFwDpU9dbj6ez1V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJP92ZCAAoJENaSAD2qAscKIpQP/RG9TMzi1muYHYQkTkicHmkv
-fn576OuE6Apaur/k2+nyna0vfL4hJ4yaehN0jIJjB2/o+Nq6QhNEtegFtJzAmPeZ
-pQDGO/QkIH2AUaksCGEheVbtILguB7xGmNrOFTTCs460JVI+U48m5P8cam0twLkr
-ECGYlWUF0UApeS3sTupZC3cxeTJRbgQ5IUXRilSmb+mnu2d2sS1ar/zJsRyDkTWV
-NcpMEEQKoquhRNbuVB7hGNOYCYYGPYVmX1yHGBIkPI0a5T2XE4FfKBRYRkXavwmN
-ObggUKzP3RroT8pBq1SjDgoXSUXfrPBotjseeI3qcMZvqBJz0al96xZKMzSRL7G7
-yLe+p8jfiZbkRmfb8mHCtMybidP707fGWEEwU2roisOWoEO3FH0fsPpNqJd/UjXl
-jMwIRRYL6Bp2csmPQD9XM1igtZb/UuPDmOFwMqOacfcbokM5btr11TPRodKMEKtQ
-9NLz8wM7AqCAUZD/cfjX0GbU7ELVCY7mU4cX3mafQShpeLp3D5RktHsjdafUXR5e
-TTz4qUdVBBQ9mDprISvaPsS9sD6LN6yL18FsEIZe736UwDqdaITC56/EtPwiMzJj
-FBly+iD+8b45d/a/CZYf1ibBmL6vcaNNDRqvxspTw1U9KnVrhEn0EG41Q5TxSYr2
-AOXIRhSnS0coP99ITJHc
-=ShJS
------END PGP SIGNATURE-----
-
---xHFwDpU9dbj6ez1V--
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index baf8b05..44ce5c6 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -138,27 +138,6 @@ out:
+ 	return rc;
+ }
+ 
+-static void ecryptfs_vma_close(struct vm_area_struct *vma)
+-{
+-	filemap_write_and_wait(vma->vm_file->f_mapping);
+-}
+-
+-static const struct vm_operations_struct ecryptfs_file_vm_ops = {
+-	.close		= ecryptfs_vma_close,
+-	.fault		= filemap_fault,
+-};
+-
+-static int ecryptfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	int rc;
+-
+-	rc = generic_file_mmap(file, vma);
+-	if (!rc)
+-		vma->vm_ops = &ecryptfs_file_vm_ops;
+-
+-	return rc;
+-}
+-
+ struct kmem_cache *ecryptfs_file_info_cache;
+ 
+ static int read_or_initialize_metadata(struct dentry *dentry)
+@@ -311,15 +290,7 @@ static int ecryptfs_release(struct inode *inode, struct file *file)
+ static int
+ ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ {
+-	int rc = 0;
+-
+-	rc = generic_file_fsync(file, start, end, datasync);
+-	if (rc)
+-		goto out;
+-	rc = vfs_fsync_range(ecryptfs_file_to_lower(file), start, end,
+-			     datasync);
+-out:
+-	return rc;
++	return vfs_fsync(ecryptfs_file_to_lower(file), datasync);
+ }
+ 
+ static int ecryptfs_fasync(int fd, struct file *file, int flag)
+@@ -388,7 +359,7 @@ const struct file_operations ecryptfs_main_fops = {
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = ecryptfs_compat_ioctl,
+ #endif
+-	.mmap = ecryptfs_file_mmap,
++	.mmap = generic_file_mmap,
+ 	.open = ecryptfs_open,
+ 	.flush = ecryptfs_flush,
+ 	.release = ecryptfs_release,
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 2d4143f..769fb85 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -981,12 +981,6 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
+ 			goto out;
+ 	}
+ 
+-	if (S_ISREG(inode->i_mode)) {
+-		rc = filemap_write_and_wait(inode->i_mapping);
+-		if (rc)
+-			goto out;
+-		fsstack_copy_attr_all(inode, lower_inode);
+-	}
+ 	memcpy(&lower_ia, ia, sizeof(lower_ia));
+ 	if (ia->ia_valid & ATTR_FILE)
+ 		lower_ia.ia_file = ecryptfs_file_to_lower(ia->ia_file);
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index a46b3a8..bd1d57f 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -66,18 +66,6 @@ static int ecryptfs_writepage(struct page *page, struct writeback_control *wbc)
+ {
+ 	int rc;
+ 
+-	/*
+-	 * Refuse to write the page out if we are called from reclaim context
+-	 * since our writepage() path may potentially allocate memory when
+-	 * calling into the lower fs vfs_write() which may in turn invoke
+-	 * us again.
+-	 */
+-	if (current->flags & PF_MEMALLOC) {
+-		redirty_page_for_writepage(wbc, page);
+-		rc = 0;
+-		goto out;
+-	}
+-
+ 	rc = ecryptfs_encrypt_page(page);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_WARNING, "Error encrypting "
+@@ -498,7 +486,6 @@ static int ecryptfs_write_end(struct file *file,
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+ 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+ 	int rc;
+-	int need_unlock_page = 1;
+ 
+ 	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
+ 			"(page w/ index = [0x%.16lx], to = [%d])\n", index, to);
+@@ -519,26 +506,26 @@ static int ecryptfs_write_end(struct file *file,
+ 			"zeros in page with index = [0x%.16lx]\n", index);
+ 		goto out;
+ 	}
+-	set_page_dirty(page);
+-	unlock_page(page);
+-	need_unlock_page = 0;
++	rc = ecryptfs_encrypt_page(page);
++	if (rc) {
++		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
++				"index [0x%.16lx])\n", index);
++		goto out;
++	}
+ 	if (pos + copied > i_size_read(ecryptfs_inode)) {
+ 		i_size_write(ecryptfs_inode, pos + copied);
+ 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
+ 			"[0x%.16llx]\n",
+ 			(unsigned long long)i_size_read(ecryptfs_inode));
+-		balance_dirty_pages_ratelimited(mapping);
+-		rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
+-		if (rc) {
+-			printk(KERN_ERR "Error writing inode size to metadata; "
+-			       "rc = [%d]\n", rc);
+-			goto out;
+-		}
+ 	}
+-	rc = copied;
++	rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
++	if (rc)
++		printk(KERN_ERR "Error writing inode size to metadata; "
++		       "rc = [%d]\n", rc);
++	else
++		rc = copied;
+ out:
+-	if (need_unlock_page)
+-		unlock_page(page);
++	unlock_page(page);
+ 	page_cache_release(page);
+ 	return rc;
+ }
+-- 
+1.7.9.5
