@@ -1,89 +1,82 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH 1/3] eCryptfs: Gracefully refuse miscdev file ops on
- inherited/passed files
-Date: Fri, 22 Jun 2012 10:58:09 -0700
-Message-ID: <20120622175808.GA24984@boyd>
-References: <1338061161.4284.16.camel@lappy>
- <1339545940-11736-1-git-send-email-tyhicks@canonical.com>
- <1339545940-11736-2-git-send-email-tyhicks@canonical.com>
- <CA+1xoqeJ8j5Dp1C6QtEvHhQVcVUKsCVCGhXVcceH9b669nEYAw@mail.gmail.com>
+Subject: [GIT PULL] eCryptfs fixes for 3.5-rc6
+Date: Fri, 6 Jul 2012 17:27:15 -0500
+Message-ID: <20120706222714.GA30388@boyd>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39527 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:38571 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838Ab2FVR6Q (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 22 Jun 2012 13:58:16 -0400
+	with ESMTP id S1751206Ab2GFW1U (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Jul 2012 18:27:20 -0400
 Content-Disposition: inline
-In-Reply-To: <CA+1xoqeJ8j5Dp1C6QtEvHhQVcVUKsCVCGhXVcceH9b669nEYAw@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Sasha Levin <levinsasha928@gmail.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
---VbJkn9YxBvnuCH5J
+--xHFwDpU9dbj6ez1V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On 2012-06-22 19:47:35, Sasha Levin wrote:
-> On Wed, Jun 13, 2012 at 2:05 AM, Tyler Hicks <tyhicks@canonical.com> wrot=
-e:
-> > File operations on /dev/ecryptfs would BUG() when the operations were
-> > performed by processes other than the process that originally opened the
-> > file. This could happen with open files inherited after fork() or file
-> > descriptors passed through IPC mechanisms. Rather than calling BUG(), an
-> > error code can be safely returned in most situations.
-> >
-> > In ecryptfs_miscdev_release(), eCryptfs still needs to handle the
-> > release even if the last file reference is being held by a process that
-> > didn't originally open the file. ecryptfs_find_daemon_by_euid() will not
-> > be successful, so a pointer to the daemon is stored in the file's
-> > private_data. The private_data pointer is initialized when the miscdev
-> > file is opened and only used when the file is released.
-> >
-> > https://launchpad.net/bugs/994247
-> >
-> > Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-> > Reported-by: Sasha Levin <levinsasha928@gmail.com>
-> > Cc: Sasha Levin <levinsasha928@gmail.com>
-> > ---
->=20
-> I've been running it a while now and haven't seen the problem I've
-> reported reproducing.
+Hi Linus,
 
-Thanks for the testing!
+The following changes since commit ff826b2b5b269ad440afa686ede879ccabfda387:
 
->=20
-> Is it possible to merge this fix into 3.5?
+  Merge tag 'sound-3.5' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound (2012-07-03 11:10:18 -0700)
 
-That's my plan. I'll target this bug fix and the 2nd patch that removes
-unused code for 3.5. I'll wait for 3.6 to merge the third patch.
+are available in the git repository at:
 
-Tyler
 
---VbJkn9YxBvnuCH5J
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.5-rc6-fixes
+
+for you to fetch changes up to 8dc6780587c99286c0d3de747a2946a76989414a:
+
+  eCryptfs: Gracefully refuse miscdev file ops on inherited/passed files (2012-07-06 15:51:12 -0500)
+
+----------------------------------------------------------------
+Fixes an incorrect access mode check when preparing to open a file in the lower
+filesystem. This isn't an urgent fix, but it is simple and the check was
+obviously incorrect.
+
+Also fixes a couple important bugs in the eCryptfs miscdev interface. These
+changes are low risk due to the small number of users that use the miscdev
+interface. I was able to keep the changes minimal and I have some cleaner, more
+complete changes queued up for the next merge window that will build on these
+patches.
+
+----------------------------------------------------------------
+Tyler Hicks (3):
+      eCryptfs: Properly check for O_RDONLY flag before doing privileged open
+      eCryptfs: Fix lockdep warning in miscdev operations
+      eCryptfs: Gracefully refuse miscdev file ops on inherited/passed files
+
+ fs/ecryptfs/kthread.c |    2 +-
+ fs/ecryptfs/miscdev.c |   48 +++++++++++++++++++++++++++++-------------------
+ 2 files changed, 30 insertions(+), 20 deletions(-)
+
+--xHFwDpU9dbj6ez1V
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJP5LIwAAoJENaSAD2qAscKdPgP/RKsLw6qzT3TNBGYbtsqAM/k
-bDViFcLvHS1ZdcPRh5XFFadFBuoZtqdNrpWhQfTDvQUDadzgUQLbPUiXGgspvXS5
-F1Nderj+nG/uvXDMaUXm9E5CW/kF5gMJ5Vs7Y1mvypkT01VNdfeSvFUROT097Vot
-RopVNU/zxyM+MUzs20Iyvdy6h7H0GeiKfaCLHxA5T+4XR1Y1IUjuxfqpdhWF+KsQ
-SudbrfrKT/eNhNOlBb07xsotTn4PxXUuIMQKROs78twP1dJnvPIog2hThR8HRbPD
-ewbn8jDHudEpKherzPmUSOVf+FxWkQmyyZMO1LBAdoHQ3EgEKaoc9vSsPvJtXMdz
-xVJoAtMDJyRWqs/2gE5TiKjlwlJQqBCYCZ4GiJmoXZNmdKfX4Cr61X+FzOXpo6C2
-9kRfy7umw1nkTEJGQ0ZcRDdif45MOijElda+EsQFy6AL+LnJy/08qKMTecIE7/T7
-JsWCJoF0Zs/H557UYf01cNYtUIgPtVrZIaQtFwEU6PWqJmJkWfypCRkQwcV4WHN6
-u+RkDbNdWFU7aU+pAMtawHZ+HnuyoHb2XeUU07s3BCqfhSMel/4QE9iBPGVs5QKP
-VFSxTJMZbaI9lbect1us5plNsk9cIJnyTUgP1qT/cpkanj/iDPsEmDYsLx20v+As
-kHNy8UH+4mxB7ymDHkSF
-=XSiX
+iQIcBAEBCgAGBQJP92ZCAAoJENaSAD2qAscKIpQP/RG9TMzi1muYHYQkTkicHmkv
+fn576OuE6Apaur/k2+nyna0vfL4hJ4yaehN0jIJjB2/o+Nq6QhNEtegFtJzAmPeZ
+pQDGO/QkIH2AUaksCGEheVbtILguB7xGmNrOFTTCs460JVI+U48m5P8cam0twLkr
+ECGYlWUF0UApeS3sTupZC3cxeTJRbgQ5IUXRilSmb+mnu2d2sS1ar/zJsRyDkTWV
+NcpMEEQKoquhRNbuVB7hGNOYCYYGPYVmX1yHGBIkPI0a5T2XE4FfKBRYRkXavwmN
+ObggUKzP3RroT8pBq1SjDgoXSUXfrPBotjseeI3qcMZvqBJz0al96xZKMzSRL7G7
+yLe+p8jfiZbkRmfb8mHCtMybidP707fGWEEwU2roisOWoEO3FH0fsPpNqJd/UjXl
+jMwIRRYL6Bp2csmPQD9XM1igtZb/UuPDmOFwMqOacfcbokM5btr11TPRodKMEKtQ
+9NLz8wM7AqCAUZD/cfjX0GbU7ELVCY7mU4cX3mafQShpeLp3D5RktHsjdafUXR5e
+TTz4qUdVBBQ9mDprISvaPsS9sD6LN6yL18FsEIZe736UwDqdaITC56/EtPwiMzJj
+FBly+iD+8b45d/a/CZYf1ibBmL6vcaNNDRqvxspTw1U9KnVrhEn0EG41Q5TxSYr2
+AOXIRhSnS0coP99ITJHc
+=ShJS
 -----END PGP SIGNATURE-----
 
---VbJkn9YxBvnuCH5J--
+--xHFwDpU9dbj6ez1V--
