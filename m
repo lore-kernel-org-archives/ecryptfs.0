@@ -1,199 +1,207 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: Revert to a writethrough cache model
-Date: Fri,  6 Jul 2012 17:40:32 -0500
-Message-ID: <1341614432-1106-1-git-send-email-tyhicks@canonical.com>
+From: Colin Ian King <colin.king@canonical.com>
+Subject: Re: [PATCH] eCryptfs: Revert to a writethrough cache model
+Date: Tue, 10 Jul 2012 12:44:05 +0100
+Message-ID: <4FFC1585.8080204@canonical.com>
+References: <1341614432-1106-1-git-send-email-tyhicks@canonical.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:38592 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:49172 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756992Ab2GFWkp (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Jul 2012 18:40:45 -0400
+	with ESMTP id S1751535Ab2GJLoH (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 10 Jul 2012 07:44:07 -0400
+In-Reply-To: <1341614432-1106-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: Colin King <colin.king@canonical.com>, Thieu Le <thieule@google.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, Thieu Le <thieule@google.com>
 
-A change was made about a year ago to get eCryptfs to better utilize its
-page cache during writes. The idea was to do the page encryption
-operations during page writeback, rather than doing them when initially
-writing into the page cache, to reduce the number of page encryption
-operations during sequential writes. This meant that the encrypted page
-would only be written to the lower filesystem during page writeback,
-which was a change from how eCryptfs had previously wrote to the lower
-filesystem in ecryptfs_write_end().
+On 06/07/12 23:40, Tyler Hicks wrote:
+> A change was made about a year ago to get eCryptfs to better utilize its
+> page cache during writes. The idea was to do the page encryption
+> operations during page writeback, rather than doing them when initially
+> writing into the page cache, to reduce the number of page encryption
+> operations during sequential writes. This meant that the encrypted page
+> would only be written to the lower filesystem during page writeback,
+> which was a change from how eCryptfs had previously wrote to the lower
+> filesystem in ecryptfs_write_end().
+>
+> The change caused a few eCryptfs-internal bugs that were shook out.
+> Unfortunately, more grave side effects have been identified that will
+> force changes outside of eCryptfs. Because the lower filesystem isn't
+> consulted until page writeback, eCryptfs has no way to pass lower write
+> errors (ENOSPC, mainly) back to userspace. Additionaly, it was reported
+> that quotas could be bypassed because of the way eCryptfs may sometimes
+> open the lower filesystem using a privileged kthread.
+>
+> It would be nice to resolve the latest issues, but it is best if the
+> eCryptfs commits be reverted to the old behavior in the meantime.
+>
+> This reverts:
+> 32001d6f "eCryptfs: Flush file in vma close"
+> 5be79de2 "eCryptfs: Flush dirty pages in setattr"
+> 57db4e8d "ecryptfs: modify write path to encrypt page in writepage"
+>
+> Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+> Cc: Colin King <colin.king@canonical.com>
+> Cc: Thieu Le <thieule@google.com>
+> ---
+>   fs/ecryptfs/file.c  |   33 ++-------------------------------
+>   fs/ecryptfs/inode.c |    6 ------
+>   fs/ecryptfs/mmap.c  |   39 +++++++++++++--------------------------
+>   3 files changed, 15 insertions(+), 63 deletions(-)
+>
+> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+> index baf8b05..44ce5c6 100644
+> --- a/fs/ecryptfs/file.c
+> +++ b/fs/ecryptfs/file.c
+> @@ -138,27 +138,6 @@ out:
+>   	return rc;
+>   }
+>
+> -static void ecryptfs_vma_close(struct vm_area_struct *vma)
+> -{
+> -	filemap_write_and_wait(vma->vm_file->f_mapping);
+> -}
+> -
+> -static const struct vm_operations_struct ecryptfs_file_vm_ops = {
+> -	.close		= ecryptfs_vma_close,
+> -	.fault		= filemap_fault,
+> -};
+> -
+> -static int ecryptfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+> -{
+> -	int rc;
+> -
+> -	rc = generic_file_mmap(file, vma);
+> -	if (!rc)
+> -		vma->vm_ops = &ecryptfs_file_vm_ops;
+> -
+> -	return rc;
+> -}
+> -
+>   struct kmem_cache *ecryptfs_file_info_cache;
+>
+>   static int read_or_initialize_metadata(struct dentry *dentry)
+> @@ -311,15 +290,7 @@ static int ecryptfs_release(struct inode *inode, struct file *file)
+>   static int
+>   ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+>   {
+> -	int rc = 0;
+> -
+> -	rc = generic_file_fsync(file, start, end, datasync);
+> -	if (rc)
+> -		goto out;
+> -	rc = vfs_fsync_range(ecryptfs_file_to_lower(file), start, end,
+> -			     datasync);
+> -out:
+> -	return rc;
+> +	return vfs_fsync(ecryptfs_file_to_lower(file), datasync);
+>   }
+>
+>   static int ecryptfs_fasync(int fd, struct file *file, int flag)
+> @@ -388,7 +359,7 @@ const struct file_operations ecryptfs_main_fops = {
+>   #ifdef CONFIG_COMPAT
+>   	.compat_ioctl = ecryptfs_compat_ioctl,
+>   #endif
+> -	.mmap = ecryptfs_file_mmap,
+> +	.mmap = generic_file_mmap,
+>   	.open = ecryptfs_open,
+>   	.flush = ecryptfs_flush,
+>   	.release = ecryptfs_release,
+> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+> index 2d4143f..769fb85 100644
+> --- a/fs/ecryptfs/inode.c
+> +++ b/fs/ecryptfs/inode.c
+> @@ -981,12 +981,6 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
+>   			goto out;
+>   	}
+>
+> -	if (S_ISREG(inode->i_mode)) {
+> -		rc = filemap_write_and_wait(inode->i_mapping);
+> -		if (rc)
+> -			goto out;
+> -		fsstack_copy_attr_all(inode, lower_inode);
+> -	}
+>   	memcpy(&lower_ia, ia, sizeof(lower_ia));
+>   	if (ia->ia_valid & ATTR_FILE)
+>   		lower_ia.ia_file = ecryptfs_file_to_lower(ia->ia_file);
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index a46b3a8..bd1d57f 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -66,18 +66,6 @@ static int ecryptfs_writepage(struct page *page, struct writeback_control *wbc)
+>   {
+>   	int rc;
+>
+> -	/*
+> -	 * Refuse to write the page out if we are called from reclaim context
+> -	 * since our writepage() path may potentially allocate memory when
+> -	 * calling into the lower fs vfs_write() which may in turn invoke
+> -	 * us again.
+> -	 */
+> -	if (current->flags & PF_MEMALLOC) {
+> -		redirty_page_for_writepage(wbc, page);
+> -		rc = 0;
+> -		goto out;
+> -	}
+> -
+>   	rc = ecryptfs_encrypt_page(page);
+>   	if (rc) {
+>   		ecryptfs_printk(KERN_WARNING, "Error encrypting "
+> @@ -498,7 +486,6 @@ static int ecryptfs_write_end(struct file *file,
+>   	struct ecryptfs_crypt_stat *crypt_stat =
+>   		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+>   	int rc;
+> -	int need_unlock_page = 1;
+>
+>   	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
+>   			"(page w/ index = [0x%.16lx], to = [%d])\n", index, to);
+> @@ -519,26 +506,26 @@ static int ecryptfs_write_end(struct file *file,
+>   			"zeros in page with index = [0x%.16lx]\n", index);
+>   		goto out;
+>   	}
+> -	set_page_dirty(page);
+> -	unlock_page(page);
+> -	need_unlock_page = 0;
+> +	rc = ecryptfs_encrypt_page(page);
+> +	if (rc) {
+> +		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
+> +				"index [0x%.16lx])\n", index);
+> +		goto out;
+> +	}
+>   	if (pos + copied > i_size_read(ecryptfs_inode)) {
+>   		i_size_write(ecryptfs_inode, pos + copied);
+>   		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
+>   			"[0x%.16llx]\n",
+>   			(unsigned long long)i_size_read(ecryptfs_inode));
+> -		balance_dirty_pages_ratelimited(mapping);
+> -		rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
+> -		if (rc) {
+> -			printk(KERN_ERR "Error writing inode size to metadata; "
+> -			       "rc = [%d]\n", rc);
+> -			goto out;
+> -		}
+>   	}
+> -	rc = copied;
+> +	rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
+> +	if (rc)
+> +		printk(KERN_ERR "Error writing inode size to metadata; "
+> +		       "rc = [%d]\n", rc);
+> +	else
+> +		rc = copied;
+>   out:
+> -	if (need_unlock_page)
+> -		unlock_page(page);
+> +	unlock_page(page);
+>   	page_cache_release(page);
+>   	return rc;
+>   }
+>
 
-The change caused a few eCryptfs-internal bugs that were shook out.
-Unfortunately, more grave side effects have been identified that will
-force changes outside of eCryptfs. Because the lower filesystem isn't
-consulted until page writeback, eCryptfs has no way to pass lower write
-errors (ENOSPC, mainly) back to userspace. Additionaly, it was reported
-that quotas could be bypassed because of the way eCryptfs may sometimes
-open the lower filesystem using a privileged kthread.
+This fixes the ENOSPC issue, I've tested this patch with ext2, ext3, 
+ext4, xfs and btrfs lower file systems and it works fine. The patch also 
+looks sane to me.
 
-It would be nice to resolve the latest issues, but it is best if the
-eCryptfs commits be reverted to the old behavior in the meantime.
-
-This reverts:
-32001d6f "eCryptfs: Flush file in vma close"
-5be79de2 "eCryptfs: Flush dirty pages in setattr"
-57db4e8d "ecryptfs: modify write path to encrypt page in writepage"
-
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Cc: Colin King <colin.king@canonical.com>
-Cc: Thieu Le <thieule@google.com>
----
- fs/ecryptfs/file.c  |   33 ++-------------------------------
- fs/ecryptfs/inode.c |    6 ------
- fs/ecryptfs/mmap.c  |   39 +++++++++++++--------------------------
- 3 files changed, 15 insertions(+), 63 deletions(-)
-
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index baf8b05..44ce5c6 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -138,27 +138,6 @@ out:
- 	return rc;
- }
- 
--static void ecryptfs_vma_close(struct vm_area_struct *vma)
--{
--	filemap_write_and_wait(vma->vm_file->f_mapping);
--}
--
--static const struct vm_operations_struct ecryptfs_file_vm_ops = {
--	.close		= ecryptfs_vma_close,
--	.fault		= filemap_fault,
--};
--
--static int ecryptfs_file_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	int rc;
--
--	rc = generic_file_mmap(file, vma);
--	if (!rc)
--		vma->vm_ops = &ecryptfs_file_vm_ops;
--
--	return rc;
--}
--
- struct kmem_cache *ecryptfs_file_info_cache;
- 
- static int read_or_initialize_metadata(struct dentry *dentry)
-@@ -311,15 +290,7 @@ static int ecryptfs_release(struct inode *inode, struct file *file)
- static int
- ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- {
--	int rc = 0;
--
--	rc = generic_file_fsync(file, start, end, datasync);
--	if (rc)
--		goto out;
--	rc = vfs_fsync_range(ecryptfs_file_to_lower(file), start, end,
--			     datasync);
--out:
--	return rc;
-+	return vfs_fsync(ecryptfs_file_to_lower(file), datasync);
- }
- 
- static int ecryptfs_fasync(int fd, struct file *file, int flag)
-@@ -388,7 +359,7 @@ const struct file_operations ecryptfs_main_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = ecryptfs_compat_ioctl,
- #endif
--	.mmap = ecryptfs_file_mmap,
-+	.mmap = generic_file_mmap,
- 	.open = ecryptfs_open,
- 	.flush = ecryptfs_flush,
- 	.release = ecryptfs_release,
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 2d4143f..769fb85 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -981,12 +981,6 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
- 			goto out;
- 	}
- 
--	if (S_ISREG(inode->i_mode)) {
--		rc = filemap_write_and_wait(inode->i_mapping);
--		if (rc)
--			goto out;
--		fsstack_copy_attr_all(inode, lower_inode);
--	}
- 	memcpy(&lower_ia, ia, sizeof(lower_ia));
- 	if (ia->ia_valid & ATTR_FILE)
- 		lower_ia.ia_file = ecryptfs_file_to_lower(ia->ia_file);
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index a46b3a8..bd1d57f 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -66,18 +66,6 @@ static int ecryptfs_writepage(struct page *page, struct writeback_control *wbc)
- {
- 	int rc;
- 
--	/*
--	 * Refuse to write the page out if we are called from reclaim context
--	 * since our writepage() path may potentially allocate memory when
--	 * calling into the lower fs vfs_write() which may in turn invoke
--	 * us again.
--	 */
--	if (current->flags & PF_MEMALLOC) {
--		redirty_page_for_writepage(wbc, page);
--		rc = 0;
--		goto out;
--	}
--
- 	rc = ecryptfs_encrypt_page(page);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "Error encrypting "
-@@ -498,7 +486,6 @@ static int ecryptfs_write_end(struct file *file,
- 	struct ecryptfs_crypt_stat *crypt_stat =
- 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
- 	int rc;
--	int need_unlock_page = 1;
- 
- 	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
- 			"(page w/ index = [0x%.16lx], to = [%d])\n", index, to);
-@@ -519,26 +506,26 @@ static int ecryptfs_write_end(struct file *file,
- 			"zeros in page with index = [0x%.16lx]\n", index);
- 		goto out;
- 	}
--	set_page_dirty(page);
--	unlock_page(page);
--	need_unlock_page = 0;
-+	rc = ecryptfs_encrypt_page(page);
-+	if (rc) {
-+		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
-+				"index [0x%.16lx])\n", index);
-+		goto out;
-+	}
- 	if (pos + copied > i_size_read(ecryptfs_inode)) {
- 		i_size_write(ecryptfs_inode, pos + copied);
- 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
- 			"[0x%.16llx]\n",
- 			(unsigned long long)i_size_read(ecryptfs_inode));
--		balance_dirty_pages_ratelimited(mapping);
--		rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
--		if (rc) {
--			printk(KERN_ERR "Error writing inode size to metadata; "
--			       "rc = [%d]\n", rc);
--			goto out;
--		}
- 	}
--	rc = copied;
-+	rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
-+	if (rc)
-+		printk(KERN_ERR "Error writing inode size to metadata; "
-+		       "rc = [%d]\n", rc);
-+	else
-+		rc = copied;
- out:
--	if (need_unlock_page)
--		unlock_page(page);
-+	unlock_page(page);
- 	page_cache_release(page);
- 	return rc;
- }
--- 
-1.7.9.5
+Tested-by: Colin Ian King <colin.king@canonical.com>
