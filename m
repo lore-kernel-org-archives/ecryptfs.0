@@ -1,89 +1,88 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.6-rc1
-Date: Wed, 1 Aug 2012 23:00:47 -0700
-Message-ID: <20120802060047.GA24033@boyd>
+From: Douglas Leeder <douglas.leeder-j34lQMj1tz/QT0dZR+AlfA@public.gmane.org>
+Subject: Process/Scanner hang with ecryptfs and fanotify
+Date: Thu, 9 Aug 2012 14:33:00 +0100
+Message-ID: <a5effe9d-2674-4495-883c-a18b93333139@ABN-EXCH1A.green.sophos>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://dmesg2.printk.net/cgi-bin/mailman/options/malware-list>,
+	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://dmesg2.printk.net/pipermail/malware-list>
+List-Post: <mailto:malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
+List-Help: <mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=help>
+List-Subscribe: <http://dmesg2.printk.net/cgi-bin/mailman/listinfo/malware-list>,
+	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=subscribe>
+Sender: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
+Errors-To: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org" <malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: douglas.leeder-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Eric Paris <eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, dustin.kirkland-Bv2LyzZ6GzxBDgjK7y7TUQ@public.gmane.org
+
+Hello,
+
+We are in the final stages of producing a version of Sophos Anti-Virus
+for Linux that uses fanotify, and have hit an issue with fanotify
+against ecryptfs mounts.
+
+ecryptfs is used for encrypted home directories on (at least) Ubuntu.
+
+This issue I'm seeing is on Ubuntu 12.04 with encrypted home
+directories. (3.2 kernel)
+
+After using Firefox for a short while with fanotify scanning happening
+(for both the host fs, and the ecryptfs mount), it will go grey (or gray
+:-)), signalling it has hung.
+
+Two threads in Firefox with be in the D state (IO sleep), and two of the
+scanner threads will be stuck reading from the fanotify fd.
+These remain stuck until the machine is rebooted.
+
+I've got a test 'scanner' that I've managed to reproduce the issue with:
+
+github:
+https://github.com/paperclip/fanotify-ecryptfs-test
+
+(If anyone wants this tarred up, I can send it directly - but I can't
+send it to the mailing list due to size limits)
+
+However it doesn't happen every time, and I've not reproduced it on a VM.
+
+Points on note:
+1) Every file on ecryptfs is backed by a file on the host fs
+2) Thus every access to an ecryptfs also generates a file access to the
+host fs.
+3) fanotify can deliver multiple file accesses in a single event.
 
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Given the unreliable nature of the reproduction steps; and the fact that
+when things hang it is always 2 threads, rather than 1 or 3 that hang: I
+believe that there is some kind of race condition when more than one
+file on an ecryptfs mount is accessed at the same time.
 
-Hi Linus,
+I wonder if each fanotify event contains the ecryptfs access from one
+client thread, and the host  fs access from the other?
 
-The following changes since commit bd0a521e88aa7a06ae7aabaed7ae196ed4ad867a:
+In the git repository there are two dmesg outputs, from the stuck
+threads' backtraces. Definitely stuck between fanotify and ecryptfs.
 
-  Linux 3.5-rc6 (2012-07-07 17:23:56 -0700)
+Is there any advice you can offer? I wonder if fanotify needs to deliver
+permission events one at a time? Or can you point me at appropriate
+sources to look at for further information.
 
-are available in the git repository at:
+In an ideal world there would be some fix to the scanner to avoid the
+problem, but I'm not sure what it could be, so the solution might only
+be applicable to future kernels.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.6-rc1-fixes
+(Sophos defect DEF83746)
 
-for you to fetch changes up to 5f5b331d5c21228a6519dcb793fc1629646c51a6:
+Thanks.
 
-  eCryptfs: check for eCryptfs cipher support at mount (2012-07-13 17:20:34 -0700)
 
-----------------------------------------------------------------
-- Fixes a bug when the lower filesystem mount options include 'acl', but the
-  eCryptfs mount options do not
-- Cleanups in the messaging code
-- Better handling of empty files in the lower filesystem to improve usability.
-  Failed file creations are now cleaned up and empty lower files are converted
-  into eCryptfs during open().
-- The write-through cache changes are being reverted due to bugs that are not
-  easy to fix. Stability outweighs the performance enhancements here.
-- Improvement to the mount code to catch unsupported ciphers specified in the
-  mount options
+--
+Douglas Leeder, Senior Software Engineer
 
-----------------------------------------------------------------
-Tim Sally (1):
-      eCryptfs: check for eCryptfs cipher support at mount
+________________________________
 
-Tyler Hicks (6):
-      eCryptfs: Copy up POSIX ACL and read-only flags from lower mount
-      eCryptfs: Remove unused messaging declarations and function
-      eCryptfs: Make all miscdev functions use daemon ptr in file private_data
-      eCryptfs: Unlink lower inode when ecryptfs_create() fails
-      eCryptfs: Initialize empty lower files when opening them
-      eCryptfs: Revert to a writethrough cache model
-
- fs/ecryptfs/ecryptfs_kernel.h |   24 +++-----
- fs/ecryptfs/file.c            |   90 ++++++++++++---------------
- fs/ecryptfs/inode.c           |   65 ++++++++++----------
- fs/ecryptfs/main.c            |   23 ++++++-
- fs/ecryptfs/messaging.c       |  136 +++++------------------------------------
- fs/ecryptfs/miscdev.c         |   98 ++++++++---------------------
- fs/ecryptfs/mmap.c            |   39 ++++--------
- 7 files changed, 158 insertions(+), 317 deletions(-)
-
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCgAGBQJQGhePAAoJENaSAD2qAscK/ekP/3XOqtYJXgQmv/78VqOov+oR
-9pmex23XpKVfc7Huok1ARxDJwvrLx4wjfmx/SMo5EBoxb0Y65KhiEum7CpG1GxXJ
-qgdhOMAEYrpZhrZ125LsQufa2yaNJUsgNuhDpaKmidS76WtPkhGmSSEBV++PNng7
-HSB7Rq+a7+BVwT1dAllzA2jVrdbHKfqrfxf/Dk6hgYLj3UgKow8Y4kFJAypFjNx8
-4NfLaU1uEe04hv8qigLqEzArxuLktniGowgiv4VwtnmjBudSRBTR6c9kRjrkRmHf
-E4svnrdUZtPKLZdUrA7IoWB6sxuyM4X6ymeVGfIAot9I5VnaZ2+WLvpIYyUyHccY
-cwlMl8WNi47XgxzQ5Da+L3a618A/8aj1uTRZnfbgoje1wcalhGcbFWIGKKavlP7M
-9CxSNyIx+N+houIFasREQC0IifpG9eWxcp0VSgb/SilD7pxQ1ari6K6PcwooKKm3
-gV91bYJA8zVk1RJPiyfnRxJZn6jkStLraDXYbTAMkAeFBRXeZggM3cICxKAKzwIS
-ZzlJlM1VIEqOPlHr/I8QOL2tlcPLyc7Zj+frsxQdxcv0ikTUAWdydVO8ilJoP+eK
-KUH6rR1iLxIRy+y1OLtNdkqGZMN0PPgwNvKBmbh8SJNQJG00lQWlN7adfP6wXgsh
-qFHtwT8t0h4OWkStsTH4
-=Riet
------END PGP SIGNATURE-----
-
---h31gzZEtNLTqOjlF--
+Sophos Limited, The Pentagon, Abingdon Science Park, Abingdon, OX14 3YP, United Kingdom.
+Company Reg No 2096520. VAT Reg No GB 991 2418 08.
