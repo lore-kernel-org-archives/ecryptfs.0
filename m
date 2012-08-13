@@ -1,88 +1,146 @@
-From: Douglas Leeder <douglas.leeder-j34lQMj1tz/QT0dZR+AlfA@public.gmane.org>
-Subject: Process/Scanner hang with ecryptfs and fanotify
-Date: Thu, 9 Aug 2012 14:33:00 +0100
-Message-ID: <a5effe9d-2674-4495-883c-a18b93333139@ABN-EXCH1A.green.sophos>
+From: Douglas Leeder <douglas.leeder@sophos.com>
+Subject: RE: Process/Scanner hang with ecryptfs and fanotify
+Date: Mon, 13 Aug 2012 13:22:58 +0000
+Message-ID: <6de17988-0720-44e7-b299-2da3eb58020d@ABN-EXCH1A.green.sophos>
+References: <5023BC0C.3050704@sophos.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://dmesg2.printk.net/cgi-bin/mailman/options/malware-list>,
-	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://dmesg2.printk.net/pipermail/malware-list>
-List-Post: <mailto:malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
-List-Help: <mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=help>
-List-Subscribe: <http://dmesg2.printk.net/cgi-bin/mailman/listinfo/malware-list>,
-	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=subscribe>
-Sender: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
-Errors-To: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org" <malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: douglas.leeder-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Eric Paris <eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, dustin.kirkland-Bv2LyzZ6GzxBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/mixed;
+	boundary="_002_6de17988072044e7b2992da3eb58020dABNEXCH1Agreensophos_"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mx3.sophos.com ([216.47.234.212]:50692 "EHLO mx3.sophos.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab2HMNXG (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 13 Aug 2012 09:23:06 -0400
+In-Reply-To: <5023BC0C.3050704@sophos.com>
+Content-Language: en-US
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
+To: Douglas Leeder <douglas.leeder@sophos.com>, "malware-list@dmesg.printk.net" <malware-list@dmesg.printk.net>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
+Cc: "douglas.leeder@gmail.com" <douglas.leeder@gmail.com>, "dustin.kirkland@gazzang.com" <dustin.kirkland@gazzang.com>, Eric Paris <eparis@redhat.com>
 
-Hello,
+--_002_6de17988072044e7b2992da3eb58020dABNEXCH1Agreensophos_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-We are in the final stages of producing a version of Sophos Anti-Virus
-for Linux that uses fanotify, and have hit an issue with fanotify
-against ecryptfs mounts.
+SGVsbG8sDQoNCkkndmUgY29udGludWVkIHRvIGludmVzdGlnYXRlIHRoaXMgaXNzdWUsIGFuZCBn
+b3QgYmFjay10cmFjZXMgZnJvbSB0aGUgc3R1Y2sgcHJvY2Vzc2VzIChjaGVja2VkIGludG8gdGhl
+IGdpdA0KcmVwb3NpdG9yeSBhcyBkbWVzZy57MSwyLDN9Lg0KDQpGcm9tIHRoZXNlIGl0IGxvb2tz
+IGxpa2UgdGhlIHByb2JsZW0gaXMgYW4gZmFub3RpZnlfcmVhZCBpcyBpdHNlbGYgY2FsbGluZyBp
+bnRvIGZhbm90aWZ5X2hhbmRsZV9ldmVudCB2aWEgZWNyeXB0ZnNfZ2V0X2xvd2VyX2ZpbGU6DQoN
+Cg0KWyAxMTk3LjkyMjAzNl0gIFs8ZmZmZmZmZmY4MTYxMzY2Zj5dIHNjaGVkdWxlKzB4M2YvMHg2
+MA0KWyAxMTk3LjkyMjA0Ml0gIFs8ZmZmZmZmZmY4MTFiMjhiOT5dIGZhbm90aWZ5X2hhbmRsZV9l
+dmVudCsweDExOS8weDE2MA0KWyAxMTk3LjkyMjA0Nl0gIFs8ZmZmZmZmZmY4MTA4OTE4MD5dID8g
+YWRkX3dhaXRfcXVldWUrMHg2MC8weDYwDQpbIDExOTcuOTIyMDUwXSAgWzxmZmZmZmZmZjgxMWFl
+ZGRhPl0gc2VuZF90b19ncm91cC5pc3JhLjErMHgxM2EvMHgxOTANClsgMTE5Ny45MjIwNTVdICBb
+PGZmZmZmZmZmODExODNlODA+XSA/IHBvbGxfZnJlZXdhaXQrMHhlMC8weGUwDQpbIDExOTcuOTIy
+MDU5XSAgWzxmZmZmZmZmZjgxMWFlZjkzPl0gZnNub3RpZnkrMHgxNjMvMHgyYTANClsgMTE5Ny45
+MjIwNjVdICBbPGZmZmZmZmZmODEyOTgyMjk+XSBzZWN1cml0eV9kZW50cnlfb3BlbisweDc5LzB4
+ODANClsgMTE5Ny45MjIwNjhdICBbPGZmZmZmZmZmODExNmVkOGM+XSBfX2RlbnRyeV9vcGVuKzB4
+MTBjLzB4MzYwDQpbIDExOTcuOTIyMDczXSAgWzxmZmZmZmZmZjgxMmQxODZjPl0gPyBhcHBhcm1v
+cl9maWxlX2FsbG9jX3NlY3VyaXR5KzB4MmMvMHg2MA0KWyAxMTk3LjkyMjA3Nl0gIFs8ZmZmZmZm
+ZmY4MTE2ZjU4ZD5dIHZmc19vcGVuKzB4M2QvMHg0MA0KWyAxMTk3LjkyMjA4MF0gIFs8ZmZmZmZm
+ZmY4MTE2ZjVkZT5dIGRlbnRyeV9vcGVuKzB4NGUvMHg3MA0KWyAxMTk3LjkyMjA4NF0gIFs8ZmZm
+ZmZmZmY4MTFiMjkwMD5dID8gZmFub3RpZnlfaGFuZGxlX2V2ZW50KzB4MTYwLzB4MTYwDQpbIDEx
+OTcuOTIyMDg5XSAgWzxmZmZmZmZmZjgxMjcxODA1Pl0gZWNyeXB0ZnNfcHJpdmlsZWdlZF9vcGVu
+KzB4ODUvMHgyOTANClsgMTE5Ny45MjIwOTNdICBbPGZmZmZmZmZmODEyNjgzMGQ+XSBlY3J5cHRm
+c19nZXRfbG93ZXJfZmlsZSsweGFkLzB4MTIwDQpbIDExOTcuOTIyMDk3XSAgWzxmZmZmZmZmZjgx
+MjY1NTkwPl0gZWNyeXB0ZnNfb3BlbisweGEwLzB4MmEwDQpbIDExOTcuOTIyMTAwXSAgWzxmZmZm
+ZmZmZjgxMTZlZjEwPl0gX19kZW50cnlfb3BlbisweDI5MC8weDM2MA0KWyAxMTk3LjkyMjEwNF0g
+IFs8ZmZmZmZmZmY4MTI2NTRmMD5dID8gZWNyeXB0ZnNfcmVsZWFzZSsweDQwLzB4NDANClsgMTE5
+Ny45MjIxMDhdICBbPGZmZmZmZmZmODEyZDE4NmM+XSA/IGFwcGFybW9yX2ZpbGVfYWxsb2Nfc2Vj
+dXJpdHkrMHgyYy8weDYwDQpbIDExOTcuOTIyMTExXSAgWzxmZmZmZmZmZjgxMTZmNThkPl0gdmZz
+X29wZW4rMHgzZC8weDQwDQpbIDExOTcuOTIyMTE1XSAgWzxmZmZmZmZmZjgxMTZmNWRlPl0gZGVu
+dHJ5X29wZW4rMHg0ZS8weDcwDQpbIDExOTcuOTIyMTE4XSAgWzxmZmZmZmZmZjgxMWIzMjQ2Pl0g
+ZmFub3RpZnlfcmVhZCsweDJjNi8weDUxMA0KWyAxMTk3LjkyMjEyMl0gIFs8ZmZmZmZmZmY4MTA4
+OTE4MD5dID8gYWRkX3dhaXRfcXVldWUrMHg2MC8weDYwDQpbIDExOTcuOTIyMTI2XSAgWzxmZmZm
+ZmZmZjgxMTcxM2IwPl0gdmZzX3JlYWQrMHhiMC8weDE4MA0KWyAxMTk3LjkyMjEyOV0gIFs8ZmZm
+ZmZmZmY4MTE3MTRjYT5dIHN5c19yZWFkKzB4NGEvMHg5MA0KWyAxMTk3LjkyMjEzM10gIFs8ZmZm
+ZmZmZmY4MTBiM2VlNT5dID8gY29tcGF0X3N5c190aW1lKzB4MjUvMHg2MA0KWyAxMTk3LjkyMjEz
+N10gIFs8ZmZmZmZmZmY4MTYxZmI3MD5dIHN5c2VudGVyX2Rpc3BhdGNoKzB4Ny8weDJlDQoNCkhv
+d2V2ZXIgSSBoYXZlIG5vdCBiZWVuIGFibGUgdG8gcmVwcm9kdWNlIHRoZSBwcm9ibGVtIG9uY2Ug
+SSBhcHBsaWVkIHRoZSBhdHRhY2hlZCBwYXRjaCwgd2hpY2ggZW5zdXJlcyB0aGF0DQpvbmx5IG9u
+ZSBmaWxlIGFjY2VzcyBpbiBpbmNsdWRlZCBpbiBlYWNoIGZhbm90aWZ5X3JlYWQgZXZlbnQuIFdp
+dGggdGhpcyBwYXRjaCBJIHdhcyBhYmxlIHRvIHJ1biBmaXJlZm94IDUgdGltZXMsIHRocm91Z2gg
+dGhlIDINCm1pbnV0ZSB0ZXN0IGN5Y2xlIG9mIHRoZSB0ZXN0IGNvZGUsIHdpdGhvdXQgY2F1c2lu
+ZyBhIGhhbmcuDQoNCldoYXQgZG8geW91IHRoaW5rPw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KRnJvbTogRG91Z2xhcyBMZWVkZXIgW21haWx0bzpkb3VnbGFzLmxlZWRlckBzb3Bob3Mu
+Y29tXQ0KU2VudDogVGh1cnNkYXksIEF1Z3VzdCAwOSwgMjAxMiAyOjMzIFBNDQpUbzogbWFsd2Fy
+ZS1saXN0QGRtZXNnLnByaW50ay5uZXQ7IGVjcnlwdGZzQHZnZXIua2VybmVsLm9yZw0KQ2M6IGRv
+dWdsYXMubGVlZGVyQGdtYWlsLmNvbTsgZHVzdGluLmtpcmtsYW5kQGdhenphbmcuY29tOyBFcmlj
+IFBhcmlzDQpTdWJqZWN0OiBQcm9jZXNzL1NjYW5uZXIgaGFuZyB3aXRoIGVjcnlwdGZzIGFuZCBm
+YW5vdGlmeQ0KDQpIZWxsbywNCg0KV2UgYXJlIGluIHRoZSBmaW5hbCBzdGFnZXMgb2YgcHJvZHVj
+aW5nIGEgdmVyc2lvbiBvZiBTb3Bob3MgQW50aS1WaXJ1cyBmb3IgTGludXggdGhhdCB1c2VzIGZh
+bm90aWZ5LCBhbmQgaGF2ZSBoaXQgYW4gaXNzdWUgd2l0aCBmYW5vdGlmeSBhZ2FpbnN0IGVjcnlw
+dGZzIG1vdW50cy4NCg0KZWNyeXB0ZnMgaXMgdXNlZCBmb3IgZW5jcnlwdGVkIGhvbWUgZGlyZWN0
+b3JpZXMgb24gKGF0IGxlYXN0KSBVYnVudHUuDQoNClRoaXMgaXNzdWUgSSdtIHNlZWluZyBpcyBv
+biBVYnVudHUgMTIuMDQgd2l0aCBlbmNyeXB0ZWQgaG9tZSBkaXJlY3Rvcmllcy4gKDMuMiBrZXJu
+ZWwpDQoNCkFmdGVyIHVzaW5nIEZpcmVmb3ggZm9yIGEgc2hvcnQgd2hpbGUgd2l0aCBmYW5vdGlm
+eSBzY2FubmluZyBoYXBwZW5pbmcgKGZvciBib3RoIHRoZSBob3N0IGZzLCBhbmQgdGhlIGVjcnlw
+dGZzIG1vdW50KSwgaXQgd2lsbCBnbyBncmV5IChvciBncmF5IDotKSksIHNpZ25hbGxpbmcgaXQg
+aGFzIGh1bmcuDQoNClR3byB0aHJlYWRzIGluIEZpcmVmb3ggd2l0aCBiZSBpbiB0aGUgRCBzdGF0
+ZSAoSU8gc2xlZXApLCBhbmQgdHdvIG9mIHRoZSBzY2FubmVyIHRocmVhZHMgd2lsbCBiZSBzdHVj
+ayByZWFkaW5nIGZyb20gdGhlIGZhbm90aWZ5IGZkLg0KVGhlc2UgcmVtYWluIHN0dWNrIHVudGls
+IHRoZSBtYWNoaW5lIGlzIHJlYm9vdGVkLg0KDQpJJ3ZlIGdvdCBhIHRlc3QgJ3NjYW5uZXInIHRo
+YXQgSSd2ZSBtYW5hZ2VkIHRvIHJlcHJvZHVjZSB0aGUgaXNzdWUgd2l0aDoNCg0KZ2l0aHViOg0K
+aHR0cHM6Ly9naXRodWIuY29tL3BhcGVyY2xpcC9mYW5vdGlmeS1lY3J5cHRmcy10ZXN0DQoNCihJ
+ZiBhbnlvbmUgd2FudHMgdGhpcyB0YXJyZWQgdXAsIEkgY2FuIHNlbmQgaXQgZGlyZWN0bHkgLSBi
+dXQgSSBjYW4ndCBzZW5kIGl0IHRvIHRoZSBtYWlsaW5nIGxpc3QgZHVlIHRvIHNpemUgbGltaXRz
+KQ0KDQpIb3dldmVyIGl0IGRvZXNuJ3QgaGFwcGVuIGV2ZXJ5IHRpbWUsIGFuZCBJJ3ZlIG5vdCBy
+ZXByb2R1Y2VkIGl0IG9uIGEgVk0uDQoNClBvaW50cyBvbiBub3RlOg0KMSkgRXZlcnkgZmlsZSBv
+biBlY3J5cHRmcyBpcyBiYWNrZWQgYnkgYSBmaWxlIG9uIHRoZSBob3N0IGZzDQoyKSBUaHVzIGV2
+ZXJ5IGFjY2VzcyB0byBhbiBlY3J5cHRmcyBhbHNvIGdlbmVyYXRlcyBhIGZpbGUgYWNjZXNzIHRv
+IHRoZSBob3N0IGZzLg0KMykgZmFub3RpZnkgY2FuIGRlbGl2ZXIgbXVsdGlwbGUgZmlsZSBhY2Nl
+c3NlcyBpbiBhIHNpbmdsZSBldmVudC4NCg0KDQpHaXZlbiB0aGUgdW5yZWxpYWJsZSBuYXR1cmUg
+b2YgdGhlIHJlcHJvZHVjdGlvbiBzdGVwczsgYW5kIHRoZSBmYWN0IHRoYXQNCndoZW4gdGhpbmdz
+IGhhbmcgaXQgaXMgYWx3YXlzIDIgdGhyZWFkcywgcmF0aGVyIHRoYW4gMSBvciAzIHRoYXQgaGFu
+ZzogSQ0KYmVsaWV2ZSB0aGF0IHRoZXJlIGlzIHNvbWUga2luZCBvZiByYWNlIGNvbmRpdGlvbiB3
+aGVuIG1vcmUgdGhhbiBvbmUNCmZpbGUgb24gYW4gZWNyeXB0ZnMgbW91bnQgaXMgYWNjZXNzZWQg
+YXQgdGhlIHNhbWUgdGltZS4NCg0KSSB3b25kZXIgaWYgZWFjaCBmYW5vdGlmeSBldmVudCBjb250
+YWlucyB0aGUgZWNyeXB0ZnMgYWNjZXNzIGZyb20gb25lDQpjbGllbnQgdGhyZWFkLCBhbmQgdGhl
+IGhvc3QgIGZzIGFjY2VzcyBmcm9tIHRoZSBvdGhlcj8NCg0KSW4gdGhlIGdpdCByZXBvc2l0b3J5
+IHRoZXJlIGFyZSB0d28gZG1lc2cgb3V0cHV0cywgZnJvbSB0aGUgc3R1Y2sNCnRocmVhZHMnIGJh
+Y2t0cmFjZXMuIERlZmluaXRlbHkgc3R1Y2sgYmV0d2VlbiBmYW5vdGlmeSBhbmQgZWNyeXB0ZnMu
+DQoNCklzIHRoZXJlIGFueSBhZHZpY2UgeW91IGNhbiBvZmZlcj8gSSB3b25kZXIgaWYgZmFub3Rp
+ZnkgbmVlZHMgdG8gZGVsaXZlcg0KcGVybWlzc2lvbiBldmVudHMgb25lIGF0IGEgdGltZT8gT3Ig
+Y2FuIHlvdSBwb2ludCBtZSBhdCBhcHByb3ByaWF0ZQ0Kc291cmNlcyB0byBsb29rIGF0IGZvciBm
+dXJ0aGVyIGluZm9ybWF0aW9uLg0KDQpJbiBhbiBpZGVhbCB3b3JsZCB0aGVyZSB3b3VsZCBiZSBz
+b21lIGZpeCB0byB0aGUgc2Nhbm5lciB0byBhdm9pZCB0aGUNCnByb2JsZW0sIGJ1dCBJJ20gbm90
+IHN1cmUgd2hhdCBpdCBjb3VsZCBiZSwgc28gdGhlIHNvbHV0aW9uIG1pZ2h0IG9ubHkNCmJlIGFw
+cGxpY2FibGUgdG8gZnV0dXJlIGtlcm5lbHMuDQoNCihTb3Bob3MgZGVmZWN0IERFRjgzNzQ2KQ0K
+DQpUaGFua3MuDQoNCg0KLS0NCkRvdWdsYXMgTGVlZGVyLCBTZW5pb3IgU29mdHdhcmUgRW5naW5l
+ZXINCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCg0KU29waG9zIExpbWl0ZWQs
+IFRoZSBQZW50YWdvbiwgQWJpbmdkb24gU2NpZW5jZSBQYXJrLCBBYmluZ2RvbiwgT1gxNCAzWVAs
+IFVuaXRlZCBLaW5nZG9tLg0KQ29tcGFueSBSZWcgTm8gMjA5NjUyMC4gVkFUIFJlZyBObyBHQiA5
+OTEgMjQxOCAwOC4NCg==
 
-ecryptfs is used for encrypted home directories on (at least) Ubuntu.
+--_002_6de17988072044e7b2992da3eb58020dABNEXCH1Agreensophos_
+Content-Type: application/octet-stream;
+	name="0001-Make-fanotify-events-only-contain-one-file-access-if.patch"
+Content-Description: 0001-Make-fanotify-events-only-contain-one-file-access-if.patch
+Content-Disposition: attachment;
+	filename="0001-Make-fanotify-events-only-contain-one-file-access-if.patch";
+	size=1069; creation-date="Mon, 13 Aug 2012 13:20:49 GMT";
+	modification-date="Mon, 13 Aug 2012 13:20:40 GMT"
+Content-Transfer-Encoding: base64
 
-This issue I'm seeing is on Ubuntu 12.04 with encrypted home
-directories. (3.2 kernel)
+RnJvbSA4YWU3ZmFmNDU2MGFlNmJjNDhmNTc1ZjAyOWFiZTZlNGEzZjZhNmVkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEb3VnbGFzIExlZWRlciA8ZG91Z2xhcy5sZWVkZXJAc29waG9z
+LmNvbT4KRGF0ZTogTW9uLCAxMyBBdWcgMjAxMiAxNDowNzoxNCArMDEwMApTdWJqZWN0OiBbUEFU
+Q0hdIE1ha2UgZmFub3RpZnkgZXZlbnRzIG9ubHkgY29udGFpbiBvbmUgZmlsZSBhY2Nlc3MgaWYK
+IHBlcm1pc3Npb24gY2hlY2tpbmcgaXMgZW5hYmxlZC4KCmZhbm90aWZ5IHNjYW5uaW5nIGNhbiBn
+ZXQgc3R1Y2sgaWYgbXVsdGlwbGUgZXZlbnRzIGFyZSBpbmNsdWRlZCBpbiBhIHNpbmdsZSByZWFk
+KCkgY2FsbCwKd2l0aCBlY3J5cHRmcy4KLS0tCiBmcy9ub3RpZnkvZmFub3RpZnkvZmFub3RpZnlf
+dXNlci5jIHwgICAgOCArKysrKystLQogMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwg
+MiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9mcy9ub3RpZnkvZmFub3RpZnkvZmFub3RpZnlf
+dXNlci5jIGIvZnMvbm90aWZ5L2Zhbm90aWZ5L2Zhbm90aWZ5X3VzZXIuYwppbmRleCA5ZmRlMWMw
+Li5kZTdkN2Y0IDEwMDY0NAotLS0gYS9mcy9ub3RpZnkvZmFub3RpZnkvZmFub3RpZnlfdXNlci5j
+CisrKyBiL2ZzL25vdGlmeS9mYW5vdGlmeS9mYW5vdGlmeV91c2VyLmMKQEAgLTM0Myw3ICszNDMs
+MTEgQEAgc3RhdGljIHNzaXplX3QgZmFub3RpZnlfcmVhZChzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hh
+ciBfX3VzZXIgKmJ1ZiwKIAkJCQlicmVhazsKIAkJCWJ1ZiArPSByZXQ7CiAJCQljb3VudCAtPSBy
+ZXQ7Ci0JCQljb250aW51ZTsKKyNpZmRlZiBDT05GSUdfRkFOT1RJRllfQUNDRVNTX1BFUk1JU1NJ
+T05TCisJCQlicmVhazsgICAgLyogV2hlbiBkb2luZyBwZXJtaXNzaW9uIGV2ZW50cyB3ZSBzaG91
+bGQgcmVzdHJpY3QgdG8gb25lIGV2ZW50IHBlci1yZWFkICovCisjZWxzZQorCQkJY29udGludWU7
+IC8qIFdoZW4gbm90IHVzaW5nIHBlcm1pc3Npb25zIHdlIGNhbiBjb21iaW5lIGV2ZW50cyAqLwor
+I2VuZGlmCiAJCX0KCiAJCXJldCA9IC1FQUdBSU47Ci0tCjEuNy45LjUKCg==
 
-After using Firefox for a short while with fanotify scanning happening
-(for both the host fs, and the ecryptfs mount), it will go grey (or gray
-:-)), signalling it has hung.
-
-Two threads in Firefox with be in the D state (IO sleep), and two of the
-scanner threads will be stuck reading from the fanotify fd.
-These remain stuck until the machine is rebooted.
-
-I've got a test 'scanner' that I've managed to reproduce the issue with:
-
-github:
-https://github.com/paperclip/fanotify-ecryptfs-test
-
-(If anyone wants this tarred up, I can send it directly - but I can't
-send it to the mailing list due to size limits)
-
-However it doesn't happen every time, and I've not reproduced it on a VM.
-
-Points on note:
-1) Every file on ecryptfs is backed by a file on the host fs
-2) Thus every access to an ecryptfs also generates a file access to the
-host fs.
-3) fanotify can deliver multiple file accesses in a single event.
-
-
-Given the unreliable nature of the reproduction steps; and the fact that
-when things hang it is always 2 threads, rather than 1 or 3 that hang: I
-believe that there is some kind of race condition when more than one
-file on an ecryptfs mount is accessed at the same time.
-
-I wonder if each fanotify event contains the ecryptfs access from one
-client thread, and the host  fs access from the other?
-
-In the git repository there are two dmesg outputs, from the stuck
-threads' backtraces. Definitely stuck between fanotify and ecryptfs.
-
-Is there any advice you can offer? I wonder if fanotify needs to deliver
-permission events one at a time? Or can you point me at appropriate
-sources to look at for further information.
-
-In an ideal world there would be some fix to the scanner to avoid the
-problem, but I'm not sure what it could be, so the solution might only
-be applicable to future kernels.
-
-(Sophos defect DEF83746)
-
-Thanks.
-
-
---
-Douglas Leeder, Senior Software Engineer
-
-________________________________
-
-Sophos Limited, The Pentagon, Abingdon Science Park, Abingdon, OX14 3YP, United Kingdom.
-Company Reg No 2096520. VAT Reg No GB 991 2418 08.
+--_002_6de17988072044e7b2992da3eb58020dABNEXCH1Agreensophos_--
