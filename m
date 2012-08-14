@@ -1,118 +1,55 @@
-From: Douglas Leeder <douglas.leeder@sophos.com>
-Subject: RE: ecryptfs and fanotify
-Date: Tue, 14 Aug 2012 09:00:18 +0000
-Message-ID: <0b6d63c6-3706-4617-ac7d-5d3aeea28e50@ABN-EXCH1A.green.sophos>
+From: Florian Westphal <Florian.Westphal-NDHo7HnFrt3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: ecryptfs and fanotify
+Date: Tue, 14 Aug 2012 11:31:24 +0200
+Message-ID: <cb09b826-ba88-48ac-87c7-f58370d2092c@ABN-EXCH1A.green.sophos>
 References: <5d3d0cdc-50db-4d60-8f9d-701acdbb86b0@ABN-EXCH1A.green.sophos>
- <CANT6BaPhaAOv3hg9CgoDa9JTp9vN60zf8bdAQX+dFp6YLSUwnA@mail.gmail.com>
+	<CANT6BaPhaAOv3hg9CgoDa9JTp9vN60zf8bdAQX+dFp6YLSUwnA@mail.gmail.com>
+	<F85176E33E12BA45BD553324E7858B300CE0A5@abn-exch1b.green.sophos>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx4.sophos.com ([216.47.234.213]:49898 "EHLO mx4.sophos.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754897Ab2HNJAb (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 14 Aug 2012 05:00:31 -0400
-In-Reply-To: <CANT6BaPhaAOv3hg9CgoDa9JTp9vN60zf8bdAQX+dFp6YLSUwnA@mail.gmail.com>
-Content-Language: en-US
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Dustin Kirkland <dustin.kirkland@gazzang.com>, Tyler C Hicks <tyhicks@canonical.com>
-Cc: Eric Paris <eparis@redhat.com>, "malware-list@dmesg.printk.net" <malware-list@dmesg.printk.net>, Eddie Garcia <eddie.garcia@gazzang.com>, Sergio Pena <sergio.pena@gazzang.com>, Florian Westphal <Florian.Westphal@Sophos.com>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F85176E33E12BA45BD553324E7858B300CE0A5-wyMY/JD5BThOaAOxIYwbkpbnZX9N9W2w@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://dmesg2.printk.net/cgi-bin/mailman/options/malware-list>,
+	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://dmesg2.printk.net/pipermail/malware-list>
+List-Post: <mailto:malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>
+List-Help: <mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=help>
+List-Subscribe: <http://dmesg2.printk.net/cgi-bin/mailman/listinfo/malware-list>,
+	<mailto:malware-list-request-h+Im9A44IAFcMpApZELgcQ@public.gmane.org?subject=subscribe>
+Sender: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
+Errors-To: malware-list-bounces-h+Im9A44IAFcMpApZELgcQ@public.gmane.org
+To: Douglas Leeder <douglas.leeder-j34lQMj1tz/QT0dZR+AlfA@public.gmane.org>
+Cc: Sergio Pena <sergio.pena-Bv2LyzZ6GzxBDgjK7y7TUQ@public.gmane.org>, "malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org" <malware-list-h+Im9A44IAFcMpApZELgcQ@public.gmane.org>, "ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eric Paris <eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tyler C Hicks <tyhicks-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Dustin Kirkland <dustin.kirkland-Bv2LyzZ6GzxBDgjK7y7TUQ@public.gmane.org>, Eddie Garcia <eddie.garcia-Bv2LyzZ6GzxBDgjK7y7TUQ@public.gmane.org>
 
-T24gMTMvMDgvMTIgMTg6MTcsIER1c3RpbiBLaXJrbGFuZCB3cm90ZToNCj4gSG93ZHkgRG91Z2xh
-cywNCj4NCj4gUmVzcG9uc2VzIGFyZSBpbmxpbmUgYmVsb3cuLi4NCj4NCj4gT24gV2VkLCBBdWcg
-OCwgMjAxMiBhdCA3OjU3IEFNLCBEb3VnbGFzIExlZWRlcg0KPiA8ZG91Z2xhcy5sZWVkZXJAc29w
-aG9zLmNvbT4gd3JvdGU6DQo+PiBIaSBEdXN0aW4sIEVyaWM7DQo+Pg0KPj4gV2UgYXJlIGluIHRo
-ZSBmaW5hbCBzdGFnZXMgb2YgcHJvZHVjaW5nIGEgdmVyc2lvbiBvZiBTb3Bob3MNCj4+IEFudGkt
-VmlydXMgZm9yIExpbnV4IHRoYXQgdXNlcyBmYW5vdGlmeSwgYW5kIGhhdmUgaGl0IGFuIGlzc3Vl
-IHdpdGgNCj4+IGZhbm90aWZ5IGFnYWluc3QgZWNyeXB0ZnMgbW91bnRzLg0KPg0KPiBBaCwgaW50
-ZXJlc3RpbmcuICBPa2F5LCBzbyBJJ3ZlIHdvcmtlZCB3aXRoIFNvcGhvcyBpbiB0aGUgcGFzdCwg
-dG8NCj4gYWRkIGVDcnlwdGZzIHRvIHRoZSBkby1ub3Qtc2Nhbi1hdC1tb3VudCBsaXN0IGZvciB0
-YWxwYS4gIEknbSBub3QNCj4gZmFtaWxpYXIgd2l0aCBmYW5vdGlmeSAtLSBpcyBpdCBhIHJlcGxh
-Y2VtZW50IGZvciB3aGF0IFNvcGhvcyB3YXMNCj4gcHJldmlvdXNseSB1c2luZyB0YWxwYSB0byBk
-byAod2F0Y2ggZmlsZXN5c3RlbSBldmVudHMpPw0KDQoNClllcywgZmFub3RpZnkgaXMgdGhlIGJ1
-aWx0LWluIGtlcm5lbCBjb2RlLCB0aGF0IGFsbG93cyB1c2VyIHNwYWNlIHRvDQptb25pdG9yIGZp
-bGUgZXZlbnRzIGZvciBlbnRpcmUgZmlsZXN5c3RlbXMsIHNpbWlsYXIgdG8gaW5vdGlmeS9kbm90
-aWZ5DQpleGNlcHQgZm9yIGVudGlyZSBmaWxlc3lzdGVtcy4NCg0KaHR0cDovL2x3bi5uZXQvQXJ0
-aWNsZXMvMzM5MjUzLw0KDQoNCkl0IGlzIGFuIGFsdGVybmF0aXZlIHRvIFRhbHBhLCBmb3IgbmV3
-ZXIga2VybmVscy4NCg0KDQo+DQo+PiBFcmljIGlzIHRoZSBwZXJzb24gd2hvIGRpZCB0aGUgdmFz
-dCBtYWpvcml0eSBvZiB0aGUgd29yayBpbiBnZXR0aW5nDQo+PiBmYW5vdGlmeSBpbnRvIHRoZSBr
-ZXJuZWwuIER1c3RpbiBpcyB0aGUgdXBzdHJlYW0gZGV2ZWxvcGVyIGZvcg0KPj4gZWNyeXB0ZnMs
-IGFzIHdlbGwgYXMgYW4gVWJ1bnR1IGNvcmUgZGV2ZWxvcGVyLg0KPj4NCj4+IChBdCBsZWFzdCB0
-aGF0IHdhcyB0aGUgY2FzZSBhdCBteSBsYXN0IGNvbnRhY3QgLSBpZiB0aGVyZSBhcmUgbW9yZQ0K
-Pj4gYXBwcm9wcmlhdGUgcGVvcGxlIHRvIGNvbnRhY3QgdGhlbiBwbGVhc2UgZm9yd2FyZCB0aGlz
-IG9uKS4NCj4NCj4gUmlnaHQsIEkgYW0gdGhlIGVDcnlwdGZzIHVzZXJzcGFjZSBtYWludGFpbmVy
-LiAgSSBoYXZlIENDJ2QgVHlsZXINCj4gSGlja3MsIHdobyBpcyB0aGUgZUNyeXB0ZnMga2VybmVs
-IG1vZHVsZSBtYWludGFpbmVyLg0KPg0KPj4gZWNyeXB0ZnMgaXMgdXNlZCBmb3IgZW5jcnlwdGVk
-IGhvbWUgZGlyZWN0b3JpZXMgb24gKGF0IGxlYXN0KQ0KPj4gVWJ1bnR1Lg0KPg0KPiBUaGF0J3Mg
-b25lIHBsYWNlLiAgZUNyeXB0ZnMgaXMgYWxzbyB1c2VkIGluIERlYmlhbiwgQXJjaCwgRmVkb3Jh
-LA0KPiBDZW50T1MsIFJIRUwsIEdvb2dsZSdzIENocm9tZU9TLCBTZWFnYXRlJ3MgTkFTLCBNb3Rv
-cm9sYSBBbmRyb2lkDQo+IHBob25lcywgYW5kIEdhenphbmcncyBlbmNyeXB0aW9uIHByb2R1Y3Rz
-Lg0KDQpJbmRlZWQsIHRoYXQgaXMgd2h5IEkgYWRkZWQgdGhlICIoYXQgbGVhc3QpIiA6LSkNCg0K
-DQo+DQo+PiBUaGlzIGlzc3VlIEknbSBzZWVpbmcgaXMgb24gVWJ1bnR1IDEyLjA0IHdpdGggZW5j
-cnlwdGVkIGhvbWUNCj4+IGRpcmVjdG9yaWVzLiAoMy4yIGtlcm5lbCkNCj4+DQo+PiBBZnRlciB1
-c2luZyBGaXJlZm94IGZvciBhIHNob3J0IHdoaWxlIHdpdGggZmFub3RpZnkgc2Nhbm5pbmcNCj4+
-IGhhcHBlbmluZyAoZm9yIGJvdGggdGhlIGhvc3QgZnMsIGFuZCB0aGUgZWNyeXB0ZnMgbW91bnQp
-LCBpdCB3aWxsDQo+PiBnbyBncmV5IChvciBncmF5IDotKSksIHNpZ25hbGxpbmcgaXQgaGFzIGh1
-bmcuDQo+Pg0KPj4gVHdvIHRocmVhZHMgaW4gRmlyZWZveCB3aXRoIGJlIGluIHRoZSBEIHN0YXRl
-IChJTyBzbGVlcCksIGFuZCB0d28NCj4+IG9mIHRoZSBzY2FubmVyIHRocmVhZHMgd2lsbCBiZSBz
-dHVjayByZWFkaW5nIGZyb20gdGhlIGZhbm90aWZ5IGZkLg0KPj4gVGhlc2UgcmVtYWluIHN0dWNr
-IHVudGlsIHRoZSBtYWNoaW5lIGlzIHJlYm9vdGVkLg0KPj4NCj4+IEkndmUgZ290IGEgdGVzdCAn
-c2Nhbm5lcicgdGhhdCBJJ3ZlIG1hbmFnZWQgdG8gcmVwcm9kdWNlIHRoZSBpc3N1ZQ0KPj4gd2l0
-aDoNCj4+DQo+PiBBdHRhY2hlZCB0YXJmaWxlOiBmYW5vdGlmeS5lY3J5cHlmcy50Z3oNCj4+DQo+
-PiBnaXRodWI6IGh0dHBzOi8vZ2l0aHViLmNvbS9wYXBlcmNsaXAvZmFub3RpZnktZWNyeXB0ZnMt
-dGVzdA0KPj4NCj4+DQo+PiBIb3dldmVyIGl0IGRvZXNuJ3QgaGFwcGVuIGV2ZXJ5IHRpbWUsIGFu
-ZCBJJ3ZlIG5vdCByZXByb2R1Y2VkIGl0IG9uDQo+PiBhIFZNLg0KPj4NCj4+IFBvaW50cyBvbiBu
-b3RlOiAxKSBFdmVyeSBmaWxlIG9uIGVjcnlwdGZzIGlzIGJhY2tlZCBieSBhIGZpbGUgb24NCj4+
-IHRoZSBob3N0IGZzIDIpIFRodXMgZXZlcnkgYWNjZXNzIHRvIGFuIGVjcnlwdGZzIGFsc28gZ2Vu
-ZXJhdGVzIGENCj4+IGZpbGUgYWNjZXNzIHRvIHRoZSBob3N0IGZzLiAzKSBmYW5vdGlmeSBjYW4g
-ZGVsaXZlciBtdWx0aXBsZSBmaWxlDQo+PiBhY2Nlc3NlcyBpbiBhIHNpbmdsZSBldmVudC4NCj4N
-Cj4gV2hhdCBkbyB5b3Ugd2FudCB0byBzY2FuPyAgVGhlIGxvd2VyLCBlbmNyeXB0ZWQgZmlsZXMs
-IG9yIHRoZSB1cHBlciwNCj4gZGVjcnlwdGVkIChjbGVhcnRleHQpIG9uZXM/DQoNCg0KDQpTbyB0
-aGUgcHJvYmxlbSBpcyB0aGF0IGZhbm90aWZ5IHdvcmtzIG9uIGEgZmlsZXN5c3RlbSBsZXZlbCwg
-c28NCndlIHNjYW4gdGhlIGVjcnlwdGZzIHRvIGFjdHVhbGx5IHNjYW4gdGhlIGNsZWFyIHZlcnNp
-b24gb2YgdGhlIGZpbGVzLCBhbmQgZ2V0IHRoZSBlbmNyeXB0ZWQgdmVyc2lvbiBhcyBhIHNpZGUt
-ZWZmZWN0IG9mIHNjYW5uaW5nIHRoZSByb290L3BhcmVudCBmaWxlc3lzdGVtLiAoU2luY2UgZWNy
-eXB0ZnMgZW5jcnlwdGVkIGZpbGVzIGFyZSBub3JtYWxseSBzdG9yZWQgb24gdGhlIG5vcm1hbCBw
-YXJlbnQgZnMpDQoNCldlIGNhbid0IHVzZWZ1bGx5IHNjYW4gdGhlIGVuY3J5cHRlZCBmaWxlcywg
-YnV0IGNhbid0IGV4Y2x1ZGUgdGhlbS4NCg0KDQoNCg0KPg0KPj4gR2l2ZW4gdGhlIHVucmVsaWFi
-bGUgbmF0dXJlIG9mIHRoZSByZXByb2R1Y3Rpb24gc3RlcHM7IGFuZCB0aGUgZmFjdA0KPj4gdGhh
-dCB3aGVuIHRoaW5ncyBoYW5nIGl0IGlzIGFsd2F5cyAyIHRocmVhZHMsIHJhdGhlciB0aGFuIDEg
-b3IgMw0KPj4gdGhhdCBoYW5nOiBJIGJlbGlldmUgdGhhdCB0aGVyZSBpcyBzb21lIGtpbmQgb2Yg
-cmFjZSBjb25kaXRpb24gd2hlbg0KPj4gbW9yZSB0aGFuIG9uZSBmaWxlIG9uIGFuIGVjcnlwdGZz
-IG1vdW50IGlzIGFjY2Vzc2VkIGF0IHRoZSBzYW1lDQo+PiB0aW1lLg0KPg0KPiBUeWxlciwgeW91
-J3ZlIGxvb2tlZCBhIGZldyByYWNlIGNvbmRpdGlvbnMgcmVjZW50bHkuLi4gIERvZXMgdGhpcw0K
-PiBvbmUgcmluZyBhIGJlbGw/DQoNCkkgdGhpbmsgaXQgbXVzdCBiZSBhIHJhY2UgY29uZGl0aW9u
-LCBhdCBsZWFzdCBpbiBwYXJ0LCBzaW5jZSBpdCBkb2Vzbid0IGhhcHBlbg0KZXZlcnkgdGltZSwg
-YW5kIGF0IGEgZGlmZmVyZW50IHBvaW50IGVhY2ggdGltZSwgYW5kIHNpbXBsZSBmaWxlIGFjY2Vz
-cyBpcyBmaW5lLg0KDQo+DQo+PiBJIHdvbmRlciBpZiBlYWNoIGZhbm90aWZ5IGV2ZW50IGNvbnRh
-aW5zIHRoZSBlY3J5cHRmcyBhY2Nlc3MgZnJvbQ0KPj4gb25lIGNsaWVudCB0aHJlYWQsIGFuZCB0
-aGUgaG9zdCBmcyBhY2Nlc3MgZnJvbSB0aGUgb3RoZXI/DQo+Pg0KPj4gSXMgdGhlcmUgYW55IGFk
-dmljZSB5b3UgY2FuIG9mZmVyPyBJIHdvbmRlciBpZiBmYW5vdGlmeSBuZWVkcyB0bw0KPj4gZGVs
-aXZlciBwZXJtaXNzaW9uIGV2ZW50cyBvbmUgYXQgYSB0aW1lPyBPciBjYW4geW91IHBvaW50IG1l
-IGF0DQo+PiBhcHByb3ByaWF0ZSBzb3VyY2VzIHRvIGxvb2sgYXQgZm9yIGZ1cnRoZXIgaW5mb3Jt
-YXRpb24uDQo+Pg0KPj4gSW4gYW4gaWRlYWwgd29ybGQgdGhlcmUgd291bGQgYmUgc29tZSBmaXgg
-dG8gdGhlIHNjYW5uZXIgdG8gYXZvaWQNCj4+IHRoZSBwcm9ibGVtLCBidXQgSSdtIG5vdCBzdXJl
-IHdoYXQgaXQgY291bGQgYmUsIHNvIHRoZSBzb2x1dGlvbg0KPj4gbWlnaHQgb25seSBiZSBhcHBs
-aWNhYmxlIHRvIGZ1dHVyZSBrZXJuZWxzLg0KPg0KPiBJbnRlcmVzdGluZy4gIFBlcmhhcHMgYW4g
-SS9PIHN5bmNocm9uaWNpdHkgcHJvYmxlbS4gIEkgZG9uJ3Qga25vdw0KPiBtdWNoIGFib3V0IFNv
-cGhvcyBvciBmYW5vdGlmeSwgYnV0IGF0IGEgaGlnaCBsZXZlbCwgSSB3b3VsZCB0aGluaw0KPiB0
-aGF0IFNvcGhvcyB3b3VsZCBuZWVkIHRvIHdhdGNoIHRoZSB1cHBlciwgY2xlYXIgdGV4dCBmaWxl
-cyByaWdodD8NCj4gVGhvc2UgY2xlYXIgdGV4dCBmaWxlcywgb2YgY291cnNlLCBkb24ndCBhY3R1
-YWxseSBleGlzdCBhcyBjbGVhciB0ZXh0DQo+IGZpbGVzLiBUaGV5J3JlIGRlY3J5cHRlZCBhbmQg
-cmVuZGVyZWQgaW4gbWVtb3J5IG9uIGRlbWFuZC4gIFNpbmNlDQo+IGVDcnlwdGZzIGlzIGEgbGF5
-ZXJlZCBmaWxlc3lzdGVtLCBwZXJoYXBzIGZhbm90aWZ5IG1pZ2h0IG5lZWQgdG8NCj4gaGFuZGxl
-IHRoaW5ncyBhIGxpdHRsZSBkaWZmZXJlbnRseSwgd2F0Y2hpbmcgZXZlbnRzIG9ubHkgb24gdGhl
-IGxvd2VyDQo+IGZpbGVzeXN0ZW0/DQo+DQoNClNvIGFzLCBJIHNlbnQgbGF0ZXIsIG1ha2luZyBm
-YW5vdGlmeSBvbmx5IHJldHVybiBvbmUgZmlsZSBldmVudCBwZXIgZmFub3RpZnkgcmVhZCgpLCBT
-byB0aGF0IHN1Z2dlc3RzIHRoYXQgdGhlIHJlcXVlc3QgaXMgZ2V0dGluZyBzdHVjayBpbiBhIGN5
-Y2xlIG9yIGFkZGluZyBhIHJlcXVlc3QuDQoNCkZsb3JpYW4gaGFzIGFsc28gYmVlbiBsb29raW5n
-IGF0IHRoaXMgcHJvYmxlbSwgYW5kIGhhcyBwb2ludGVkIG91dCB0aGF0IEZNT0RFX05PTk9USUZZ
-IHNob3VsZCBwcmV2ZW50IHRoZSBsb29wIHNlZW4gaW4gdGhlIGJhY2t0cmFjZSwgc28gSSdtIHdv
-bmRlcmluZyBpZiBpdCdzIGdldHRpbmcgbG9zdCBzb21ld2hlcmUgaW4gZWNyeXB0ZnMuIE9yIHBl
-cmhhcHMgaXQgbmVlZHMgdG8gYmUgZXhwbGljaXRseSBwcm9wYWdhdGVkIHRvIHRoZSBvcGVuIHJl
-cXVlc3QgZm9yIHRoZSBsb3dlciBmaWxlPw0KDQpUaGFua3MuDQoNCi0tDQpEb3VnbGFzIExlZWRl
-ciwgU2VuaW9yIFNvZnR3YXJlIEVuZ2luZWVyDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fDQoNClNvcGhvcyBMaW1pdGVkLCBUaGUgUGVudGFnb24sIEFiaW5nZG9uIFNjaWVuY2Ug
-UGFyaywgQWJpbmdkb24sIE9YMTQgM1lQLCBVbml0ZWQgS2luZ2RvbS4NCkNvbXBhbnkgUmVnIE5v
-IDIwOTY1MjAuIFZBVCBSZWcgTm8gR0IgOTkxIDI0MTggMDguDQo=
+Douglas Leeder <douglas.leeder-j34lQMj1tz/QT0dZR+AlfA@public.gmane.org> wrote:
+> So as, I sent later, making fanotify only return one file event per fanotify read(), So that suggests that the request is getting stuck in a cycle or adding a request.
+> 
+> Florian has also been looking at this problem, and has pointed out that FMODE_NONOTIFY should prevent the loop seen in the backtrace, so I'm wondering if it's getting lost somewhere in ecryptfs. Or perhaps it needs to be explicitly propagated to the open request for the lower file?
+
+Douglas, can you reproduce the problem with this patch applied?
+
+diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+index 809e67d..1d8a53b 100644
+--- a/fs/ecryptfs/kthread.c
++++ b/fs/ecryptfs/kthread.c
+@@ -74,7 +74,7 @@ static int ecryptfs_threadfn(void *ignored)
+ 					       kthread_ctl_list);
+ 			list_del(&req->kthread_ctl_list);
+ 			*req->lower_file = dentry_open(&req->path,
+-				(O_RDWR | O_LARGEFILE), current_cred());
++				(O_RDWR | O_LARGEFILE | FMODE_NONOTIFY), current_cred());
+ 			complete(&req->done);
+ 		}
+ 		mutex_unlock(&ecryptfs_kthread_ctl.mux);
+@@ -133,7 +133,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
+ 			     const struct cred *cred)
+ {
+ 	struct ecryptfs_open_req req;
+-	int flags = O_LARGEFILE;
++	int flags = O_LARGEFILE|FMODE_NONOTIFY;
+ 	int rc = 0;
+ 
+ 	init_completion(&req.done);
