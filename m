@@ -1,52 +1,57 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH] eCryptfs: fix to use list_for_each_entry_safe() when delete items
-Date: Tue, 21 Aug 2012 10:46:05 +0800
-Message-ID: <CAPgLHd_q_WY4Getb5ZE0OGLmQ07BzDKsAdwpaOKqsTfv=Msoyw@mail.gmail.com>
+From: "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>
+Subject: RE: [PATCH] eCryptfs: use list_for_each_safe() when the loop
+ involves delete items
+Date: Tue, 21 Aug 2012 02:16:37 +0000
+Message-ID: <A360F954C61C69449463B060666371121BA9A660@CDCEXMBX01.tw.trendnet.org>
+References: <CAPgLHd_S3EcvrE+wCd7VMmwUqioX1vOpO54xcxL2o=gp9hHAhA@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:53205 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754206Ab2HUCqH (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 20 Aug 2012 22:46:07 -0400
-Received: by qaas11 with SMTP id s11so3355272qaa.19
-        for <ecryptfs@vger.kernel.org>; Mon, 20 Aug 2012 19:46:05 -0700 (PDT)
+Received: from sjdciscan02.udc.trendmicro.com ([66.180.82.18]:40859 "EHLO
+	sjdciscan02.udc.trendmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754206Ab2HUCql (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 20 Aug 2012 22:46:41 -0400
+In-Reply-To: <CAPgLHd_S3EcvrE+wCd7VMmwUqioX1vOpO54xcxL2o=gp9hHAhA@mail.gmail.com>
+Content-Language: en-US
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com, dustin.kirkland@gazzang.com
-Cc: yongjun_wei@trendmicro.com.cn, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Wei Yongjun <weiyj.lk@gmail.com>, "tyhicks@canonical.com" <tyhicks@canonical.com>, "dustin.kirkland@gazzang.com" <dustin.kirkland@gazzang.com>
+Cc: "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-
-Since we will be removing items off the list using list_del() we need
-to use a safer version of the list_for_each_entry() macro aptly named
-list_for_each_entry_safe(). We should use the safe macro if the loop
-involves deletions of items.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- fs/ecryptfs/kthread.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
-index 809e67d..088f5b7 100644
---- a/fs/ecryptfs/kthread.c
-+++ b/fs/ecryptfs/kthread.c
-@@ -102,12 +102,12 @@ int __init ecryptfs_init_kthread(void)
- 
- void ecryptfs_destroy_kthread(void)
- {
--	struct ecryptfs_open_req *req;
-+	struct ecryptfs_open_req *req, *tmp;
- 
- 	mutex_lock(&ecryptfs_kthread_ctl.mux);
- 	ecryptfs_kthread_ctl.flags |= ECRYPTFS_KTHREAD_ZOMBIE;
--	list_for_each_entry(req, &ecryptfs_kthread_ctl.req_list,
--			    kthread_ctl_list) {
-+	list_for_each_entry_safe(req, &ecryptfs_kthread_ctl.req_list,
-+				 kthread_ctl_list) {
- 		list_del(&req->kthread_ctl_list);
- 		*req->lower_file = ERR_PTR(-EIO);
- 		complete(&req->done);
-
+U29ycnkgZm9yIHRoZSBiYWQgcGF0Y2ggdGl0bGUgYW5kIGRlc2NyaXB0aW9uLCBwbGVhc2UgaWdu
+b3JlIHRoaXMgcGF0Y2gsDQpBbmQgSSB3aWxsIHNlbmQgYSB1cGRhdGUgdmVyc2lvbi4NCg0KVGhh
+bmtzDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBXZWkgWW9uZ2p1biBbbWFp
+bHRvOndlaXlqLmxrQGdtYWlsLmNvbV0gDQpTZW50OiAyMDEyxOo41MIyMcjVIDg6MzgNClRvOiB0
+eWhpY2tzQGNhbm9uaWNhbC5jb207IGR1c3Rpbi5raXJrbGFuZEBnYXp6YW5nLmNvbQ0KQ2M6IFlv
+bmdqdW4gV2VpIChSRC1DTik7IGVjcnlwdGZzQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogW1BB
+VENIXSBlQ3J5cHRmczogdXNlIGxpc3RfZm9yX2VhY2hfc2FmZSgpIHdoZW4gdGhlIGxvb3AgaW52
+b2x2ZXMgZGVsZXRlIGl0ZW1zDQoNCkZyb206IFdlaSBZb25nanVuIDx5b25nanVuX3dlaUB0cmVu
+ZG1pY3JvLmNvbS5jbj4NCg0KDQpGcm9tOiBXZWkgWW9uZ2p1biA8eW9uZ2p1bl93ZWlAdHJlbmRt
+aWNyby5jb20uY24+DQoNClNpbmNlIHdlIHdpbGwgYmUgcmVtb3ZpbmcgaXRlbXMgb2ZmIHRoZSBs
+aXN0IHVzaW5nIGxpc3RfZGVsKCkgd2UgbmVlZCB0byB1c2UgYSBzYWZlciB2ZXJzaW9uIG9mIHRo
+ZSBsaXN0X2Zvcl9lYWNoKCkgbWFjcm8gYXB0bHkgbmFtZWQgbGlzdF9mb3JfZWFjaF9zYWZlKCku
+IE5vdGUgdGhhdCB3ZSBNVVNUIHVzZSB0aGlzIG1hY3JvIGlmIHRoZSBsb29wIGludm9sdmVzIGRl
+bGV0aW9ucyBvZiBpdGVtcyAob3IgbW92aW5nIGl0ZW1zIGZyb20gb25lIGxpc3QgdG8gYW5vdGhl
+cikuDQoNClNpZ25lZC1vZmYtYnk6IFdlaSBZb25nanVuIDx5b25nanVuX3dlaUB0cmVuZG1pY3Jv
+LmNvbS5jbj4NCi0tLQ0KIGZzL2VjcnlwdGZzL2t0aHJlYWQuYyB8IDQgKystLQ0KIDEgZmlsZSBj
+aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9m
+cy9lY3J5cHRmcy9rdGhyZWFkLmMgYi9mcy9lY3J5cHRmcy9rdGhyZWFkLmMgaW5kZXggODA5ZTY3
+ZC4uMDcyY2VlZSAxMDA2NDQNCi0tLSBhL2ZzL2VjcnlwdGZzL2t0aHJlYWQuYw0KKysrIGIvZnMv
+ZWNyeXB0ZnMva3RocmVhZC5jDQpAQCAtMTAyLDExICsxMDIsMTEgQEAgaW50IF9faW5pdCBlY3J5
+cHRmc19pbml0X2t0aHJlYWQodm9pZCkNCiANCiB2b2lkIGVjcnlwdGZzX2Rlc3Ryb3lfa3RocmVh
+ZCh2b2lkKQ0KIHsNCi0Jc3RydWN0IGVjcnlwdGZzX29wZW5fcmVxICpyZXE7DQorCXN0cnVjdCBl
+Y3J5cHRmc19vcGVuX3JlcSAqcmVxLCAqdG1wOw0KIA0KIAltdXRleF9sb2NrKCZlY3J5cHRmc19r
+dGhyZWFkX2N0bC5tdXgpOw0KIAllY3J5cHRmc19rdGhyZWFkX2N0bC5mbGFncyB8PSBFQ1JZUFRG
+U19LVEhSRUFEX1pPTUJJRTsNCi0JbGlzdF9mb3JfZWFjaF9lbnRyeShyZXEsICZlY3J5cHRmc19r
+dGhyZWFkX2N0bC5yZXFfbGlzdCwNCisJbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKHJlcSwgdG1w
+LCAmZWNyeXB0ZnNfa3RocmVhZF9jdGwucmVxX2xpc3QsDQogCQkJICAgIGt0aHJlYWRfY3RsX2xp
+c3QpIHsNCiAJCWxpc3RfZGVsKCZyZXEtPmt0aHJlYWRfY3RsX2xpc3QpOw0KIAkJKnJlcS0+bG93
+ZXJfZmlsZSA9IEVSUl9QVFIoLUVJTyk7DQoNCg0KDQpUUkVORCBNSUNSTyBFTUFJTCBOT1RJQ0UN
+ClRoZSBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBhbmQgYW55IGF0dGFjaG1l
+bnRzIGlzIGNvbmZpZGVudGlhbCBhbmQgbWF5IGJlIHN1YmplY3QgdG8gY29weXJpZ2h0IG9yIG90
+aGVyIGludGVsbGVjdHVhbCBwcm9wZXJ0eSBwcm90ZWN0aW9uLiBJZiB5b3UgYXJlIG5vdCB0aGUg
+aW50ZW5kZWQgcmVjaXBpZW50LCB5b3UgYXJlIG5vdCBhdXRob3JpemVkIHRvIHVzZSBvciBkaXNj
+bG9zZSB0aGlzIGluZm9ybWF0aW9uLCBhbmQgd2UgcmVxdWVzdCB0aGF0IHlvdSBub3RpZnkgdXMg
+YnkgcmVwbHkgbWFpbCBvciB0ZWxlcGhvbmUgYW5kIGRlbGV0ZSB0aGUgb3JpZ2luYWwgbWVzc2Fn
+ZSBmcm9tIHlvdXIgbWFpbCBzeXN0ZW0u
