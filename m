@@ -1,73 +1,82 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: Copy up attributes of the lower target inode after rename
-Date: Thu, 13 Sep 2012 21:40:04 -0700
-Message-ID: <1347597604-14905-1-git-send-email-tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 3.6-rc6
+Date: Fri, 14 Sep 2012 10:24:09 -0700
+Message-ID: <20120914172408.GA22346@boyd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49818 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:52891 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825Ab2INEkR (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 14 Sep 2012 00:40:17 -0400
+	with ESMTP id S1752642Ab2INRYP (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 14 Sep 2012 13:24:15 -0400
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: Colin King <colin.king@canonical.com>, Sergio Pena <sergio.pena@gazzang.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-After calling into the lower filesystem to do a rename, the lower target
-inode's attributes were not copied up to the eCryptfs target inode. This
-resulted in the eCryptfs target inode staying around, rather than being
-evicted, because i_nlink was not updated for the eCryptfs inode. This
-also meant that eCryptfs didn't do the final iput() on the lower target
-inode so it stayed around, as well. This would result in a failure to
-free up space occupied by the target file in the rename() operation.
-Both target inodes would eventually be evicted when the eCryptfs
-filesystem was unmounted.
 
-This patch calls fsstack_copy_attr_all() after the lower filesystem
-does its ->rename() so that important inode attributes, such as i_nlink,
-are updated at the eCryptfs layer. ecryptfs_evict_inode() is now called
-and eCryptfs can drop its final reference on the lower inode.
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-http://launchpad.net/bugs/561129
+Hi Linus,
 
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Cc: Colin King <colin.king@canonical.com>
-Cc: Sergio Pena <sergio.pena@gazzang.com>
----
+The following changes since commit e9bd8f1624cb0f647867d6cced79cb26ef3651bf:
+
+  Merge branch 'for-linus' of git://git.samba.org/sfrench/cifs-2.6 (2012-09-11 05:52:49 +0800)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.6-rc6-fixes
+
+for you to fetch changes up to 8335eafc2859e1a26282bef7c3d19f3d68868b8a:
+
+  eCryptfs: Copy up attributes of the lower target inode after rename (2012-09-14 09:36:03 -0700)
+
+----------------------------------------------------------------
+- Fixes a regression, introduced in 3.6-rc1, when a file is closed before its
+  shared memory mapping is dirtied and unmapped. The lower file was being
+  released when the eCryptfs file was closed and the dirtied pages could not be
+  written out.
+- Adds a call to the lower filesystem's ->flush() from ecryptfs_flush().
+- Fixes a regression, introduced in 2.6.39, when a file is renamed on top of
+  another file. The target file's inode was not being evicted and the space
+  taken by the file was not reclaimed until eCryptfs was unmounted.
+
+----------------------------------------------------------------
+Tyler Hicks (3):
+      eCryptfs: Write out all dirty pages just before releasing the lower file
+      eCryptfs: Call lower ->flush() from ecryptfs_flush()
+      eCryptfs: Copy up attributes of the lower target inode after rename
+
+ fs/ecryptfs/file.c  |   10 ++++++++--
  fs/ecryptfs/inode.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ecryptfs/main.c  |    1 +
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 534b129..cc7709e 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -619,6 +619,7 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 	struct dentry *lower_old_dir_dentry;
- 	struct dentry *lower_new_dir_dentry;
- 	struct dentry *trap = NULL;
-+	struct inode *target_inode;
- 
- 	lower_old_dentry = ecryptfs_dentry_to_lower(old_dentry);
- 	lower_new_dentry = ecryptfs_dentry_to_lower(new_dentry);
-@@ -626,6 +627,7 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 	dget(lower_new_dentry);
- 	lower_old_dir_dentry = dget_parent(lower_old_dentry);
- 	lower_new_dir_dentry = dget_parent(lower_new_dentry);
-+	target_inode = new_dentry->d_inode;
- 	trap = lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
- 	/* source should not be ancestor of target */
- 	if (trap == lower_old_dentry) {
-@@ -641,6 +643,9 @@ ecryptfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 			lower_new_dir_dentry->d_inode, lower_new_dentry);
- 	if (rc)
- 		goto out_lock;
-+	if (target_inode)
-+		fsstack_copy_attr_all(target_inode,
-+				      ecryptfs_inode_to_lower(target_inode));
- 	fsstack_copy_attr_all(new_dir, lower_new_dir_dentry->d_inode);
- 	if (new_dir != old_dir)
- 		fsstack_copy_attr_all(old_dir, lower_old_dir_dentry->d_inode);
--- 
-1.7.10.4
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJQU2g4AAoJENaSAD2qAscKHq8QAJZWdC9Xgoal8aldGX82e4Fz
+L8Cgg0aqA3IHcmwGfrj8JQ6G/2JrKwLOYbcLrfjXIa7R/vEnhsdBwiQZQiFWPf3z
+vOgtL73p2BE7X0CIhU7F+EbF7EbTztKTxeQ7xpxdi96B5uhyvzou1EwzF1zJ6WPS
+OXcGzaeqi7y2awuDbPLPjyKGJz3e7Zi8sQb6Knj0duseNgFplIJOD1p2/V1VpQkw
+VWJBmwti5xLARgEXNijFJOwa86wkgjl5mOdvd16+YY2GxoDBEt+hhv+Ufy774Xkn
+DXDstlfT+vogvoogUTf09I058CZoSwUQsl8IgulWJwhS+aFf6WPvHwcsR3tCWGJE
+wRoM8/eHylFEPP2grxpvfBuQzFHOI2NgplO6Envj3+xisqx1K4psN1fi6w3xBHow
+oOc1siJ9dCSpKvs81Efe4ImQvh4xgOLVXkcG0gdx0cm+EUHCDkHWBxtTcAhsJcBp
+92I+6Prv/oDBceDSf9naGuS0iwm3+oNWP6sGb9V3RqYcgCn9XPVV4tMUBbZA06tA
+Y/mTi3TfVBvhdUX5q54UGLbOvx9UHgTgXBoDhrcHdM/VDB8oDz50JPKSCTg3aSuQ
+go0EyJdnVVVawqOKOEbsfhXD9f+DTC9rDHn+Frzv3YvURUXqEj8aa0bbWT/NBCMR
+iI+Vpe6SaHWv1h1395Op
+=qiKA
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
