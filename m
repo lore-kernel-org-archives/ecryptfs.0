@@ -1,12 +1,14 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH 1/2] eCryptfs: Write out all dirty pages just before releasing the lower file
-Date: Thu, 13 Sep 2012 21:39:10 -0700
-Message-ID: <1347597551-14832-1-git-send-email-tyhicks@canonical.com>
+Subject: [PATCH 2/2] eCryptfs: Call lower ->flush() from ecryptfs_flush()
+Date: Thu, 13 Sep 2012 21:39:11 -0700
+Message-ID: <1347597551-14832-2-git-send-email-tyhicks@canonical.com>
+References: <1347597551-14832-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49810 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:49813 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825Ab2INEjd (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 14 Sep 2012 00:39:33 -0400
+	with ESMTP id S1750825Ab2INEjo (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 14 Sep 2012 00:39:44 -0400
+In-Reply-To: <1347597551-14832-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
@@ -15,41 +17,43 @@ Content-Transfer-Encoding: 7bit
 To: ecryptfs@vger.kernel.org
 Cc: Colin King <colin.king@canonical.com>, Sergio Pena <sergio.pena@gazzang.com>
 
-Fixes a regression caused by:
+Since eCryptfs only calls fput() on the lower file in
+ecryptfs_release(), eCryptfs should call the lower filesystem's
+->flush() from ecryptfs_flush().
 
-821f749 eCryptfs: Revert to a writethrough cache model
-
-That patch reverted some code (specifically, 32001d6f) that was
-necessary to properly handle open() -> mmap() -> close() -> dirty pages
--> munmap(), because the lower file could be closed before the dirty
-pages are written out.
-
-Rather than reapplying 32001d6f, this approach is a better way of
-ensuring that the lower file is still open in order to handle writing
-out the dirty pages. It is called from ecryptfs_release(), while we have
-a lock on the lower file pointer, just before the lower file gets the
-final fput() and we overwrite the pointer.
-
-https://launchpad.net/bugs/1047261
+If the lower filesystem implements ->flush(), then eCryptfs should try
+to flush out any dirty pages prior to calling the lower ->flush(). If
+the lower filesystem does not implement ->flush(), then eCryptfs has no
+need to do anything in ecryptfs_flush() since dirty pages are now
+written out to the lower filesystem in ecryptfs_release().
 
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 Cc: Colin King <colin.king@canonical.com>
 Cc: Sergio Pena <sergio.pena@gazzang.com>
 ---
- fs/ecryptfs/main.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ecryptfs/file.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 2768138..9b627c1 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -162,6 +162,7 @@ void ecryptfs_put_lower_file(struct inode *inode)
- 	inode_info = ecryptfs_inode_to_private(inode);
- 	if (atomic_dec_and_mutex_lock(&inode_info->lower_file_count,
- 				      &inode_info->lower_file_mutex)) {
-+		filemap_write_and_wait(inode->i_mapping);
- 		fput(inode_info->lower_file);
- 		inode_info->lower_file = NULL;
- 		mutex_unlock(&inode_info->lower_file_mutex);
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 44ce5c6..d45ba45 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -275,8 +275,14 @@ out:
+ 
+ static int ecryptfs_flush(struct file *file, fl_owner_t td)
+ {
+-	return file->f_mode & FMODE_WRITE
+-	       ? filemap_write_and_wait(file->f_mapping) : 0;
++	struct file *lower_file = ecryptfs_file_to_lower(file);
++
++	if (lower_file->f_op && lower_file->f_op->flush) {
++		filemap_write_and_wait(file->f_mapping);
++		return lower_file->f_op->flush(lower_file, td);
++	}
++
++	return 0;
+ }
+ 
+ static int ecryptfs_release(struct inode *inode, struct file *file)
 -- 
 1.7.10.4
