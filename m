@@ -1,57 +1,55 @@
-From: "yongjun_wei@trendmicro.com.cn" <yongjun_wei@trendmicro.com.cn>
-Subject: RE: [PATCH] eCryptfs: use list_for_each_safe() when the loop
- involves delete items
-Date: Tue, 21 Aug 2012 02:16:37 +0000
-Message-ID: <A360F954C61C69449463B060666371121BA9A660@CDCEXMBX01.tw.trendnet.org>
-References: <CAPgLHd_S3EcvrE+wCd7VMmwUqioX1vOpO54xcxL2o=gp9hHAhA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [PATCH 1/2] eCryptfs: Write out all dirty pages just before releasing the lower file
+Date: Thu, 13 Sep 2012 21:39:10 -0700
+Message-ID: <1347597551-14832-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from sjdciscan02.udc.trendmicro.com ([66.180.82.18]:40859 "EHLO
-	sjdciscan02.udc.trendmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754206Ab2HUCql (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 20 Aug 2012 22:46:41 -0400
-In-Reply-To: <CAPgLHd_S3EcvrE+wCd7VMmwUqioX1vOpO54xcxL2o=gp9hHAhA@mail.gmail.com>
-Content-Language: en-US
+Received: from youngberry.canonical.com ([91.189.89.112]:49810 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825Ab2INEjd (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 14 Sep 2012 00:39:33 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Wei Yongjun <weiyj.lk@gmail.com>, "tyhicks@canonical.com" <tyhicks@canonical.com>, "dustin.kirkland@gazzang.com" <dustin.kirkland@gazzang.com>
-Cc: "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
+Cc: Colin King <colin.king@canonical.com>, Sergio Pena <sergio.pena@gazzang.com>
 
-U29ycnkgZm9yIHRoZSBiYWQgcGF0Y2ggdGl0bGUgYW5kIGRlc2NyaXB0aW9uLCBwbGVhc2UgaWdu
-b3JlIHRoaXMgcGF0Y2gsDQpBbmQgSSB3aWxsIHNlbmQgYSB1cGRhdGUgdmVyc2lvbi4NCg0KVGhh
-bmtzDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBXZWkgWW9uZ2p1biBbbWFp
-bHRvOndlaXlqLmxrQGdtYWlsLmNvbV0gDQpTZW50OiAyMDEyxOo41MIyMcjVIDg6MzgNClRvOiB0
-eWhpY2tzQGNhbm9uaWNhbC5jb207IGR1c3Rpbi5raXJrbGFuZEBnYXp6YW5nLmNvbQ0KQ2M6IFlv
-bmdqdW4gV2VpIChSRC1DTik7IGVjcnlwdGZzQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogW1BB
-VENIXSBlQ3J5cHRmczogdXNlIGxpc3RfZm9yX2VhY2hfc2FmZSgpIHdoZW4gdGhlIGxvb3AgaW52
-b2x2ZXMgZGVsZXRlIGl0ZW1zDQoNCkZyb206IFdlaSBZb25nanVuIDx5b25nanVuX3dlaUB0cmVu
-ZG1pY3JvLmNvbS5jbj4NCg0KDQpGcm9tOiBXZWkgWW9uZ2p1biA8eW9uZ2p1bl93ZWlAdHJlbmRt
-aWNyby5jb20uY24+DQoNClNpbmNlIHdlIHdpbGwgYmUgcmVtb3ZpbmcgaXRlbXMgb2ZmIHRoZSBs
-aXN0IHVzaW5nIGxpc3RfZGVsKCkgd2UgbmVlZCB0byB1c2UgYSBzYWZlciB2ZXJzaW9uIG9mIHRo
-ZSBsaXN0X2Zvcl9lYWNoKCkgbWFjcm8gYXB0bHkgbmFtZWQgbGlzdF9mb3JfZWFjaF9zYWZlKCku
-IE5vdGUgdGhhdCB3ZSBNVVNUIHVzZSB0aGlzIG1hY3JvIGlmIHRoZSBsb29wIGludm9sdmVzIGRl
-bGV0aW9ucyBvZiBpdGVtcyAob3IgbW92aW5nIGl0ZW1zIGZyb20gb25lIGxpc3QgdG8gYW5vdGhl
-cikuDQoNClNpZ25lZC1vZmYtYnk6IFdlaSBZb25nanVuIDx5b25nanVuX3dlaUB0cmVuZG1pY3Jv
-LmNvbS5jbj4NCi0tLQ0KIGZzL2VjcnlwdGZzL2t0aHJlYWQuYyB8IDQgKystLQ0KIDEgZmlsZSBj
-aGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9m
-cy9lY3J5cHRmcy9rdGhyZWFkLmMgYi9mcy9lY3J5cHRmcy9rdGhyZWFkLmMgaW5kZXggODA5ZTY3
-ZC4uMDcyY2VlZSAxMDA2NDQNCi0tLSBhL2ZzL2VjcnlwdGZzL2t0aHJlYWQuYw0KKysrIGIvZnMv
-ZWNyeXB0ZnMva3RocmVhZC5jDQpAQCAtMTAyLDExICsxMDIsMTEgQEAgaW50IF9faW5pdCBlY3J5
-cHRmc19pbml0X2t0aHJlYWQodm9pZCkNCiANCiB2b2lkIGVjcnlwdGZzX2Rlc3Ryb3lfa3RocmVh
-ZCh2b2lkKQ0KIHsNCi0Jc3RydWN0IGVjcnlwdGZzX29wZW5fcmVxICpyZXE7DQorCXN0cnVjdCBl
-Y3J5cHRmc19vcGVuX3JlcSAqcmVxLCAqdG1wOw0KIA0KIAltdXRleF9sb2NrKCZlY3J5cHRmc19r
-dGhyZWFkX2N0bC5tdXgpOw0KIAllY3J5cHRmc19rdGhyZWFkX2N0bC5mbGFncyB8PSBFQ1JZUFRG
-U19LVEhSRUFEX1pPTUJJRTsNCi0JbGlzdF9mb3JfZWFjaF9lbnRyeShyZXEsICZlY3J5cHRmc19r
-dGhyZWFkX2N0bC5yZXFfbGlzdCwNCisJbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKHJlcSwgdG1w
-LCAmZWNyeXB0ZnNfa3RocmVhZF9jdGwucmVxX2xpc3QsDQogCQkJICAgIGt0aHJlYWRfY3RsX2xp
-c3QpIHsNCiAJCWxpc3RfZGVsKCZyZXEtPmt0aHJlYWRfY3RsX2xpc3QpOw0KIAkJKnJlcS0+bG93
-ZXJfZmlsZSA9IEVSUl9QVFIoLUVJTyk7DQoNCg0KDQpUUkVORCBNSUNSTyBFTUFJTCBOT1RJQ0UN
-ClRoZSBpbmZvcm1hdGlvbiBjb250YWluZWQgaW4gdGhpcyBlbWFpbCBhbmQgYW55IGF0dGFjaG1l
-bnRzIGlzIGNvbmZpZGVudGlhbCBhbmQgbWF5IGJlIHN1YmplY3QgdG8gY29weXJpZ2h0IG9yIG90
-aGVyIGludGVsbGVjdHVhbCBwcm9wZXJ0eSBwcm90ZWN0aW9uLiBJZiB5b3UgYXJlIG5vdCB0aGUg
-aW50ZW5kZWQgcmVjaXBpZW50LCB5b3UgYXJlIG5vdCBhdXRob3JpemVkIHRvIHVzZSBvciBkaXNj
-bG9zZSB0aGlzIGluZm9ybWF0aW9uLCBhbmQgd2UgcmVxdWVzdCB0aGF0IHlvdSBub3RpZnkgdXMg
-YnkgcmVwbHkgbWFpbCBvciB0ZWxlcGhvbmUgYW5kIGRlbGV0ZSB0aGUgb3JpZ2luYWwgbWVzc2Fn
-ZSBmcm9tIHlvdXIgbWFpbCBzeXN0ZW0u
+Fixes a regression caused by:
+
+821f749 eCryptfs: Revert to a writethrough cache model
+
+That patch reverted some code (specifically, 32001d6f) that was
+necessary to properly handle open() -> mmap() -> close() -> dirty pages
+-> munmap(), because the lower file could be closed before the dirty
+pages are written out.
+
+Rather than reapplying 32001d6f, this approach is a better way of
+ensuring that the lower file is still open in order to handle writing
+out the dirty pages. It is called from ecryptfs_release(), while we have
+a lock on the lower file pointer, just before the lower file gets the
+final fput() and we overwrite the pointer.
+
+https://launchpad.net/bugs/1047261
+
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Cc: Colin King <colin.king@canonical.com>
+Cc: Sergio Pena <sergio.pena@gazzang.com>
+---
+ fs/ecryptfs/main.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 2768138..9b627c1 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -162,6 +162,7 @@ void ecryptfs_put_lower_file(struct inode *inode)
+ 	inode_info = ecryptfs_inode_to_private(inode);
+ 	if (atomic_dec_and_mutex_lock(&inode_info->lower_file_count,
+ 				      &inode_info->lower_file_mutex)) {
++		filemap_write_and_wait(inode->i_mapping);
+ 		fput(inode_info->lower_file);
+ 		inode_info->lower_file = NULL;
+ 		mutex_unlock(&inode_info->lower_file_mutex);
+-- 
+1.7.10.4
