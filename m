@@ -1,53 +1,80 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [3.0.y, 3.2.y, 3.4.y] Re: ecryptfs: corrupted files on a disk
- full event
-Date: Wed, 17 Oct 2012 14:51:39 -0700
-Message-ID: <20121017215139.GE7083@kroah.com>
-References: <20121009173522.5563.81022.reportbug@klapprechner>
- <20121009193342.GA3993@elie.Belkin>
- <1349874250.6874.6.camel@klapprechner>
- <20121010213203.GC4517@elie.Belkin>
-Mime-Version: 1.0
+From: Li Wang <wangli@kylinos.com.cn>
+Subject: [PATCH] eCryptfs: Avoid unnecessary disk read and data decryption during writing
+Date: Tue, 30 Oct 2012 19:52:40 +0800
+Message-ID: <1351597960-1503-1-git-send-email-wangli@kylinos.com.cn>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:36649 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751371Ab2JQVvl (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 17 Oct 2012 17:51:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20121010213203.GC4517@elie.Belkin>
+Received: from [118.186.34.234] ([118.186.34.234]:55337 "EHLO kylinos.com.cn"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750880Ab2J3EF7 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Tue, 30 Oct 2012 00:05:59 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Nieder <jrnieder@gmail.com>
-Cc: stable@vger.kernel.org, Sebastian Heinlein <devel@glatzor.de>, Tyler Hicks <tyhicks@canonical.com>, Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Li Wang <wangli@kylinos.com.cn>, Yunchuan Wen <wenyunchuan@kylinos.com.cn>
 
-On Wed, Oct 10, 2012 at 02:32:03PM -0700, Jonathan Nieder wrote:
-> Hi Ben and Greg,
-> 
-> Please consider
-> 
->   8bc2d3cf6129 eCryptfs: Unlink lower inode when ecryptfs_create() fails
->   e3ccaa976120 eCryptfs: Initialize empty lower files when opening them
->   821f7494a776 eCryptfs: Revert to a writethrough cache model
->   7149f2558d5b eCryptfs: Write out all dirty pages just before releasing the
->                lower file
->   64e6651dcc10 eCryptfs: Call lower ->flush() from ecryptfs_flush()
-> 
-> for application to the 3.0.y, 3.2.y, and 3.4.y trees.  (These fixes were
-> all applied to mainline during the 3.6 cycle.)
-> 
-> The patches apply cleanly to 3.2.y.  The backport to 3.0.y would take more
-> work since it lacks, for example, b59db43ad443 (eCryptfs: Prevent file
-> create race condition, 2011-11-21).
-> 
-> Patches 1-4 improve error handling and recovery.  The fifth ensures
-> flushes get propagated to the underlying filesystem, which would be
-> important to avoid data loss from power loss or crashes.
+ecryptfs_write_begin grabs a page from page cache for writing.
+If the page contains invalid data, or data older than the
+counterpart on the disk, eCryptfs will read out the
+corresponing data from the disk into the page, decrypt them,
+then perform writing. However, for this page, if the length
+of the data to be written into is equal to page size,
+that means the whole page of data will be overwritten,
+in which case, it does not matter whatever the data were before,
+it is beneficial to perform writing directly rather than bothering
+to read and decrypt first.
 
-Applied to the 3.4 tree, they didn't work on 3.0.  If you have backports
-for 3.0, that would be great to have.
+With this optimization, according to our test on a machine with
+Intel Core 2 Duo processor, iozone 'write' operation on an existing
+file with write size being multiple of page size will enjoy a steady
+3x speedup.
 
-thanks,
+Signed-off-by: Li Wang <wangli@kylinos.com.cn>
+Signed-off-by: Yunchuan Wen <wenyunchuan@kylinos.com.cn>
+Reviewed-by: Tyler Hicks <tyhicks@canonical.com>
+---
+ fs/ecryptfs/mmap.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-greg k-h
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index bd1d57f..564a1fa 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -338,7 +338,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 			if (prev_page_end_size
+ 			    >= i_size_read(page->mapping->host)) {
+ 				zero_user(page, 0, PAGE_CACHE_SIZE);
+-			} else {
++				SetPageUptodate(page);
++			} else if (len < PAGE_CACHE_SIZE) {
+ 				rc = ecryptfs_decrypt_page(page);
+ 				if (rc) {
+ 					printk(KERN_ERR "%s: Error decrypting "
+@@ -348,8 +349,8 @@ static int ecryptfs_write_begin(struct file *file,
+ 					ClearPageUptodate(page);
+ 					goto out;
+ 				}
++				SetPageUptodate(page);
+ 			}
+-			SetPageUptodate(page);
+ 		}
+ 	}
+ 	/* If creating a page or more of holes, zero them out via truncate.
+@@ -499,6 +500,13 @@ static int ecryptfs_write_end(struct file *file,
+ 		}
+ 		goto out;
+ 	}
++	if (!PageUptodate(page)) {
++		if (copied < PAGE_CACHE_SIZE) {
++			rc = 0;
++			goto out;
++		}
++		SetPageUptodate(page);
++	}
+ 	/* Fills in zeros if 'to' goes beyond inode size */
+ 	rc = fill_zeros_to_end_of_page(page, to);
+ 	if (rc) {
+-- 
+1.7.6.5
