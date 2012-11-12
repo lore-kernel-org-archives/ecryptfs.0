@@ -1,80 +1,57 @@
-From: Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
-Subject: Re: Odd problem with ECryptFS keys
-Date: Fri, 9 Nov 2012 16:38:53 +0200
-Message-ID: <CAMR49LrJuB=M-Y-QUj3wnfkUSqhgNo3a-16RMNJWa1ciiFcrRw@mail.gmail.com>
-References: <CAMR49Lo8PuAsngRwYtPeTQW02T3gkbak=TuU5v-UcUQhPvMHgA@mail.gmail.com>
-Mime-Version: 1.0
+From: Abhijit Pawar <abhi.c.pawar@gmail.com>
+Subject: [PATCH 1/2] fs:ecryptfs basic code optimization
+Date: Mon, 12 Nov 2012 14:17:27 +0530
+Message-ID: <1352710047-3663-1-git-send-email-abhi.c.pawar@gmail.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:34690 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851Ab2KIOiz (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 9 Nov 2012 09:38:55 -0500
-Received: by mail-oa0-f46.google.com with SMTP id h16so4080817oag.19
-        for <ecryptfs@vger.kernel.org>; Fri, 09 Nov 2012 06:38:55 -0800 (PST)
-In-Reply-To: <CAMR49Lo8PuAsngRwYtPeTQW02T3gkbak=TuU5v-UcUQhPvMHgA@mail.gmail.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:39250 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203Ab2KLIr7 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 12 Nov 2012 03:47:59 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Abhijit Pawar <abhi.c.pawar@gmail.com>
 
-Found out why it works like this. Kernel keeps those keys in clear
-text and encrypts FEFEK only when exported to user space. That explain
-the behavior. Sorry for the extra traffic.. Thanks.
+debug.c: ecryptfs_dump_auth_tok () : salt and sig arrays initialized so as to avoid adding null terminator explicitly.
 
-/Jarkko
+Signed-off-by: Abhijit Pawar <abhi.c.pawar@gmail.com>
+---
+ fs/ecryptfs/debug.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-On Fri, Nov 9, 2012 at 8:49 AM, Jarkko Sakkinen <jarkko.sakkinen@iki.fi> wrote:
-> Hi
->
-> I'm experiencing a bizarre problem with ECryptFS keys.
->
-> Preconditions:
-> - 3.7-rc4 mainline kernel.
-> - Minimal RootFS made with BuildRoot, bundled into kernel image
->   (initramfs).
-> - Fresh boot.
-> - 32 MB FAT loopback image mounted on /mnt.
->
-> I execute the following sequence:
->
-> mykeyid=`keyctl add encrypted 1000100010001000 "new ecryptfs
-> user:device-key 64" @u`
-> echo $mykeyid
-> keyctl print $mykeyid
-> keyctl list @u
-> mount -t ecryptfs
-> -oecryptfs_sig=1000100010001000,ecryptfs_fnek_sig=1000100010001000,ecryptfs_cipher=aes,ecryptfs_key_bytes=32
-> /mnt /mnt
-> echo "mount returned $?"
-> mount|grep ecryptfs
-> keyctl list @u
->
-> Execution:
->
-> # mykeyid=`keyctl add encrypted 1000100010001000 "new ecryptfs
-> user:device-key 64" @u`
-> # echo $mykeyid
-> 541909842
-> # keyctl print $mykeyid
-> keyctl_read_alloc: Cannot allocate memory
-> # EXPECTED
-> # keyctl list @u
-> 1 key in keyring:
-> 541909842: --alswrv     0     0 encrypted: 1000100010001000
-> # mount -t ecryptfs
-> -oecryptfs_sig=1000100010001000,ecryptfs_fnek_sig=1000100010001000,ecryptfs_cipher=aes,ecryptfs_key_bytes=32
-> /mnt /mnt
-> # echo "mount returned $?"
-> mount returned 0
-> # mount|grep ecryptfs
-> /mnt on /mnt type ecryptfs
-> (rw,relatime,ecryptfs_fnek_sig=1000100010001000,ecryptfs_sig=1000100010001000,ecryptfs_cipher=aes,ecryptfs_key_bytes=32)
-> # NOT EXPECTED. Shouldn't this fail?
-> # keyctl list @u
-> 1 key in keyring:
-> 541909842: --alswrv     0     0 encrypted: 1000100010001000
->
-> Why does mount work? Thanks.
->
-> /Jarkko
+diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
+index 3d2bdf5..480e3b5 100644
+--- a/fs/ecryptfs/debug.c
++++ b/fs/ecryptfs/debug.c
+@@ -31,8 +31,8 @@
+  */
+ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
+ {
+-	char salt[ECRYPTFS_SALT_SIZE * 2 + 1];
+-	char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
++	char salt[ECRYPTFS_SALT_SIZE * 2 + 1] = {'\0'};
++	char sig[ECRYPTFS_SIG_SIZE_HEX + 1] = {'\0'};
+ 
+ 	ecryptfs_printk(KERN_DEBUG, "Auth tok at mem loc [%p]:\n",
+ 			auth_tok);
+@@ -42,7 +42,6 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
+ 		ecryptfs_printk(KERN_DEBUG, " * passphrase type\n");
+ 		ecryptfs_to_hex(salt, auth_tok->token.password.salt,
+ 				ECRYPTFS_SALT_SIZE);
+-		salt[ECRYPTFS_SALT_SIZE * 2] = '\0';
+ 		ecryptfs_printk(KERN_DEBUG, " * salt = [%s]\n", salt);
+ 		if (auth_tok->token.password.flags &
+ 		    ECRYPTFS_PERSISTENT_PASSWORD) {
+@@ -50,7 +49,6 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
+ 		}
+ 		memcpy(sig, auth_tok->token.password.signature,
+ 		       ECRYPTFS_SIG_SIZE_HEX);
+-		sig[ECRYPTFS_SIG_SIZE_HEX] = '\0';
+ 		ecryptfs_printk(KERN_DEBUG, " * signature = [%s]\n", sig);
+ 	}
+ 	ecryptfs_printk(KERN_DEBUG, " * session_key.flags = [0x%x]\n",
+-- 
+1.7.7.6
