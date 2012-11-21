@@ -1,49 +1,69 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [3.0.y, 3.2.y, 3.4.y] Re: ecryptfs: corrupted files on a disk
- full event
-Date: Tue, 20 Nov 2012 17:18:30 -0800
-Message-ID: <20121121011830.GB5381@kroah.com>
-References: <20121009173522.5563.81022.reportbug@klapprechner>
- <20121009193342.GA3993@elie.Belkin>
- <1349874250.6874.6.camel@klapprechner>
- <20121010213203.GC4517@elie.Belkin>
- <20121112195606.GF3342@herton-Z68MA-D2H-B3>
-Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:59395 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752344Ab2KUBSc (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 20 Nov 2012 20:18:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20121112195606.GF3342@herton-Z68MA-D2H-B3>
-Sender: ecryptfs-owner@vger.kernel.org
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Subject: [PATCH v4 30/31] ecrpytfs: Convert aio_read/write ops to read/write_iter
+Date: Wed, 21 Nov 2012 16:41:10 -0600
+Message-ID: <1353537671-26284-31-git-send-email-dave.kleikamp@oracle.com>
+References: <1353537671-26284-1-git-send-email-dave.kleikamp@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1353537671-26284-1-git-send-email-dave.kleikamp@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Herton Ronaldo Krzesinski <herton.krzesinski@canonical.com>
-Cc: Jonathan Nieder <jrnieder@gmail.com>, stable@vger.kernel.org, Sebastian Heinlein <devel@glatzor.de>, Tyler Hicks <tyhicks@canonical.com>, Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Zach Brown <zab@zabbo.net>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
-On Mon, Nov 12, 2012 at 05:56:07PM -0200, Herton Ronaldo Krzesinski wrote:
-> On Wed, Oct 10, 2012 at 02:32:03PM -0700, Jonathan Nieder wrote:
-> > Hi Ben and Greg,
-> > 
-> > Please consider
-> > 
-> >   8bc2d3cf6129 eCryptfs: Unlink lower inode when ecryptfs_create() fails
-> >   e3ccaa976120 eCryptfs: Initialize empty lower files when opening them
-> >   821f7494a776 eCryptfs: Revert to a writethrough cache model
-> >   7149f2558d5b eCryptfs: Write out all dirty pages just before releasing the
-> >                lower file
-> >   64e6651dcc10 eCryptfs: Call lower ->flush() from ecryptfs_flush()
-> 
-> What about also picking the following two for stables?
-> 
-> 069ddcda37b2cf5bb4b6031a944c0e9359213262
-> eCryptfs: Copy up POSIX ACL and read-only flags from lower mount
-> 
-> 5f5b331d5c21228a6519dcb793fc1629646c51a6
-> eCryptfs: check for eCryptfs cipher support at mount
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Tyler Hicks <tyhicks@canonical.com>
+Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: ecryptfs@vger.kernel.org
+---
+ fs/ecryptfs/file.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-Both now applied to the 3.0 and 3.4 stable trees, thanks.
-
-greg k-h
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index d45ba45..5aaa180 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -36,22 +36,21 @@
+ /**
+  * ecryptfs_read_update_atime
+  *
+- * generic_file_read updates the atime of upper layer inode.  But, it
++ * generic_file_read_iter updates the atime of upper layer inode.  But, it
+  * doesn't give us a chance to update the atime of the lower layer
+- * inode.  This function is a wrapper to generic_file_read.  It
+- * updates the atime of the lower level inode if generic_file_read
++ * inode.  This function is a wrapper to generic_file_read_iter.  It
++ * updates the atime of the lower level inode if generic_file_read_iter
+  * returns without any errors. This is to be used only for file reads.
+  * The function to be used for directory reads is ecryptfs_read.
+  */
+ static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
+-				const struct iovec *iov,
+-				unsigned long nr_segs, loff_t pos)
++				struct iov_iter *iter, loff_t pos)
+ {
+ 	ssize_t rc;
+ 	struct path lower;
+ 	struct file *file = iocb->ki_filp;
+ 
+-	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
++	rc = generic_file_read_iter(iocb, iter, pos);
+ 	/*
+ 	 * Even though this is a async interface, we need to wait
+ 	 * for IO to finish to update atime
+@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
+ const struct file_operations ecryptfs_main_fops = {
+ 	.llseek = generic_file_llseek,
+ 	.read = do_sync_read,
+-	.aio_read = ecryptfs_read_update_atime,
++	.read_iter = ecryptfs_read_update_atime,
+ 	.write = do_sync_write,
+-	.aio_write = generic_file_aio_write,
++	.write_iter = generic_file_write_iter,
+ 	.readdir = ecryptfs_readdir,
+ 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
+ #ifdef CONFIG_COMPAT
+-- 
+1.8.0
