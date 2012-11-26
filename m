@@ -1,69 +1,61 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH v4 30/31] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Wed, 21 Nov 2012 16:41:10 -0600
-Message-ID: <1353537671-26284-31-git-send-email-dave.kleikamp@oracle.com>
-References: <1353537671-26284-1-git-send-email-dave.kleikamp@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1353537671-26284-1-git-send-email-dave.kleikamp@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: "B. J. Potter" <bjpotter@gmail.com>
+Subject: Possible error in ecryptfs-recover-private
+Date: Mon, 26 Nov 2012 15:32:07 -0600
+Message-ID: <CACDOv82xsXsO6KgLFKbHApszk0OYwACgvo7Ffpnx4Nj1yQpnDQ@mail.gmail.com>
+Mime-Version: 1.0
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64485 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754589Ab2KZVcJ (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 26 Nov 2012 16:32:09 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so4838071bkw.19
+        for <ecryptfs@vger.kernel.org>; Mon, 26 Nov 2012 13:32:07 -0800 (PST)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Zach Brown <zab@zabbo.net>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
----
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+Hello all,
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index d45ba45..5aaa180 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -36,22 +36,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path lower;
- 	struct file *file = iocb->ki_filp;
- 
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.readdir = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.0
+I believe there is an error in the ecryptfs-recover-private script
+that was exposed when I tried to mount my ecryptfs manually on my
+recently updated Arch Linux system (some of the ecryptfs setup was
+done when the same RAID drive was attached to an Ubuntu Linux system).
+First I issued an ecryptfs recover command:
+
+ecryptfs-recover-private /home/.ecryptfs/bpotter/.Private
+
+This will:
+
+Find the directory, I tell it to recover (yes)
+It finds the wrapped passphrase, I tell it yes I know my login
+password and enter it
+It inserts token with correct sig into the keyring, but then errors
+out with this error:
+
+sed: can't read /home/.ecryptfs/bpotter/.Private/../.ecryptfs/Private.sig:...
+No such file or directory
+
+At this point I run 'sudo mount /home/bpotter', which mounts as per my fstab:
+
+/home/.ecryptfs/bpotter/.Private /home/bpotter ecryptfs...
+rw,user,noauto,exec,relatime,ecryptfs_fnek_sig=07fa32a41b76c74a,...
+ecryptfs_sig=07fa32a41b76c74a,ecryptfs_cipher=aes,...
+ecryptfs_key_bytes=32,ecryptfs_passthrough,...
+ecryptfs_unlink_sigs 0 0
+
+Next it asks me to select the key type for newly created files. I pick
+2) passpharse and give it my login passphrase. It tells me it hasn't
+seen this combination, but mounts just fine. I can read and write all
+of my files. I covered this and tried to find an answer as to why this
+is happening in Stack Exchange's Super User as well:
+http://superuser.com/questions/507948/ecryptfs-home-directory-does-not-automatically-mount
+
+I just wanted to inform the list of the possible error in the
+ecryptfs-recover-private script. If anyone can help me find why my
+automatic mounting has failed, then that's a bonus.
+
+Thanks,
+
+B. J. Potter
