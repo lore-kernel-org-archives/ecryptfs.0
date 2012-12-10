@@ -1,39 +1,31 @@
-From: Cong Ding <dinggnu@gmail.com>
-Subject: [PATCH] fs/ecryptfs/crypto.c: make ecryptfs_encode_for_filename() static
-Date: Fri,  7 Dec 2012 22:21:56 +0000
-Message-ID: <1354918916-31587-1-git-send-email-dinggnu@gmail.com>
+From: William Roberts <bill.c.roberts@gmail.com>
+Subject: CRASH Undefined Instruction
+Date: Mon, 10 Dec 2012 18:04:20 +0900
+Message-ID: <CAFftDdp758OXmqTiEbqAzBysdzUBzH1HU+QQEfPEytmvg+AVuA@mail.gmail.com>
+Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:45196 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105Ab2LGWWG (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 7 Dec 2012 17:22:06 -0500
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:35848 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab2LJJEV (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 10 Dec 2012 04:04:21 -0500
+Received: by mail-vb0-f46.google.com with SMTP id b13so2200386vby.19
+        for <ecryptfs@vger.kernel.org>; Mon, 10 Dec 2012 01:04:20 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Cong Ding <dinggnu@gmail.com>
+To: ecryptfs@vger.kernel.org
 
-the function ecryptfs_encode_for_filename() is only used in this file
+I filed a bug on launch pad, but was wondering if someone might know
+about this exception I encountered.
 
-Signed-off-by: Cong Ding <dinggnu@gmail.com>
----
- fs/ecryptfs/crypto.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Kernel OOPS
+<6>[ 558.744788] flush-ecryptfs- (3516): undefined instruction: pc=c02d8d28
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index ea99312..a7b0c2d 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -1935,7 +1935,7 @@ static const unsigned char filename_rev_map[256] = {
-  * @src: Source location for the filename to encode
-  * @src_size: Size of the source in bytes
-  */
--void ecryptfs_encode_for_filename(unsigned char *dst, size_t *dst_size,
-+static void ecryptfs_encode_for_filename(unsigned char *dst, size_t *dst_size,
- 				  unsigned char *src, size_t src_size)
- {
- 	size_t num_blocks;
+The details are here
+https://bugs.launchpad.net/ecryptfs/+bug/1088397
+
 -- 
-1.7.4.5
+Respectfully,
+
+William C Roberts
