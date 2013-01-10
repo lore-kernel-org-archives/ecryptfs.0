@@ -1,73 +1,127 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH V5 29/30] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Wed,  9 Jan 2013 13:58:44 -0600
-Message-ID: <1357761525-22718-30-git-send-email-dave.kleikamp@oracle.com>
-References: <1357761525-22718-1-git-send-email-dave.kleikamp@oracle.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: eCryptfs ablkcipher patch
+Date: Thu, 10 Jan 2013 10:36:50 -0800
+Message-ID: <20130110183649.GA30916@boyd>
+References: <068EA2D22589DD4FBD9A55E6FF1EA0B50F1BF7B0@SIXPRD0211MB419.apcprd02.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:23505 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932492Ab3AIT7H (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 9 Jan 2013 14:59:07 -0500
-In-Reply-To: <1357761525-22718-1-git-send-email-dave.kleikamp@oracle.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:38093 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754688Ab3AJShj (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 10 Jan 2013 13:37:39 -0500
+Content-Disposition: inline
+In-Reply-To: <068EA2D22589DD4FBD9A55E6FF1EA0B50F1BF7B0@SIXPRD0211MB419.apcprd02.prod.outlook.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Zach Brown <zab@zabbo.net>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: Zeev Zilberman <zeev@annapurnaLabs.com>
+Cc: "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
----
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index d45ba45..5aaa180 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -36,22 +36,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path lower;
- 	struct file *file = iocb->ki_filp;
- 
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.readdir = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.1
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-01-06 15:36:38, Zeev Zilberman wrote:
+> Hello,
+
+Hi Zeev!
+
+>=20
+> I've seen earlier discussions about ecryptfs ablkcipher patch, but I see
+> it was not merged.
+> Are you planning to apply this patch in the future, or did you decide to
+> drop it?
+
+Its status is somewhere between those two extremes. Not applied, but
+also not dropped. It is useful, but I'm not sure that its benefits
+outweigh the risks of merging it.
+
+The problem with the patch is that it didn't provide a clear performance
+increase across the board. I don't have the performance testing results
+handy, but it gave a nice increase on some systems and hurt performance
+on others. That, coupled with how risky the patch is, makes me hesitant
+to merge it.
+
+I don't currently have the bandwidth to provide the amount of testing
+that would be needed (nor the time to spend on fixing regressions) and
+the patch author has not been active in eCryptfs development for quite
+some time. In other words, no one has stepped up to usher the patch
+through.
+
+Very few eCryptfs users test the mainline -rc kernels and I don't want
+the users of whatever distro first ships this patch to find all of the
+regressions caused by it.
+
+>=20
+> I tried to apply the patch locally and saw the following issues:
+>=20
+> 1. I've encountered a problem with ecryptfs_encrypt_extent_done that is
+> calling functions
+> that can sleep (kmap/kunmap). It fails with ablkcipher crypto drivers that
+> invoke the
+> callback from interrupt handler bh (tasklet).
+> Moving the write part to a work queue (using queue_work) seems to solve i=
+t.
+
+Please send me patches, and cc this list, for these fixes. I will push
+everything to a branch in the eCryptfs git tree on kernel.org so that we
+don't lose any useful code.
+
+>=20
+>=20
+> 2. I saw that ecryptfs was reverted from writeback to writethrough cache
+> mode.
+
+That's correct
+
+> This seems to be problematic in regard to performance while using async
+> interfaces.
+> The original change to writepage (that uses ecryptfs_encrypt_page_async)
+> allowed
+> submitting async crypto operations and continuing without waiting for the
+> result.
+
+Nice catch, that would have to be changed.
+
+> write_end uses ecryptfs_encrypt_page (and needs its return value), so
+> we'll have to wait
+> for encryption (and write) to complete before continuing to the next
+> operation.
+> Are you planning to return ecryptfs cache to writeback mode?
+
+No, it caused quite a few bugs. I suspect that eCryptfs will stay with
+the writethrough cache.
+
+
+Have you done any performance testing yourself? I'm curious if you're
+interested in this patch because it made a significant difference in
+your use case.
+
+Tyler
+
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCgAGBQJQ7wpBAAoJENaSAD2qAscKcJsP/i0J7k9bmjQHvys++k7S6CeO
+wXhZfFfU1ScRLYaWHa6gB4jmDOMD6sDWbXb1QsDYEj8z29A3iSVwhhgLZGemlYGM
+6xurr+DmBl3yjBcuJCwmdmk7sj+G/j7dkdVXxybsmG9NmY78GgV86lRkK4RMI7Te
+F38xCQkindRxvZBiHUOojk5BVzMggacm2ARps2mDA6PGYRqjciAgp+AWPuT9N8XT
+DWhPRlJIhavQxNwm8yN4eaWi/tkz3cpCp8Ndq+VAIEw5xYyh7cLv0R5SA6Mq7mHL
+ZGourRJBDkteCthuAO07Yz6ZWrqLTKE4b61Yom53Mjs30beQsdJ69Fs5+iADu+B/
+6ub9saqMgrRWOtzpND7aKW/sIRvmumhKGSt2OKJJKJ9JfVfZvUH4EOX7Tpig7U4t
+05mMqJ+P+zBXsVwr+7PCdecLzbkkN863L7XputyGwOZffxx9d17FsLAQ2f07g/+V
+jvPnBw1bCH0Lh1URE/eOEwOl0v02C7UT9DVRlnMwOLLTdG61ryUcexqN1ye3tfJL
+1KLcM2nCxr2+zus6DF6Vcpu2dHbfbVI6+kbo1HHT5292pXPKwGFvqLXTkGUdtLG3
+fA9k379cSgEtPtdht9gjySpaMmsU+pceCVOy+S4hkxrYHCPnI1QPcJFLdypcKe2y
+AWR4xaRrRlZ9CTQyboAZ
+=GAo3
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
