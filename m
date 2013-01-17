@@ -1,60 +1,39 @@
-From: David Obadia <dav-ecryptfs@odav.org>
-Subject: Re: Wrapper to mount Private directories without root
-Date: Tue, 15 Jan 2013 23:59:44 +0000 (UTC)
-Message-ID: <loom.20130116T004804-557@post.gmane.org>
-References: <loom.20121212T175359-906@post.gmane.org> <20130115191820.GA5302@boyd>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Simon Que <sque@chromium.org>
+Subject: [PATCH] fs: ecryptfs: initialize payload_len in keystore.c
+Date: Wed, 16 Jan 2013 18:08:14 -0800
+Message-ID: <1358388494-31158-1-git-send-email-sque@chromium.org>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:58611 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932524Ab3AOX77 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 15 Jan 2013 18:59:59 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
-	id 1TvGQP-0005W3-8L
-	for ecryptfs@vger.kernel.org; Wed, 16 Jan 2013 01:00:13 +0100
-Received: from 108.61.50.108.choopa.net ([108.61.50.108.choopa.net])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Wed, 16 Jan 2013 01:00:13 +0100
-Received: from dav-ecryptfs by 108.61.50.108.choopa.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Wed, 16 Jan 2013 01:00:13 +0100
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:55179 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757897Ab3AQCIj (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 16 Jan 2013 21:08:39 -0500
+Received: by mail-ob0-f202.google.com with SMTP id wd20so568283obb.3
+        for <ecryptfs@vger.kernel.org>; Wed, 16 Jan 2013 18:08:39 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: ecryptfs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org, tyhicks@canonical.com, dustin.kirkland@gazzang.com
+Cc: msb@chromium.org, Simon Que <sque@chromium.org>
 
-Tyler Hicks <tyhicks <at> canonical.com> writes:
-> On 2012-12-12 16:58:41, David Obadia wrote:
-> > Not sure why ecryptfs-recover-private requires root, I've found a way to do 
-the
-> > same thing without root.
-> 
-> A quick glance at that script shows that it needs root to do the
-> `mount -t ecryptfs ...` command. The main eCryptfs mount helper
-> (/sbin/mount.ecryptfs) is big and complex.
+Signed-off-by: Simon Que <sque@chromium.org>
+---
+ fs/ecryptfs/keystore.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Understood, that makes sense. That script might pre-date mount.ecryptfs_private? 
-I say this because I was able to achieve the same functionality using only 
-mount.ecryptfs_private, not mount.ecryptfs in my Python script.
-
-> > Also I think it would be helpful to have a user friendly API for
-> > creating/mounting/unmounting ecrypted folders that doesn't require root 
-using
-> > the setuid in mount.ecryptfs_private.
-> 
-> That might be a nice thing to have, but we want mount.ecryptfs_private
-> to stay as simple as possible so that it can be audited and so that we
-> don't introduce new security flaws into the code. It is intentionally
-> locked down to do very specific actions.
-
-Sounds reasonable. Maybe providing a wrapper script gives the best of both 
-world? 
-1) Minimizes the amount of setuid code that needs to be audited
-2) Gives flexibility to the end-user to do as much as can possibly be done, in a 
-user-friendly manner, and without requiring root access.
-
-Would be glad to help,
-David- 
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 2333203..6154cde 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1150,7 +1150,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 	struct ecryptfs_message *msg = NULL;
+ 	char *auth_tok_sig;
+ 	char *payload;
+-	size_t payload_len;
++	size_t payload_len = 0;
+ 	int rc;
+ 
+ 	rc = ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
+-- 
+1.7.8.6
