@@ -1,38 +1,46 @@
 From: Simon Que <sque@chromium.org>
-Subject: Re: [PATCH] fs: ecryptfs: initialize payload_len in keystore.c
-Date: Thu, 17 Jan 2013 11:15:25 -0800
-Message-ID: <CANV8Hs1ra6huezsJvixkn_rdFbA07Vm-1hTwmGhay_2RvwmDQQ@mail.gmail.com>
-References: <1358388494-31158-1-git-send-email-sque@chromium.org>
-	<20130117190806.GA2394@boyd>
-Mime-Version: 1.0
+Subject: [PATCH v2] fs: ecryptfs: initialize payload_len in keystore.c
+Date: Thu, 17 Jan 2013 11:18:20 -0800
+Message-ID: <1358450300-23826-1-git-send-email-sque@chromium.org>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:40820 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab3AQTP1 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 17 Jan 2013 14:15:27 -0500
-Received: by mail-ee0-f50.google.com with SMTP id e51so1435382eek.9
-        for <ecryptfs@vger.kernel.org>; Thu, 17 Jan 2013 11:15:26 -0800 (PST)
-In-Reply-To: <20130117190806.GA2394@boyd>
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:44535 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754817Ab3AQTXy (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 17 Jan 2013 14:23:54 -0500
+Received: by mail-oa0-f73.google.com with SMTP id n12so761130oag.0
+        for <ecryptfs@vger.kernel.org>; Thu, 17 Jan 2013 11:23:54 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, dustin.kirkland@gazzang.com, Mandeep Baines <msb@chromium.org>
+To: ecryptfs@vger.kernel.org, tyhicks@canonical.com, dustin.kirkland@gazzang.com
+Cc: msb@chromium.org, Simon Que <sque@chromium.org>
 
-Hi Tyler --
+This is meant to remove a compiler warning.  It should not make any
+functional change.
 
-> Is this to just quiet a useless compiler warning or is there a place
-> were we actually use payload_len without initializing it? If we use it
-> uninitialized, does it cause a crash or do we "handle" it in error
-> paths? These details are factored in to determine if I need to send this
-> to the stable team and if distros need to backport it. It also keeps me
-> from scratching my head a year down the road when someone asks me about
-> the patch with no commit message. :)
+payload_len should be initialized when it is passed to
+write_tag_64_packet() as a pointer.  If that call fails, this function
+should return early, and payload_len won't be used.
 
-This is just to squash a compiler warning.  Assuming
-write_tag_64_packet() works as intended, if it fails to initialize
-payload_len, it should return an error and the function should skip to
-the end.
+Signed-off-by: Simon Que <sque@chromium.org>
+---
+ fs/ecryptfs/keystore.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'll re-send the patch with a comment explaining this.
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 2333203..6154cde 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1150,7 +1150,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 	struct ecryptfs_message *msg = NULL;
+ 	char *auth_tok_sig;
+ 	char *payload;
+-	size_t payload_len;
++	size_t payload_len = 0;
+ 	int rc;
+ 
+ 	rc = ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
+-- 
+1.7.8.6
