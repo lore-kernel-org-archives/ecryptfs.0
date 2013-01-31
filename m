@@ -1,69 +1,25 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH V6 29/30] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Tue, 29 Jan 2013 10:23:42 -0600
-Message-ID: <1359476623-10544-30-git-send-email-dave.kleikamp@oracle.com>
-References: <1359476623-10544-1-git-send-email-dave.kleikamp@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1359476623-10544-1-git-send-email-dave.kleikamp@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Thiago Padilha <tpadilha84@gmail.com>
+Subject: Storing the executable bit along with the rest of cryptographic metadata
+Date: Thu, 31 Jan 2013 09:58:01 -0300
+Message-ID: <CAAq2XdoN6E0xGyn-cVBTvVjmXZ7i2bpfDrdhC9FjB60_DPerWw@mail.gmail.com>
+Mime-Version: 1.0
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:52998 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751766Ab3AaM6C (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 31 Jan 2013 07:58:02 -0500
+Received: by mail-ie0-f182.google.com with SMTP id k14so2243823iea.41
+        for <ecryptfs@vger.kernel.org>; Thu, 31 Jan 2013 04:58:01 -0800 (PST)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Zach Brown <zab@zabbo.net>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
----
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+I'm trying to use a directory in a NTFS external drive as the lower
+mount for ecryptfs, but since ntfs doesn't understand the concept of
+executable files, every file is treated as executable by ntfs-3g
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index d45ba45..5aaa180 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -36,22 +36,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path lower;
- 	struct file *file = iocb->ki_filp;
- 
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.readdir = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.1.1
+Is there a mount option to override the lower encrypted file
+permissions by permissions stored elsewhere(perhaps in the encrypted
+file header) ?
