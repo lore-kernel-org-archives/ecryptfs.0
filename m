@@ -1,46 +1,89 @@
-From: Tim Gardner <tim.gardner@canonical.com>
-Subject: [PATCH linux-next] ecryptfs: ecryptfs_msg_ctx_alloc_to_free(): remove kfree() redundant null check
-Date: Tue, 12 Feb 2013 11:03:49 -0700
-Message-ID: <1360692229-60655-1-git-send-email-tim.gardner@canonical.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH linux-next] eCryptfs:
+ decrypt_pki_encrypted_session_key(): remove kfree() redundant null check
+Date: Tue, 12 Feb 2013 10:12:35 -0800
+Message-ID: <20130212181235.GA7728@boyd>
+References: <1360691814-60569-1-git-send-email-tim.gardner@canonical.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:3183 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932370Ab3BLSDw (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 12 Feb 2013 13:03:52 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:50769 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933109Ab3BLSMl (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Feb 2013 13:12:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1360691814-60569-1-git-send-email-tim.gardner@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Tim Gardner <tim.gardner@canonical.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: Tim Gardner <tim.gardner@canonical.com>
+Cc: linux-kernel@vger.kernel.org, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
-smatch analysis:
 
-fs/ecryptfs/messaging.c:101 ecryptfs_msg_ctx_alloc_to_free() info:
- redundant null check on msg_ctx->msg calling kfree()
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- fs/ecryptfs/messaging.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On 2013-02-12 10:56:54, Tim Gardner wrote:
+> smatch analysis:
+>=20
+> fs/ecryptfs/keystore.c:1206 decrypt_pki_encrypted_session_key() info:
+>  redundant null check on msg calling kfree()
+>=20
+> Cc: Tyler Hicks <tyhicks@canonical.com>
+> Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
+> Cc: ecryptfs@vger.kernel.org
+> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 
-diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
-index 8d7a577..308fdf2 100644
---- a/fs/ecryptfs/messaging.c
-+++ b/fs/ecryptfs/messaging.c
-@@ -97,8 +97,7 @@ static void ecryptfs_msg_ctx_free_to_alloc(struct ecryptfs_msg_ctx *msg_ctx)
- void ecryptfs_msg_ctx_alloc_to_free(struct ecryptfs_msg_ctx *msg_ctx)
- {
- 	list_move(&(msg_ctx->node), &ecryptfs_msg_ctx_free_list);
--	if (msg_ctx->msg)
--		kfree(msg_ctx->msg);
-+	kfree(msg_ctx->msg);
- 	msg_ctx->msg = NULL;
- 	msg_ctx->state = ECRYPTFS_MSG_CTX_STATE_FREE;
- }
--- 
-1.7.9.5
+Thanks, Tim. Pushed to the next branch at
+git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git
+
+Tyler
+
+> ---
+>  fs/ecryptfs/keystore.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 6154cde..5aceff2 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -1202,8 +1202,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_a=
+uth_tok *auth_tok,
+>  				  crypt_stat->key_size);
+>  	}
+>  out:
+> -	if (msg)
+> -		kfree(msg);
+> +	kfree(msg);
+>  	return rc;
+>  }
+> =20
+> --=20
+> 1.7.9.5
+>=20
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCgAGBQJRGoYTAAoJENaSAD2qAscKQ6AP/2EFwwRIw0ZvNQnqyVd9CRr6
+W2LthdgJsICMR0zzIPZqAn+/VrhquNlmMg8i4cs+WsWOIE7RL8RMFfNkEhA7rQIN
+7q/Lm1biB/ppRa6OECWJKPDOj7JnGUb0sp59e9G7ujV5FZ3nh5tr/VBa4LGkDrJz
+8L6DT7SqSU5CBZzdzZNOydlu7jVKC/xgSJrgSFlqAKMimXU3PdBEf73RP+0JH0PX
+cgNBA2KJeFK9NByfwDGNlqUHiw9+Id86kLxbcd4BLnI3T6xTMUlV0h8Na/iawr5i
+uTiWY12Zu4vV7goPIlbpwbujTWmdvPandoTdVAlK9+/uNUAJ0qVasv+WOipDteSb
+gIk49I8XnN6Xq3JiBSRVklrCrIFOCNeVpaSUXqWv8frerjZKtBovhj8+8mIl/Pb0
+Q5wGxZh6Gqk4Z6VGGxHqK/mZmK4ak2MjithNx4m6llfQxNNQkFssGheCHpfkv3zK
+LDlA5ZQcgc7biP4ywHLL8WjtpbPqQis1GcrsN0AGQM2/8kbrzCURk8fdsbXOZhjT
+c84j01+jHAJk/f0ooxlF7uCMveGa3ZJ7JSy2LCDQzbt+Z1Y9XXK8hywbPHEWqZQ+
+ZoCDOaSdDATpu5NvLWZ75FaEW3zkuOA8v0GlyYx0GSDexy7qVKSCIcJFTlNEc9no
+/DnSmwp0BieRs1ax3tEJ
+=6LZc
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
