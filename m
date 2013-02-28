@@ -1,89 +1,165 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH linux-next] ecryptfs: ecryptfs_msg_ctx_alloc_to_free():
- remove kfree() redundant null check
-Date: Tue, 12 Feb 2013 10:12:56 -0800
-Message-ID: <20130212181256.GB7728@boyd>
-References: <1360692229-60655-1-git-send-email-tim.gardner@canonical.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: [PATCH] eCryptfs: allow userspace messaging to be disabled
+Date: Wed, 27 Feb 2013 16:30:42 -0800
+Message-ID: <20130228003042.GA8472@www.outflux.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50773 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933109Ab3BLSNB (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 12 Feb 2013 13:13:01 -0500
+Received: from smtp.outflux.net ([198.145.64.163]:34948 "EHLO smtp.outflux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751213Ab3B1Aaq (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 27 Feb 2013 19:30:46 -0500
 Content-Disposition: inline
-In-Reply-To: <1360692229-60655-1-git-send-email-tim.gardner@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Tim Gardner <tim.gardner@canonical.com>
-Cc: linux-kernel@vger.kernel.org, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+
+When the userspace messaging (for the less common case of userspace key
+wrap/unwrap via ecryptfsd) is not needed, allow eCryptfs to build with
+it removed. This saves on kernel code size and reduces potential attack
+surface by removing the /dev/ecryptfs node.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Tyler Hicks <tyhicks@canonical.com>
+---
+ fs/ecryptfs/Kconfig           |    8 ++++++++
+ fs/ecryptfs/Makefile          |    7 +++++--
+ fs/ecryptfs/ecryptfs_kernel.h |   27 +++++++++++++++++++++++++--
+ fs/ecryptfs/keystore.c        |    4 ++--
+ 4 files changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/fs/ecryptfs/Kconfig b/fs/ecryptfs/Kconfig
+index e15ef38..434aa31 100644
+--- a/fs/ecryptfs/Kconfig
++++ b/fs/ecryptfs/Kconfig
+@@ -12,3 +12,11 @@ config ECRYPT_FS
+ 
+ 	  To compile this file system support as a module, choose M here: the
+ 	  module will be called ecryptfs.
++
++config ECRYPT_FS_MESSAGING
++	bool "Enable notifications for userspace key wrap/unwrap"
++	depends on ECRYPT_FS
++	help
++	  Enables the /dev/ecryptfs entry for use by ecryptfsd. This allows
++	  for userspace to wrap/unwrap file encryption keys by other
++	  backends, like OpenSSL.
+diff --git a/fs/ecryptfs/Makefile b/fs/ecryptfs/Makefile
+index 2cc9ee4..49678a6 100644
+--- a/fs/ecryptfs/Makefile
++++ b/fs/ecryptfs/Makefile
+@@ -1,7 +1,10 @@
+ #
+-# Makefile for the Linux 2.6 eCryptfs
++# Makefile for the Linux eCryptfs
+ #
+ 
+ obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
+ 
+-ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o miscdev.o kthread.o debug.o
++ecryptfs-y := dentry.o file.o inode.o main.o super.o mmap.o read_write.o \
++	      crypto.o keystore.o kthread.o debug.o
++
++ecryptfs-$(CONFIG_ECRYPT_FS_MESSAGING) += messaging.o miscdev.o
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index cfb4b9f..b33722c 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -399,7 +399,9 @@ struct ecryptfs_daemon {
+ 	struct hlist_node euid_chain;
+ };
+ 
++#ifdef CONFIG_ECRYPT_FS_MESSAGING
+ extern struct mutex ecryptfs_daemon_hash_mux;
++#endif
+ 
+ static inline size_t
+ ecryptfs_lower_header_size(struct ecryptfs_crypt_stat *crypt_stat)
+@@ -604,6 +606,7 @@ int
+ ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
+ 		  size_t size, int flags);
+ int ecryptfs_read_xattr_region(char *page_virt, struct inode *ecryptfs_inode);
++#ifdef CONFIG_ECRYPT_FS_MESSAGING
+ int ecryptfs_process_response(struct ecryptfs_daemon *daemon,
+ 			      struct ecryptfs_message *msg, u32 seq);
+ int ecryptfs_send_message(char *data, int data_len,
+@@ -612,6 +615,24 @@ int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
+ 			       struct ecryptfs_message **emsg);
+ int ecryptfs_init_messaging(void);
+ void ecryptfs_release_messaging(void);
++#else
++static inline int ecryptfs_init_messaging(void)
++{
++	return 0;
++}
++static inline void ecryptfs_release_messaging(void)
++{ }
++static inline int ecryptfs_send_message(char *data, int data_len,
++					struct ecryptfs_msg_ctx **msg_ctx)
++{
++	return -ENOTCONN;
++}
++static inline int ecryptfs_wait_for_response(struct ecryptfs_msg_ctx *msg_ctx,
++					     struct ecryptfs_message **emsg)
++{
++	return -ENOMSG;
++}
++#endif
+ 
+ void
+ ecryptfs_write_header_metadata(char *virt,
+@@ -649,12 +670,11 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
+ 				     size_t offset_in_page, size_t size,
+ 				     struct inode *ecryptfs_inode);
+ struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index);
+-int ecryptfs_exorcise_daemon(struct ecryptfs_daemon *daemon);
+-int ecryptfs_find_daemon_by_euid(struct ecryptfs_daemon **daemon);
+ int ecryptfs_parse_packet_length(unsigned char *data, size_t *size,
+ 				 size_t *length_size);
+ int ecryptfs_write_packet_length(char *dest, size_t size,
+ 				 size_t *packet_size_length);
++#ifdef CONFIG_ECRYPT_FS_MESSAGING
+ int ecryptfs_init_ecryptfs_miscdev(void);
+ void ecryptfs_destroy_ecryptfs_miscdev(void);
+ int ecryptfs_send_miscdev(char *data, size_t data_size,
+@@ -663,6 +683,9 @@ int ecryptfs_send_miscdev(char *data, size_t data_size,
+ void ecryptfs_msg_ctx_alloc_to_free(struct ecryptfs_msg_ctx *msg_ctx);
+ int
+ ecryptfs_spawn_daemon(struct ecryptfs_daemon **daemon, struct file *file);
++int ecryptfs_exorcise_daemon(struct ecryptfs_daemon *daemon);
++int ecryptfs_find_daemon_by_euid(struct ecryptfs_daemon **daemon);
++#endif
+ int ecryptfs_init_kthread(void);
+ void ecryptfs_destroy_kthread(void);
+ int ecryptfs_privileged_open(struct file **lower_file,
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 2333203..32bd806 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1168,7 +1168,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 	rc = ecryptfs_send_message(payload, payload_len, &msg_ctx);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Error sending message to "
+-				"ecryptfsd\n");
++				"ecryptfsd: %d\n", rc);
+ 		goto out;
+ 	}
+ 	rc = ecryptfs_wait_for_response(msg_ctx, &msg);
+@@ -1989,7 +1989,7 @@ pki_encrypt_session_key(struct key *auth_tok_key,
+ 	rc = ecryptfs_send_message(payload, payload_len, &msg_ctx);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Error sending message to "
+-				"ecryptfsd\n");
++				"ecryptfsd: %d\n", rc);
+ 		goto out;
+ 	}
+ 	rc = ecryptfs_wait_for_response(msg_ctx, &msg);
+-- 
+1.7.9.5
 
 
---BwCQnh7xodEAoBMC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-02-12 11:03:49, Tim Gardner wrote:
-> smatch analysis:
->=20
-> fs/ecryptfs/messaging.c:101 ecryptfs_msg_ctx_alloc_to_free() info:
->  redundant null check on msg_ctx->msg calling kfree()
->=20
-> Cc: Tyler Hicks <tyhicks@canonical.com>
-> Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-> Cc: ecryptfs@vger.kernel.org
-> Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-
-Thanks, Tim. Pushed to the next branch at
-git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git
-
-Tyler
-
-> ---
->  fs/ecryptfs/messaging.c |    3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->=20
-> diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
-> index 8d7a577..308fdf2 100644
-> --- a/fs/ecryptfs/messaging.c
-> +++ b/fs/ecryptfs/messaging.c
-> @@ -97,8 +97,7 @@ static void ecryptfs_msg_ctx_free_to_alloc(struct ecryp=
-tfs_msg_ctx *msg_ctx)
->  void ecryptfs_msg_ctx_alloc_to_free(struct ecryptfs_msg_ctx *msg_ctx)
->  {
->  	list_move(&(msg_ctx->node), &ecryptfs_msg_ctx_free_list);
-> -	if (msg_ctx->msg)
-> -		kfree(msg_ctx->msg);
-> +	kfree(msg_ctx->msg);
->  	msg_ctx->msg =3D NULL;
->  	msg_ctx->state =3D ECRYPTFS_MSG_CTX_STATE_FREE;
->  }
-> --=20
-> 1.7.9.5
->=20
-
---BwCQnh7xodEAoBMC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCgAGBQJRGoYoAAoJENaSAD2qAscKOykP/ArUInTgvTmbLtJcm363xa3p
-Praf+PGWI4iaEIrq2X8EtOWBesQQd3OZ5otGRtmArzVm2QEsWmrqmJWI7NdcYmct
-mYxJyNGt2iU7Re+baf8HiC//NAPcP7b4y1Un+yUJ3xuurb7klqYnYwTAjGdl1QSd
-Alpgm1dFS+N7HebaSsz0ylHx9tcSS7jGEQrdPPvLUwfMsgK5whlIRQcnv3ghYxPo
-zkh+Dic72Cx2HZ6ZDLUejezFm1cyZkmmpfQglC9Eu8gXQEu1waV74kmfoVC6TrHb
-GQalZB9WuICYnuNMm48pztSP9PwDu8LGh2n7oMFk+GC6766G2rSIluyNvPMVi6ss
-ZpM4TOkwh4AKNElFNSaZRyiR6siCH6fF15LuaB2mFmoiS9SfSD9u3jjKcJJX5dWu
-SGRq5Bf1ncBQUyk/7WF2VU8PW7RKUWWATVQlPLQ53Ypc/c6I+mNtvWt3zt4JzR9D
-HdZwk2Ia5bW3cw8tKLKnn8LLxHo89rfW3LawpMSl8oBq7IOLzb8mHVfzbj0AvtQY
-YJZqnChHm1qDu8g5rv2csf0cuWK4X09UBP4pftX08F3k8gEUrV9x+iua6B82TX9d
-RfhNUbS2eh/d6DUPFn4hUwCrVnKrLTTb9aqv4qOMGhyvGr1bXd0lIdi8h9gJB/WB
-YMQRa+Cm2ZimgzTI0mRF
-=FI0p
------END PGP SIGNATURE-----
-
---BwCQnh7xodEAoBMC--
+-- 
+Kees Cook
+Chrome OS Security
