@@ -1,73 +1,54 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH V7 -next 31/33] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Fri,  8 Mar 2013 16:52:26 -0600
-Message-ID: <1362783148-22736-32-git-send-email-dave.kleikamp@oracle.com>
-References: <1362783148-22736-1-git-send-email-dave.kleikamp@oracle.com>
+From: Michael Schneider <michael8schneider@gmail.com>
+Subject: Will there be a multi CPU core version of eCryptfs?
+Date: Thu, 14 Mar 2013 10:53:54 +0000 (UTC)
+Message-ID: <loom.20130314T111312-931@post.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:30454 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759818Ab3CHWww (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 8 Mar 2013 17:52:52 -0500
-In-Reply-To: <1362783148-22736-1-git-send-email-dave.kleikamp@oracle.com>
+Received: from plane.gmane.org ([80.91.229.3]:44334 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756959Ab3CNK7r (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Thu, 14 Mar 2013 06:59:47 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
+	id 1UG5tF-0006ro-Bo
+	for ecryptfs@vger.kernel.org; Thu, 14 Mar 2013 12:00:05 +0100
+Received: from HSI-KBW-5-10-164-97.hsi19.kabel-badenwuerttemberg.de ([HSI-KBW-5-10-164-97.hsi19.kabel-badenwuerttemberg.de])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Thu, 14 Mar 2013 12:00:05 +0100
+Received: from michael8schneider by HSI-KBW-5-10-164-97.hsi19.kabel-badenwuerttemberg.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Thu, 14 Mar 2013 12:00:05 +0100
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Zach Brown <zab@zabbo.net>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
----
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+Hello,
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 201f0a0..3392544 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -37,22 +37,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path lower;
- 	struct file *file = iocb->ki_filp;
- 
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -356,9 +355,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.readdir = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.1.5
+When using eCryptfs on a low end devices like NASs, 
+the CPU is often limiting the performance of reading/writing dramatically
+because of the intense cryptographic workload.
+
+I know that using cryptography on such systems is always a trade off,
+ but I ask myself about a possible optimization which would help very much:
+
+On my NAS the throughput with eCryptfs drops by about 70% 
+(Synology DS412+, Atom D2700 - 2 Cores, Hyperthreading).
+
+For non-encrypted operation the CPU nearly idles, when using eCryptfs
+its at about 25% load. I assume that only one of the possible
+four parallel CPU threads are used. 
+
+My question is "Will there be a multi CPU core version?" which would improve
+performance on low powered CPUs.
+
+I don't know, if this is the right place to ask, but it would be great
+if any of the developers could give me feedback if this will be possible
+in the future - crossing fingers :)
+
+Thanks.
+
+Best regards,
+Michael
