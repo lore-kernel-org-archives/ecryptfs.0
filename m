@@ -1,85 +1,280 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: async crashes
-Date: Fri, 5 Apr 2013 16:52:58 -0700
-Message-ID: <20130405235258.GA11632@boyd>
-References: <1364651830.2286.140661211073081.738964DE@webmail.messagingengine.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Subject: [RFC 1/1] eCryptfs: Use the ablkcipher crypto API
+Date: Fri,  5 Apr 2013 16:42:55 -0700
+Message-ID: <1365205375-15921-2-git-send-email-tyhicks@canonical.com>
+References: <1365205375-15921-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:55630 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:55577 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1163063Ab3DEXxD (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 5 Apr 2013 19:53:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1364651830.2286.140661211073081.738964DE@webmail.messagingengine.com>
+	with ESMTP id S932241Ab3DEXna (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 5 Apr 2013 19:43:30 -0400
+In-Reply-To: <1365205375-15921-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
-Cc: ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
+Cc: Colin King <colin.king@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, Tim Chen <tim.c.chen@intel.com>, Ying Huang <ying.huang@intel.com>, Thieu Le <thieule@google.com>, Li Wang <dragonylffly@163.com>, Zeev Zilberman <zeev@annapurnaLabs.com>, Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
 
+Make the switch from the blkcipher kernel crypto interface to the
+ablkcipher interface.
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+encrypt_scatterlist() and decrypt_scatterlist() now use the ablkcipher
+interface but, from the eCryptfs standpoint, still treat the crypto
+operation as a synchronous operation. They submit the async request and
+then wait until the operation is finished before they return. Most of
+the changes are contained inside those two functions.
 
-On 2013-03-30 15:57:10, Jarkko Sakkinen wrote:
-> Hi
->=20
-> I've been experimenting with async branch of ecryptfs for some
-> workloads. Sometimes it crashes so that ecryptfs_encrypt_extent_done()
-> first reports -EINPROGRESS (-115) to kernel log. After that it crashes
-> in ablkcipher_walk_phys().
+Despite waiting for the completion of the crypto operation, the
+ablkcipher interface provides performance increases in most cases when
+used on AES-NI capable hardware. However, sequential I/O with one or two
+threads on slow storage media does exhibit a sizeable decrease in
+performance.
 
-Were you building with Zeev's patch titled "eCryptfs: ablkcipher support
-- add workqueue"? A (temporary) link to the patch can be found here:
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Cc: Colin King <colin.king@canonical.com>
+Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Ying Huang <ying.huang@intel.com>
+Cc: Thieu Le <thieule@google.com>
+Cc: Li Wang <dragonylffly@163.com>
+Cc: Zeev Zilberman <zeev@annapurnaLabs.com>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
+---
+ fs/ecryptfs/crypto.c          | 141 ++++++++++++++++++++++++++++++------------
+ fs/ecryptfs/ecryptfs_kernel.h |   3 +-
+ 2 files changed, 102 insertions(+), 42 deletions(-)
 
-http://git.kernel.org/cgit/linux/kernel/git/tyhicks/ecryptfs.git/commit/?h=
-=3Dasync
-
-Do you have a way to reproduce this? Any exotic hardware? Any crypto
-acceleration hardware?
-
-> I looked at ecryptfs_encrypt_extent_done() and this made me think
-> whether it should have special case for having -EBUSY and -EINPROGRESS.
-
-Looking at other ablkcipher callbacks, I'd think we'd at least need a
-special case for -EINPROGRESS.
-
->=20
-> Sorry about bit coares "bug report" but I'm not expert either with
-> ecryptfs or crypto implementation.
-
-No problem, thanks for bringing it to our attention!
-
-
-Additionally, I just cc'ed you on a different patch that I have been
-working as an alternative to the async patch. Maybe you can give it a
-try, as well.
-
-Tyler
-
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCgAGBQJRX2PaAAoJENaSAD2qAscKS2QP/R0emauK41NprVLZwkJMMyGh
-NJizoGbCa+gSz/7a747ABHmUzPtfL2bTs9s3xjPfzts2GNJ6+v0GE0f9jw+2ZxDw
-iVU95oSR0Kl4YYNUnxtQ9oBInMyrPRm2xxX0HKkkAJ3TvRzJSrJolIYGcUamNJau
-pObTQSufJCpiLla1+vnKv14hqvdyg6C8Mdxvz6KNGixwnXcyyd6xHPwyvBHy8/dr
-3D1bpg/VoUW3Mh++dnEbbPDomu3JRX6gnJlg79MtYmACeBbN9hqeZVLsNr/PXqZ7
-cTf3uaC2Y8U86/OKXHuXUZV0qVByp1WWKoalgz4Bc+rosDuO5+03hLWf3p7H7mC+
-VmY389m/wEdNpcYVYlvFPcUumrCuW+t4Ruka//ry6lk13WhB/WCJLNsiAXxBgQvH
-hWCU9B4JjPF2c4XueJydVPak1JtJ6qs0Uf6G+h5AT/Ls8QpwYIoekBrbqiPCGfrK
-180WAhTzOvRg3Edr6WswdnvNxHH6rJdgbyKMUcDetFZh6lEUZwfV/4dp+enW/Hi6
-nNzdcXyiRSMEDPR+FVHpRAvBDhBJZBTClsNc+0LL8gFyyfLzoo8Hj+EBWBhQqci7
-oHix3O3mVZT1LgGSLM1lsoeSdy1lJMrY7Sw8Nc7YoztWjIeifcXt9ruL5VY86d5o
-8VHGpXn48O2H9Xf4Mj3N
-=doSo
------END PGP SIGNATURE-----
-
---tKW2IUtsqtDRztdT--
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index d5c25db..1aa8a96 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -243,7 +243,7 @@ void ecryptfs_destroy_crypt_stat(struct ecryptfs_crypt_stat *crypt_stat)
+ 	struct ecryptfs_key_sig *key_sig, *key_sig_tmp;
+ 
+ 	if (crypt_stat->tfm)
+-		crypto_free_blkcipher(crypt_stat->tfm);
++		crypto_free_ablkcipher(crypt_stat->tfm);
+ 	if (crypt_stat->hash_tfm)
+ 		crypto_free_hash(crypt_stat->hash_tfm);
+ 	list_for_each_entry_safe(key_sig, key_sig_tmp,
+@@ -319,6 +319,22 @@ int virt_to_scatterlist(const void *addr, int size, struct scatterlist *sg,
+ 	return i;
+ }
+ 
++struct extent_crypt_result {
++	struct completion completion;
++	int rc;
++};
++
++static void extent_crypt_complete(struct crypto_async_request *req, int rc)
++{
++	struct extent_crypt_result *ecr = req->data;
++
++	if (rc == -EINPROGRESS)
++		return;
++
++	ecr->rc = rc;
++	complete(&ecr->completion);
++}
++
+ /**
+  * encrypt_scatterlist
+  * @crypt_stat: Pointer to the crypt_stat struct to initialize.
+@@ -334,11 +350,8 @@ static int encrypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 			       struct scatterlist *src_sg, int size,
+ 			       unsigned char *iv)
+ {
+-	struct blkcipher_desc desc = {
+-		.tfm = crypt_stat->tfm,
+-		.info = iv,
+-		.flags = CRYPTO_TFM_REQ_MAY_SLEEP
+-	};
++	struct ablkcipher_request *req = NULL;
++	struct extent_crypt_result ecr;
+ 	int rc = 0;
+ 
+ 	BUG_ON(!crypt_stat || !crypt_stat->tfm
+@@ -349,24 +362,46 @@ static int encrypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 		ecryptfs_dump_hex(crypt_stat->key,
+ 				  crypt_stat->key_size);
+ 	}
+-	/* Consider doing this once, when the file is opened */
++
++	init_completion(&ecr.completion);
++
+ 	mutex_lock(&crypt_stat->cs_tfm_mutex);
++	req = ablkcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
++	if (!req) {
++		rc = -ENOMEM;
++		goto out;
++	}
++
++	ablkcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
++					extent_crypt_complete, &ecr);
++	/* Consider doing this once, when the file is opened */
+ 	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
+-		rc = crypto_blkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
+-					     crypt_stat->key_size);
++		rc = crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
++					      crypt_stat->key_size);
++		if (rc) {
++			ecryptfs_printk(KERN_ERR,
++					"Error setting key; rc = [%d]\n",
++					rc);
++			mutex_unlock(&crypt_stat->cs_tfm_mutex);
++			rc = -EINVAL;
++			goto out;
++		}
+ 		crypt_stat->flags |= ECRYPTFS_KEY_SET;
+ 	}
+-	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Error setting key; rc = [%d]\n",
+-				rc);
+-		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-		rc = -EINVAL;
+-		goto out;
+-	}
+-	ecryptfs_printk(KERN_DEBUG, "Encrypting [%d] bytes.\n", size);
+-	crypto_blkcipher_encrypt_iv(&desc, dest_sg, src_sg, size);
+ 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
++	ecryptfs_printk(KERN_DEBUG, "Encrypting [%d] bytes.\n", size);
++	ablkcipher_request_set_crypt(req, src_sg, dest_sg, size, iv);
++	rc = crypto_ablkcipher_encrypt(req);
++	if (rc == -EINPROGRESS || rc == -EBUSY) {
++		struct extent_crypt_result *ecr = req->base.data;
++
++		rc = wait_for_completion_interruptible(&ecr->completion);
++		if (!rc)
++			rc = ecr->rc;
++		INIT_COMPLETION(ecr->completion);
++	}
+ out:
++	ablkcipher_request_free(req);
+ 	return rc;
+ }
+ 
+@@ -624,35 +659,60 @@ static int decrypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 			       struct scatterlist *src_sg, int size,
+ 			       unsigned char *iv)
+ {
+-	struct blkcipher_desc desc = {
+-		.tfm = crypt_stat->tfm,
+-		.info = iv,
+-		.flags = CRYPTO_TFM_REQ_MAY_SLEEP
+-	};
++	struct ablkcipher_request *req = NULL;
++	struct extent_crypt_result ecr;
+ 	int rc = 0;
+ 
+-	/* Consider doing this once, when the file is opened */
++	BUG_ON(!crypt_stat || !crypt_stat->tfm
++	       || !(crypt_stat->flags & ECRYPTFS_STRUCT_INITIALIZED));
++	if (unlikely(ecryptfs_verbosity > 0)) {
++		ecryptfs_printk(KERN_DEBUG, "Key size [%zd]; key:\n",
++				crypt_stat->key_size);
++		ecryptfs_dump_hex(crypt_stat->key,
++				  crypt_stat->key_size);
++	}
++
++	init_completion(&ecr.completion);
++
+ 	mutex_lock(&crypt_stat->cs_tfm_mutex);
+-	rc = crypto_blkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
+-				     crypt_stat->key_size);
+-	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Error setting key; rc = [%d]\n",
+-				rc);
+-		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-		rc = -EINVAL;
++	req = ablkcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
++	if (!req) {
++		rc = -ENOMEM;
+ 		goto out;
+ 	}
+-	ecryptfs_printk(KERN_DEBUG, "Decrypting [%d] bytes.\n", size);
+-	rc = crypto_blkcipher_decrypt_iv(&desc, dest_sg, src_sg, size);
++
++	ablkcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
++					extent_crypt_complete, &ecr);
++	/* Consider doing this once, when the file is opened */
++	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
++		rc = crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
++					      crypt_stat->key_size);
++		if (rc) {
++			ecryptfs_printk(KERN_ERR,
++					"Error setting key; rc = [%d]\n",
++					rc);
++			mutex_unlock(&crypt_stat->cs_tfm_mutex);
++			rc = -EINVAL;
++			goto out;
++		}
++		crypt_stat->flags |= ECRYPTFS_KEY_SET;
++	}
+ 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Error decrypting; rc = [%d]\n",
+-				rc);
+-		goto out;
++	ecryptfs_printk(KERN_DEBUG, "Decrypting [%d] bytes.\n", size);
++	ablkcipher_request_set_crypt(req, src_sg, dest_sg, size, iv);
++	rc = crypto_ablkcipher_decrypt(req);
++	if (rc == -EINPROGRESS || rc == -EBUSY) {
++		struct extent_crypt_result *ecr = req->base.data;
++
++		rc = wait_for_completion_interruptible(&ecr->completion);
++		if (!rc)
++			rc = ecr->rc;
++		INIT_COMPLETION(ecr->completion);
+ 	}
+-	rc = size;
+ out:
++	ablkcipher_request_free(req);
+ 	return rc;
++
+ }
+ 
+ /**
+@@ -746,8 +806,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 						    crypt_stat->cipher, "cbc");
+ 	if (rc)
+ 		goto out_unlock;
+-	crypt_stat->tfm = crypto_alloc_blkcipher(full_alg_name, 0,
+-						 CRYPTO_ALG_ASYNC);
++	crypt_stat->tfm = crypto_alloc_ablkcipher(full_alg_name, 0, 0);
+ 	kfree(full_alg_name);
+ 	if (IS_ERR(crypt_stat->tfm)) {
+ 		rc = PTR_ERR(crypt_stat->tfm);
+@@ -757,7 +816,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 				crypt_stat->cipher);
+ 		goto out_unlock;
+ 	}
+-	crypto_blkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
++	crypto_ablkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
+ 	rc = 0;
+ out_unlock:
+ 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index dd299b3..f622a73 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -38,6 +38,7 @@
+ #include <linux/nsproxy.h>
+ #include <linux/backing-dev.h>
+ #include <linux/ecryptfs.h>
++#include <linux/crypto.h>
+ 
+ #define ECRYPTFS_DEFAULT_IV_BYTES 16
+ #define ECRYPTFS_DEFAULT_EXTENT_SIZE 4096
+@@ -233,7 +234,7 @@ struct ecryptfs_crypt_stat {
+ 	size_t extent_shift;
+ 	unsigned int extent_mask;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+-	struct crypto_blkcipher *tfm;
++	struct crypto_ablkcipher *tfm;
+ 	struct crypto_hash *hash_tfm; /* Crypto context for generating
+ 				       * the initialization vectors */
+ 	unsigned char cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
+-- 
+1.8.1.2
