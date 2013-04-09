@@ -1,14 +1,14 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [RFC v2 1/1] eCryptfs: Use the ablkcipher crypto API
-Date: Mon,  8 Apr 2013 21:39:49 -0700
-Message-ID: <1365482389-4949-1-git-send-email-tyhicks@canonical.com>
-References: <20130409043046.GA3795@boyd>
+Subject: [RFC v3 1/1] eCryptfs: Use the ablkcipher crypto API
+Date: Tue,  9 Apr 2013 12:07:59 -0700
+Message-ID: <1365534479-13202-1-git-send-email-tyhicks@canonical.com>
+References: <1365482389-4949-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50209 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:56489 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727Ab3DIEj7 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 9 Apr 2013 00:39:59 -0400
-In-Reply-To: <20130409043046.GA3795@boyd>
+	with ESMTP id S1761628Ab3DITIo (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 9 Apr 2013 15:08:44 -0400
+In-Reply-To: <1365482389-4949-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
@@ -43,17 +43,21 @@ Cc: Zeev Zilberman <zeev@annapurnaLabs.com>
 Cc: Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
 ---
 
-* Changes from v1:
+* I only made the changes mentioned in RFC v2 to encrypt_scatterlist(). This
+  patch also makes those same changes to decrypt_scatterlist():
   - Unlock cs_tfm_mutex if ablkcipher_request_alloc() fails
   - Add CRYPTO_TFM_REQ_MAY_SLEEP flag to the ablkcipher_request_set_callback()
     parameters
 
+I won't have a chance to gather new performance numbers until later tonight or
+tomorrow morning.
+
  fs/ecryptfs/crypto.c          | 143 ++++++++++++++++++++++++++++++------------
  fs/ecryptfs/ecryptfs_kernel.h |   3 +-
- 2 files changed, 104 insertions(+), 42 deletions(-)
+ 2 files changed, 105 insertions(+), 41 deletions(-)
 
 diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index d5c25db..76808e7 100644
+index d5c25db..eb50bce 100644
 --- a/fs/ecryptfs/crypto.c
 +++ b/fs/ecryptfs/crypto.c
 @@ -243,7 +243,7 @@ void ecryptfs_destroy_crypt_stat(struct ecryptfs_crypt_stat *crypt_stat)
@@ -163,7 +167,7 @@ index d5c25db..76808e7 100644
  	return rc;
  }
  
-@@ -624,35 +661,60 @@ static int decrypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+@@ -624,35 +661,62 @@ static int decrypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
  			       struct scatterlist *src_sg, int size,
  			       unsigned char *iv)
  {
@@ -194,18 +198,19 @@ index d5c25db..76808e7 100644
 -	if (rc) {
 -		ecryptfs_printk(KERN_ERR, "Error setting key; rc = [%d]\n",
 -				rc);
--		mutex_unlock(&crypt_stat->cs_tfm_mutex);
--		rc = -EINVAL;
 +	req = ablkcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
 +	if (!req) {
+ 		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-		rc = -EINVAL;
 +		rc = -ENOMEM;
  		goto out;
  	}
 -	ecryptfs_printk(KERN_DEBUG, "Decrypting [%d] bytes.\n", size);
 -	rc = crypto_blkcipher_decrypt_iv(&desc, dest_sg, src_sg, size);
 +
-+	ablkcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
-+					extent_crypt_complete, &ecr);
++	ablkcipher_request_set_callback(req,
++			CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
++			extent_crypt_complete, &ecr);
 +	/* Consider doing this once, when the file is opened */
 +	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
 +		rc = crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
@@ -244,7 +249,7 @@ index d5c25db..76808e7 100644
  }
  
  /**
-@@ -746,8 +808,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+@@ -746,8 +810,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
  						    crypt_stat->cipher, "cbc");
  	if (rc)
  		goto out_unlock;
@@ -254,7 +259,7 @@ index d5c25db..76808e7 100644
  	kfree(full_alg_name);
  	if (IS_ERR(crypt_stat->tfm)) {
  		rc = PTR_ERR(crypt_stat->tfm);
-@@ -757,7 +818,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+@@ -757,7 +820,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
  				crypt_stat->cipher);
  		goto out_unlock;
  	}
