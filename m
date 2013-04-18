@@ -1,49 +1,74 @@
-From: Colin Ian King <colin.king@canonical.com>
-Subject: Re: [RFC v3 1/1] eCryptfs: Use the ablkcipher crypto API
-Date: Wed, 10 Apr 2013 18:26:57 +0100
-Message-ID: <5165A0E1.3000306@canonical.com>
-References: <1365482389-4949-1-git-send-email-tyhicks@canonical.com> <1365534479-13202-1-git-send-email-tyhicks@canonical.com>
+From: Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
+Subject: Re: async crashes
+Date: Thu, 18 Apr 2013 23:45:06 +0300
+Message-ID: <1366317906.13274.140661219700802.0639DF04@webmail.messagingengine.com>
+References: <1364651830.2286.140661211073081.738964DE@webmail.messagingengine.com>
+ <20130405235258.GA11632@boyd>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36691 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934793Ab3DJR1D (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 10 Apr 2013 13:27:03 -0400
-In-Reply-To: <1365534479-13202-1-git-send-email-tyhicks@canonical.com>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:35894 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S936581Ab3DRUpH (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 18 Apr 2013 16:45:07 -0400
+In-Reply-To: <20130405235258.GA11632@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, Dustin Kirkland <dustin.kirkland@gazzang.com>, Tim Chen <tim.c.chen@intel.com>, Ying Huang <ying.huang@intel.com>, Thieu Le <thieule@google.com>, Li Wang <dragonylffly@163.com>, Zeev Zilberman <zeev@annapurnaLabs.com>, Jarkko Sakkinen <jarkko.sakkinen@iki.fi>
+Cc: ecryptfs@vger.kernel.org
 
-On 09/04/13 20:07, Tyler Hicks wrote:
-> Make the switch from the blkcipher kernel crypto interface to the
-> ablkcipher interface.
->
-> encrypt_scatterlist() and decrypt_scatterlist() now use the ablkcipher
-> interface but, from the eCryptfs standpoint, still treat the crypto
-> operation as a synchronous operation. They submit the async request and
-> then wait until the operation is finished before they return. Most of
-> the changes are contained inside those two functions.
->
-> Despite waiting for the completion of the crypto operation, the
-> ablkcipher interface provides performance increases in most cases when
-> used on AES-NI capable hardware. However, sequential I/O with one or two
-> threads on slow storage media does exhibit a sizeable decrease in
-> performance.
->
+Hi
 
-With the testing I've run with the ablkcipher patch I observe a 
-noticeable performance win with fast media such as SSD or tmpfs and a 
-slight improvement with fast 7200 rpm HDDs. With slower HDDs, I don't 
-see any negative performance impact with ablkcipher.  Exercised on a 
-recent AES-NI capable Intel 4 core server with 7200 rpm HDD and Intel 
-330 SSD and also with a Intel i3-2350M Lenovo X220i laptop with a 5400 
-rpm HDD and Intel 330 SSD.
+Sorry I haven't answered this before. And sorry for top-posting
+but I can now summarize this so it makes sense..
 
-I have also given this patch considerable amount of soak testing 
-overnight with continuous parallel kernel builds while also running the 
-eCryptfs tests without any issues.
+I tested this with Intel Medfield hardware and SEP driver
+(drivers/staging/sep). It turned out that SEP driver
+crashed while encrypting extents of a page.
 
-As it stands, I am happy with v3 of this patch.
+I also did a test where I mocked "err = -EINPROGRESS;" into
+ecryptfs_encrypt_extent_done and tested what it would produce.
+No crashes/oops whatsoever. So I guess this was completely
+false alarm from ecryptfs perspective.
+
+/Jarkko
+
+On Sat, Apr 6, 2013, at 2:52, Tyler Hicks wrote:
+> On 2013-03-30 15:57:10, Jarkko Sakkinen wrote:
+> > Hi
+> > 
+> > I've been experimenting with async branch of ecryptfs for some
+> > workloads. Sometimes it crashes so that ecryptfs_encrypt_extent_done()
+> > first reports -EINPROGRESS (-115) to kernel log. After that it crashes
+> > in ablkcipher_walk_phys().
+> 
+> Were you building with Zeev's patch titled "eCryptfs: ablkcipher support
+> - add workqueue"? A (temporary) link to the patch can be found here:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/tyhicks/ecryptfs.git/commit/?h=async
+> 
+> Do you have a way to reproduce this? Any exotic hardware? Any crypto
+> acceleration hardware?
+> 
+> > I looked at ecryptfs_encrypt_extent_done() and this made me think
+> > whether it should have special case for having -EBUSY and -EINPROGRESS.
+> 
+> Looking at other ablkcipher callbacks, I'd think we'd at least need a
+> special case for -EINPROGRESS.
+> 
+> > 
+> > Sorry about bit coares "bug report" but I'm not expert either with
+> > ecryptfs or crypto implementation.
+> 
+> No problem, thanks for bringing it to our attention!
+> 
+> 
+> Additionally, I just cc'ed you on a different patch that I have been
+> working as an alternative to the async patch. Maybe you can give it a
+> try, as well.
+> 
+> Tyler
+> Email had 1 attachment:
+> + signature.asc
+>   1k (application/pgp-signature)
