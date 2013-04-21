@@ -1,58 +1,49 @@
 From: Christian Kujau <lists@nerdbynature.de>
 Subject: Re: Ecryptfs over sshfs and timestamps
-Date: Sun, 21 Apr 2013 13:32:17 -0700 (PDT)
-Message-ID: <alpine.DEB.2.10.1304211324450.13746@trent.utfs.org>
-References: <CAHHtCV9kvjbmUnH584HUaDLtVktjcP7fB1myWBx-kcsErF7zZw@mail.gmail.com>
+Date: Sun, 21 Apr 2013 16:29:08 -0700 (PDT)
+Message-ID: <alpine.DEB.2.10.1304211546110.13746@trent.utfs.org>
+References: <CAHHtCV9kvjbmUnH584HUaDLtVktjcP7fB1myWBx-kcsErF7zZw@mail.gmail.com> <alpine.DEB.2.10.1304211324450.13746@trent.utfs.org> <CAM-DUcOrs3vws+Vt9BWw29da8M_1LRwkrPHPF_eUc3Mz2a7ZaQ@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from trent.utfs.org ([94.185.90.103]:45330 "EHLO trent.utfs.org"
+Received: from trent.utfs.org ([94.185.90.103]:46727 "EHLO trent.utfs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751027Ab3DUUlc (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Sun, 21 Apr 2013 16:41:32 -0400
-In-Reply-To: <CAHHtCV9kvjbmUnH584HUaDLtVktjcP7fB1myWBx-kcsErF7zZw@mail.gmail.com>
+	id S1752146Ab3DUX3S (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Sun, 21 Apr 2013 19:29:18 -0400
+In-Reply-To: <CAM-DUcOrs3vws+Vt9BWw29da8M_1LRwkrPHPF_eUc3Mz2a7ZaQ@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ivan Yosifov <iyosifov@gmail.com>
-Cc: ecryptfs@vger.kernel.org
+To: Mike Reinstein <reinstein.mike@gmail.com>
+Cc: Ivan Yosifov <iyosifov@gmail.com>, ecryptfs@vger.kernel.org
 
-On Sun, 21 Apr 2013 at 13:30, Ivan Yosifov wrote:
-> I'm trying to use ecrypts on top of an sshfs mount for remote backup
-> to an untrusted machine. I'm having a problem with timestamps however:
+On Sun, 21 Apr 2013 at 13:54, Mike Reinstein wrote:
+> Maybe I'm just misunderstanding the problem. Is it being suggested that the
+> unencrypted copy of the data should be backed up over sshfs to an untrusted
+> machine?
 
-Nice setup. I had to try this and it's working here:
+No, I think the untrusted machine would hold the encrypted data, which is 
+mounted to a trusted machine, where it's then decrypted via ecryptfs. In 
+my example:
 
-sid0# sshfs root@localhost:/mnt/disk/enc /mnt/disk/sshfs
-root@localhost's password:
+>> sid0# sshfs root@localhost:/mnt/disk/enc /mnt/disk/sshfs
+>> root@localhost's password:
 
-sid0# mount -t ecryptfs /mnt/disk/sshfs /mnt/disk/dec
-Attempting to mount with the following options:
-  ecryptfs_unlink_sigs
-  ecryptfs_fnek_sig=14f4412383d9220f
-  ecryptfs_key_bytes=16
-  ecryptfs_cipher=aes
-  ecryptfs_sig=14f4412383d9220f
-Mounted eCryptfs
+Here, localhost (untrusted) will hold the encrypted content in 
+/mnt/disk/enc, which is now mounted on a trusted machine, still encryted:
 
-sid0# cd /mnt/disk/dec
-sid0# cp -a lib/dpkg/ bak
-sid0# diff -r lib/dpkg/ bak/
+sid0# ls -go /mnt/disk/sshfs/
+total 32
+drwx------ 1 12288 Apr 21 13:16 ECRYPTFS_FNEK_ENCRYPTED.FWYIx22XUxYW1kS.8RBEqYi.2ckHIID6ncewGoCHUK9KZiv5Ci99Q9LW3E--
 
+>> sid0# mount -t ecryptfs /mnt/disk/sshfs /mnt/disk/dec
 
-sid0# uname -a
-Linux sid0 3.8-trunk-amd64 #1 SMP Debian 3.8-1~experimental.1 x86_64 GNU/Linux
+The decryption is done on the trusted machine. Maybe my example is kinda 
+confusing because I'm using "localhost" as the "untrusted remote machine". 
+But if you replace "localhost" with "evilhost", it should be clearer.
 
-sid0# dpkg -l | egrep 'ecryptfs|sshfs' | cut -c-80
-ii  ecryptfs-utils                             103-2
-ii  libecryptfs0                               103-2
-ii  sshfs                                      2.4-1
-
-Only extended attributes do not seem to be supported. What versions are 
-you on? Does strace(1) reveal something useful?
-
-Christian.
+C.
 -- 
-BOFH excuse #340:
+BOFH excuse #353:
 
-Well fix that in the next (upgrade, update, patch release, service pack).
+Second-system effect.
