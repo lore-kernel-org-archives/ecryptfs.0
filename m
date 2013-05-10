@@ -1,43 +1,74 @@
-From: Ivan Yosifov <iyosifov@gmail.com>
-Subject: Re: Ecryptfs over sshfs and timestamps
-Date: Fri, 3 May 2013 09:55:41 +0300
-Message-ID: <CAHHtCV9YZCeuWaBpoSPBAKOg2RQBCWXOf4PhOQdsRjGtjh+s0w@mail.gmail.com>
-References: <CAHHtCV9kvjbmUnH584HUaDLtVktjcP7fB1myWBx-kcsErF7zZw@mail.gmail.com>
-	<alpine.DEB.2.10.1304211324450.13746@trent.utfs.org>
-	<CAM-DUcOrs3vws+Vt9BWw29da8M_1LRwkrPHPF_eUc3Mz2a7ZaQ@mail.gmail.com>
-	<alpine.DEB.2.10.1304211546110.13746@trent.utfs.org>
-	<CAHHtCV8Efp+OJ3Rx54_d_dMcSvZnNxdodBK96hSj9=1iLUSB7g@mail.gmail.com>
-	<20130423193016.GB7389@boyd>
-	<CAHHtCV-1kwcXESyYLgm9-quTiZJ0XRZXqXcFgMT9pURB0Vw0Ug@mail.gmail.com>
-	<CAHHtCV8PCU0v=96Oj8pP3seyh-out_2F=24ekBFio1k1zTwK6g@mail.gmail.com>
-	<20130429012711.GA4925@boyd>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs update for 3.10-rc1
+Date: Thu, 9 May 2013 23:47:43 -0700
+Message-ID: <20130510064721.GA24195@boyd>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:62146 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab3ECGzm (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 3 May 2013 02:55:42 -0400
-Received: by mail-vb0-f51.google.com with SMTP id x16so1141037vbf.10
-        for <ecryptfs@vger.kernel.org>; Thu, 02 May 2013 23:55:41 -0700 (PDT)
-In-Reply-To: <20130429012711.GA4925@boyd>
+Received: from youngberry.canonical.com ([91.189.89.112]:37056 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824Ab3EJGrt (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 10 May 2013 02:47:49 -0400
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Christian Kujau <lists@nerdbynature.de>, Mike Reinstein <reinstein.mike@gmail.com>, ecryptfs@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-Thanks, it works now. I was calling just "mount" as a user and not
-"mount -i", it works with "mount -i".
 
-I ultimately tracked down the utimensat(...) = EPERM problem to a
-UID/GID mismatch between my machine and the remote one.
-My local user is 1000:1000, the remote one is 1001:1001. When I just
-mount the sshfs, I see all remote files as 1001:1001.
-I can still access all of them, including the -rw------- (600) ones,
-but apparently ecryptfs doesn't like this setup.
+--UlVJffcvxoiEqYs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-When I mount the ecryptfs lower dir with sshfs ... -o uid=1000 -o
-gid=1000, cp --preserve=timestamps works, it doesn't matter
-if I mount the ecryptfs on top as root (mounting as root requries
-sshfs ... -o allow_root) or as the user.
+Hi Linus,
+
+The following changes since commit c1be5a5b1b355d40e6cf79cc979eb66dafa24ad1:
+
+  Linux 3.9 (2013-04-28 17:36:01 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.10-rc1-ablkcipher
+
+for you to fetch changes up to 4dfea4f0d7f13309d2ee112a2584210cae4320c6:
+
+  eCryptfs: Use the ablkcipher crypto API (2013-05-09 16:55:07 -0700)
+
+----------------------------------------------------------------
+Improve performance when AES-NI (and most likely other crypto accelerators) is
+available by moving to the ablkcipher crypto API. The improvement is more
+apparent on faster storage devices. There's no noticeable change when hardware
+crypto is not available.
+
+----------------------------------------------------------------
+Tyler Hicks (1):
+      eCryptfs: Use the ablkcipher crypto API
+
+ fs/ecryptfs/crypto.c          | 141 ++++++++++++++++++++++++++++++------------
+ fs/ecryptfs/ecryptfs_kernel.h |   3 +-
+ 2 files changed, 103 insertions(+), 41 deletions(-)
+
+--UlVJffcvxoiEqYs2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCgAGBQJRjJf5AAoJENaSAD2qAscKPIwP/3vNFGMGUJvJJU7YhIyZAFRS
+ASWOD8HihqiZqObLdUkfwIuJZaUp9AmTyiA6WKrArN2sU/3yOCEy1P5JKRhqDCdw
+TKneAIKwBl8aLD4kJkkgnbRd7y4KU1ZisqhqKAaKfVRelXVwnQNqxtwHBRkD9lc/
+XHD7DcvjrP8ZUhM8hOuKGqwIHiHbHkR7NzhkAkGB0iqo2zklOA6gsdVQhGEPRkDJ
+ahcqk2sZALgOqVJRVLhqdSrzyoZAcMNdN8yUpR19pJzq4drXiVZG9alTuTOhK8Qg
+RIXcYjJOBTx4dJPZPCOTSaepg+lz5NzCCg8XpbtaCMgmtyrL1y+fnxl/I7MQO0ip
+kA1KxxHBMvE3YmPb5ooLshKmqlv6j0tFCDhUJgIYGUvtRKtRfjB9r4VXZDxyv7iI
+oRhtu9sYq7A0uVwQmdAKOjVa326o8OcS7pdleyDxPStFSbM6K7pn9LUGwF3nveWM
+i386RI6hRcudi41pxlsYgsOOhWHwe4t5DT2+x2ZrKfRfTwCgieq3RMlvLe4M18bj
+KZANPsfUPwnq0GQghAvSqlQZYTSu28I4PiEE58GpUcUm615Jdqh2sTMbm7M2+6lN
+tU5rSp4q8rP8LwzCI1tB3jKjb5rKcb93D2pOvy5sEKPQJQ/Vrawgf6JyYBV2k1ge
+TvhBTa+csHkOcqPw1por
+=U63p
+-----END PGP SIGNATURE-----
+
+--UlVJffcvxoiEqYs2--
