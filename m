@@ -1,74 +1,59 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs update for 3.10-rc1
-Date: Thu, 9 May 2013 23:47:43 -0700
-Message-ID: <20130510064721.GA24195@boyd>
+From: Will Morrison <camocrazed@gmail.com>
+Subject: Adding cipher mode as a mount option
+Date: Fri, 17 May 2013 22:10:18 -0400
+Message-ID: <5196E30A.7040503@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37056 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824Ab3EJGrt (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 10 May 2013 02:47:49 -0400
-Content-Disposition: inline
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:35405 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab3ERCKA (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 17 May 2013 22:10:00 -0400
+Received: by mail-ie0-f182.google.com with SMTP id a14so10827189iee.27
+        for <ecryptfs@vger.kernel.org>; Fri, 17 May 2013 19:10:00 -0700 (PDT)
+Received: from [10.2.2.141] ([69.166.23.176])
+        by mx.google.com with ESMTPSA id wn10sm386277igb.2.2013.05.17.19.09.58
+        for <ecryptfs@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Fri, 17 May 2013 19:09:58 -0700 (PDT)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+As part of implementing GCM integrity checking for eCryptfs, we
+thought that a good first step would be to take the currently
+hardcoded mode (cbc) and turn it into a mount option. Once a
+filesystem can be created and mounted using arbitrary block modes, we
+can work on allowing integrity protection via GCM.
 
-Hi Linus,
+This should also provide a solution to
+https://bugs.launchpad.net/ecryptfs/+bug/1176448
 
-The following changes since commit c1be5a5b1b355d40e6cf79cc979eb66dafa24ad1:
+Does this sound like a reasonable first step? If not, what issues are
+we missing?
 
-  Linux 3.9 (2013-04-28 17:36:01 -0700)
+In addition, does anyone have tips on speeding up the
+develop/compile/test cycle?
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.10-rc1-ablkcipher
-
-for you to fetch changes up to 4dfea4f0d7f13309d2ee112a2584210cae4320c6:
-
-  eCryptfs: Use the ablkcipher crypto API (2013-05-09 16:55:07 -0700)
-
-----------------------------------------------------------------
-Improve performance when AES-NI (and most likely other crypto accelerators) is
-available by moving to the ablkcipher crypto API. The improvement is more
-apparent on faster storage devices. There's no noticeable change when hardware
-crypto is not available.
-
-----------------------------------------------------------------
-Tyler Hicks (1):
-      eCryptfs: Use the ablkcipher crypto API
-
- fs/ecryptfs/crypto.c          | 141 ++++++++++++++++++++++++++++++------------
- fs/ecryptfs/ecryptfs_kernel.h |   3 +-
- 2 files changed, 103 insertions(+), 41 deletions(-)
-
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
+- -Will, on behalf Will, Zameer, Michael, and Alvin
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJRjJf5AAoJENaSAD2qAscKPIwP/3vNFGMGUJvJJU7YhIyZAFRS
-ASWOD8HihqiZqObLdUkfwIuJZaUp9AmTyiA6WKrArN2sU/3yOCEy1P5JKRhqDCdw
-TKneAIKwBl8aLD4kJkkgnbRd7y4KU1ZisqhqKAaKfVRelXVwnQNqxtwHBRkD9lc/
-XHD7DcvjrP8ZUhM8hOuKGqwIHiHbHkR7NzhkAkGB0iqo2zklOA6gsdVQhGEPRkDJ
-ahcqk2sZALgOqVJRVLhqdSrzyoZAcMNdN8yUpR19pJzq4drXiVZG9alTuTOhK8Qg
-RIXcYjJOBTx4dJPZPCOTSaepg+lz5NzCCg8XpbtaCMgmtyrL1y+fnxl/I7MQO0ip
-kA1KxxHBMvE3YmPb5ooLshKmqlv6j0tFCDhUJgIYGUvtRKtRfjB9r4VXZDxyv7iI
-oRhtu9sYq7A0uVwQmdAKOjVa326o8OcS7pdleyDxPStFSbM6K7pn9LUGwF3nveWM
-i386RI6hRcudi41pxlsYgsOOhWHwe4t5DT2+x2ZrKfRfTwCgieq3RMlvLe4M18bj
-KZANPsfUPwnq0GQghAvSqlQZYTSu28I4PiEE58GpUcUm615Jdqh2sTMbm7M2+6lN
-tU5rSp4q8rP8LwzCI1tB3jKjb5rKcb93D2pOvy5sEKPQJQ/Vrawgf6JyYBV2k1ge
-TvhBTa+csHkOcqPw1por
-=U63p
+iQIcBAEBAgAGBQJRluMJAAoJEH8zVN2+6bAceKkP/3q0dlVYTO2iPmntmwCrEOwx
+6aiejnK4z+U64b1fj+yg006mpeg6eLVXLeGj8kL17r5J26wVx43VRZwNS9ZzQ17P
+fVKMgAcr4VzOyU/zvrjTC55/mAv62IJSclVRK2SxWwMZt+6aw3tWVFUi0q1DDQrA
+3Q4rioEe06wYqmGbPF0J1dy10jLhhtzncDy/Y/M0reUPSfQhq2sgJEBTihY+wPzW
+wnEEs2IIt9DQu3d1PJgOQoF6UP2jhSGraQgzYiUu9IN3RqIMENG8X9OgkIYonxlH
+q7ASQg5sZfLEiSLvYq4jZD48zyeXQF262WTSiW2q2mWxo1OMAj13UEgejyPLj518
+NQO23mQAnD4qkL6EqXOb547Bh6BQvd1C6qI2sQU7/ZJp8WukpLmHKEYOILKl5pDq
++8HFHW2fWx6E8xKG9LoXDFp+nLd9LxLCv+zWm7s+xwXxnABR1ZO4C+1hZ5wTQip5
+b7vkiAARSiYYNnALxsc/PWzb0DZsEZPev51ay9xH74ed/9Crt4jrV5WLy5MlTjoU
+SZJ7IF2x4eoOibfmjpCkCUC7x7vknyLI8uFNOkbnpC0puNHDNX2pdrzJ5dhN7W3B
+yTN/hkMc7LSEH9pb7OuynmRV4tmXMf6VuJ+rCzxpcv8/XR0XwZiL0Y1kz/bdExGb
+ZSrxFIJdZtzu68Xj6nHe
+=LCBo
 -----END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
