@@ -1,13 +1,13 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH 2/5] eCryptfs: Read/write entire page during page IO
-Date: Fri, 24 May 2013 16:55:55 -0700
-Message-ID: <1369439758-10261-3-git-send-email-tyhicks@canonical.com>
+Subject: [PATCH 4/5] eCryptfs: Accept one offset parameter in page offset crypto functions
+Date: Fri, 24 May 2013 16:55:57 -0700
+Message-ID: <1369439758-10261-5-git-send-email-tyhicks@canonical.com>
 References: <1369439758-10261-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36650 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:36654 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798Ab3EXX4X (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 24 May 2013 19:56:23 -0400
+	with ESMTP id S1752086Ab3EXX4Z (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 24 May 2013 19:56:25 -0400
 In-Reply-To: <1369439758-10261-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
@@ -16,139 +16,125 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: ecryptfs@vger.kernel.org
 
-When reading and writing encrypted pages, perform IO using the entire
-page all at once rather than 4096 bytes at a time.
-
-This only affects architectures where PAGE_CACHE_SIZE is larger than
-4096 bytes.
+There is no longer a need to accept different offset values for the
+source and destination pages when encrypting/decrypting an extent in an
+eCryptfs page. The two offsets can be collapsed into a single parameter.
 
 Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
 ---
- fs/ecryptfs/crypto.c | 66 ++++++++++++++++++++++++----------------------------
- 1 file changed, 31 insertions(+), 35 deletions(-)
+ fs/ecryptfs/crypto.c | 42 ++++++++++++++++--------------------------
+ 1 file changed, 16 insertions(+), 26 deletions(-)
 
 diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index e8976c0..4185584 100644
+index 3547708..ec640eb 100644
 --- a/fs/ecryptfs/crypto.c
 +++ b/fs/ecryptfs/crypto.c
-@@ -490,6 +490,7 @@ int ecryptfs_encrypt_page(struct page *page)
- 	char *enc_extent_virt;
- 	struct page *enc_extent_page = NULL;
- 	loff_t extent_offset;
-+	loff_t lower_offset;
- 	int rc = 0;
+@@ -39,14 +39,12 @@
  
- 	ecryptfs_inode = page->mapping->host;
-@@ -503,12 +504,10 @@ int ecryptfs_encrypt_page(struct page *page)
- 				"encrypted extent\n");
+ static int
+ ecryptfs_decrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+-			     struct page *dst_page, int dst_offset,
+-			     struct page *src_page, int src_offset, int size,
+-			     unsigned char *iv);
++			     struct page *dst_page, struct page *src_page,
++			     int offset, int size, unsigned char *iv);
+ static int
+ ecryptfs_encrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+-			     struct page *dst_page, int dst_offset,
+-			     struct page *src_page, int src_offset, int size,
+-			     unsigned char *iv);
++			     struct page *dst_page, struct page *src_page,
++			     int offset, int size, unsigned char *iv);
+ 
+ /**
+  * ecryptfs_to_hex
+@@ -450,9 +448,7 @@ static int ecryptfs_encrypt_extent(struct page *enc_extent_page,
+ 			(unsigned long long)(extent_base + extent_offset), rc);
  		goto out;
  	}
--	enc_extent_virt = kmap(enc_extent_page);
-+
- 	for (extent_offset = 0;
- 	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
- 	     extent_offset++) {
--		loff_t offset;
--
- 		rc = ecryptfs_encrypt_extent(enc_extent_page, crypt_stat, page,
- 					     extent_offset);
- 		if (rc) {
-@@ -516,25 +515,24 @@ int ecryptfs_encrypt_page(struct page *page)
- 			       "rc = [%d]\n", __func__, rc);
- 			goto out;
- 		}
--		ecryptfs_lower_offset_for_extent(
--			&offset, ((((loff_t)page->index)
--				   * (PAGE_CACHE_SIZE
--				      / crypt_stat->extent_size))
--				  + extent_offset), crypt_stat);
--		rc = ecryptfs_write_lower(ecryptfs_inode, (enc_extent_virt +
--				extent_offset * crypt_stat->extent_size),
--				offset, crypt_stat->extent_size);
--		if (rc < 0) {
--			ecryptfs_printk(KERN_ERR, "Error attempting "
--					"to write lower page; rc = [%d]"
--					"\n", rc);
--			goto out;
--		}
-+	}
-+
-+	ecryptfs_lower_offset_for_extent(&lower_offset,
-+		page->index * (PAGE_CACHE_SIZE / crypt_stat->extent_size),
-+		crypt_stat);
-+	enc_extent_virt = kmap(enc_extent_page);
-+	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offset,
-+				  PAGE_CACHE_SIZE);
-+	kunmap(enc_extent_page);
-+	if (rc < 0) {
-+		ecryptfs_printk(KERN_ERR,
-+			"Error attempting to write lower page; rc = [%d]\n",
-+			rc);
-+		goto out;
- 	}
- 	rc = 0;
- out:
- 	if (enc_extent_page) {
--		kunmap(enc_extent_page);
- 		__free_page(enc_extent_page);
- 	}
- 	return rc;
-@@ -599,6 +597,7 @@ int ecryptfs_decrypt_page(struct page *page)
- 	char *enc_extent_virt;
- 	struct page *enc_extent_page = NULL;
- 	unsigned long extent_offset;
-+	loff_t lower_offset;
- 	int rc = 0;
- 
- 	ecryptfs_inode = page->mapping->host;
-@@ -612,26 +611,24 @@ int ecryptfs_decrypt_page(struct page *page)
- 				"encrypted extent\n");
+-	rc = ecryptfs_encrypt_page_offset(crypt_stat, enc_extent_page,
+-					extent_offset * crypt_stat->extent_size,
+-					page,
++	rc = ecryptfs_encrypt_page_offset(crypt_stat, enc_extent_page, page,
+ 					extent_offset * crypt_stat->extent_size,
+ 					crypt_stat->extent_size, extent_iv);
+ 	if (rc < 0) {
+@@ -555,9 +551,7 @@ static int ecryptfs_decrypt_extent(struct page *page,
+ 			(unsigned long long)(extent_base + extent_offset), rc);
  		goto out;
  	}
-+
-+	ecryptfs_lower_offset_for_extent(&lower_offset,
-+		page->index * (PAGE_CACHE_SIZE / crypt_stat->extent_size),
-+		crypt_stat);
- 	enc_extent_virt = kmap(enc_extent_page);
-+	rc = ecryptfs_read_lower(enc_extent_virt, lower_offset, PAGE_CACHE_SIZE,
-+				 ecryptfs_inode);
-+	kunmap(enc_extent_page);
-+	if (rc < 0) {
-+		ecryptfs_printk(KERN_ERR,
-+			"Error attempting to read lower page; rc = [%d]\n",
-+			rc);
-+		goto out;
-+	}
-+
- 	for (extent_offset = 0;
- 	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
- 	     extent_offset++) {
--		loff_t offset;
--
--		ecryptfs_lower_offset_for_extent(
--			&offset, ((page->index * (PAGE_CACHE_SIZE
--						  / crypt_stat->extent_size))
--				  + extent_offset), crypt_stat);
--		rc = ecryptfs_read_lower((enc_extent_virt +
--				extent_offset * crypt_stat->extent_size),
--				offset, crypt_stat->extent_size,
--				ecryptfs_inode);
--		if (rc < 0) {
--			ecryptfs_printk(KERN_ERR, "Error attempting "
--					"to read lower page; rc = [%d]"
--					"\n", rc);
--			goto out;
--		}
- 		rc = ecryptfs_decrypt_extent(page, crypt_stat, enc_extent_page,
- 					     extent_offset);
- 		if (rc) {
-@@ -642,7 +639,6 @@ int ecryptfs_decrypt_page(struct page *page)
- 	}
- out:
- 	if (enc_extent_page) {
--		kunmap(enc_extent_page);
- 		__free_page(enc_extent_page);
- 	}
- 	return rc;
+-	rc = ecryptfs_decrypt_page_offset(crypt_stat, page,
+-					extent_offset * crypt_stat->extent_size,
+-					enc_extent_page,
++	rc = ecryptfs_decrypt_page_offset(crypt_stat, page, enc_extent_page,
+ 					extent_offset * crypt_stat->extent_size,
+ 					crypt_stat->extent_size, extent_iv);
+ 	if (rc < 0) {
+@@ -716,9 +710,8 @@ out:
+  * ecryptfs_encrypt_page_offset
+  * @crypt_stat: The cryptographic context
+  * @dst_page: The page to encrypt into
+- * @dst_offset: The offset in the page to encrypt into
+  * @src_page: The page to encrypt from
+- * @src_offset: The offset in the page to encrypt from
++ * @offset: The byte offset into the dst_page and src_page
+  * @size: The number of bytes to encrypt
+  * @iv: The initialization vector to use for the encryption
+  *
+@@ -726,17 +719,16 @@ out:
+  */
+ static int
+ ecryptfs_encrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+-			     struct page *dst_page, int dst_offset,
+-			     struct page *src_page, int src_offset, int size,
+-			     unsigned char *iv)
++			     struct page *dst_page, struct page *src_page,
++			     int offset, int size, unsigned char *iv)
+ {
+ 	struct scatterlist src_sg, dst_sg;
+ 
+ 	sg_init_table(&src_sg, 1);
+ 	sg_init_table(&dst_sg, 1);
+ 
+-	sg_set_page(&src_sg, src_page, size, src_offset);
+-	sg_set_page(&dst_sg, dst_page, size, dst_offset);
++	sg_set_page(&src_sg, src_page, size, offset);
++	sg_set_page(&dst_sg, dst_page, size, offset);
+ 	return encrypt_scatterlist(crypt_stat, &dst_sg, &src_sg, size, iv);
+ }
+ 
+@@ -744,9 +736,8 @@ ecryptfs_encrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+  * ecryptfs_decrypt_page_offset
+  * @crypt_stat: The cryptographic context
+  * @dst_page: The page to decrypt into
+- * @dst_offset: The offset in the page to decrypt into
+  * @src_page: The page to decrypt from
+- * @src_offset: The offset in the page to decrypt from
++ * @offset: The byte offset into the dst_page and src_page
+  * @size: The number of bytes to decrypt
+  * @iv: The initialization vector to use for the decryption
+  *
+@@ -754,17 +745,16 @@ ecryptfs_encrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+  */
+ static int
+ ecryptfs_decrypt_page_offset(struct ecryptfs_crypt_stat *crypt_stat,
+-			     struct page *dst_page, int dst_offset,
+-			     struct page *src_page, int src_offset, int size,
+-			     unsigned char *iv)
++			     struct page *dst_page, struct page *src_page,
++			     int offset, int size, unsigned char *iv)
+ {
+ 	struct scatterlist src_sg, dst_sg;
+ 
+ 	sg_init_table(&src_sg, 1);
+-	sg_set_page(&src_sg, src_page, size, src_offset);
++	sg_set_page(&src_sg, src_page, size, offset);
+ 
+ 	sg_init_table(&dst_sg, 1);
+-	sg_set_page(&dst_sg, dst_page, size, dst_offset);
++	sg_set_page(&dst_sg, dst_page, size, offset);
+ 
+ 	return decrypt_scatterlist(crypt_stat, &dst_sg, &src_sg, size, iv);
+ }
 -- 
 1.8.1.2
