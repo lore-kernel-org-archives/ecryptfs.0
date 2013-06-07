@@ -1,53 +1,78 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: Check return of filemap_write_and_wait during fsync
-Date: Tue,  4 Jun 2013 23:53:03 -0700
-Message-ID: <1370415183-17023-1-git-send-email-tyhicks@canonical.com>
-References: <20130524233139.GA4029@boyd>
+Subject: [GIT PULL] eCryptfs fixes for 3.10-rc5
+Date: Thu, 6 Jun 2013 20:28:31 -0700
+Message-ID: <20130607032818.GA18403@boyd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52230 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:37446 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3FEGxK (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 5 Jun 2013 02:53:10 -0400
-In-Reply-To: <20130524233139.GA4029@boyd>
+	with ESMTP id S1751662Ab3FGD2h (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 6 Jun 2013 23:28:37 -0400
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Paul Taysom <taysom@chromium.org>, Olof Johansson <olofj@chromium.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-Error out of ecryptfs_fsync() if filemap_write_and_wait() fails.
 
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Cc: Paul Taysom <taysom@chromium.org>
-Cc: Olof Johansson <olofj@chromium.org>
----
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-After giving Paul's patch one more look, I noticed that we were ignoring
-filemap_write_and_wait()'s return value. I plan to push this patch along with
-Paul's original patch.
+Hi Linus,
 
- fs/ecryptfs/file.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+The following changes since commit bb3ec6b08396bbd631b6441102dd1c3d89cbc576:
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 16f509d..a7abbea 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -295,7 +295,12 @@ static int ecryptfs_release(struct inode *inode, struct file *file)
- static int
- ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- {
--	filemap_write_and_wait(file->f_mapping);
-+	int rc;
-+
-+	rc = filemap_write_and_wait(file->f_mapping);
-+	if (rc)
-+		return rc;
-+
- 	return vfs_fsync(ecryptfs_file_to_lower(file), datasync);
- }
- 
--- 
-1.8.1.2
+  mm: Fix virt_to_page() warning (2013-05-22 08:05:16 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.10-rc5-msync
+
+for you to fetch changes up to bc5abcf7e411b889f73ea2a90439071a0f451011:
+
+  eCryptfs: Check return of filemap_write_and_wait during fsync (2013-06-04 23:53:31 -0700)
+
+----------------------------------------------------------------
+* Fixes how eCryptfs handles msync to sync both the upper and lower file
+* A couple of MAINTAINERS updates
+
+----------------------------------------------------------------
+Dustin Kirkland (1):
+      Update eCryptFS maintainers
+
+Paul Taysom (1):
+      ecryptfs: fixed msync to flush data
+
+Tyler Hicks (1):
+      eCryptfs: Check return of filemap_write_and_wait during fsync
+
+ MAINTAINERS        | 2 +-
+ fs/ecryptfs/file.c | 6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBCgAGBQJRsVNSAAoJENaSAD2qAscKFaIQAIYmS4one1LID1gUupPIvMs0
+tPfFiIST4s84U0GirM8uZvIi1hRjRrRQWf9+3v+o/87YhcTsPInXBviWs78P6/ZL
+eLUAkHiC4h3t7539ERFxwiOqs1cOeQEXQNMeq379cTAFomIZsh1991H9AySd8INM
+gIrqg5vsh5OBdQG59h4sewiplCSDgWNj9TQTLhbTMP4/Iqa0CdRqV+TwLNBy1fiP
+BM9/WfMD5H/Ez/7PNDKjVxPnROS7K6tQtb0Pv9wzhMiETu/Za4SckrZrs95SJv+A
+3RvMQ6W8M7yUGQZm0uUg5CsL3dvhOvzQ3Cv9/+yQCr+pWCIKwvKSQ1j0eUG/hF0L
+rhVGiVGwe1kNkhTdOTCYjeTMhK39ApJOi3CtWBT4YIbG/8sWl4J9leNl3ilxBKPF
+0N0ONzDgRNDhgvqQHHt2oaohg/x3DjedNn3MflWw66FVmggVQvCtNFK02wQkRIg0
+828gySs+QX8aODnRrZuECmgOVFkF+SlIZC9Vkn4XQ4+GMvaFiXK0j4rEeP+k9yR2
+tIveGDTxqckvHYGqeib7zyiLIDSDYTiUvxzyWOwkPzr6TOAoHCsiJx/9QKaTi7ip
+0D4bxv4wAzWzsmbuJu5F0/E2P3VH9COdGCk+xwGjYa6i19MIwAQL6BuKJddoSaaT
+oU39FKvP7+61JI2zIsM3
+=QHdb
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
