@@ -1,103 +1,69 @@
-From: Tyler Hicks <tyhicks@canonical.com>
+From: Will Morrison <camocrazed@gmail.com>
 Subject: Re: Plans for adding cipher mode to file headers
-Date: Tue, 11 Jun 2013 07:07:52 -0700
-Message-ID: <20130611140752.GC30092@boyd>
-References: <51AEA774.7010702@gmail.com>
+Date: Wed, 12 Jun 2013 00:05:49 -0400
+Message-ID: <51B7F39D.40309@gmail.com>
+References: <51AEA774.7010702@gmail.com> <20130611140752.GC30092@boyd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="6zdv2QT/q3FMhpsV"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37561 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322Ab3FKOH5 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 11 Jun 2013 10:07:57 -0400
-Content-Disposition: inline
-In-Reply-To: <51AEA774.7010702@gmail.com>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:43528 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750796Ab3FLEFg (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 12 Jun 2013 00:05:36 -0400
+Received: by mail-ie0-f178.google.com with SMTP id at1so17582032iec.23
+        for <ecryptfs@vger.kernel.org>; Tue, 11 Jun 2013 21:05:36 -0700 (PDT)
+In-Reply-To: <20130611140752.GC30092@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Will Morrison <camocrazed@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Tyler Hicks <tyhicks@canonical.com>
 Cc: ecryptfs@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---6zdv2QT/q3FMhpsV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We've been discussing what to do about back/forwards compatibility.
+We've run into a few dead ends trying to figure it out, and the best
+we've come up with is to special-case CBC encrypted files, and always
+write out old style headers for those.
 
-Sorry for not getting back to you sooner. I've been busy with other
-things.
+There are version fields in tag 1 and 3 packets, and we thought about
+possibly writing out two packets, one for each version, but if a file
+contains what it considers to be a malformed packet, it will not
+continue looking for packets, and just avoid the file. Changing the
+version in the packets would count as malformed for the current code.
 
-On 2013-06-04 22:50:28, Will Morrison wrote:
-> To make the changes to store the cipher mode in the file header, we
-> are proposing the following.
->=20
-> 1. Change ECRYPTFS_SUPPORTED_FILE_VERSION to 4. This should prevent
-> old versions of eCryptfs from trying to read new style headers.
->=20
-> 2. Add a new cipher mode field in the appropriate packets of version 4
-> file headers. (I believe these are tag 1 and tag 3, for asymmetric and
-> symmetric keys). Since there is no equivalent to this field in the
-> OpenPGP RFCs, we will be creating a new list of constants similar to
-> the ones in ecryptfs.h for the mode type.
->=20
-> 3. When reading a file header and initializing a crypt_stat, if the
-> version number is 4 or greater, read the mode out of the header,
-> otherwise, default to CBC.
->=20
-> 4. When writing out headers, refer to the file_version field in the
-> crypt_stat to determine what to write out. If it's 4 or greater,
-> include the mode field.
->=20
-> This should result in the new version 4 header being written for all
-> new files. Old files would still be read and written with the version
-> 3 headers and default to using CBC mode. Older versions of eCryptfs
-> should refuse to open files with version 4 headers.
->=20
-> Does this make sense? If not, what are we missing?
+The only way we can currently see of letting older versions read files
+created by newer versions is to special-case CBC mode encryption, and
+always write the current version headers (no cipher mode field, file
+version 3) when encrypting with CBC. If encrypting with any other
+mode, the new style headers would be written, since older eCryptfs
+builds would not be able to read them anyway. This would add some
+extra logic in the functions dealing with writing headers to handle
+the special-casing. It would also require that the
+ECRYPTFS_FILE_VERSION constant be used dynamically depending on what
+the cipher mode was.
 
-It makes sense, but I don't really like it. It prevents old kernels from
-being able to open files created by newer kernels even when CBC is used
-for the new files.
+I don't know what is better, extra code paths that should be tested
+and maintained, or a lack of forward compatibility between versions of
+eCryptfs for files encrypted with CBC. Do you have any thoughts one
+way or the other?
 
-Breaking backwards compatibility should only be done for really good
-reasons, when there's no other option.
-
-
-I didn't want to shoot this idea down without proposing a solution of
-my own, but I haven't had time to read back through the OpenPGP RFCs and
-look at what other fields we have in our metadata.
-
-The good news is that this shouldn't block you for the time being. You
-can hardcode your new mount_crypt_stat and crypt_stat cipher mode fields
-to GCM for now and then figure out how to dynamically set them later
-when we come to a decision on the metadata format changes.
-
-Tyler
-
->=20
-> Thanks,
-> -Will
-
---6zdv2QT/q3FMhpsV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
+- -Will
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCgAGBQJRty84AAoJENaSAD2qAscKscwP/i6RhkbIShk42vlNYgZYKvo+
-i/yhyonm2z0PEudX2TIhdux7RpPKIzMWdkGbk6OLwqTOfa5EJZC8vEFJBTAlhSsz
-FDihjRoiJ2t3yB+rFWw0T3/9c7Ulp3b7hCgDdippkAS6YSREFkAPQHKME9W0QjyV
-vjjh2KuHLTbvq/nnxneIH0JXs0AkqFdwvPbyXqY18Ud/CghgXebqbLdxulsqZmnb
-60fy3pENXywqgsUOn8Y9qZVLQwFdxxR/2FmHkdksyE37T/7yoN8c9ujS1gsAETmc
-G6QTbbJsqs3fdoU/zieafwQ76I/dRALcytjGzGlmSRWx6WTwjVGyI68BGqNMaeso
-/qJv3WwcFZpqzr4iroE22RVhMrNWDDJmDq3BwLzKibHTUN76mylXRpZzpgaXBPG4
-MGB+KysWF6eTRzZTrSAIVBgIa1fiIjKkOjlXYf5BZw2YlBhSJ0Oot5nLOVxFYcnN
-yEPlrmxmVM0KBJDojwVEV9iB1ktdLlMJ11dQqVxqDGtHsJEdeVasGVhfXsZ4dmLa
-0wWMtNcuhfGNR4KLcis2OTauJvki+NwXp/8aYXb2lV9Cgb0KSlq+GaTO54QCL9/7
-fNwPS1H7vh7iQZFRfS+ETNDq7L+uvZs6e3u6/U4wNkC1wzhtpF8t8CTaCTwTA+F5
-5EqY5WpvR6QpyNwPCMa/
-=FRZI
+iQIcBAEBAgAGBQJRt/OdAAoJEH8zVN2+6bAcvXkP/1UqY82h7wl54Eiv//3XewrN
+c4VByoYKwO28pbNz3JRSl9WEUHD9viji0aJdnnjx3aWYJ3OWc0IKSdsJpPYSnaHa
+wXaohMD6MV0i20iFyPy15SMjdt1KcpEGyX4j3bhYvP+lObhhP5/jbF6sFa0RJdfI
+qjF4ujPxAKdB111UOSZYzxmoC4ljowbMV/TBy1p61h98AR9tWvkck+2W/RLCIJ7G
+H2la2h017dKMqnqSfgJSb5ATbDqH6fUfvn6+iof+ZbfGHQ7yU4aPbqcNCogZSBYt
+CZ5d/Y46eo5KcX+0rHsVbXJg3ctV8zWdlMHAwdlvZrXepCnQXHccpm/GIQI2gChD
+fyffsevnQRYreYqsjikF4z7h4WgsU0TUPsRGOpalmT3u72Hh9DPTKOw2SDRBTrSR
+LFqlYnxL5vr6w0Qbm9VYjtqZz1XQWDalJM7OIHk7zllsMPufYcb1fawhhdeyYl4t
+4hSsK4gitRsvbBhatvMXygvCIwrOgz4I4L0zsT6eymirzgf5FmVFxNCNiknDcV3/
+qC20B0TsHnINiWq1XlpQGP80IhGnor1tKDA46SIbQukmoIicJAD7CDpLztsvj1qo
+qbRO9kPYNXPVqsggll+axDmAsGmZV+8L2uPvj9Gy7reFIrzfaSidAzjuipTLx2RT
+IjJnvbuOmy7Psng5Vtmd
+=HBO0
 -----END PGP SIGNATURE-----
-
---6zdv2QT/q3FMhpsV--
