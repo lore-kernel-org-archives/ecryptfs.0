@@ -1,94 +1,43 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs updates for 3.11-rc1
-Date: Wed, 10 Jul 2013 10:54:55 -0700
-Message-ID: <20130710175441.GA15884@boyd>
+From: Zameer Manji <zmanji@gmail.com>
+Subject: Inserting extra extents in lower file
+Date: Thu, 18 Jul 2013 16:08:43 -0400
+Message-ID: <CABtXzjQ5E0b+G++x8AmtSXJ7Nmns4j+f6cDNzzr4kfxmY=reWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36967 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769Ab3GJRzB (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 10 Jul 2013 13:55:01 -0400
-Content-Disposition: inline
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:58030 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933442Ab3GRUJE (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 18 Jul 2013 16:09:04 -0400
+Received: by mail-vc0-f182.google.com with SMTP id id13so2693761vcb.13
+        for <ecryptfs@vger.kernel.org>; Thu, 18 Jul 2013 13:09:03 -0700 (PDT)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
+Hello,
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I've been working with Will Morrison to add the GCM cipher mode to
+eCryptfs. GCM adds integrity protection to eCryptfs by also computing
+a hash of the data. This hash is 16 bytes in size. We were thinking
+about modifying how the lower file is structured to store these
+hashes.
 
-Hi Linus,
+Currently the layout of the lower file is:
 
-The following changes since commit e8193ce572f0ddb8004acf976bba119f0abbe6ca:
+[Header Extent][Data Extent][Data Extent] ....
 
-  Merge tag 'rdma-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband (2013-06-07 16:29:21 -0700)
+We would like to change it to
+[Header Extent][Hash Extent][Data Extent] ... (256 data
+extents)...[Hash Extent]...
 
-are available in the git repository at:
+Where [Hash Extent] stores 256 16 byte hashes, one for each of the
+following data extents.
 
+Where in the code base is the offset in the lower file calculated?
+Currently we know that ecryptfs_write and ecryptfs_decrypt_page do
+this and we were looking if any other parts of the code do that.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.11-rc1-cleanup
-
-for you to fetch changes up to cc18ec3c8f5dd735c1bff5da30fd33860c08a293:
-
-  Use ecryptfs_dentry_to_lower_path in a couple of places (2013-07-09 23:40:28 -0700)
-
-----------------------------------------------------------------
-Code cleanups and improved buffer handling during page crypto operations
-- Remove redundant code by merging some encrypt and decrypt functions
-- Get rid of a helper page allocation during page decryption by using in-place
-  decryption
-- Better use of entire pages during page crypto operations
-- Several code cleanups
-
-----------------------------------------------------------------
-Matthew Wilcox (1):
-      Use ecryptfs_dentry_to_lower_path in a couple of places
-
-Thomas Meyer (1):
-      eCryptfs: Cocci spatch "memdup.spatch"
-
-Tyler Hicks (10):
-      eCryptfs: Use entire helper page during page crypto operations
-      eCryptfs: Read/write entire page during page IO
-      eCryptfs: Simplify lower file offset calculation
-      eCryptfs: Accept one offset parameter in page offset crypto functions
-      eCryptfs: Decrypt pages in-place
-      eCryptfs: Combine encrypt_scatterlist() and decrypt_scatterlist()
-      eCryptfs: Combine page_offset crypto functions
-      eCryptfs: Merge ecryptfs_encrypt_extent() and ecryptfs_decrypt_extent()
-      eCryptfs: Collapse crypt_page_offset() into crypt_extent()
-      eCryptfs: Make extent and scatterlist crypt function parameters similar
-
- fs/ecryptfs/crypto.c    | 337 +++++++++++-------------------------------------
- fs/ecryptfs/file.c      |   7 +-
- fs/ecryptfs/main.c      |   7 +-
- fs/ecryptfs/messaging.c |   3 +-
- 4 files changed, 85 insertions(+), 269 deletions(-)
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBCgAGBQJR3Z/hAAoJENaSAD2qAscK2g8P/jShb/4tvCvy9/vzWiOfu3kn
-d7nZlr/H3JAYaBOsiA8GAmyNtToMvNjskGUyuB8G5+8DgnEqJziI4/hGjeoj2svz
-e/AZmUzDHeZ7byJ+dep9GsQUnhGGiP4V4sPQ2+rVDKjX7VTINCe9s3KSfFx4x49p
-swfAKyjkpbBbxyMLcQLF4jO1gFG4ayP5n63ZtwE9JOIQ5fxbHQjBvY/Cieeqlmqc
-m5otsWwf5w7sT+RXjySwA9y4jOXdMqBcMqK+6HReCCxv/uTFzS4Iojhu4Z+W98sW
-0qvZEgx6/UaQTuc4ZaF+RBsNcgiXXJ/Cd13eNM2etVtoujjkp/Pqdb21BZC55TLp
-bFMstpK6fVzEUaVmuRJmBMJ8iOX+yKlnIreNtx9j3iEHtrmOyYBP//FFvb/wOa3A
-g8EqSgMuh2OqEYtWd6iY8nx8zNY9Gw0TphG8TeW9L/dDjiL3KT94MjkvZCKtDD78
-Mi8skRh1wXf39gFUgdlVcZPjo7PN5T66HU08TdUIDbMkYPn4jfXtvxcD8ZFXb1fr
-YLKdL8gf96PSV5l1EqafY2pMUITMzyFcRE5ATmBrvRJlQTDlsQ5loEj89An8BOcM
-EJX6QHQETe4Dytk+AqxETxk2oqqbM1Zw4imWwm8smxRIJY3+GYdSwMthLB/funkw
-h4gXS47BccAKlxSyamIp
-=HkbJ
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+--
+Zameer Manji
