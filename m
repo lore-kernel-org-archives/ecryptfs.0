@@ -1,43 +1,69 @@
-From: Zameer Manji <zmanji@gmail.com>
-Subject: Inserting extra extents in lower file
-Date: Thu, 18 Jul 2013 16:08:43 -0400
-Message-ID: <CABtXzjQ5E0b+G++x8AmtSXJ7Nmns4j+f6cDNzzr4kfxmY=reWw@mail.gmail.com>
-Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:58030 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933442Ab3GRUJE (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 18 Jul 2013 16:09:04 -0400
-Received: by mail-vc0-f182.google.com with SMTP id id13so2693761vcb.13
-        for <ecryptfs@vger.kernel.org>; Thu, 18 Jul 2013 13:09:03 -0700 (PDT)
-Sender: ecryptfs-owner@vger.kernel.org
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Subject: [PATCH V8 31/33] ecrpytfs: Convert aio_read/write ops to read/write_iter
+Date: Thu, 25 Jul 2013 12:50:57 -0500
+Message-ID: <1374774659-13121-32-git-send-email-dave.kleikamp@oracle.com>
+References: <1374774659-13121-1-git-send-email-dave.kleikamp@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1374774659-13121-1-git-send-email-dave.kleikamp@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Zach Brown <zab@zabbo.net>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
-Hello,
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Tyler Hicks <tyhicks@canonical.com>
+Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: ecryptfs@vger.kernel.org
+---
+ fs/ecryptfs/file.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-I've been working with Will Morrison to add the GCM cipher mode to
-eCryptfs. GCM adds integrity protection to eCryptfs by also computing
-a hash of the data. This hash is 16 bytes in size. We were thinking
-about modifying how the lower file is structured to store these
-hashes.
-
-Currently the layout of the lower file is:
-
-[Header Extent][Data Extent][Data Extent] ....
-
-We would like to change it to
-[Header Extent][Hash Extent][Data Extent] ... (256 data
-extents)...[Hash Extent]...
-
-Where [Hash Extent] stores 256 16 byte hashes, one for each of the
-following data extents.
-
-Where in the code base is the offset in the lower file calculated?
-Currently we know that ecryptfs_write and ecryptfs_decrypt_page do
-this and we were looking if any other parts of the code do that.
-
---
-Zameer Manji
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 992cf95..3ed6e5f 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -37,22 +37,21 @@
+ /**
+  * ecryptfs_read_update_atime
+  *
+- * generic_file_read updates the atime of upper layer inode.  But, it
++ * generic_file_read_iter updates the atime of upper layer inode.  But, it
+  * doesn't give us a chance to update the atime of the lower layer
+- * inode.  This function is a wrapper to generic_file_read.  It
+- * updates the atime of the lower level inode if generic_file_read
++ * inode.  This function is a wrapper to generic_file_read_iter.  It
++ * updates the atime of the lower level inode if generic_file_read_iter
+  * returns without any errors. This is to be used only for file reads.
+  * The function to be used for directory reads is ecryptfs_read.
+  */
+ static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
+-				const struct iovec *iov,
+-				unsigned long nr_segs, loff_t pos)
++				struct iov_iter *iter, loff_t pos)
+ {
+ 	ssize_t rc;
+ 	struct path *path;
+ 	struct file *file = iocb->ki_filp;
+ 
+-	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
++	rc = generic_file_read_iter(iocb, iter, pos);
+ 	/*
+ 	 * Even though this is a async interface, we need to wait
+ 	 * for IO to finish to update atime
+@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
+ const struct file_operations ecryptfs_main_fops = {
+ 	.llseek = generic_file_llseek,
+ 	.read = do_sync_read,
+-	.aio_read = ecryptfs_read_update_atime,
++	.read_iter = ecryptfs_read_update_atime,
+ 	.write = do_sync_write,
+-	.aio_write = generic_file_aio_write,
++	.write_iter = generic_file_write_iter,
+ 	.iterate = ecryptfs_readdir,
+ 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
+ #ifdef CONFIG_COMPAT
+-- 
+1.8.3.4
