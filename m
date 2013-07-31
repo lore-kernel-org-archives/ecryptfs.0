@@ -1,69 +1,37 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH V8 31/33] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Thu, 25 Jul 2013 12:50:57 -0500
-Message-ID: <1374774659-13121-32-git-send-email-dave.kleikamp@oracle.com>
-References: <1374774659-13121-1-git-send-email-dave.kleikamp@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1374774659-13121-1-git-send-email-dave.kleikamp@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] ecryptfs: remove check for if an array is NULL
+Date: Wed, 31 Jul 2013 12:10:10 +0300
+Message-ID: <20130731091010.GA2131@elgon.mountain>
+Mime-Version: 1.0
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Zach Brown <zab@zabbo.net>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
+It doesn't make sense to check if an array is NULL.  The compiler just
+removes the check.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+Or perhaps "if (!strlen(crypt_stat->cipher))" was intended?  I'm not
+very familiar with this code.
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 992cf95..3ed6e5f 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -37,22 +37,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path *path;
- 	struct file *file = iocb->ki_filp;
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index d107576..3bd35e2 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -609,10 +609,6 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 	char *full_alg_name;
+ 	int rc = -EINVAL;
  
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.iterate = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.3.4
+-	if (!crypt_stat->cipher) {
+-		ecryptfs_printk(KERN_ERR, "No cipher specified\n");
+-		goto out;
+-	}
+ 	ecryptfs_printk(KERN_DEBUG,
+ 			"Initializing cipher [%s]; strlen = [%d]; "
+ 			"key_size_bits = [%zd]\n",
