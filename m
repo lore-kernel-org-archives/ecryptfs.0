@@ -1,73 +1,48 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH] ecryptfs: avoid ctx initialization race
-Date: Tue, 13 Aug 2013 15:02:27 -0700
-Message-ID: <20130813220227.GA20160@www.outflux.net>
+From: Ryan Sawhill <rsaw@redhat.com>
+Subject: Re: Problem using ecryptfs on top of NFS
+Date: Mon, 26 Aug 2013 14:08:50 -0400
+Message-ID: <521B99B2.1030606@redhat.com>
+References: <CAF_v8EnuFajjQ3BDTYQnqWpKdJbUh+APS51WyY09TNvzjkD=Xw@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtp.outflux.net ([198.145.64.163]:48829 "EHLO smtp.outflux.net"
+Received: from mx1.redhat.com ([209.132.183.28]:31129 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754551Ab3HMWCb (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 13 Aug 2013 18:02:31 -0400
-Content-Disposition: inline
+	id S1751381Ab3HZSIv (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 26 Aug 2013 14:08:51 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r7QI8psd009812
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <ecryptfs@vger.kernel.org>; Mon, 26 Aug 2013 14:08:51 -0400
+Received: from [10.10.56.230] (vpn-56-230.rdu2.redhat.com [10.10.56.230])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r7QI8oEY011285
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <ecryptfs@vger.kernel.org>; Mon, 26 Aug 2013 14:08:50 -0400
+In-Reply-To: <CAF_v8EnuFajjQ3BDTYQnqWpKdJbUh+APS51WyY09TNvzjkD=Xw@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: ecryptfs@vger.kernel.org
 
-It might be possible for two callers to race the mutex lock after the
-NULL ctx check. Instead, move the lock above the check so there isn't
-the possibility of leaking a crypto ctx. Additionally, report the full
-algo name when failing.
+On 08/04/2013 03:20 PM, Ruben Gaspar wrote:
+> I am trying to mount ecryptfs on top of an NFS mount, but I get following error:
+>
+> Error mounting eCryptfs: [-22] Invalid argument
+> Check your system logs; visit <http://launchpad.net/ecryptfs>
+>
+>
+> Checking my /var/log/messages I found:
+>
+> Mount request on top of filesystem type [nfs]
+> Mount on filesystem of type [nfs] explicitly disallowed due to known
+> incompatibilities
+> Invalid lower filesystem type
+>
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- fs/ecryptfs/crypto.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+I'm confused by your comments -- you copied and pasted the above error 
+message, but you don't seem to have read it..? In any case, what it says 
+is true.
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index d107576..c134346 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -618,27 +618,28 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
- 			"key_size_bits = [%zd]\n",
- 			crypt_stat->cipher, (int)strlen(crypt_stat->cipher),
- 			crypt_stat->key_size << 3);
-+	mutex_lock(&crypt_stat->cs_tfm_mutex);
- 	if (crypt_stat->tfm) {
- 		rc = 0;
--		goto out;
-+		goto out_unlock;
- 	}
--	mutex_lock(&crypt_stat->cs_tfm_mutex);
- 	rc = ecryptfs_crypto_api_algify_cipher_name(&full_alg_name,
- 						    crypt_stat->cipher, "cbc");
- 	if (rc)
- 		goto out_unlock;
- 	crypt_stat->tfm = crypto_alloc_ablkcipher(full_alg_name, 0, 0);
--	kfree(full_alg_name);
- 	if (IS_ERR(crypt_stat->tfm)) {
- 		rc = PTR_ERR(crypt_stat->tfm);
- 		crypt_stat->tfm = NULL;
- 		ecryptfs_printk(KERN_ERR, "cryptfs: init_crypt_ctx(): "
- 				"Error initializing cipher [%s]\n",
--				crypt_stat->cipher);
--		goto out_unlock;
-+				full_alg_name);
-+		goto out_free;
- 	}
- 	crypto_ablkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
- 	rc = 0;
-+out_free:
-+	kfree(full_alg_name);
- out_unlock:
- 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
- out:
--- 
-1.7.9.5
-
-
--- 
-Kees Cook
-Chrome OS Security
+Here's a comment (from one of the main developers) on the relevant bug 
+-- still accurate AFAIK: 
+https://bugs.launchpad.net/ecryptfs/+bug/277578/comments/23
