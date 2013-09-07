@@ -1,83 +1,92 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [patch] ecryptfs: remove check for if an array is NULL
-Date: Fri, 6 Sep 2013 17:30:39 -0700
-Message-ID: <20130907003039.GO3853@boyd>
-References: <20130731091010.GA2131@elgon.mountain>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH] ecryptfs: avoid ctx initialization race
+Date: Fri, 6 Sep 2013 17:46:38 -0700
+Message-ID: <CAGXu5jK3edvm9Xn3e-Nxv6ruGUMniqv2k61kdAfSB0Xg0eqH_Q@mail.gmail.com>
+References: <20130813220227.GA20160@www.outflux.net>
+	<20130907002959.GN3853@boyd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ZmZU9S7l/XJx5q9b"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:41741 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862Ab3IGAan (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Sep 2013 20:30:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20130731091010.GA2131@elgon.mountain>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:37430 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750773Ab3IGAqi (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Sep 2013 20:46:38 -0400
+Received: by mail-ie0-f178.google.com with SMTP id f4so8409441iea.37
+        for <ecryptfs@vger.kernel.org>; Fri, 06 Sep 2013 17:46:38 -0700 (PDT)
+In-Reply-To: <20130907002959.GN3853@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: ecryptfs@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, ecryptfs@vger.kernel.org
+
+On Fri, Sep 6, 2013 at 5:30 PM, Tyler Hicks <tyhicks@canonical.com> wrote:
+> On 2013-08-13 15:02:27, Kees Cook wrote:
+>> It might be possible for two callers to race the mutex lock after the
+>> NULL ctx check. Instead, move the lock above the check so there isn't
+>> the possibility of leaking a crypto ctx. Additionally, report the full
+>> algo name when failing.
+>>
+>> Signed-off-by: Kees Cook <keescook@chromium.org>
+>
+> Thanks, Kees!
+>
+> I've pushed this to my next branch and it'll be included in a pull
+> request early next week.
+>
+> I made one small change to this patch. See below.
+>
+>> ---
+>>  fs/ecryptfs/crypto.c |   11 ++++++-----
+>>  1 file changed, 6 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+>> index d107576..c134346 100644
+>> --- a/fs/ecryptfs/crypto.c
+>> +++ b/fs/ecryptfs/crypto.c
+>> @@ -618,27 +618,28 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+>>                       "key_size_bits = [%zd]\n",
+>>                       crypt_stat->cipher, (int)strlen(crypt_stat->cipher),
+>>                       crypt_stat->key_size << 3);
+>> +     mutex_lock(&crypt_stat->cs_tfm_mutex);
+>>       if (crypt_stat->tfm) {
+>>               rc = 0;
+>> -             goto out;
+>> +             goto out_unlock;
+>>       }
+>> -     mutex_lock(&crypt_stat->cs_tfm_mutex);
+>>       rc = ecryptfs_crypto_api_algify_cipher_name(&full_alg_name,
+>>                                                   crypt_stat->cipher, "cbc");
+>>       if (rc)
+>>               goto out_unlock;
+>>       crypt_stat->tfm = crypto_alloc_ablkcipher(full_alg_name, 0, 0);
+>> -     kfree(full_alg_name);
+>>       if (IS_ERR(crypt_stat->tfm)) {
+>>               rc = PTR_ERR(crypt_stat->tfm);
+>>               crypt_stat->tfm = NULL;
+>>               ecryptfs_printk(KERN_ERR, "cryptfs: init_crypt_ctx(): "
+>>                               "Error initializing cipher [%s]\n",
+>> -                             crypt_stat->cipher);
+>> -             goto out_unlock;
+>> +                             full_alg_name);
+>> +             goto out_free;
+>>       }
+>>       crypto_ablkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
+>>       rc = 0;
+>> +out_free:
+>> +     kfree(full_alg_name);
+>>  out_unlock:
+>>       mutex_unlock(&crypt_stat->cs_tfm_mutex);
+>>  out:
+>
+> The out label is no longer used. I removed it when I committed this
+> patch.
+
+Ah! Yes, good call. Thanks,
+
+-Kees
 
 
---ZmZU9S7l/XJx5q9b
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2013-07-31 12:10:10, Dan Carpenter wrote:
-> It doesn't make sense to check if an array is NULL.  The compiler just
-> removes the check.
->=20
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Thanks, Dan!
-
-I've pushed this to my next branch and it will be part of a pull request
-that should go out early next week.
-
-Tyler
-
-> ---
-> Or perhaps "if (!strlen(crypt_stat->cipher))" was intended?  I'm not
-> very familiar with this code.
->=20
-> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> index d107576..3bd35e2 100644
-> --- a/fs/ecryptfs/crypto.c
-> +++ b/fs/ecryptfs/crypto.c
-> @@ -609,10 +609,6 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_st=
-at *crypt_stat)
->  	char *full_alg_name;
->  	int rc =3D -EINVAL;
-> =20
-> -	if (!crypt_stat->cipher) {
-> -		ecryptfs_printk(KERN_ERR, "No cipher specified\n");
-> -		goto out;
-> -	}
->  	ecryptfs_printk(KERN_DEBUG,
->  			"Initializing cipher [%s]; strlen =3D [%d]; "
->  			"key_size_bits =3D [%zd]\n",
-
---ZmZU9S7l/XJx5q9b
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCgAGBQJSKnOvAAoJENaSAD2qAscKrBwQAKaVVXzpKtzN5hmqbuBRSjxC
-FZqlnXS978e4AVTduyeFJ4tpFWCG0h5UPsmy5NiAaxVWBfan/gMUnUwYQB2jtScv
-G9sU6JPKiN5hHsUTw5kXM33cif1AVRAog8IKdGrgxHJwgpb1s4Psl8zxZN+0kh8J
-nr2+0ssXw/k27ed3vPzu5Pt4tRRsBWYzzzucVAroRbDyjNNOpqJ3lTQsfS6nDjHX
-9Td/+02HUwpBsOPCoEhuTVHCEZE59SNas3k5lxL+LjokgOaR/Y7EtDPWRnZZlrXV
-l1vahDKRmBb6sWPx4veNfzAESYf1DZ2l8/jsZT5MU8mXe7rwPZlt/N/fpKu6CYsu
-mFG3OmhsWO3MBBcDnACTPgu+9+7DdPWjzscjuzLbEWGBFZyKyMCBOqnEImP2ncBo
-M4XRCUOQI3mm2LvIGSN5Ix+iouKwb64qoz769ktLA+7i/k4USgEgRs4Ehg2ow75m
-47Npgsnj0cAVunCVukz046GgCtlxkEKbnlejsHWzb8r1jdgcOIpfEi+f+RCb/LBk
-4x678lvNsc4jkkZMUzZLTXWkk/TkziLKzJ0WX7eb40V2azx2hehNTc5c+QJA7Q8b
-EUvp/LlLcROpnOiRzdrvt19IhFiYA64E9fmcDpLt0NtTQWHfR5xOQY86N74pIgyP
-+vaL2qjQqrZRaUp6S6Vl
-=v48P
------END PGP SIGNATURE-----
-
---ZmZU9S7l/XJx5q9b--
+-- 
+Kees Cook
+Chrome OS Security
