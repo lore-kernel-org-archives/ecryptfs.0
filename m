@@ -1,75 +1,64 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.12-rc1
-Date: Wed, 11 Sep 2013 16:58:12 -0700
-Message-ID: <20130911235811.GE18678@boyd>
+From: James Muir <muir.james.a@gmail.com>
+Subject: porting to android
+Date: Sun, 15 Sep 2013 00:05:20 -0400
+Message-ID: <52353200.9040101@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ffoCPvUAPMgSXi6H"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43216 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab3IKX6R (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 11 Sep 2013 19:58:17 -0400
-Content-Disposition: inline
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:45845 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751590Ab3IOEFY (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sun, 15 Sep 2013 00:05:24 -0400
+Received: by mail-oa0-f49.google.com with SMTP id i7so2586019oag.36
+        for <ecryptfs@vger.kernel.org>; Sat, 14 Sep 2013 21:05:21 -0700 (PDT)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---ffoCPvUAPMgSXi6H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+hello list,
 
-Hi Linus,
+I'm interested in porting some of the ecryptfs userland tools to android
+- -- specifically, I want to get the mount and umount utilities working.
 
-The following changes since commit 4de9ad9bc08b4953fc03336ad38908496e2f8826:
+I've hacked around a bit and see that there is a dependency with Mozilla
+NSS (e.g. in the functions ecryptfs_wrap_passphrase and
+ecryptfs_unwrap_passphrase).  Apparently, NSS can be built for Android,
+but before I go further down the hole, I wondered if someone more
+familiar with the user tools might have some perspective to share.  My
+impression is that getting the tools working on Android shouldn't
+be too difficult, but I wonder if I am being too optimistic...  if I
+sort out NSS, will it be smooth sailing?
 
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/cmetcalf/linux-tile (2013-09-06 11:14:33 -0700)
+Note the ./configure script suggests that it is possible to build
+against gcrypt rather than NSS ("--disable-nss           Build against
+gcrypt rather than NSS"), but I suspect that configuration hasn't
+actually been implemented yet.  Has anyone built the user tools using
+gcrypt?
 
-are available in the git repository at:
+More generally, has anyone worked on porting these utilities
+previously?  I've googled and found mention that ecryptfs is used on
+the Droid X but the source code was not published:
 
+http://android.stackexchange.com/questions/20105/motorola-droidx-ecryptfs-related-sources
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.12-rc1-crypt-ctx
+Also, the following blueprint suggests that an android port has been on
+the Linaro backlog for some time:
 
-for you to fetch changes up to cb69f36ba1f8d5e73c46538e84a88178fb17f23d:
+https://blueprints.launchpad.net/linaro-android/+spec/linaro-android-integrate-ecryptfs
 
-  ecryptfs: avoid ctx initialization race (2013-09-06 16:58:18 -0700)
+thanks for your help,
 
-----------------------------------------------------------------
-Two small fixes to the code that initializes the per-file crypto
-contexts.
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      ecryptfs: remove check for if an array is NULL
-
-Kees Cook (1):
-      ecryptfs: avoid ctx initialization race
-
- fs/ecryptfs/crypto.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
-
---ffoCPvUAPMgSXi6H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+- -James
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
-iQIcBAEBCgAGBQJSMQOTAAoJENaSAD2qAscKOXMP/jRQpOKVDY11YJluoFqVuQWj
-Fx7vYlMLtTFifzMBUDL+qG/SVWxj2L7iPEBL2MmWVZPSLS4w1uke3zEOZTtUG3tP
-nAd521f6ZUVpGlFTkLQ3Wp5KmeibbaHZ60VPHpe3lOiELXlft8mcy9sjsP5IQwUw
-24GJ6wNn+hAXqB+KGZl95wWxZhun/ao3QBvAr6ZPGgAzWHrt2/P91rUmw1mA2nA7
-yG3j+RE6fhjfvtUdpj0/EzQ46rFDPXWI8P5PoEF3BTQVPji3gHT7zaojFkuzmb/a
-U1TR0nIDfUrCzOeuoBGUtiH3BQ7UBnYcGpBVty5PbTRiZWuXgqNR9T5uFXLSOB/g
-FLc1t0N/EtLgUthKn5ZQYLmEupDTMuNqRRoxKHpVvAW12sVHOpeK7xP32kqAoZXF
-Ly1STUuhTeyhrLQ/1kQhM1fM0z0xZl69ky89X1+VUx6Qxct21aFNlTLHjqkH0hEh
-6YGuR2KH1yHOTux9gqf08vhBZMTAJaD6YQqW0ZRkQLBrK69qt5C7f58ocCv4ajSd
-co9GyDU1saAd+SQelqahwlpXpyskXYbSA/5rXheV+hwgw71+pHQDIRL6oap46IKs
-C59+y5NjyHWZ5+ieDkUe3USAV90zVAPEHAEgq8c3rEu804E2rlWB4r0y3Bun/3Ws
-nv1+bmFIqZl3CX+zoISd
-=PiCE
+iEYEARECAAYFAlI1MgAACgkQ4Arkm0Hw/FLFYgCbBoS8p2yHQjpx0b/zW9xzPxRs
+d98AoIGvDYK3EK35zISXxc9I3tXQnWAb
+=8Nr5
 -----END PGP SIGNATURE-----
-
---ffoCPvUAPMgSXi6H--
