@@ -1,45 +1,69 @@
-From: "Geyslan G. Bem" <geyslan@gmail.com>
-Subject: [PATCH] ecryptfs: Fix memory leakage in keystore.c
-Date: Fri, 11 Oct 2013 16:49:16 -0300
-Message-ID: <1381520956-20282-1-git-send-email-geyslan@gmail.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Subject: [PATCH V9 31/33] ecrpytfs: Convert aio_read/write ops to read/write_iter
+Date: Wed, 16 Oct 2013 09:04:44 -0500
+Message-ID: <1381932286-14978-32-git-send-email-dave.kleikamp@oracle.com>
+References: <1381932286-14978-1-git-send-email-dave.kleikamp@oracle.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1381932286-14978-1-git-send-email-dave.kleikamp@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, kernel-br@googlegroups.com, "Geyslan G. Bem" <geyslan@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Zach Brown <zab@zabbo.net>, Christoph Hellwig <hch@infradead.org>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
 
-In 'decrypt_pki_encrypted_session_key' function:
-
-Initializes 'payload' pointer and releases it on exit.
-
-Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Tyler Hicks <tyhicks@canonical.com>
+Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
+Cc: ecryptfs@vger.kernel.org
 ---
- fs/ecryptfs/keystore.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ecryptfs/file.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 7d52806..4725a07 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1149,7 +1149,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
- 	struct ecryptfs_msg_ctx *msg_ctx;
- 	struct ecryptfs_message *msg = NULL;
- 	char *auth_tok_sig;
--	char *payload;
-+	char *payload = NULL;
- 	size_t payload_len = 0;
- 	int rc;
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 992cf95..3ed6e5f 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -37,22 +37,21 @@
+ /**
+  * ecryptfs_read_update_atime
+  *
+- * generic_file_read updates the atime of upper layer inode.  But, it
++ * generic_file_read_iter updates the atime of upper layer inode.  But, it
+  * doesn't give us a chance to update the atime of the lower layer
+- * inode.  This function is a wrapper to generic_file_read.  It
+- * updates the atime of the lower level inode if generic_file_read
++ * inode.  This function is a wrapper to generic_file_read_iter.  It
++ * updates the atime of the lower level inode if generic_file_read_iter
+  * returns without any errors. This is to be used only for file reads.
+  * The function to be used for directory reads is ecryptfs_read.
+  */
+ static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
+-				const struct iovec *iov,
+-				unsigned long nr_segs, loff_t pos)
++				struct iov_iter *iter, loff_t pos)
+ {
+ 	ssize_t rc;
+ 	struct path *path;
+ 	struct file *file = iocb->ki_filp;
  
-@@ -1203,6 +1203,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
- 	}
- out:
- 	kfree(msg);
-+	kfree(payload);
- 	return rc;
- }
- 
+-	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
++	rc = generic_file_read_iter(iocb, iter, pos);
+ 	/*
+ 	 * Even though this is a async interface, we need to wait
+ 	 * for IO to finish to update atime
+@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
+ const struct file_operations ecryptfs_main_fops = {
+ 	.llseek = generic_file_llseek,
+ 	.read = do_sync_read,
+-	.aio_read = ecryptfs_read_update_atime,
++	.read_iter = ecryptfs_read_update_atime,
+ 	.write = do_sync_write,
+-	.aio_write = generic_file_aio_write,
++	.write_iter = generic_file_write_iter,
+ 	.iterate = ecryptfs_readdir,
+ 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
+ #ifdef CONFIG_COMPAT
 -- 
 1.8.4
