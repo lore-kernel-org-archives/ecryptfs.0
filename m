@@ -1,69 +1,94 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Subject: [PATCH V9 31/33] ecrpytfs: Convert aio_read/write ops to read/write_iter
-Date: Wed, 16 Oct 2013 09:04:44 -0500
-Message-ID: <1381932286-14978-32-git-send-email-dave.kleikamp@oracle.com>
-References: <1381932286-14978-1-git-send-email-dave.kleikamp@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1381932286-14978-1-git-send-email-dave.kleikamp@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH] ecryptfs: Fix memory leakage in keystore.c
+Date: Wed, 16 Oct 2013 18:11:02 -0700
+Message-ID: <20131017011101.GA3860@boyd>
+References: <1381520956-20282-1-git-send-email-geyslan@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="k+w/mQv8wyuph6w0"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:36951 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760814Ab3JQBLI (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 16 Oct 2013 21:11:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1381520956-20282-1-git-send-email-geyslan@gmail.com>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, "Maxim V. Patlasov" <mpatlasov@parallels.com>, Zach Brown <zab@zabbo.net>, Christoph Hellwig <hch@infradead.org>, Dave Kleikamp <dave.kleikamp@oracle.com>, Tyler Hicks <tyhicks@canonical.com>, Dustin Kirkland <dustin.kirkland@gazzang.com>, ecryptfs@vger.kernel.org
+To: "Geyslan G. Bem" <geyslan@gmail.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, joe@perches.com, kernel-br@googlegroups.com
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
-Cc: Dustin Kirkland <dustin.kirkland@gazzang.com>
-Cc: ecryptfs@vger.kernel.org
----
- fs/ecryptfs/file.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 992cf95..3ed6e5f 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -37,22 +37,21 @@
- /**
-  * ecryptfs_read_update_atime
-  *
-- * generic_file_read updates the atime of upper layer inode.  But, it
-+ * generic_file_read_iter updates the atime of upper layer inode.  But, it
-  * doesn't give us a chance to update the atime of the lower layer
-- * inode.  This function is a wrapper to generic_file_read.  It
-- * updates the atime of the lower level inode if generic_file_read
-+ * inode.  This function is a wrapper to generic_file_read_iter.  It
-+ * updates the atime of the lower level inode if generic_file_read_iter
-  * returns without any errors. This is to be used only for file reads.
-  * The function to be used for directory reads is ecryptfs_read.
-  */
- static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
--				const struct iovec *iov,
--				unsigned long nr_segs, loff_t pos)
-+				struct iov_iter *iter, loff_t pos)
- {
- 	ssize_t rc;
- 	struct path *path;
- 	struct file *file = iocb->ki_filp;
- 
--	rc = generic_file_aio_read(iocb, iov, nr_segs, pos);
-+	rc = generic_file_read_iter(iocb, iter, pos);
- 	/*
- 	 * Even though this is a async interface, we need to wait
- 	 * for IO to finish to update atime
-@@ -357,9 +356,9 @@ const struct file_operations ecryptfs_dir_fops = {
- const struct file_operations ecryptfs_main_fops = {
- 	.llseek = generic_file_llseek,
- 	.read = do_sync_read,
--	.aio_read = ecryptfs_read_update_atime,
-+	.read_iter = ecryptfs_read_update_atime,
- 	.write = do_sync_write,
--	.aio_write = generic_file_aio_write,
-+	.write_iter = generic_file_write_iter,
- 	.iterate = ecryptfs_readdir,
- 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
--- 
-1.8.4
+--k+w/mQv8wyuph6w0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On 2013-10-11 16:49:16, Geyslan G. Bem wrote:
+> In 'decrypt_pki_encrypted_session_key' function:
+>=20
+> Initializes 'payload' pointer and releases it on exit.
+>=20
+> Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
+> ---
+
+Thanks! This one was easy to verify by auditing the code, but I was also
+able to verify the leak with kmemleak.
+
+I've targeted it for stable and pushed it to the eCryptfs next branch.
+
+Tyler
+
+>  fs/ecryptfs/keystore.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 7d52806..4725a07 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -1149,7 +1149,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_a=
+uth_tok *auth_tok,
+>  	struct ecryptfs_msg_ctx *msg_ctx;
+>  	struct ecryptfs_message *msg =3D NULL;
+>  	char *auth_tok_sig;
+> -	char *payload;
+> +	char *payload =3D NULL;
+>  	size_t payload_len =3D 0;
+>  	int rc;
+> =20
+> @@ -1203,6 +1203,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_a=
+uth_tok *auth_tok,
+>  	}
+>  out:
+>  	kfree(msg);
+> +	kfree(payload);
+>  	return rc;
+>  }
+> =20
+> --=20
+> 1.8.4
+>=20
+
+--k+w/mQv8wyuph6w0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCgAGBQJSXzklAAoJENaSAD2qAscK7h4QAIEIs3PKPlIg+5ms1l/FiNAi
+/kB3ANAKzGO4EA2joiiLqseU+3MonLWj1rN+eOcIrVO/sbKHgCYeQqQ2Z+5B8DQN
+1IAt90crb8DxOugEmLKbF4IOMqCdUzk+8gzgqGV53Eb0AKSfD9ntf7fupF01cF3m
+X3iwGx4iA6ntg50Z77lHsnO6RHFWnyYgMDoVez/kei4F6Abc25DvSM1ZB26zaNuw
+zbJ1tBTgUv1mT+cVjBExj2riqM9FZ8vQoSmE59lY842jEzEMObxfyC2T6SdtvX1T
++orEOa7cjsgOOAfMJ5OUFNAPXgpBOgljCWdj0JG/OcARRipVlzROzrt7BWcog0pc
+bxlwr+zNDEABSpUGu4SFE+8QvdbJRbY9eGqWJ1S04pf0IHMaNp+B0Q7TRt6385nl
+fX+l89EITsCze88ZJpZHELnhQeg15rOlHaWWrphyJEVg0oONG9FgC64u9xQOP6pi
+aIEOrahw3j0ALGb2H+I7nEZVLO1+lsj4uPKGqScWO8pqyDfHhdoAsOPujo+whtK8
+VEDdlP7ioa55DBIZ5mBBAPhLB12IJkthnrw7QvP5pc2ezxuHcq0eVhwE00k4gWhw
+6qYWDgd491uA0SxCNo0fQm+s9OtvDICP2uwiq/RxPoPDC1hc8//1gzNHJspW3sCY
+bi358Ra2aNlXk/hh8mjk
+=78jk
+-----END PGP SIGNATURE-----
+
+--k+w/mQv8wyuph6w0--
