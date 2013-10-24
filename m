@@ -1,67 +1,77 @@
-From: =?UTF-8?Q?Geyslan_Greg=C3=B3rio_Bem?= <geyslan@gmail.com>
-Subject: Re: [PATCH] ecryptfs: Fix memory leakage in keystore.c
-Date: Wed, 16 Oct 2013 22:21:46 -0300
-Message-ID: <CAGG-pUQbCMz6GJEOJUPnLA-+dbrUB=E81P9yjvT6EEysdNzSEA@mail.gmail.com>
-References: <1381520956-20282-1-git-send-email-geyslan@gmail.com>
-	<20131017011101.GA3860@boyd>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 3.12-rc7
+Date: Thu, 24 Oct 2013 14:34:53 -0700
+Message-ID: <20131024213452.GB16603@boyd>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="SkvwRMAIpAhPCcCJ"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-qa0-f52.google.com ([209.85.216.52]:46297 "EHLO
-	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761915Ab3JQBVr (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 16 Oct 2013 21:21:47 -0400
-In-Reply-To: <20131017011101.GA3860@boyd>
+Received: from youngberry.canonical.com ([91.189.89.112]:57725 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754092Ab3JXVe6 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 24 Oct 2013 17:34:58 -0400
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Joe Perches <joe@perches.com>, kernel-br <kernel-br@googlegroups.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-2013/10/16 Tyler Hicks <tyhicks@canonical.com>:
-> On 2013-10-11 16:49:16, Geyslan G. Bem wrote:
->> In 'decrypt_pki_encrypted_session_key' function:
->>
->> Initializes 'payload' pointer and releases it on exit.
->>
->> Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
->> ---
->
-> Thanks! This one was easy to verify by auditing the code, but I was also
-> able to verify the leak with kmemleak.
-It's a pleasure.
 
->
-> I've targeted it for stable and pushed it to the eCryptfs next branch.
->
-Thank you.
+--SkvwRMAIpAhPCcCJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Tyler
->
->>  fs/ecryptfs/keystore.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
->> index 7d52806..4725a07 100644
->> --- a/fs/ecryptfs/keystore.c
->> +++ b/fs/ecryptfs/keystore.c
->> @@ -1149,7 +1149,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
->>       struct ecryptfs_msg_ctx *msg_ctx;
->>       struct ecryptfs_message *msg = NULL;
->>       char *auth_tok_sig;
->> -     char *payload;
->> +     char *payload = NULL;
->>       size_t payload_len = 0;
->>       int rc;
->>
->> @@ -1203,6 +1203,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
->>       }
->>  out:
->>       kfree(msg);
->> +     kfree(payload);
->>       return rc;
->>  }
->>
->> --
->> 1.8.4
->>
+Hi Linus,
+
+The following changes since commit d6099aeb4a9aad5e7ab1c72eb119ebd52dee0d52:
+
+  Merge branch 'fixes' of git://git.linaro.org/people/rmk/linux-arm (2013-10-14 10:02:23 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.12-rc7-fixes
+
+for you to fetch changes up to 43b7c6c6a4e3916edd186ceb61be0c67d1e0969e:
+
+  eCryptfs: fix 32 bit corruption issue (2013-10-24 12:36:30 -0700)
+
+----------------------------------------------------------------
+Two important fixes
+- Fix long standing memory leak in the (rarely used) public key support
+- Fix large file corruption on 32 bit architectures
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      eCryptfs: fix 32 bit corruption issue
+
+Geyslan G. Bem (1):
+      ecryptfs: Fix memory leakage in keystore.c
+
+ fs/ecryptfs/crypto.c   | 2 +-
+ fs/ecryptfs/keystore.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+--SkvwRMAIpAhPCcCJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCgAGBQJSaZJ8AAoJENaSAD2qAscKNPIQAMivc36smIb0j1HosY83KDv/
+xnSPNM/mJsvcHc14K8+hPCQBECZn7TJpr1SVa6AQOIr5x4rEmZ2XM5BR51LQa6L3
+MiYjfKoVB4EFcI++Suk4qN6oO8waCmtSDTa+TUYfn8k1JgPveVSCdeBWFsChidLc
+hRa4UAA12t/JLKYCpltwllIARhfRtpRD4G1t7rU3dyjJa56SFX0rht3nGOcFRoX8
+hDa8X16Vpg3scOkMDqJLa/4Pg57w51nvN6iKclyZF7kr317tsvMhBeefZnle14da
+kQhZsGZgnKWF5qCdgt9bOUEtdOAEC8U/qk3maTyUlQ46fu6P2Wi9WYy0pjA5QRkg
+ER5QfwRyP1yCMkDhYMTrsNcBwKJMSZXVOTLsC1RKGBdNp4soqSMASAS1/MQOBCkK
+c3FUJHUO06uM0Z2vSudoOvZnIpAWJr9sJwbV5fH5Vr3OM5BX4Y3hSD2uBOtkxGWW
+/gy7JiAEjOt59Jw/Tf+Q7gmcgwM9qvT2o2fYQGfQDGmx7h3sTz9JOBA2jPuOBxx5
+zy/6TmJ4keLcMLWr2o6CvkYPG8m7bufNni3C1+m4u6uQZZvxetR2dwCFGumyR6q8
+IIOZ+7oUJGAcsA5UlJcKDVVIxf0K/bmpTSXg0HU0uVMbDFGpfmjigRJoMXpZGgT3
+Yp1l4sBejJ+shZPtbHo0
+=59fg
+-----END PGP SIGNATURE-----
+
+--SkvwRMAIpAhPCcCJ--
