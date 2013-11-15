@@ -1,82 +1,133 @@
-From: Benjamin Moody <benjamin.moody@gmail.com>
-Subject: ecryptfs-mount-private fails the first time after boot
-Date: Fri, 15 Nov 2013 17:51:49 -0500
-Message-ID: <CAAk6P0VYWJA+pC6CfeLKhZc6kZ5EVASS+8ELoAUEWCOnqVhhuw@mail.gmail.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: ecryptfs-mount-private fails the first time after boot
+Date: Fri, 15 Nov 2013 15:34:46 -0800
+Message-ID: <20131115233445.GA4911@boyd>
+References: <CAAk6P0VYWJA+pC6CfeLKhZc6kZ5EVASS+8ELoAUEWCOnqVhhuw@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57879 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab3KOWvu (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 15 Nov 2013 17:51:50 -0500
-Received: by mail-wg0-f44.google.com with SMTP id k14so4111316wgh.23
-        for <ecryptfs@vger.kernel.org>; Fri, 15 Nov 2013 14:51:49 -0800 (PST)
+Received: from youngberry.canonical.com ([91.189.89.112]:55908 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758Ab3KOXev (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 15 Nov 2013 18:34:51 -0500
+Content-Disposition: inline
+In-Reply-To: <CAAk6P0VYWJA+pC6CfeLKhZc6kZ5EVASS+8ELoAUEWCOnqVhhuw@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: Benjamin Moody <benjamin.moody@gmail.com>
+Cc: ecryptfs@vger.kernel.org
 
-I don't know if this list is the right place to be asking this
-question; please let me know if there's a better place.  I'm not
-subscribed to the list so please CC me on replies.
 
-I'm using ecryptfs on Scientific Linux 6.4 (kernel
-2.6.32-358.23.2.el6.x86_64, ecryptfs-utils 82-6.el6_1.3) and I'm
-having a minor but annoying problem.  The first time I run
-'ecryptfs-mount-private' after booting the system, it always fails.
-(It's happened at least 10 times; I'm quite certain that I'm entering
-the passphrase correctly.)  I then need to run
-'ecryptfs-umount-private' and 'ecryptfs-mount-private' again in order
-for my files to finally show up.
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I believe I selected all the default options when I set the filesystem
-up, except that I had it use a separate passphrase, not my login
-password.  It's encrypted with AES and filename encryption is enabled.
- It's mounted at /home/benjamin/Private/ and the encrypted files are
-stored in /home/benjamin/.Private/.
+On 2013-11-15 17:51:49, Benjamin Moody wrote:
+> I'm using ecryptfs on Scientific Linux 6.4 (kernel
+> 2.6.32-358.23.2.el6.x86_64, ecryptfs-utils 82-6.el6_1.3)
 
-When I run ecryptfs-mount-private for the first time, it shows the following:
+I don't have a system derived from RHEL 6 to test from. But I gave it a
+shot with Ubuntu 10.04 (kernel 2.6.32-52.114-generic, ecryptfs-utils
+83-0ubuntu3.2.10.04.3).
 
-$ ecryptfs-mount-private
-Enter your wrapping passphrase:
-Inserted auth tok with sig [...] into the user session keyring
-keyctl_search: Required key not available
-Perhaps try the interactive 'ecryptfs-mount-private'
+I wasn't able to reproduce the bug that you're seeing. I thought that
+maybe the RHEL 6 derivatives don't enable the pam_ecryptfs module and
+that it does something that ecryptfs-mount-private needs, so I commented
+it out of my pam configs and tried again but still couldn't reproduce
+it.
 
-At this point, the following messages appear in dmesg:
+> When I run ecryptfs-mount-private for the first time, it shows the follow=
+ing:
+>=20
+> $ ecryptfs-mount-private
+> Enter your wrapping passphrase:
+> Inserted auth tok with sig [...] into the user session keyring
+> keyctl_search: Required key not available
+> Perhaps try the interactive 'ecryptfs-mount-private'
+>=20
+> At this point, the following messages appear in dmesg:
+>=20
+> $ dmesg
+> ...
+> TECH PREVIEW: ecryptfs may not be fully supported.
+> Please review provided documentation for limitations.
+> SELinux: initialized (dev ecryptfs, type ecryptfs), uses genfs_contexts
+>=20
+> And at this point, the filesystem is *mounted* but the files are not
+> correctly decrypted (i.e. Private appears to be an exact mirror of
+> .Private):
+>=20
+> $ ls Private/
+> ECRYPTFS_FNEK_ENCRYPTED.FWaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLCHzv3PNoOtExPX=
+P.Ei0KiAE--
+> ECRYPTFS_FNEK_ENCRYPTED.FXaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLC-NRvX4ESyXeGh=
+90V8z6JRo2qp.xjwPLn8Fz1BXP8u22-
+> ...
 
-$ dmesg
-...
-TECH PREVIEW: ecryptfs may not be fully supported.
-Please review provided documentation for limitations.
-SELinux: initialized (dev ecryptfs, type ecryptfs), uses genfs_contexts
+It would be nice to see the mount options, from /proc/mounts, at this
+point.
 
-And at this point, the filesystem is *mounted* but the files are not
-correctly decrypted (i.e. Private appears to be an exact mirror of
-.Private):
+I'm having to make some assumptions, but it looks like the mount happens
+without the filename encryption key being loaded into the kernel
+keyring.
 
-$ ls Private/
-ECRYPTFS_FNEK_ENCRYPTED.FWaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLCHzv3PNoOtExPXP.Ei0KiAE--
-ECRYPTFS_FNEK_ENCRYPTED.FXaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLC-NRvX4ESyXeGh90V8z6JRo2qp.xjwPLn8Fz1BXP8u22-
-...
+Also, seeing how many user keys are loaded at this point would be
+helpful:
 
-I then unmount and remount it:
+$ keyctl show | grep user: | wc -l
+2
 
-$ ecryptfs-umount-private
-keyctl_search: Required key not available
-Perhaps try the interactive 'ecryptfs-mount-private'
+> I then unmount and remount it:
+>=20
+> $ ecryptfs-umount-private
+> keyctl_search: Required key not available
+> Perhaps try the interactive 'ecryptfs-mount-private'
+>=20
+> $ ecryptfs-mount-private
+> Enter your wrapping passphrase:
+> Inserted auth tok with sig [...] into the user session keyring
+>=20
+> at which point it works as expected.
 
-$ ecryptfs-mount-private
-Enter your wrapping passphrase:
-Inserted auth tok with sig [...] into the user session keyring
+At this point, the keyctl show command above should spit out the same
+result as above. But, I think you'll see "1" printed when you run it
+above, and "2" printed now.
 
-at which point it works as expected.  If I later run
-ecryptfs-umount-private again, it doesn't display the 'keyctl_search'
-error message.
+> So, does anyone know why this might be happening?
 
-So, does anyone know why this might be happening?  Is it a known bug
-in the kernel and/or ecryptfs-utils?  If it's not easy to fix, is
-there a workaround?
+No. I don't recall a fixed bug similar to this, but you should search
+our bug tracker (https://bugs.launchpad.net/ecryptfs). Also, take a look
+through the RHEL bug tracker.
 
-Thanks in advance,
-Benjamin Moody
+Sorry I'm not more help at this point but I can't reproduce it at the
+moment and don't recall us fixing anything like this. Dustin tends to
+this portion of ecryptfs-utils, so maybe he'll remember something when
+he sees your email.
+
+Tyler
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.14 (GNU/Linux)
+
+iQIcBAEBCgAGBQJShq+VAAoJENaSAD2qAscK+WcQAJ0sN5wPs0030D0FfCVozt6Q
+lEcRomYqc7GXguXtzDACA6HRnBKsuqKfX3loiU0kuPZ8Hp2yuBKtHwpMpzaOwiDY
+565auJwKxRTtcTIFNKzgUIoycih+Ajtq7fmV0+Pbj8jsBhz/Aqbi5acDmplybYvR
+Fp2kE7J504Lbv2pGPDDuH8ASf2DCaxQNh1861cYj89qGLG6ucGJs7oBLo8G46BLg
+lz/ImJbG/CeaPXzGT8YmuJFYERA1F7YzOCIqkIa8UtFcZy4E4F/JQo5LSBrNdRGe
+PkHVvPQIHLg/RtM7DmwVRVMZchvH0SorxYArYLeltrMgNhpTjk7ERJQ6O+V6aRU8
+gjXKCUjPC5ojAGBM79pjEbJaFzyOQRzgenRBiludZj2X5tfT9eXQK+t8tV1Zi029
+WccAc58B5T3tlH4CarQO3ERU46IKg8+uaQgN5Wqtq8vzExMH3qPGbAK/G0qc7GHo
+GzP7xaTkPBdKupKUQjFfeyhZ8AvqynIoAlinNlIZJgs2i6EyLX5qZ2hFwj/cylkX
+Hnd0j+08m9xyZXUSrepr+DlTaBmA6ddMbs8W3XXC+4hzxvB+Tx9Bjqc/Rsp1J/W+
+uPtgmnzsvK3NrCUL2Sfp59unGQLMrApQGkl2BDzIJ2ipgyuNJx0xuBLIzxKXN8KQ
+orLlae/agoMAwvCsOUih
+=Mfw+
+-----END PGP SIGNATURE-----
+
+--NzB8fVQJ5HfG6fxh--
