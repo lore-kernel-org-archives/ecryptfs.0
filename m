@@ -1,138 +1,82 @@
-From: =?ISO-8859-1?Q?Geyslan_Greg=F3rio_Bem?= <geyslan@gmail.com>
-Subject: Re: [PATCH] ecryptfs: Fix explicit null dereference
-Date: Thu, 14 Nov 2013 18:04:16 -0200
-Message-ID: <CAGG-pURF7B25XuutjFePwE5ONuG8YYQqbjAwf4K8ea-LKFvW9Q@mail.gmail.com>
-References: <1384454534-27807-1-git-send-email-geyslan@gmail.com>
-	<20131114195238.GA7693@boyd>
-	<CAGG-pURhr-YkQT5xLefK0=uN7vNx_EGJob=w54Z7VzcjYb=qiA@mail.gmail.com>
-	<20131114200234.GB7693@boyd>
+From: Benjamin Moody <benjamin.moody@gmail.com>
+Subject: ecryptfs-mount-private fails the first time after boot
+Date: Fri, 15 Nov 2013 17:51:49 -0500
+Message-ID: <CAAk6P0VYWJA+pC6CfeLKhZc6kZ5EVASS+8ELoAUEWCOnqVhhuw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:56132 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755093Ab3KNUER convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 14 Nov 2013 15:04:17 -0500
-In-Reply-To: <20131114200234.GB7693@boyd>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:57879 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab3KOWvu (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 15 Nov 2013 17:51:50 -0500
+Received: by mail-wg0-f44.google.com with SMTP id k14so4111316wgh.23
+        for <ecryptfs@vger.kernel.org>; Fri, 15 Nov 2013 14:51:49 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: "open list:ECRYPT FILE SYSTEM" <ecryptfs@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Pekka Enberg <penberg@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
-2013/11/14 Tyler Hicks <tyhicks@canonical.com>:
-> On 2013-11-14 17:58:40, Geyslan Greg=F3rio Bem wrote:
->> 2013/11/14 Tyler Hicks <tyhicks@canonical.com>:
->> > On 2013-11-14 15:42:14, Geyslan G. Bem wrote:
->> >> If the condition 'ecryptfs_file_to_private(file)' takes false bra=
-nch
->> >> lower_file is dereferenced when NULL.
->> >>
->> >> Caught by Coverity: CIDs 1128834 and 1128833.
->> >>
->> >> Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
->> >> ---
->> >
->> > Hello - Smatch picked up on this earlier in week and Dan analyzed =
-the
->> > situation here:
->> >
->> >   http://article.gmane.org/gmane.comp.file-systems.ecryptfs.genera=
-l/441
->> >
->> > I agree with his assessment and proposed the following patch:
->> >
->> >   http://article.gmane.org/gmane.comp.file-systems.ecryptfs.genera=
-l/442
->> >
->> > It makes Smatch happy and it should also make Coverity happy.
->> >
->> > Tyler
->>
->> True. Disregard mine.
->>
->> Thanks Tyler.
->
-> Thank you! Can I add your Reviewed-by: tag to that patch prior to
-> pushing it to my next branch?
->
-> Tyler
->
+I don't know if this list is the right place to be asking this
+question; please let me know if there's a better place.  I'm not
+subscribed to the list so please CC me on replies.
 
-Sure, Tyler. You can! :)
+I'm using ecryptfs on Scientific Linux 6.4 (kernel
+2.6.32-358.23.2.el6.x86_64, ecryptfs-utils 82-6.el6_1.3) and I'm
+having a minor but annoying problem.  The first time I run
+'ecryptfs-mount-private' after booting the system, it always fails.
+(It's happened at least 10 times; I'm quite certain that I'm entering
+the passphrase correctly.)  I then need to run
+'ecryptfs-umount-private' and 'ecryptfs-mount-private' again in order
+for my files to finally show up.
 
-Thanks again.
+I believe I selected all the default options when I set the filesystem
+up, except that I had it use a separate passphrase, not my login
+password.  It's encrypted with AES and filename encryption is enabled.
+ It's mounted at /home/benjamin/Private/ and the encrypted files are
+stored in /home/benjamin/.Private/.
 
->>
->> >
->> >>  fs/ecryptfs/file.c | 12 ++++++++----
->> >>  1 file changed, 8 insertions(+), 4 deletions(-)
->> >>
->> >> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
->> >> index 2229a74..1c0403a 100644
->> >> --- a/fs/ecryptfs/file.c
->> >> +++ b/fs/ecryptfs/file.c
->> >> @@ -316,10 +316,12 @@ ecryptfs_unlocked_ioctl(struct file *file, =
-unsigned int cmd, unsigned long arg)
->> >>       struct file *lower_file =3D NULL;
->> >>       long rc =3D -ENOTTY;
->> >>
->> >> -     if (ecryptfs_file_to_private(file))
->> >> -             lower_file =3D ecryptfs_file_to_lower(file);
->> >> +     if (!ecryptfs_file_to_private(file))
->> >> +             goto out;
->> >> +     lower_file =3D ecryptfs_file_to_lower(file);
->> >>       if (lower_file->f_op->unlocked_ioctl)
->> >>               rc =3D lower_file->f_op->unlocked_ioctl(lower_file,=
- cmd, arg);
->> >> +out:
->> >>       return rc;
->> >>  }
->> >>
->> >> @@ -330,10 +332,12 @@ ecryptfs_compat_ioctl(struct file *file, un=
-signed int cmd, unsigned long arg)
->> >>       struct file *lower_file =3D NULL;
->> >>       long rc =3D -ENOIOCTLCMD;
->> >>
->> >> -     if (ecryptfs_file_to_private(file))
->> >> -             lower_file =3D ecryptfs_file_to_lower(file);
->> >> +     if (!ecryptfs_file_to_private(file))
->> >> +             goto out;
->> >> +     lower_file =3D ecryptfs_file_to_lower(file);
->> >>       if (lower_file->f_op && lower_file->f_op->compat_ioctl)
->> >>               rc =3D lower_file->f_op->compat_ioctl(lower_file, c=
-md, arg);
->> >> +out:
->> >>       return rc;
->> >>  }
->> >>  #endif
->> >> --
->> >> 1.8.4.2
->> >>
->> >> --
->> >> To unsubscribe from this list: send the line "unsubscribe ecryptf=
-s" in
->> >> the body of a message to majordomo@vger.kernel.org
->> >> More majordomo info at  http://vger.kernel.org/majordomo-info.htm=
-l
->>
->>
->>
->> --
->> Regards,
->>
->> Geyslan G. Bem
->> hackingbits.com
->> --
->> To unsubscribe from this list: send the line "unsubscribe ecryptfs" =
-in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When I run ecryptfs-mount-private for the first time, it shows the following:
 
+$ ecryptfs-mount-private
+Enter your wrapping passphrase:
+Inserted auth tok with sig [...] into the user session keyring
+keyctl_search: Required key not available
+Perhaps try the interactive 'ecryptfs-mount-private'
 
+At this point, the following messages appear in dmesg:
 
---=20
-Regards,
+$ dmesg
+...
+TECH PREVIEW: ecryptfs may not be fully supported.
+Please review provided documentation for limitations.
+SELinux: initialized (dev ecryptfs, type ecryptfs), uses genfs_contexts
 
-Geyslan G. Bem
-hackingbits.com
+And at this point, the filesystem is *mounted* but the files are not
+correctly decrypted (i.e. Private appears to be an exact mirror of
+.Private):
+
+$ ls Private/
+ECRYPTFS_FNEK_ENCRYPTED.FWaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLCHzv3PNoOtExPXP.Ei0KiAE--
+ECRYPTFS_FNEK_ENCRYPTED.FXaO.4n6KQUoiUR2FAbPNmeUAR1Zw4f3.rLC-NRvX4ESyXeGh90V8z6JRo2qp.xjwPLn8Fz1BXP8u22-
+...
+
+I then unmount and remount it:
+
+$ ecryptfs-umount-private
+keyctl_search: Required key not available
+Perhaps try the interactive 'ecryptfs-mount-private'
+
+$ ecryptfs-mount-private
+Enter your wrapping passphrase:
+Inserted auth tok with sig [...] into the user session keyring
+
+at which point it works as expected.  If I later run
+ecryptfs-umount-private again, it doesn't display the 'keyctl_search'
+error message.
+
+So, does anyone know why this might be happening?  Is it a known bug
+in the kernel and/or ecryptfs-utils?  If it's not easy to fix, is
+there a workaround?
+
+Thanks in advance,
+Benjamin Moody
