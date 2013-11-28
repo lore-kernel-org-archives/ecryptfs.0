@@ -1,71 +1,64 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] Minor eCryptfs fix for 3.13-rc1
-Date: Fri, 22 Nov 2013 10:39:32 -0800
-Message-ID: <20131122183931.GC27306@boyd>
+From: "Raj [mail list]" <rajlistuser@gmail.com>
+Subject: Mounting multiple directories using ecryptfs
+Date: Thu, 28 Nov 2013 11:27:51 +0530
+Message-ID: <CAE56t+XVmmOrKXre=gjs-6N142QunV-57aBf3GBwgbw-4EtgZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="B4IIlcmfBL/1gGOG"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:41698 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755822Ab3KVSjh (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 22 Nov 2013 13:39:37 -0500
-Content-Disposition: inline
+Received: from mail-lb0-f195.google.com ([209.85.217.195]:44072 "EHLO
+	mail-lb0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636Ab3K1F5w (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Nov 2013 00:57:52 -0500
+Received: by mail-lb0-f195.google.com with SMTP id l4so1567821lbv.10
+        for <ecryptfs@vger.kernel.org>; Wed, 27 Nov 2013 21:57:51 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
+Hi List,
 
---B4IIlcmfBL/1gGOG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I am using ecryptyfs to store some sensitive data in my PC (Debian
+wheezy). The data is in a partition and the partition is mounted
+automatically on bootup using /etc/fstab I have setup
+/root/.ecryptfsrc with correct parameters. Contents of my .ecryptfsrc
+are as follows:
 
-Hi Linus,
+    key=passphrase:passphrase_passwd_file=/mnt/usb/password.txt
+    ecryptfs_sig=deadbeefdeadbeef
+    ecryptfs_cipher=aes
+    ecryptfs_key_bytes=16
+    ecryptfs_passthrough=n
+    ecryptfs_enable_filename_crypto=n
 
-The following changes since commit 42a2d923cc349583ebf6fdd52a7d35e1c2f7e6bd:
+This partition is correctly getting mounted after a system reboot. So far fine.
 
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next (2013-11-13 17:40:34 +0900)
+I also need to transport this sensitive data to a remote place in a
+USB drive securely. So I want to format a usb drive with ext2 fs and
+mount it using ecryptfs. I also do not want to reuse the password and
+want to give an one time password to each USB drive when the ecryptfs
+is mounted.
 
-are available in the git repository at:
+Formatting and mounting of ext2 partition works as expected. The
+command I used for mounting the new usb device using ecryptfs is as
+follows. the password is stored (temporarily) in /root/usbpasswd.txt :
 
+    mount  -t ecryptfs  \
+    -o "rw,key=passphrase:passphrase_passwd_file=/root/usbpasswd.txt,\
+    ecryptfs_unlink_sigs,ecryptfs_cipher=aes,ecryptfs_key_bytes=16,\
+    ecryptfs_passthrough=n,ecryptfs_enable_filename_crypto=y" \
+    /mnt/usb2/ /mnt/usb2/
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.13-rc1-quiet-checkers
+Instead of mounting the freshly formatted /mnt/usb2 using password in
+file, I am prompted for `Passphrase File` as follows:
 
-for you to fetch changes up to 2000f5beabc9c6baf084de5f7879975408e3652c:
+    Passphrase File: /root/usbpasswd.txt
+    Passphrase File: /mnt/usb/password.txt
+    Passphrase File: /root/usbpasswd.txt
+    Passphrase File: ^C
 
-  eCryptfs: file->private_data is always valid (2013-11-14 12:12:15 -0800)
+What could be wrong here?
 
-----------------------------------------------------------------
-Quiet static checkers by removing unneeded conditionals
+Thanks and regards,
 
-----------------------------------------------------------------
-Tyler Hicks (1):
-      eCryptfs: file->private_data is always valid
-
- fs/ecryptfs/file.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
-
---B4IIlcmfBL/1gGOG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.14 (GNU/Linux)
-
-iQIcBAEBCgAGBQJSj6TjAAoJENaSAD2qAscKA+EP/11hPj2BAcoJvJcyWTPX3Phk
-LtonSjsfVxhB1sU0Bd0tX7Zp/5vAI2NfK8gfMoq7vIzWeP3+Yyc8TgZzTLG+GhNf
-sK9ivlvPqKY72xhYMgBWgYpXVWLUFb2JngkLtqHlyZvG7QzjtEpkA1rniTyI6DTy
-J1gGSqblgilfeiMnbc8JrsGOD8BYlzFVLPqqsTpDayHQF38O6kK02gyg8sFjCRqW
-XtoQgRwuj42Gia6ltzAqigRs41dpR2mr18NhA13iiOfZ46JoqQcujY/P9RglAMiC
-/2WouBd+o59EUxm7TTY9EWif5AF3bObY81cIisLmnzdXWmRh9RspsqrC0wsbgAAM
-olKJ6uxMpgJrL2C1XnKSZEed37itWH5PxWhDl0FLhJhPy133SzTnYHYyodJmkOuO
-7GA+Llt8mC8jTpXRNN0q0x8oGbIviowY6/FyUcAcjTr87Shvmd3jJpucEaC5Ywm3
-74ELs1M77n2oSAvjoK+SMq7nyv+TeYYyS2UGoxh5VIamPjwWdky317TTaTEKtLnB
-azIJO6uCwXTvypSlUAizxasjXqS9WpGFQe/yY9zIFqBZke6fDHaDeUv3MdnPY2pa
-mWznhRqI9QMV1+xj+cTdbVpCnXtMrDWmIanRYnVJIwygQExfjG4XC4SidieR2pZG
-6M8g6yyOTgAP8MmNGSVi
-=ZXIk
------END PGP SIGNATURE-----
-
---B4IIlcmfBL/1gGOG--
+Raj
