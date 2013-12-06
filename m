@@ -1,84 +1,168 @@
-From: "Raj [mail list]" <rajlistuser@gmail.com>
-Subject: Fwd: Mounting multiple directories using ecryptfs
-Date: Fri, 6 Dec 2013 16:33:59 +0530
-Message-ID: <CAE56t+U6YRPtc4q-73QgvQEbh4HKJ06i8KE3PFisY5H5w4L-gQ@mail.gmail.com>
-References: <CAE56t+XVmmOrKXre=gjs-6N142QunV-57aBf3GBwgbw-4EtgZQ@mail.gmail.com>
+From: Catalin Ionita <io.catalin@gmail.com>
+Subject: Re: Looking for volunteers to test and review ecryptfs integration
+ with Android
+Date: Fri, 6 Dec 2013 17:15:29 +0200
+Message-ID: <CAGE04zQ93AEHMFxaLs_BdHtPB4843aVd6OwCwQWTZtdmVvosQA@mail.gmail.com>
+References: <CAGE04zTe4VP_hDju9E9m8ONbTPZyv_pZ=9CPkd5Ke8aOK9Ddyg@mail.gmail.com>
+	<20131205183806.GC16300@boyd>
+	<CAFftDdqtPGrMZOTj6DXi4fS6t8Jmf=B42JGFwtAV7aLvmov9cA@mail.gmail.com>
+	<20131205191108.GD16300@boyd>
+	<CAGE04zR1r=9a4mG+OzwjnC_vV3Bix977r55A797ZQ-Ye54UdKw@mail.gmail.com>
+	<CAFftDdraQs9AUVfOVjGLNx2V4X4P+w3upDNPSm_p=T5Jjhd2jA@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-we0-f196.google.com ([74.125.82.196]:47283 "EHLO
-	mail-we0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757687Ab3LFLEC (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Dec 2013 06:04:02 -0500
-Received: by mail-we0-f196.google.com with SMTP id w61so144198wes.7
-        for <ecryptfs@vger.kernel.org>; Fri, 06 Dec 2013 03:04:01 -0800 (PST)
-In-Reply-To: <CAE56t+XVmmOrKXre=gjs-6N142QunV-57aBf3GBwgbw-4EtgZQ@mail.gmail.com>
+Received: from mail-qe0-f47.google.com ([209.85.128.47]:49639 "EHLO
+	mail-qe0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751237Ab3LFPPa (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 6 Dec 2013 10:15:30 -0500
+Received: by mail-qe0-f47.google.com with SMTP id t7so580462qeb.6
+        for <ecryptfs@vger.kernel.org>; Fri, 06 Dec 2013 07:15:29 -0800 (PST)
+In-Reply-To: <CAFftDdraQs9AUVfOVjGLNx2V4X4P+w3upDNPSm_p=T5Jjhd2jA@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: William Roberts <bill.c.roberts@gmail.com>
+Cc: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
 
-A gentle reminder to see if some one can help me with this.
+> No they didn't... External/check policy is GPL...the kernel..etc
 
-I have posted this to StackOverflow too, but with no results. Link to
-the SO question:
+external/checkpolicy is getting build only for host system and is used
+with the Android build system. No GPL code is available on a
+production image. Busybox and other GPL tools available in the Androd
+tree are built only for debugging images, not production ones. This is
+one of the main reason why Google has reimplemented GPL projects like
+libc (bionic).
 
-http://stackoverflow.com/questions/20248427/
+--Catalin
 
-Thanks and regards,
-
-Raj
-
----------- Forwarded message ----------
-From: Raj [mail list] <rajlistuser@gmail.com>
-Date: Thu, Nov 28, 2013 at 11:27 AM
-Subject: Mounting multiple directories using ecryptfs
-To: ecryptfs@vger.kernel.org
-
-
-Hi List,
-
-I am using ecryptyfs to store some sensitive data in my PC (Debian
-wheezy). The data is in a partition and the partition is mounted
-automatically on bootup using /etc/fstab I have setup
-/root/.ecryptfsrc with correct parameters. Contents of my .ecryptfsrc
-are as follows:
-
-    key=passphrase:passphrase_passwd_file=/mnt/usb/password.txt
-    ecryptfs_sig=deadbeefdeadbeef
-    ecryptfs_cipher=aes
-    ecryptfs_key_bytes=16
-    ecryptfs_passthrough=n
-    ecryptfs_enable_filename_crypto=n
-
-This partition is correctly getting mounted after a system reboot. So far fine.
-
-I also need to transport this sensitive data to a remote place in a
-USB drive securely. So I want to format a usb drive with ext2 fs and
-mount it using ecryptfs. I also do not want to reuse the password and
-want to give an one time password to each USB drive when the ecryptfs
-is mounted.
-
-Formatting and mounting of ext2 partition works as expected. The
-command I used for mounting the new usb device using ecryptfs is as
-follows. the password is stored (temporarily) in /root/usbpasswd.txt :
-
-    mount  -t ecryptfs  \
-    -o "rw,key=passphrase:passphrase_passwd_file=/root/usbpasswd.txt,\
-    ecryptfs_unlink_sigs,ecryptfs_cipher=aes,ecryptfs_key_bytes=16,\
-    ecryptfs_passthrough=n,ecryptfs_enable_filename_crypto=y" \
-    /mnt/usb2/ /mnt/usb2/
-
-Instead of mounting the freshly formatted /mnt/usb2 using password in
-file, I am prompted for `Passphrase File` as follows:
-
-    Passphrase File: /root/usbpasswd.txt
-    Passphrase File: /mnt/usb/password.txt
-    Passphrase File: /root/usbpasswd.txt
-    Passphrase File: ^C
-
-What could be wrong here?
-
-Thanks and regards,
-
-Raj
+On Fri, Dec 6, 2013 at 4:28 PM, William Roberts
+<bill.c.roberts@gmail.com> wrote:
+>
+> On Dec 6, 2013 12:02 AM, "Catalin Ionita" <io.catalin@gmail.com> wrote:
+>>
+>> Hi Tyler,
+>>
+>> > efs-tools, like ecryptfs-utils, is building against the LGPL-ed
+>> > ibkeyutils.
+>>
+>> I'm using a minimal API from libkeyutils to add, search and remove a
+>> key from kernel keyring. If the LGPL of keyutils will become a problem
+>> I can switch to calling the syscalls directly inside efs-tools.
+>>
+>> > It would obviously take some more thought, but it is possible for
+>> > ecryptfs-utils to provide an LGPL'ed library that all eCryptfs user
+>> > space utilities could use.
+>> > libecryptfs was supposed to be exactly that, but it was unfortunately
+>> > licensed as GPL long ago...
+>>
+>> As far as I know, you have to rewrite the GPL branded components from
+>> scratch. If there is a way to provide an LGPL ecryptfs-utils I will be
+>> more than happy to integrate it with Android. I don't like
+>> fragmentation, and, at this point, ecryptfs-utils is a mature product.
+>
+> No they didn't... External/check policy is GPL...the kernel..etc.
+>
+>>
+>> >>
+>> >> On the code side, are their dependencies to other libraries that the
+>> >> userspace tools
+>> >> require that perhaps Android does not  have or has incompatible
+>> >> versions?
+>> >
+>> > Possibly, but that could be worked around at build time.
+>>
+>> Google striped all GPL components from Android. You can't find easily
+>> code that you can reuse, so I had to rewrite some features from
+>> scratch:
+>>    - Android keystore implementation is different from any Linux
+>> distro. libnss is not present on Android distributions. I've made a
+>> minimal software keystore integration in efs-tools. The ultimate goal
+>> is to have ecryptfs keys backed with hardware (on my todo list for
+>> Intel mobile platforms).
+>>    - File utils like cp, mv, rm are scarce (only some BSD code) and I
+>> had to rewrite those as well
+>>    - Android does things differently at boot than other Linux distros.
+>> I had to write a small library that I can statically link with
+>> initramfs components.
+>>
+>> Overall, the only thing that Android has in common with other Linux
+>> distros is the Linux kernel. We can store efs-tools and ecryptfs-utils
+>> in the same package and compile according to the OS, but other than
+>> that, the two libraries can't share code or functionality.
+>>
+>>
+>> --Catalin
+>>
+>> On Thu, Dec 5, 2013 at 9:11 PM, Tyler Hicks <tyhicks@canonical.com> wrote:
+>> > On 2013-12-05 10:57:27, William Roberts wrote:
+>> >> On Thu, Dec 5, 2013 at 10:38 AM, Tyler Hicks <tyhicks@canonical.com>
+>> >> wrote:
+>> >> > On 2013-12-05 19:32:11, Catalin Ionita wrote:
+>> >> >> Hi,
+>> >> >
+>> >> > Hello!
+>> >> >
+>> >> >>
+>> >> >> I've been working for some time on a solution to integrate ecryptfs
+>> >> >> in Android. Due to some Android specifics and license problems I had
+>> >> >> to rewrite the userspace tools.
+>> >> >
+>> >> > I really wish these problems would have been brought up on this list.
+>> >> > Fragmentation of the utilities is a bad thing. There's already enough
+>> >> > of
+>> >> > it in ecryptfs-utils (mount.ecryptfs vs mount.ecryptfs_private) but
+>> >> > now
+>> >> > there's an entirely new package, too.
+>> >> >
+>> >> >> Also, for a nice finish touch, I have
+>> >> >> implemented Android user data encryption from top (including a
+>> >> >> minimal
+>> >> >> GUI) to bottom on a Nexus 4 running latest AOSP kitkat.
+>> >> >
+>> >> > Very cool. Looking forward to checking it out.
+>> >> >
+>> >> >>
+>> >> >> I'm looking for volunteers to test, review or contribute to Android
+>> >> >> userspace tools that I've built. The project is stored at
+>> >> >> https://github.com/catalinionita/Ecryptfs-Tools-for-Android
+>> >> >
+>> >> > First, I'd like to explore merging the two code bases. Can you lay
+>> >> > out
+>> >> > the reasons for writing from scratch?
+>> >>
+>> >> If he is looking to upstream it, Google prefers things under Apache
+>> >> 2.0. However,
+>> >> this doesn't mean that other licenses are instantly a no either. For
+>> >> example, checkpolicy.
+>> >
+>> > efs-tools, like ecryptfs-utils, is building against the LGPL-ed
+>> > libkeyutils.
+>> >
+>> > It would obviously take some more thought, but it is possible for
+>> > ecryptfs-utils to provide an LGPL'ed library that all eCryptfs user
+>> > space utilities could use.
+>> >
+>> > libecryptfs was supposed to be exactly that, but it was unfortunately
+>> > licensed as GPL long ago...
+>> >
+>> >>
+>> >> On the code side, are their dependencies to other libraries that the
+>> >> userspace tools
+>> >> require that perhaps Android does not  have or has incompatible
+>> >> versions?
+>> >
+>> > Possibly, but that could be worked around at build time.
+>> >
+>> >>
+>> >> Another reason would perhaps be size, lets see what the author says.
+>> >> Also, I could swear
+>> >> I remember reading something about him asking about Android ecryptfs
+>> >> before.
+>> >
+>> > There have been a couple people ask about building ecryptfs-utils on
+>> > Android. I think the libnss dependency is the problem. We've discussed
+>> > how to solve that problem with at least one of those people, but I'm
+>> > pretty sure that it wasn't Catalin.
+>> >
+>> > Tyler
