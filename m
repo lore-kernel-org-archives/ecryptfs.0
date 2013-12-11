@@ -1,83 +1,57 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 5/9] Use %pd in eCryptFS
-Date: Tue, 10 Dec 2013 15:26:48 +0000
-Message-ID: <20131210152648.4916.63963.stgit@warthog.procyon.org.uk>
-References: <20131210152612.4916.80435.stgit@warthog.procyon.org.uk>
+From: Eric Tschetter <echeddar@gmail.com>
+Subject: ecryptfs with an epehemeral key
+Date: Tue, 10 Dec 2013 18:46:02 -0600
+Message-ID: <CAB8U+h2oxfhoNgZ8jvE0DXQ0nnXz9PywkCiONv51H6n79s-uVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40325 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753766Ab3LJP0w (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 10 Dec 2013 10:26:52 -0500
-In-Reply-To: <20131210152612.4916.80435.stgit@warthog.procyon.org.uk>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:64742 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782Ab3LKAqE (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 10 Dec 2013 19:46:04 -0500
+Received: by mail-wi0-f175.google.com with SMTP id hi5so6314750wib.8
+        for <ecryptfs@vger.kernel.org>; Tue, 10 Dec 2013 16:46:03 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: viro@zeniv.linux.org.uk
-Cc: dhowells@redhat.com, linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
-Use the new %pd printk() specifier in eCryptFS to replace passing of dentry
-name or dentry name and name length * 2 with just passing the dentry.
+Hello all,
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Tyler Hicks <tyhicks@canonical.com>
-cc: ecryptfs@vger.kernel.org
----
+I apologize if this is an easy question, but I've been Googling around
+for an answer with no luck and the man pages aren't helping, so I'm
+asking here.  If this is documented somewhere, feel free to just point
+me there.
 
- fs/ecryptfs/file.c  |    4 ++--
- fs/ecryptfs/inode.c |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+For context, I want to setup an ecryptfs volume with an ephemeral key.
+ I do *not* want the key stored anywhere.  I want to never, ever be
+able to access the data again upon restart.  I actually want to be
+forced to start over from nothing upon restart.
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index b1eaa7a1f82c..c705360e2b16 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -230,8 +230,8 @@ static int ecryptfs_open(struct inode *inode, struct file *file)
- 	if (rc) {
- 		printk(KERN_ERR "%s: Error attempting to initialize "
- 			"the lower file for the dentry with name "
--			"[%s]; rc = [%d]\n", __func__,
--			ecryptfs_dentry->d_name.name, rc);
-+			"[%pd]; rc = [%d]\n", __func__,
-+			ecryptfs_dentry, rc);
- 		goto out_free;
- 	}
- 	if ((ecryptfs_inode_to_private(inode)->lower_file->f_flags & O_ACCMODE)
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index c36c44824471..87ad33e091e9 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -250,8 +250,8 @@ int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry,
- 	if (rc) {
- 		printk(KERN_ERR "%s: Error attempting to initialize "
- 			"the lower file for the dentry with name "
--			"[%s]; rc = [%d]\n", __func__,
--			ecryptfs_dentry->d_name.name, rc);
-+			"[%pd]; rc = [%d]\n", __func__,
-+			ecryptfs_dentry, rc);
- 		goto out;
- 	}
- 	rc = ecryptfs_write_metadata(ecryptfs_dentry, ecryptfs_inode);
-@@ -313,8 +313,8 @@ static int ecryptfs_i_size_read(struct dentry *dentry, struct inode *inode)
- 	if (rc) {
- 		printk(KERN_ERR "%s: Error attempting to initialize "
- 			"the lower file for the dentry with name "
--			"[%s]; rc = [%d]\n", __func__,
--			dentry->d_name.name, rc);
-+			"[%pd]; rc = [%d]\n", __func__,
-+			dentry, rc);
- 		return rc;
- 	}
- 
-@@ -418,8 +418,8 @@ static struct dentry *ecryptfs_lookup(struct inode *ecryptfs_dir_inode,
- 	if (IS_ERR(lower_dentry)) {
- 		rc = PTR_ERR(lower_dentry);
- 		ecryptfs_printk(KERN_DEBUG, "%s: lookup_one_len() returned "
--				"[%d] on lower_dentry = [%s]\n", __func__, rc,
--				ecryptfs_dentry->d_name.name);
-+				"[%d] on lower_dentry = [%pd]\n", __func__, rc,
-+				ecryptfs_dentry);
- 		goto out;
- 	}
- 	if (lower_dentry->d_inode)
+From looking at the options for starting up ecryptfs, it looks like
+they all either require the key to be in a file or available in the
+history/ps/etc.:
+
+passphrase_passwd=(passphrase)
+passphrase_passwd_file=(filename)
+passphrase_passwd_fd=(file descriptor)
+passphrase_salt=(hex value)
+openssl_keyfile=(filename)
+openssl_passwd_file=(filename)
+openssl_passwd_fd=(file descriptor)
+openssl_passwd=(password)
+
+I'd rather not even store the key in a file and then remove the file,
+because technically that file might get persisted to disk and remain
+there after the delete.  The only thing I can think of is that maybe
+there is something magical you can do with file descriptors to get it
+to store the key in memory, have a file descriptor point to that
+memory location and then destroy the fd and memory.
+
+I'm unfortunately not that well-versed in how this would work though,
+so before diving down that potential rabbit hole was hoping to get
+some guidance from people on this list.
+
+All help is appreciated.
+
+--Eric
