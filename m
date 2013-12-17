@@ -1,131 +1,136 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH 5/9] Use %pd in eCryptFS
-Date: Tue, 17 Dec 2013 09:45:19 -0800
-Message-ID: <20131217174519.GA5177@boyd>
-References: <20131210152612.4916.80435.stgit@warthog.procyon.org.uk>
- <20131210152648.4916.63963.stgit@warthog.procyon.org.uk>
+Subject: Re: eCryptfs using openssl encountered "Transport endpoint is not
+ connected" when writting file into the mounted folder
+Date: Tue, 17 Dec 2013 10:41:23 -0800
+Message-ID: <20131217184122.GB5177@boyd>
+References: <0f6d01cef4ca$06b35430$1419fc90$@b2b.com.my>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="EuxKj2iCbKjpUGkD"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:33108 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755156Ab3LQSl3 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 17 Dec 2013 13:41:29 -0500
 Content-Disposition: inline
-In-Reply-To: <20131210152648.4916.63963.stgit@warthog.procyon.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
+In-Reply-To: <0f6d01cef4ca$06b35430$1419fc90$@b2b.com.my>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: David Howells <dhowells@redhat.com>
-Cc: viro@zeniv.linux.org.uk, linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: cc chen <cheanchaeng.chen@b2b.com.my>
+Cc: ecryptfs@vger.kernel.org
 
 
---vtzGhvizbBRQ85DL
+--EuxKj2iCbKjpUGkD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2013-12-10 15:26:48, David Howells wrote:
-> Use the new %pd printk() specifier in eCryptFS to replace passing of dent=
-ry
-> name or dentry name and name length * 2 with just passing the dentry.
+On 2013-12-09 18:32:54, cc chen wrote:
+> Greetings,=20
 >=20
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> cc: Tyler Hicks <tyhicks@canonical.com>
+>=20
+> I am having the error as per subject when I am using the openssl
+> (passphrase) key type, the thing is I don't get this error when using the
+> passphrase as key type.
 
-Acked-by: Tyler Hicks <tyhicks@canonical.com>
+The OpenSSL support in eCryptfs has never been very polished. There's
+not much user demand for it at this time, so the focus has primarily
+been placed on passphrase support.
 
-Thanks for the patch! It looks like you're asking the individual
-filesystem maintainers to carry the patch so I'll throw it into my -next
-branch.
+>=20
+> Below is the steps using openssl as key type, appreciate someone can help=
+ to
+> advise what are the mistake:
+>=20
+> (A) Create test.pem public/private cert using using "ecryptfs-manager"
+> (B) List of commands to mount the disk and result output:
+>=20
+> # mount -t ecryptfs  /secure/.s3 /secure/s3
+> Select key type to use for newly created files:
+>  1) openssl
+>  2) passphrase
+>  3) tspi
+> Selection: 1
+> PEM key file [/root/.ecryptfs/pki/openssl/key.pem]: test.pem
+> Method of providing the passphrase:
+>  1) openssl_passwd: Enter on Console
+>  2) openssl_passwd_file: File Containing Passphrase
+>  3) openssl_passwd_fd: File Descriptor for File Containing Passphrase
+> Selection [openssl_passwd]: 1
+> Passphrase:
+> Select cipher:
+>  1) aes: blocksize =3D 16; min keysize =3D 16; max keysize =3D 32 (not lo=
+aded)
+>  2) blowfish: blocksize =3D 16; min keysize =3D 16; max keysize =3D 56 (n=
+ot
+> loaded)
+>  3) des3_ede: blocksize =3D 8; min keysize =3D 24; max keysize =3D 24 (no=
+t loaded)
+>  4) cast6: blocksize =3D 16; min keysize =3D 16; max keysize =3D 32 (not =
+loaded)
+>  5) cast5: blocksize =3D 8; min keysize =3D 5; max keysize =3D 16 (not lo=
+aded)
+> Selection [aes]:
+> Select key bytes:
+>  1) 16
+>  2) 32
+>  3) 24
+> Selection [16]:
+> Enable plaintext passthrough (y/n) [n]:
+> Enable filename encryption (y/n) [n]:
+> Attempting to mount with the following options:
+>   ecryptfs_unlink_sigs
+>   ecryptfs_key_bytes=3D16
+>   ecryptfs_cipher=3Daes
+>   ecryptfs_sig=3D74c90d4c6548e015
+> WARNING: Based on the contents of [/root/.ecryptfs/sig-cache.txt],
+> it looks like you have never mounted with this key
+> before. This could mean that you have typed your
+> passphrase wrong.
+>=20
+> Would you like to proceed with the mount (yes/no)? : yes
+> Would you like to append sig [74c90d4c6548e015] to
+> [/root/.ecryptfs/sig-cache.txt]
+> in order to avoid this warning in the future (yes/no)? : no
+> Not adding sig to user sig cache file; continuing with mount.
+> Mounted eCryptfs
+>=20
+> # cd s3
+> # touch test1
+> touch: cannot touch `test1': Input/output error
+
+You need to have an ecryptfsd process running for each user that will be
+accessing the mount point. The kernel asks ecryptfsd to wrap/unwrap the
+file encryption key using the public/private key that you generated with
+OpenSSL.
+
+Performance is bad and I wouldn't expect as stable of an experience as
+with passphrase based mounts. It would be great if someone was
+interested in fostering the OpenSSL feature to make bring it up to the
+same level of maturity as passphrase.
 
 Tyler
 
-> cc: ecryptfs@vger.kernel.org
-> ---
->=20
->  fs/ecryptfs/file.c  |    4 ++--
->  fs/ecryptfs/inode.c |   12 ++++++------
->  2 files changed, 8 insertions(+), 8 deletions(-)
->=20
-> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-> index b1eaa7a1f82c..c705360e2b16 100644
-> --- a/fs/ecryptfs/file.c
-> +++ b/fs/ecryptfs/file.c
-> @@ -230,8 +230,8 @@ static int ecryptfs_open(struct inode *inode, struct =
-file *file)
->  	if (rc) {
->  		printk(KERN_ERR "%s: Error attempting to initialize "
->  			"the lower file for the dentry with name "
-> -			"[%s]; rc =3D [%d]\n", __func__,
-> -			ecryptfs_dentry->d_name.name, rc);
-> +			"[%pd]; rc =3D [%d]\n", __func__,
-> +			ecryptfs_dentry, rc);
->  		goto out_free;
->  	}
->  	if ((ecryptfs_inode_to_private(inode)->lower_file->f_flags & O_ACCMODE)
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index c36c44824471..87ad33e091e9 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -250,8 +250,8 @@ int ecryptfs_initialize_file(struct dentry *ecryptfs_=
-dentry,
->  	if (rc) {
->  		printk(KERN_ERR "%s: Error attempting to initialize "
->  			"the lower file for the dentry with name "
-> -			"[%s]; rc =3D [%d]\n", __func__,
-> -			ecryptfs_dentry->d_name.name, rc);
-> +			"[%pd]; rc =3D [%d]\n", __func__,
-> +			ecryptfs_dentry, rc);
->  		goto out;
->  	}
->  	rc =3D ecryptfs_write_metadata(ecryptfs_dentry, ecryptfs_inode);
-> @@ -313,8 +313,8 @@ static int ecryptfs_i_size_read(struct dentry *dentry=
-, struct inode *inode)
->  	if (rc) {
->  		printk(KERN_ERR "%s: Error attempting to initialize "
->  			"the lower file for the dentry with name "
-> -			"[%s]; rc =3D [%d]\n", __func__,
-> -			dentry->d_name.name, rc);
-> +			"[%pd]; rc =3D [%d]\n", __func__,
-> +			dentry, rc);
->  		return rc;
->  	}
-> =20
-> @@ -418,8 +418,8 @@ static struct dentry *ecryptfs_lookup(struct inode *e=
-cryptfs_dir_inode,
->  	if (IS_ERR(lower_dentry)) {
->  		rc =3D PTR_ERR(lower_dentry);
->  		ecryptfs_printk(KERN_DEBUG, "%s: lookup_one_len() returned "
-> -				"[%d] on lower_dentry =3D [%s]\n", __func__, rc,
-> -				ecryptfs_dentry->d_name.name);
-> +				"[%d] on lower_dentry =3D [%pd]\n", __func__, rc,
-> +				ecryptfs_dentry);
->  		goto out;
->  	}
->  	if (lower_dentry->d_inode)
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---vtzGhvizbBRQ85DL
+--EuxKj2iCbKjpUGkD
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.14 (GNU/Linux)
 
-iQIcBAEBCgAGBQJSsI2vAAoJENaSAD2qAscKBP0QALnr62ZgpIdZfr4+YAZmq5uT
-I2UFEHdrMlAgNSlKbSk6yLsglWSmoM84J4ixWs60Rn+fqOJLMgmbVCgTGV3gS6/I
-NBfQ/9qJCG5uoAnArxnBJOK9OhAxQoaO9M7TpfOk8i11CY6NrAxWr9Hcl5AQbPIw
-KcNl3MDE/LRH2qhhBSC7tD1Qh7JluNAbUacI77mvPo3I9vd7tfipEKkWtOi8eM1q
-wU+9Ix/QDRpKynUN5szPaH1uHRDKN+lL+tcmLJaYmCwwd5p2+QOFz4pYK+aZfaWP
-VrFycPAzKdWCCZ+eWtepZGDbYinGsiTcLe2Q9MXn3kSqb6Hxd17Df09ypFOAWmPb
-gVB6pnfAKnbpIjV3D9dHENOB+UYoCr6FmxxZ7qiR6DTKFTesbPBSemUgN8X+sZUm
-zLWGzFnho2Ed45kKiTrAJ2skhbPtxge0BdsDC0xJQyt8mPIEgesmTrXBvtHdv0Wz
-S6MsNlyVqD2+Ymj/Q6HpFKcxwQIe86qQRrlB4EbQ2XP0U9awFO0H0JPZrTDtQGaR
-YcrMm+niJvB3VQ3QVwvgJMrUwM0uMJjc5uCdwHNivtV2Kh3woI3kto4ICwVxki/o
-+IFyl9lrS75ueZWLGWmSfo5ihnfXDwegouI8XSiaNFTBSQfpISupYMn5CrLrpWsQ
-4pQ3XgRo+dGqrz45S04t
-=00SJ
+iQIcBAEBCgAGBQJSsJrSAAoJENaSAD2qAscKdTwQAMb/cIjTW/5uN3klKhkJSSRA
+PyvBgG4iqWw0cXbQ0s89IAc5b/ldeIe6TORTysVu30E8qwS5waSrTiBY3Ioku6zk
+UGvloHAsiCLyqJ9rKCpkyvM8ExxZt1QsVqEsq9DSRdJ/9vVgPtNIo7Z0BbCAloUF
+IjnRknCy0B+e7us99OEsptPCX9PUrDC4/0N3QVVV9OLBclv5xpmK88UbRjZtMVNV
+czyraWlSTpW4PViVCpm+pv/nke1OZRXniI3cDcxUdKOBHumW3OLa5dH3OjYXGojt
+1M9xNv3YLL4mPOpwUyVp+NMuqv63khkdHtGIVDgYNH0lCE5qcS2xf4EttdLtMVAu
+9k8f1cP8WnR+k4gzzp/Q2B4ef9PcQ7l4/hQNFA3Js8jp6ZDa50tHfT/1yNLuz+tp
+hGcgZwtn2oibxLXWFc5YDhlulzmL3GQB3EBZEhvIj4Q8RR1GOOAweGG3N+HsKLKy
+ZkywYGkJbhd7FaUgF6d4jZaCNWInp/AbwkkcFZLLe9zb2rNh9pTqtNbSaoy3u0s4
+emY3bbAN3kHJDFgeiOzZB7hWuLg+7aZ+rOVNxrgvq8VdZw13qsQBWdVDxOupSTHm
+LPJGviwu2pqZfrGBq92PqqOwDHV3MX3c1VAotDNavvwFQsXTzS3CponCQFR5Ok4x
+25qMNu+zqrfIDnDMnzd3
+=RwV1
 -----END PGP SIGNATURE-----
 
---vtzGhvizbBRQ85DL--
+--EuxKj2iCbKjpUGkD--
