@@ -1,39 +1,218 @@
-From: Tom Vaughan <thomas.david.vaughan@gmail.com>
-Subject: How best to crack wrapped-passphrase?
-Date: Wed, 15 Jan 2014 21:04:22 -0300
-Message-ID: <CAH7xHdguBuyLOZG8ubR1M9ftgLPJRPz5nAsZnpG4qnqAXX4=Tg@mail.gmail.com>
+From: Will Morrison <camocrazed@gmail.com>
+Subject: [RFC 1/3] eCryptfs: Add mount option for cipher mode
+Date: Sat, 18 Jan 2014 14:26:17 -0500
+Message-ID: <52DAD559.7020709@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:49085 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120AbaAPAEX (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 15 Jan 2014 19:04:23 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hi8so1502764wib.15
-        for <ecryptfs@vger.kernel.org>; Wed, 15 Jan 2014 16:04:22 -0800 (PST)
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:36160 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155AbaARTZ7 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sat, 18 Jan 2014 14:25:59 -0500
+Received: by mail-ie0-f174.google.com with SMTP id tp5so489583ieb.33
+        for <ecryptfs@vger.kernel.org>; Sat, 18 Jan 2014 11:25:58 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org
 
-I'm running Ubuntu 13.10 with an encrypted, private home directory. I
-changed my password today via the Ubuntu control center. I either
-don't remember the password, or the password utility used a password
-other than the one I entered. I attempted to change my password a
-second time, but all methods I tried required that I know my current
-password. So I rebooted into recovery mode, re-mounted / in read-write
-mode, ran passwd, and all was well, or so I thought.
+This patch removes the hardcoding of CBC mode in eCryptfs and adds a
+mount option allowing one to specify the desired mode of operation.
+Currently this defaults to cbc, but should would with any plain block
+cipher mode supported by the kernel.
 
-Now it seems as though wrapped-passphrase is wrapped with whatever the
-new password is (whatever password was used on my first attempt to
-change it). Yes, I did save the encryption key, but that doesn't work
-with ecrpytfs-recover-private. Perhaps I wrote it down incorrectly.
-Yes, I should have verified it somehow. But I didn't. Also, there is
-no copy of the new password in /etc/shadow-.
+Signed-off-by: Alvin Tran <althaitran@gmail.com>
+Signed-off-by: Michael Chang <thenewme91@gmail.com>
+Signed-off-by: William Morrison <camocrazed@gmail.com>
+Signed-off-by: Zameer Manji <zmanji@gmail.com>
+---
+ fs/ecryptfs/crypto.c          |   11 ++++++++++-
+ fs/ecryptfs/ecryptfs_kernel.h |    5 +++++
+ fs/ecryptfs/main.c            |   44 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 59 insertions(+), 1 deletion(-)
 
-I don't care if it takes a long time, as I'm sure it will. What's the
-best method for cracking wrapped-passphrase?
-
-Thanks.
-
--Tom
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 2f6735d..995b324 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -620,7 +620,8 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 		goto out_unlock;
+ 	}
+ 	rc = ecryptfs_crypto_api_algify_cipher_name(&full_alg_name,
+-						    crypt_stat->cipher, "cbc");
++						crypt_stat->cipher,
++						crypt_stat->cipher_mode);
+ 	if (rc)
+ 		goto out_unlock;
+ 	crypt_stat->tfm = crypto_alloc_ablkcipher(full_alg_name, 0, 0);
+@@ -792,6 +793,7 @@ static void ecryptfs_set_default_crypt_stat_vals(
+ 						      mount_crypt_stat);
+ 	ecryptfs_set_default_sizes(crypt_stat);
+ 	strcpy(crypt_stat->cipher, ECRYPTFS_DEFAULT_CIPHER);
++	strcpy(crypt_stat->cipher_mode, ECRYPTFS_DEFAULT_CIPHER_MODE);
+ 	crypt_stat->key_size = ECRYPTFS_DEFAULT_KEY_BYTES;
+ 	crypt_stat->flags &= ~(ECRYPTFS_KEY_VALID);
+ 	crypt_stat->file_version = ECRYPTFS_FILE_VERSION;
+@@ -825,6 +827,7 @@ int ecryptfs_new_file_context(struct inode *ecryptfs_inode)
+ 	    &ecryptfs_superblock_to_private(
+ 		    ecryptfs_inode->i_sb)->mount_crypt_stat;
+ 	int cipher_name_len;
++	int cipher_mode_name_len;
+ 	int rc = 0;
+ 
+ 	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
+@@ -844,6 +847,12 @@ int ecryptfs_new_file_context(struct inode *ecryptfs_inode)
+ 	       mount_crypt_stat->global_default_cipher_name,
+ 	       cipher_name_len);
+ 	crypt_stat->cipher[cipher_name_len] = '\0';
++	cipher_mode_name_len =
++		strlen(mount_crypt_stat->global_default_cipher_mode_name);
++	memcpy(crypt_stat->cipher_mode,
++		mount_crypt_stat->global_default_cipher_mode_name,
++		cipher_mode_name_len);
++	crypt_stat->cipher_mode[cipher_mode_name_len] = '\0';
+ 	crypt_stat->key_size =
+ 		mount_crypt_stat->global_default_cipher_key_size;
+ 	ecryptfs_generate_new_key(crypt_stat);
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 90d1882..dae2e1d 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -125,6 +125,7 @@ ecryptfs_get_key_payload_data(struct key *key)
+ 
+ #define ECRYPTFS_MAX_KEYSET_SIZE 1024
+ #define ECRYPTFS_MAX_CIPHER_NAME_SIZE 32
++#define ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE 32
+ #define ECRYPTFS_MAX_NUM_ENC_KEYS 64
+ #define ECRYPTFS_MAX_IV_BYTES 16	/* 128 bits */
+ #define ECRYPTFS_SALT_BYTES 2
+@@ -134,6 +135,7 @@ ecryptfs_get_key_payload_data(struct key *key)
+ #define ECRYPTFS_SIZE_AND_MARKER_BYTES (ECRYPTFS_FILE_SIZE_BYTES \
+ 					+ MAGIC_ECRYPTFS_MARKER_SIZE_BYTES)
+ #define ECRYPTFS_DEFAULT_CIPHER "aes"
++#define ECRYPTFS_DEFAULT_CIPHER_MODE "cbc"
+ #define ECRYPTFS_DEFAULT_KEY_BYTES 16
+ #define ECRYPTFS_DEFAULT_HASH "md5"
+ #define ECRYPTFS_TAG_70_DIGEST ECRYPTFS_DEFAULT_HASH
+@@ -238,6 +240,7 @@ struct ecryptfs_crypt_stat {
+ 	struct crypto_hash *hash_tfm; /* Crypto context for generating
+ 				       * the initialization vectors */
+ 	unsigned char cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
++	unsigned char cipher_mode[ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE];
+ 	unsigned char key[ECRYPTFS_MAX_KEY_BYTES];
+ 	unsigned char root_iv[ECRYPTFS_MAX_IV_BYTES];
+ 	struct list_head keysig_list;
+@@ -342,6 +345,8 @@ struct ecryptfs_mount_crypt_stat {
+ 	size_t global_default_fn_cipher_key_bytes;
+ 	unsigned char global_default_cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE
+ 						 + 1];
++	unsigned char global_default_cipher_mode_name[
++		ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE + 1];
+ 	unsigned char global_default_fn_cipher_name[
+ 		ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ 	char global_default_fnek_sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 1b119d3..0e912f7 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -170,6 +170,7 @@ void ecryptfs_put_lower_file(struct inode *inode)
+ 
+ enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig,
+        ecryptfs_opt_cipher, ecryptfs_opt_ecryptfs_cipher,
++       ecryptfs_opt_cipher_mode, ecryptfs_opt_ecryptfs_cipher_mode,
+        ecryptfs_opt_ecryptfs_key_bytes,
+        ecryptfs_opt_passthrough, ecryptfs_opt_xattr_metadata,
+        ecryptfs_opt_encrypted_view, ecryptfs_opt_fnek_sig,
+@@ -182,7 +183,9 @@ static const match_table_t tokens = {
+ 	{ecryptfs_opt_sig, "sig=%s"},
+ 	{ecryptfs_opt_ecryptfs_sig, "ecryptfs_sig=%s"},
+ 	{ecryptfs_opt_cipher, "cipher=%s"},
++	{ecryptfs_opt_cipher_mode, "cipher_mode=%s"},
+ 	{ecryptfs_opt_ecryptfs_cipher, "ecryptfs_cipher=%s"},
++	{ecryptfs_opt_ecryptfs_cipher_mode, "ecryptfs_cipher_mode=%s"},
+ 	{ecryptfs_opt_ecryptfs_key_bytes, "ecryptfs_key_bytes=%u"},
+ 	{ecryptfs_opt_passthrough, "ecryptfs_passthrough"},
+ 	{ecryptfs_opt_xattr_metadata, "ecryptfs_xattr_metadata"},
+@@ -257,10 +260,13 @@ static void ecryptfs_init_mount_crypt_stat(
+ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 				  uid_t *check_ruid)
+ {
++	const char *mode_white_list[] = {"cbc"};
+ 	char *p;
++	int i = 0;
+ 	int rc = 0;
+ 	int sig_set = 0;
+ 	int cipher_name_set = 0;
++	int cipher_mode_name_set = 0;
+ 	int fn_cipher_name_set = 0;
+ 	int cipher_key_bytes;
+ 	int cipher_key_bytes_set = 0;
+@@ -273,6 +279,8 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 	char *sig_src;
+ 	char *cipher_name_dst;
+ 	char *cipher_name_src;
++	char *cipher_mode_name_dst;
++	char *cipher_mode_name_src;
+ 	char *fn_cipher_name_dst;
+ 	char *fn_cipher_name_src;
+ 	char *fnek_dst;
+@@ -316,6 +324,18 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
+ 			cipher_name_set = 1;
+ 			break;
++		case ecryptfs_opt_cipher_mode:
++		case ecryptfs_opt_ecryptfs_cipher_mode:
++			cipher_mode_name_src = args[0].from;
++			cipher_mode_name_dst =
++				mount_crypt_stat->
++				global_default_cipher_mode_name;
++			strncpy(cipher_mode_name_dst, cipher_mode_name_src,
++				ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE);
++			cipher_mode_name_dst[
++				ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE] = '\0';
++			cipher_mode_name_set = 1;
++			break;
+ 		case ecryptfs_opt_ecryptfs_key_bytes:
+ 			cipher_key_bytes_src = args[0].from;
+ 			cipher_key_bytes =
+@@ -411,6 +431,14 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 		strcpy(mount_crypt_stat->global_default_cipher_name,
+ 		       ECRYPTFS_DEFAULT_CIPHER);
+ 	}
++	if (!cipher_mode_name_set) {
++		int cipher_mode_name_len = strlen(ECRYPTFS_DEFAULT_CIPHER_MODE);
++
++		BUILD_BUG_ON(cipher_mode_name_len >=
++			ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE);
++		strcpy(mount_crypt_stat->global_default_cipher_mode_name,
++		       ECRYPTFS_DEFAULT_CIPHER_MODE);
++	}
+ 	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
+ 	    && !fn_cipher_name_set)
+ 		strcpy(mount_crypt_stat->global_default_fn_cipher_name,
+@@ -433,6 +461,22 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 		goto out;
+ 	}
+ 
++	rc = -EINVAL;
++	for (i = 0; i < ARRAY_SIZE(mode_white_list); i++) {
++		if (strcmp(mount_crypt_stat->global_default_cipher_mode_name,
++				mode_white_list[i]) == 0) {
++			rc = 0;
++			break;
++		}
++	}
++	if (rc) {
++		ecryptfs_printk(KERN_ERR,
++				"eCryptfs doesn't support cipher mode: %s",
++				mount_crypt_stat->
++					global_default_cipher_mode_name);
++		goto out;
++	}
++
+ 	mutex_lock(&key_tfm_list_mutex);
+ 	if (!ecryptfs_tfm_exists(mount_crypt_stat->global_default_cipher_name,
+ 				 NULL)) {
+-- 
+1.7.10.4
