@@ -1,49 +1,179 @@
-From: Tom Vaughan <thomas.david.vaughan@gmail.com>
-Subject: Re: How best to crack wrapped-passphrase?
-Date: Mon, 20 Jan 2014 14:38:40 -0300
-Message-ID: <CAH7xHdjdh-hzdvLqX46H77ZPcG2JWDrgdRH6CZj301xooparbA@mail.gmail.com>
-References: <CACO3_sAgbSWb_JbZrCWZNbmJuPkmkimt9-oMOhwiCgaoROXrwQ@mail.gmail.com>
-	<CACO3_sAKEg0ScQnd4fyis5r4g9teGO3VEhU-iYmdfa1cCAE1QQ@mail.gmail.com>
-	<CACO3_sDAGU52BPpONLfdmOSF4ij+mGxVib_6WgRhYPbcTgbdvw@mail.gmail.com>
-	<CACO3_sAmQFu0raHhd3Mc60dCWUuzE4Z_u4dG_F06x8G5Qh4g2Q@mail.gmail.com>
-	<CAH7xHdjS4RRk4vTa2-MBjR_WGJ3+KfNk9k6w1Tby5g75g1Ejpw@mail.gmail.com>
-	<CACO3_sBQz_2uevZO-6-6rv2Z4M1ZH2VZJ54VvjikvBw_hUXJqA@mail.gmail.com>
+From: Taylor Hornby <havoc@defuse.ca>
+Subject: Security Audit
+Date: Wed, 22 Jan 2014 11:01:44 -0700
+Message-ID: <lbp11s$6b9$1@ger.gmane.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:47245 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758AbaATRil (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 20 Jan 2014 12:38:41 -0500
-Received: by mail-wg0-f44.google.com with SMTP id l18so7174698wgh.35
-        for <ecryptfs@vger.kernel.org>; Mon, 20 Jan 2014 09:38:40 -0800 (PST)
-In-Reply-To: <CACO3_sBQz_2uevZO-6-6rv2Z4M1ZH2VZJ54VvjikvBw_hUXJqA@mail.gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:44846 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752523AbaAVSFF (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 22 Jan 2014 13:05:05 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
+	id 1W62Ai-0001Gt-Ca
+	for ecryptfs@vger.kernel.org; Wed, 22 Jan 2014 19:05:04 +0100
+Received: from s01065404a6902716.cg.shawcable.net ([174.0.254.229])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Wed, 22 Jan 2014 19:05:04 +0100
+Received: from havoc by s01065404a6902716.cg.shawcable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Wed, 22 Jan 2014 19:05:04 +0100
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Artur Rataj <arturrataj@gmail.com>
-Cc: ecryptfs <ecryptfs@vger.kernel.org>
+To: ecryptfs@vger.kernel.org
 
-On Mon, Jan 20, 2014 at 2:34 PM, Artur Rataj <arturrataj@gmail.com> wrote:
-> I guess a better "mutator" would be something more complex, taking
-> into account your personal habits of writing passwords, likely
-> misspellings like "O" vs "0" if you wrote the characters off the
-> screen, swapped pairs etc. If unsuccessful, the program would increase
-> the number of mutations (breadth first search).
+Hi eCryptfs users and developers,
 
-Yup. Did that.
+I was hired to do a quick 10-hour security audit on eCryptfs. I didn't
+find any critical bugs, but there are a few things that can be improved.
+My report is included below. Your comments are appreciated.
 
->
-> Also, it might be worth checking if the 0.5 sec delay is not mostly a
-> loop for preventing attacks. System load might reveal an idle loop,
-> source analysis (profiling?) might reveal a busy loop.
+I only had time to look at a tiny portion of the code in detail.
+Hopefully I will get funding to continue the audit.
 
-Yup. In the process of doing this now.
+-----------------------------------------------------------------------
+                        eCryptfs Security Audit
+                             Taylor Hornby
+                            January 22, 2014
+-----------------------------------------------------------------------
 
->
-> Modifying the source of ecryptfs-unwrap-passphrase to directly include
-> your code might help too, as you would save on starting a process each
-> time.
+1. Introduction
 
-Yup. This is what I started with. But a trivial update, like hard-code
-the known passphrase for the control wrapped-passphrase, fails.
+   This document describes the results of a 10-hour security audit on
+   the latest version (at time of writing) of the eCryptfs encrypted
+   file system. It follows a previous 10-hour audit on EncFS [4].
+
+1.1. What is eCryptfs?
+
+   eCryptfs is an encrypting file system similar to EncFS. The main
+   difference is that it runs as a kernel module instead of on top of
+   FUSE.
+
+1.2. Audit Results Summary
+
+   Due to the limited amount of time, this audit could only cover
+   a small portion of eCryptfs's design and implementation. Analysis of
+   the cryptographic design was prioritized.
+
+   Documentation about eCryptfs's crypto design is sparse and
+   contradictory. The design has changed dramatically from initial
+   (very old) design documents like [3]. The only reliable source is the
+   actual source code itself, which takes longer to review.
+
+   Some non-critical issues were discovered while looking over
+   eCryptfs's source code. These are documented in the next section.
+
+2. Issues
+
+2.1. ecryptfs-rewrap-passphrase salt reuse
+
+   Exploitability:  Low
+   Security Impact: Low
+
+   The ecryptfs-rewrap-passphrase command does not generate a new random
+   salt when the password is changed. I'm not sure if this is an
+   architectural requirement or not (I don't think so), but a new random
+   salt would be better.
+
+2.2. IV is the MD5 hash of key and extract (block) offset.
+
+   Exploitability:  Low
+   Security Impact: Low
+
+   The "Root IV" is the MD5 hash of the session encryption key, which is
+   a per-file random key. From the Root IV, the IV for an extract
+   (portion of the file) is generated by hashing it with the offset.
+
+   This doesn't immediately lead to vulnerabilities, and it's much
+   better than the way EncFS does it, but it doesn't seem safe. It would
+   be much better to use proper CBC ESSIV mode or XTS mode.
+
+   There is a comment in the code that derives the IV...
+
+	/* TODO: It is probably secure to just cast the least
+	 * significant bits of the root IV into an unsigned long and
+	 * add the offset to that rather than go through all this
+	 * hashing business. -Halcrow */
+
+   ...which is wrong, and needs to be removed.
+
+2.3. Filename Encryption Does Not Use IVs
+
+   Exploitability:  Low
+   Security Impact: Low
+
+   The file name encryption in encfs_write_tag_70_packet uses a zero IV
+   for filename encryption. However, "random bytes" are prepended to the
+   path before encrypting, and they are supposed to "do the job of the
+   IV here." However, they are not actually random bytes, they are the
+   hash the "session key encryption key." This key does not appear to
+   change, so I doubt these bytes are serving the purpose of an IV.
+
+   This may be required for determinism (so that you can look up a file
+   path without iterating through all files in a directory), but it's
+   a weird way of doing it. The comment does say "We do not want to
+   encrypt the same filename with the same key and IV, which may happen
+   with hard links, so we prepend random bits to each filename" ... but
+   it doesn't. This needs further analysis.
+
+   Prepending random IVs is not sufficient when using cipher modes other
+   than CBC, such as GCM and CTR, which are being discussed on the
+   mailing list [1,2].
+
+3. Future Work
+
+   The following sections document what should be prioritized in future
+   audits.
+
+3.1. The Mailing List is Discussing GCM Mode
+
+   Possible Exploitability:  Medium
+   Possible Security Impact: High
+
+   The eCryptfs mailing list is discussing the option of using other
+   modes like GCM and CTR. There are already patches submitted that
+   allow this, however, as far as I can tell, they haven't made it into
+   the git repository.
+
+   Using a stream mode like GCM would destroy eCryptfs's security, since
+   the key stream would not depend on the plaintext and an attacker
+   could simply XOR snapshots of a ciphertext at two different times to
+   learn the XOR of the plaintexts that changed. This is not the case
+   with a block mode like CBC (currently the default).
+
+3.2. Authenticated Encryption
+
+   The mailing list is discussing patches for adding authenticated
+   encryption (GCM, HMAC, etc). There was not enough time to review
+   these proposed changes, and I'm not sure if they're already in the
+   released code or not.
+
+3.3. Produce Crypto Documentation
+
+   eCryptfs's current crypto implementation is not well-documented. It
+   would be useful to create a document that describes it at a high
+   level, so that it is easier for experienced cryptographers to review
+   it.
+
+4. Conclusion
+
+   eCryptfs appears to have a better crypto design than EncFS [4], but
+   there are some red flags indicating that it was not designed by
+   a cryptographer, and has not received enough security review. It
+   should be safe to use, but more auditing would be a good idea.
+
+5. References
+
+[1] http://thread.gmane.org/gmane.comp.file-systems.ecryptfs.general/494
+
+[2] http://www.spinics.net/lists/ecryptfs/msg00381.html
+
+[3] http://ecryptfs.sourceforge.net/ecryptfs.pdf
+
+[4] https://defuse.ca/audits/encfs.htm
+
+-- 
+Taylor Hornby
