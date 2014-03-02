@@ -1,453 +1,791 @@
 From: Will Morrison <camocrazed@gmail.com>
-Subject: [PATCH 2/3] eCryptfs: Extend file headers to store cipher mode.
-Date: Sun, 02 Mar 2014 12:52:31 -0500
-Message-ID: <53136FDF.5070804@gmail.com>
+Subject: [PATCH 3/3] eCryptfs: Enable GCM support in eCryptfs
+Date: Sun, 02 Mar 2014 12:52:58 -0500
+Message-ID: <53136FFA.3050707@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:46952 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453AbaCBRwY (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sun, 2 Mar 2014 12:52:24 -0500
-Received: by mail-ie0-f171.google.com with SMTP id ar20so104191iec.2
-        for <ecryptfs@vger.kernel.org>; Sun, 02 Mar 2014 09:52:23 -0800 (PST)
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:53244 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752748AbaCBRwu (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sun, 2 Mar 2014 12:52:50 -0500
+Received: by mail-ig0-f174.google.com with SMTP id h18so5882650igc.1
+        for <ecryptfs@vger.kernel.org>; Sun, 02 Mar 2014 09:52:50 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Tyler Hicks <tyhicks@canonical.com>
 Cc: ecryptfs@vger.kernel.org
 
-This patch changes the way eCryptfs headers use tag 3 (symmetric key)
-and tag 1 (asymmetric key) packets, adding fields to store cipher mode
-while keeping the format byte compatible with older version of eCryptfs
-when CBC mode is used.
+This patch adds support for GCM as a cipher mode in eCryptfs. If a file
+is encrypted in this mode, the layout of the lower file will change to
+accomodate it. This is due to the need to store auth tags and IVs as
+well as encrypted data.
 
-For tag 1 packets, the 1 byte cipher identifier field used to always
-contain a constant value that was ignored when reading in the header.
-This has been repurposed to hold the cipher mode code. For tag 3
-packets, an extra cipher mode field has been added, which will
-only be present if the cipher mode used is other than CBC.
-
-In both cases, the tag version number is incremented when a packet is
-written that is not byte compatible with older versions of eCryptfs.
-This happens whenever CBC mode is not used.
+The file layout being used is as follows. After the header, the first
+extent will hold auth tags and IVs. After this metadata extent, data
+extents are written until the first metadata extent becomes full, at
+which point another metadata extent is created, and subsequent data
+extents have auth tags and IVs stored in that new extent until it fills
+up, etc. The last extent in the file should always be a data extent,
+except in the case of a zero length upper file, in which case it is the
+header. This makes it so that the lower file will never have a case
+where it needs to move extents around or have large gaps in the file.
 
 Signed-off-by: Alvin Tran <althaitran@gmail.com>
 Signed-off-by: Michael Chang <thenewme91@gmail.com>
 Signed-off-by: William Morrison <camocrazed@gmail.com>
 Signed-off-by: Zameer Manji <zmanji@gmail.com>
 ---
- fs/ecryptfs/crypto.c          |   61 +++++++++++++++
- fs/ecryptfs/ecryptfs_kernel.h |    2 +
- fs/ecryptfs/keystore.c        |  164 +++++++++++++++++++++++++++++++++++------
- include/linux/ecryptfs.h      |    2 +
- 4 files changed, 208 insertions(+), 21 deletions(-)
+ fs/ecryptfs/Kconfig           |    1 +
+ fs/ecryptfs/crypto.c          |  441 +++++++++++++++++++++++++++++++++++++----
+ fs/ecryptfs/ecryptfs_kernel.h |    9 +-
+ fs/ecryptfs/inode.c           |   18 +-
+ fs/ecryptfs/main.c            |    2 +-
+ fs/ecryptfs/super.c           |    3 +
+ include/linux/ecryptfs.h      |    1 +
+ 7 files changed, 432 insertions(+), 43 deletions(-)
 
+diff --git a/fs/ecryptfs/Kconfig b/fs/ecryptfs/Kconfig
+index 434aa31..b11e555 100644
+--- a/fs/ecryptfs/Kconfig
++++ b/fs/ecryptfs/Kconfig
+@@ -4,6 +4,7 @@ config ECRYPT_FS
+ 	select CRYPTO_ECB
+ 	select CRYPTO_CBC
+ 	select CRYPTO_MD5
++	select CRYPTO_GCM
+ 	help
+ 	  Encrypted filesystem that operates on the VFS layer.  See
+ 	  <file:Documentation/filesystems/ecryptfs.txt> to learn more about
 diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 995b324..3e4fcb9 100644
+index 3e4fcb9..159442a 100644
 --- a/fs/ecryptfs/crypto.c
 +++ b/fs/ecryptfs/crypto.c
-@@ -964,6 +964,67 @@ void ecryptfs_write_crypt_stat_flags(char *page_virt,
- 	(*written) = 4;
- }
+@@ -235,7 +235,7 @@ void ecryptfs_destroy_crypt_stat(struct ecryptfs_crypt_stat *crypt_stat)
+ 	struct ecryptfs_key_sig *key_sig, *key_sig_tmp;
  
-+struct ecryptfs_cipher_mode_code_str_map_elem {
-+	char mode_str[ECRYPTFS_MAX_CIPHER_MODE_NAME_SIZE];
-+	u8 mode_code;
-+};
-+
-+static struct ecryptfs_cipher_mode_code_str_map_elem
-+ecryptfs_cipher_mode_code_str_map[] = {
-+	{"cbc", ECRYPTFS_CIPHER_MODE_CBC},
-+};
-+
-+/**
-+ * ecryptfs_code_for_cipher_mode_string
-+ * @mode_name: The string alias for the cipher mode
-+ *
-+ * Retruns zero on no match, or the cipher code on match
-+ */
-+u8 ecryptfs_code_for_cipher_mode_string(char *mode_name)
-+{
-+	int i;
-+	u8 code = 0;
-+	struct ecryptfs_cipher_mode_code_str_map_elem *map =
-+		ecryptfs_cipher_mode_code_str_map;
-+
-+	for (i = 0; i < ARRAY_SIZE(ecryptfs_cipher_mode_code_str_map); i++)
-+		if (strcmp(mode_name, map[i].mode_str) == 0) {
-+			code = map[i].mode_code;
-+			break;
-+		}
-+
-+	return code;
-+}
-+
-+/**
-+ * ecryptfs_cipher_mode_code_to_string
-+ * @str: Destination to write out the cipher mode name
-+ * @cipher_code: The code to conver to cipher mode name string
-+ *
-+ * Retruns zero in success
-+ */
-+int ecryptfs_cipher_mode_code_to_string(char *str, u8 mode_code)
-+{
-+	int rc = 0;
-+	int i;
-+	struct ecryptfs_cipher_mode_code_str_map_elem *map =
-+		ecryptfs_cipher_mode_code_str_map;
-+
-+	str[0] = '\0';
-+	for (i = 0; i < ARRAY_SIZE(ecryptfs_cipher_mode_code_str_map); i++)
-+		if (mode_code == map[i].mode_code) {
-+			strcpy(str, map[i].mode_str);
-+			break;
-+		}
-+	if (str[0] == '\0') {
-+		ecryptfs_printk(KERN_WARNING, "Cipher mode not recognized: "
-+				"[%d]\n", mode_code);
-+		rc = -EINVAL;
+ 	if (crypt_stat->tfm)
+-		crypto_free_ablkcipher(crypt_stat->tfm);
++		crypto_free_tfm(crypt_stat->tfm);
+ 	if (crypt_stat->hash_tfm)
+ 		crypto_free_hash(crypt_stat->hash_tfm);
+ 	list_for_each_entry_safe(key_sig, key_sig_tmp,
+@@ -343,9 +343,12 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 			     struct scatterlist *src_sg, int size,
+ 			     unsigned char *iv, int op)
+ {
+-	struct ablkcipher_request *req = NULL;
++	struct ablkcipher_request *ablk_req = NULL;
++	struct aead_request *aead_req = NULL;
+ 	struct extent_crypt_result ecr;
+ 	int rc = 0;
++	int cipher_mode_code = ecryptfs_code_for_cipher_mode_string(
++		crypt_stat->cipher_mode);
+ 
+ 	BUG_ON(!crypt_stat || !crypt_stat->tfm
+ 	       || !(crypt_stat->flags & ECRYPTFS_STRUCT_INITIALIZED));
+@@ -359,20 +362,47 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 	init_completion(&ecr.completion);
+ 
+ 	mutex_lock(&crypt_stat->cs_tfm_mutex);
+-	req = ablkcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
+-	if (!req) {
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		aead_req = aead_request_alloc((struct crypto_aead *)
++						crypt_stat->tfm,
++						GFP_NOFS);
++	} else {
++		ablk_req = ablkcipher_request_alloc((struct crypto_ablkcipher *)
++					crypt_stat->tfm, GFP_NOFS);
++	}
++	if (!aead_req && !ablk_req) {
+ 		mutex_unlock(&crypt_stat->cs_tfm_mutex);
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+-	ablkcipher_request_set_callback(req,
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		aead_request_set_callback(aead_req,
++			CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
++			extent_crypt_complete, &ecr);
++	} else {
++		ablkcipher_request_set_callback(ablk_req,
+ 			CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
+ 			extent_crypt_complete, &ecr);
 +	}
 +
+ 	/* Consider doing this once, when the file is opened */
+ 	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
+-		rc = crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
+-					      crypt_stat->key_size);
++
++		if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++			rc = crypto_aead_setkey(
++					(struct crypto_aead *)
++					crypt_stat->tfm,
++					crypt_stat->key,
++					crypt_stat->key_size);
++
++		} else {
++			rc = crypto_ablkcipher_setkey(
++					(struct crypto_ablkcipher *)
++					crypt_stat->tfm,
++					crypt_stat->key,
++					crypt_stat->key_size);
++		}
+ 		if (rc) {
+ 			ecryptfs_printk(KERN_ERR,
+ 					"Error setting key; rc = [%d]\n",
+@@ -382,20 +412,60 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+ 			goto out;
+ 		}
+ 		crypt_stat->flags |= ECRYPTFS_KEY_SET;
++
++		if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++			rc = crypto_aead_setauthsize(
++				(struct crypto_aead *) crypt_stat->tfm,
++				ECRYPTFS_GCM_TAG_SIZE);
++			if (rc) {
++				ecryptfs_printk(KERN_ERR,
++					"Error setting auth size; rc = [%d]\n",
++					rc);
++				mutex_unlock(&crypt_stat->cs_tfm_mutex);
++				rc = -EINVAL;
++				goto out;
++			}
++		}
+ 	}
+ 	mutex_unlock(&crypt_stat->cs_tfm_mutex);
+-	ablkcipher_request_set_crypt(req, src_sg, dst_sg, size, iv);
+-	rc = op == ENCRYPT ? crypto_ablkcipher_encrypt(req) :
+-			     crypto_ablkcipher_decrypt(req);
++
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		u8 assoc_buf[ECRYPTFS_GCM_TAG_SIZE] = {0};
++		struct scatterlist assoc_sg;
++		sg_init_one(&assoc_sg, &assoc_buf[0], ARRAY_SIZE(assoc_buf));
++		if (op == DECRYPT)
++			size += ECRYPTFS_GCM_TAG_SIZE;
++		aead_request_set_crypt(aead_req, src_sg, dst_sg, size, iv);
++		aead_request_set_assoc(aead_req, &assoc_sg,
++			ARRAY_SIZE(assoc_buf));
++	} else
++		ablkcipher_request_set_crypt(ablk_req, src_sg,
++					     dst_sg, size, iv);
++
++	if (op == ENCRYPT && cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM)
++		rc = crypto_aead_encrypt(aead_req);
++	else if (op == ENCRYPT)
++		rc = crypto_ablkcipher_encrypt(ablk_req);
++	else if (op == DECRYPT && cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM)
++		rc = crypto_aead_decrypt(aead_req);
++	else
++		rc = crypto_ablkcipher_decrypt(ablk_req);
++
+ 	if (rc == -EINPROGRESS || rc == -EBUSY) {
+-		struct extent_crypt_result *ecr = req->base.data;
++		struct extent_crypt_result *ecr;
++
++		if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM)
++			ecr = aead_req->base.data;
++		else
++			ecr = ablk_req->base.data;
+ 
+ 		wait_for_completion(&ecr->completion);
+ 		rc = ecr->rc;
+ 		reinit_completion(&ecr->completion);
+ 	}
+ out:
+-	ablkcipher_request_free(req);
++	aead_request_free(aead_req);
++	ablkcipher_request_free(ablk_req);
+ 	return rc;
+ }
+ 
+@@ -412,7 +482,82 @@ static loff_t lower_offset_for_page(struct ecryptfs_crypt_stat *crypt_stat,
+ }
+ 
+ /**
+- * crypt_extent
++ * crypt_extent_aead
++ * @crypt_stat: crypt_stat containing cryptographic context for the
++ *              encryption operation
++ * @dst_page: The page to write the result into
++ * @src_page: The page to read from
++ * @tag_data: Array of auth tags for the page
++ * @iv_data: Array of iv's for the page
++ * @extent_offset: Page extent offset for use with tag_data and iv_data
++ * @op: ENCRYPT or DECRYPT to indicate the desired operation
++ *
++ * Encrypts or decrypts one extent of data.
++ *
++ * Return zero on success; non-zero otherwise
++ */
++static int crypt_extent_aead(struct ecryptfs_crypt_stat *crypt_stat,
++				struct page *dst_page,
++				struct page *src_page,
++				u8 *tag_data, u8 *iv_data,
++				unsigned long extent_offset, int op)
++{
++	pgoff_t page_index = op == ENCRYPT ? src_page->index : dst_page->index;
++	loff_t extent_base;
++	char extent_iv[ECRYPTFS_MAX_IV_BYTES];
++	struct scatterlist src_sg[2];
++	struct scatterlist dst_sg[2];
++	size_t extent_size = crypt_stat->extent_size;
++	u8 tag_data_src[ECRYPTFS_GCM_TAG_SIZE] = {0};
++	u8 tag_data_dst[ECRYPTFS_GCM_TAG_SIZE] = {0};
++	int rc;
++
++	extent_base = (((loff_t)page_index) * (PAGE_CACHE_SIZE / extent_size));
++
++	if (op == ENCRYPT) {
++		get_random_bytes(extent_iv, ECRYPTFS_MAX_IV_BYTES);
++	} else if (op == DECRYPT) {
++		unsigned long offset = ECRYPTFS_MAX_IV_BYTES * extent_offset;
++		memcpy(extent_iv, iv_data + offset, ECRYPTFS_MAX_IV_BYTES);
++		offset = ECRYPTFS_GCM_TAG_SIZE * extent_offset;
++		memcpy(tag_data_src, tag_data + offset, ECRYPTFS_GCM_TAG_SIZE);
++	}
++
++	sg_init_table(&src_sg[0], 2);
++	sg_init_table(&dst_sg[0], 2);
++
++	sg_set_page(&src_sg[0], src_page, extent_size,
++		extent_offset * extent_size);
++	sg_set_buf(&src_sg[1], tag_data_src, ARRAY_SIZE(tag_data_src));
++
++	sg_set_page(&dst_sg[0], dst_page, extent_size,
++		extent_offset * extent_size);
++	sg_set_buf(&dst_sg[1], tag_data_dst, ARRAY_SIZE(tag_data_dst));
++
++	rc = crypt_scatterlist(crypt_stat, &dst_sg[0], &src_sg[0], extent_size,
++				extent_iv, op);
++
++	if (rc < 0) {
++		printk(KERN_ERR "%s: Error attempting to crypt page with "
++		       "page_index = [%ld], extent_offset = [%ld]; "
++		       "rc = [%d]\n", __func__, page_index, extent_offset, rc);
++		goto out;
++	}
++	rc = 0;
++
++	if (op == ENCRYPT) {
++		unsigned long offset = ECRYPTFS_GCM_TAG_SIZE * extent_offset;
++		memcpy(tag_data + offset, tag_data_dst, ECRYPTFS_GCM_TAG_SIZE);
++
++		offset = ECRYPTFS_MAX_IV_BYTES * extent_offset;
++		memcpy(iv_data + offset, extent_iv, ECRYPTFS_MAX_IV_BYTES);
++	}
++out:
 +	return rc;
 +}
 +
- struct ecryptfs_cipher_code_str_map_elem {
- 	char cipher_str[16];
- 	u8 cipher_code;
++/**
++ * crypt_extent_ablk
+  * @crypt_stat: crypt_stat containing cryptographic context for the
+  *              encryption operation
+  * @dst_page: The page to write the result into
+@@ -424,7 +569,7 @@ static loff_t lower_offset_for_page(struct ecryptfs_crypt_stat *crypt_stat,
+  *
+  * Return zero on success; non-zero otherwise
+  */
+-static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
++static int crypt_extent_ablk(struct ecryptfs_crypt_stat *crypt_stat,
+ 			struct page *dst_page,
+ 			struct page *src_page,
+ 			unsigned long extent_offset, int op)
+@@ -437,6 +582,7 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
+ 	int rc;
+ 
+ 	extent_base = (((loff_t)page_index) * (PAGE_CACHE_SIZE / extent_size));
++
+ 	rc = ecryptfs_derive_iv(extent_iv, crypt_stat,
+ 				(extent_base + extent_offset));
+ 	if (rc) {
+@@ -487,16 +633,29 @@ int ecryptfs_encrypt_page(struct page *page)
+ {
+ 	struct inode *ecryptfs_inode;
+ 	struct ecryptfs_crypt_stat *crypt_stat;
++	struct ecryptfs_extent_metadata extent_metadata;
+ 	char *enc_extent_virt;
+ 	struct page *enc_extent_page = NULL;
+ 	loff_t extent_offset;
+ 	loff_t lower_offset;
+ 	int rc = 0;
++	int data_extent_num;
++	int num_extents;
++	int meta_extent_num;
++	int metadata_per_extent;
++	u8 cipher_mode_code;
++	u8 *tag_data = NULL;
++	u8 *iv_data = NULL;
+ 
+ 	ecryptfs_inode = page->mapping->host;
+ 	crypt_stat =
+ 		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
+ 	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
++	num_extents = PAGE_CACHE_SIZE / crypt_stat->extent_size;
++	cipher_mode_code = ecryptfs_code_for_cipher_mode_string(
++		crypt_stat->cipher_mode);
++	metadata_per_extent = crypt_stat->extent_size / sizeof(extent_metadata);
++
+ 	enc_extent_page = alloc_page(GFP_USER);
+ 	if (!enc_extent_page) {
+ 		rc = -ENOMEM;
+@@ -505,11 +664,39 @@ int ecryptfs_encrypt_page(struct page *page)
+ 		goto out;
+ 	}
+ 
++
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		/* Make sure iv_data and tag_data are not the same pointer */
++		tag_data = kmalloc(num_extents * ECRYPTFS_GCM_TAG_SIZE,
++				GFP_KERNEL);
++		if (!tag_data) {
++			rc = -ENOMEM;
++			ecryptfs_printk(KERN_ERR, "Error allocating memory for "
++					"auth_tag\n");
++			goto out;
++		}
++
++		iv_data = kmalloc(num_extents * ECRYPTFS_MAX_IV_BYTES,
++				GFP_KERNEL);
++		if (!iv_data) {
++			rc = -ENOMEM;
++			ecryptfs_printk(KERN_ERR, "Error allocating memory for "
++					"iv_data\n");
++			goto out;
++		}
++	}
++
+ 	for (extent_offset = 0;
+ 	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
+ 	     extent_offset++) {
+-		rc = crypt_extent(crypt_stat, enc_extent_page, page,
+-				  extent_offset, ENCRYPT);
++		if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++			rc = crypt_extent_aead(crypt_stat, enc_extent_page,
++					       page, tag_data, iv_data,
++					       extent_offset, ENCRYPT);
++		} else {
++			rc = crypt_extent_ablk(crypt_stat, enc_extent_page,
++				page, extent_offset, ENCRYPT);
++		}
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error encrypting extent; "
+ 			       "rc = [%d]\n", __func__, rc);
+@@ -517,22 +704,81 @@ int ecryptfs_encrypt_page(struct page *page)
+ 		}
+ 	}
+ 
+-	lower_offset = lower_offset_for_page(crypt_stat, page);
+-	enc_extent_virt = kmap(enc_extent_page);
+-	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offset,
+-				  PAGE_CACHE_SIZE);
+-	kunmap(enc_extent_page);
+-	if (rc < 0) {
+-		ecryptfs_printk(KERN_ERR,
+-			"Error attempting to write lower page; rc = [%d]\n",
+-			rc);
+-		goto out;
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		for (extent_offset = 0; extent_offset < num_extents;
++			extent_offset++) {
++
++			/*
++			 * Lower offset must take into account the number of
++			 * data extents, auth tag extents, and header size.
++			 */
++			lower_offset = ecryptfs_lower_header_size(crypt_stat);
++			data_extent_num = (page->index * num_extents) + 1;
++			data_extent_num += extent_offset;
++			lower_offset += (data_extent_num - 1)
++				* crypt_stat->extent_size;
++			meta_extent_num = (data_extent_num
++				+ (metadata_per_extent - 1))
++				/ metadata_per_extent;
++			lower_offset += meta_extent_num
++				* crypt_stat->extent_size;
++
++			enc_extent_virt = kmap(enc_extent_page);
++			rc = ecryptfs_write_lower(ecryptfs_inode,
++					enc_extent_virt + (extent_offset
++						* crypt_stat->extent_size),
++					lower_offset,
++					crypt_stat->extent_size);
++			kunmap(enc_extent_page);
++			if (rc < 0) {
++				printk(KERN_ERR "Error attempting to write lower"
++						"page; rc = [%d]\n", rc);
++				goto out;
++			}
++
++			memcpy(extent_metadata.iv_bytes, iv_data +
++				ECRYPTFS_MAX_IV_BYTES * extent_offset,
++				ECRYPTFS_MAX_IV_BYTES);
++			memcpy(extent_metadata.auth_tag_bytes, tag_data +
++				ECRYPTFS_GCM_TAG_SIZE * extent_offset,
++				ECRYPTFS_GCM_TAG_SIZE);
++
++			lower_offset = ecryptfs_lower_header_size(crypt_stat);
++			lower_offset += (meta_extent_num - 1) *
++				(metadata_per_extent + 1) *
++				crypt_stat->extent_size;
++
++			rc = ecryptfs_write_lower(ecryptfs_inode,
++					(void *) &extent_metadata,
++					lower_offset,
++					ECRYPTFS_GCM_TAG_SIZE);
++			if (rc < 0) {
++				printk(KERN_ERR "Error attempting to write lower"
++						"page; rc = [%d]\n", rc);
++				goto out;
++			}
++		}
++	} else {
++		lower_offset = lower_offset_for_page(crypt_stat, page);
++		enc_extent_virt = kmap(enc_extent_page);
++		rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
++					lower_offset, PAGE_CACHE_SIZE);
++		kunmap(enc_extent_page);
++		if (rc < 0) {
++			ecryptfs_printk(KERN_ERR,
++				"Error attempting to write lower page; rc = [%d]\n",
++				rc);
++			goto out;
++		}
+ 	}
++
+ 	rc = 0;
+ out:
+ 	if (enc_extent_page) {
+ 		__free_page(enc_extent_page);
+ 	}
++	kfree(tag_data);
++	kfree(iv_data);
+ 	return rc;
+ }
+ 
+@@ -556,33 +802,128 @@ int ecryptfs_decrypt_page(struct page *page)
+ {
+ 	struct inode *ecryptfs_inode;
+ 	struct ecryptfs_crypt_stat *crypt_stat;
++	struct ecryptfs_extent_metadata extent_metadata;
+ 	char *page_virt;
+ 	unsigned long extent_offset;
+ 	loff_t lower_offset;
+ 	int rc = 0;
++	int num_extents;
++	int data_extent_num;
++	int meta_extent_num;
++	int metadata_per_extent;
++	u8 cipher_mode_code;
++	u8 *tag_data = NULL;
++	u8 *iv_data = NULL;
+ 
+ 	ecryptfs_inode = page->mapping->host;
+ 	crypt_stat =
+ 		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
+ 	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
+ 
+-	lower_offset = lower_offset_for_page(crypt_stat, page);
+-	page_virt = kmap(page);
+-	rc = ecryptfs_read_lower(page_virt, lower_offset, PAGE_CACHE_SIZE,
+-				 ecryptfs_inode);
+-	kunmap(page);
+-	if (rc < 0) {
+-		ecryptfs_printk(KERN_ERR,
+-			"Error attempting to read lower page; rc = [%d]\n",
+-			rc);
+-		goto out;
++	num_extents = PAGE_CACHE_SIZE / crypt_stat->extent_size;
++	metadata_per_extent = crypt_stat->extent_size / sizeof(extent_metadata);
++	cipher_mode_code = ecryptfs_code_for_cipher_mode_string(
++		crypt_stat->cipher_mode);
++
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		/* Make sure iv_data and tag_data are not the same pointer */
++		tag_data = kmalloc(num_extents * ECRYPTFS_GCM_TAG_SIZE,
++				GFP_KERNEL);
++		if (!tag_data) {
++			rc = -ENOMEM;
++			ecryptfs_printk(KERN_ERR, "Error allocating memory for "
++					"auth_tag\n");
++			goto out;
++		}
++
++		iv_data = kmalloc(num_extents * ECRYPTFS_MAX_IV_BYTES,
++			GFP_KERNEL);
++		if (!iv_data) {
++			rc = -ENOMEM;
++			ecryptfs_printk(KERN_ERR, "Error allocating memory for "
++					"iv_data\n");
++			goto out;
++		}
++
++		for (extent_offset = 0; extent_offset < num_extents;
++				extent_offset++) {
++
++			/*
++			 * Lower offset must take into account the number of
++			 * data extents, auth tag extents, and header size.
++			 */
++			lower_offset = ecryptfs_lower_header_size(crypt_stat);
++			data_extent_num = (page->index * num_extents) + 1;
++			data_extent_num += extent_offset;
++			lower_offset += (data_extent_num - 1)
++				* crypt_stat->extent_size;
++			meta_extent_num = (data_extent_num
++				+ (metadata_per_extent - 1))
++				/ metadata_per_extent;
++			lower_offset += meta_extent_num
++				* crypt_stat->extent_size;
++
++			page_virt = kmap(page);
++			rc = ecryptfs_read_lower(page_virt +
++				(extent_offset * crypt_stat->extent_size),
++				lower_offset,
++				crypt_stat->extent_size,
++				ecryptfs_inode);
++			kunmap(page);
++
++			if (rc < 0) {
++				printk(KERN_ERR "Error attempting to read lower"
++						"page; rc = [%d]\n", rc);
++				goto out;
++			}
++
++			lower_offset = ecryptfs_lower_header_size(crypt_stat);
++			lower_offset += (meta_extent_num - 1) *
++				(metadata_per_extent + 1) *
++				crypt_stat->extent_size;
++
++			rc = ecryptfs_read_lower((void *)&extent_metadata,
++					lower_offset,
++					sizeof(extent_metadata),
++					ecryptfs_inode);
++
++			memcpy(tag_data + ECRYPTFS_GCM_TAG_SIZE * extent_offset,
++				&(extent_metadata.auth_tag_bytes),
++				ECRYPTFS_GCM_TAG_SIZE);
++
++			memcpy(iv_data + ECRYPTFS_MAX_IV_BYTES * extent_offset,
++				&(extent_metadata.iv_bytes),
++				ECRYPTFS_MAX_IV_BYTES);
++
++			if (rc < 0) {
++				printk(KERN_ERR "Error attempting to read lower"
++						"page; rc = [%d]\n", rc);
++			}
++		}
++	} else {
++		lower_offset = lower_offset_for_page(crypt_stat, page);
++		page_virt = kmap(page);
++		rc = ecryptfs_read_lower(page_virt, lower_offset,
++					 PAGE_CACHE_SIZE, ecryptfs_inode);
++		kunmap(page);
++		if (rc < 0) {
++			ecryptfs_printk(KERN_ERR,
++				"Error attempting to read lower page; rc = [%d]\n",
++				rc);
++			goto out;
++		}
+ 	}
+ 
+ 	for (extent_offset = 0;
+ 	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
+ 	     extent_offset++) {
+-		rc = crypt_extent(crypt_stat, page, page,
++		if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++			rc = crypt_extent_aead(crypt_stat, page, page,
++				  tag_data, iv_data, extent_offset, DECRYPT);
++		} else {
++			rc = crypt_extent_ablk(crypt_stat, page, page,
+ 				  extent_offset, DECRYPT);
++		}
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error encrypting extent; "
+ 			       "rc = [%d]\n", __func__, rc);
+@@ -590,6 +931,8 @@ int ecryptfs_decrypt_page(struct page *page)
+ 		}
+ 	}
+ out:
++	kfree(tag_data);
++	kfree(iv_data);
+ 	return rc;
+ }
+ 
+@@ -608,6 +951,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ {
+ 	char *full_alg_name;
+ 	int rc = -EINVAL;
++	int cipher_mode_code;
+ 
+ 	ecryptfs_printk(KERN_DEBUG,
+ 			"Initializing cipher [%s]; strlen = [%d]; "
+@@ -624,7 +968,16 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 						crypt_stat->cipher_mode);
+ 	if (rc)
+ 		goto out_unlock;
+-	crypt_stat->tfm = crypto_alloc_ablkcipher(full_alg_name, 0, 0);
++	cipher_mode_code = ecryptfs_code_for_cipher_mode_string(
++		crypt_stat->cipher_mode);
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		crypt_stat->tfm = (struct crypto_tfm *)
++			crypto_alloc_aead(full_alg_name, 0, 0);
++	} else {
++		crypt_stat->tfm = (struct crypto_tfm *)
++			crypto_alloc_ablkcipher(full_alg_name, 0, 0);
++	}
++
+ 	if (IS_ERR(crypt_stat->tfm)) {
+ 		rc = PTR_ERR(crypt_stat->tfm);
+ 		crypt_stat->tfm = NULL;
+@@ -633,7 +986,14 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat)
+ 				full_alg_name);
+ 		goto out_free;
+ 	}
+-	crypto_ablkcipher_set_flags(crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
++
++	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++		crypto_aead_set_flags((struct crypto_aead *) crypt_stat->tfm,
++				CRYPTO_TFM_REQ_WEAK_KEY);
++	} else {
++		crypto_ablkcipher_set_flags((struct crypto_ablkcipher *)
++				crypt_stat->tfm, CRYPTO_TFM_REQ_WEAK_KEY);
++	}
+ 	rc = 0;
+ out_free:
+ 	kfree(full_alg_name);
+@@ -972,6 +1332,7 @@ struct ecryptfs_cipher_mode_code_str_map_elem {
+ static struct ecryptfs_cipher_mode_code_str_map_elem
+ ecryptfs_cipher_mode_code_str_map[] = {
+ 	{"cbc", ECRYPTFS_CIPHER_MODE_CBC},
++	{"gcm", ECRYPTFS_CIPHER_MODE_GCM}
+ };
+ 
+ /**
+@@ -999,7 +1360,7 @@ u8 ecryptfs_code_for_cipher_mode_string(char *mode_name)
+ /**
+  * ecryptfs_cipher_mode_code_to_string
+  * @str: Destination to write out the cipher mode name
+- * @cipher_code: The code to conver to cipher mode name string
++ * @cipher_mode_code: The code to conver to cipher mode name string
+  *
+  * Retruns zero in success
+  */
 diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index dae2e1d..392f710 100644
+index 392f710..19eeac2 100644
 --- a/fs/ecryptfs/ecryptfs_kernel.h
 +++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -604,6 +604,8 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
- 					    struct inode *inode);
- u8 ecryptfs_code_for_cipher_string(char *cipher_name, size_t key_bytes);
- int ecryptfs_cipher_code_to_string(char *str, u8 cipher_code);
-+u8 ecryptfs_code_for_cipher_mode_string(char *mode_name);
-+int ecryptfs_cipher_mode_code_to_string(char *str, u8 mode_code);
- void ecryptfs_set_default_sizes(struct ecryptfs_crypt_stat *crypt_stat);
- int ecryptfs_generate_key_packet_set(char *dest_base,
- 				     struct ecryptfs_crypt_stat *crypt_stat,
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 4725a07..682d26f 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1248,6 +1248,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 	size_t body_size;
- 	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
- 	size_t length_size;
-+	u8 tag_version;
- 	int rc = 0;
+@@ -129,6 +129,7 @@ ecryptfs_get_key_payload_data(struct key *key)
+ #define ECRYPTFS_MAX_NUM_ENC_KEYS 64
+ #define ECRYPTFS_MAX_IV_BYTES 16	/* 128 bits */
+ #define ECRYPTFS_SALT_BYTES 2
++#define ECRYPTFS_GCM_TAG_SIZE 16
+ #define MAGIC_ECRYPTFS_MARKER 0x3c81b7f5
+ #define MAGIC_ECRYPTFS_MARKER_SIZE_BYTES 8	/* 4*2 */
+ #define ECRYPTFS_FILE_SIZE_BYTES (sizeof(u64))
+@@ -236,7 +237,7 @@ struct ecryptfs_crypt_stat {
+ 	size_t extent_shift;
+ 	unsigned int extent_mask;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+-	struct crypto_ablkcipher *tfm;
++	struct crypto_tfm *tfm;
+ 	struct crypto_hash *hash_tfm; /* Crypto context for generating
+ 				       * the initialization vectors */
+ 	unsigned char cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
+@@ -359,6 +360,12 @@ struct ecryptfs_sb_info {
+ 	struct backing_dev_info bdi;
+ };
  
- 	(*packet_size) = 0;
-@@ -1260,7 +1261,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 	 * Max Tag 1 packet size (max 3 bytes)
- 	 * Version (1 byte)
- 	 * Key identifier (8 bytes; ECRYPTFS_SIG_SIZE)
--	 * Cipher identifier (1 byte)
-+	 * Cipher mode identifier (1 byte) (ignored if packet version is 0x03)
- 	 * Encrypted key size (arbitrary)
- 	 *
- 	 * 12 bytes minimum packet size
-@@ -1305,18 +1306,30 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--	if (unlikely(data[(*packet_size)++] != 0x03)) {
-+	tag_version = data[(*packet_size)++];
-+	if (unlikely(tag_version != 0x03 && tag_version != 0x04)) {
- 		printk(KERN_WARNING "Unknown version number [%d]\n",
--		       data[(*packet_size) - 1]);
-+		       tag_version);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
- 	ecryptfs_to_hex((*new_auth_tok)->token.private_key.signature,
- 			&data[(*packet_size)], ECRYPTFS_SIG_SIZE);
- 	*packet_size += ECRYPTFS_SIG_SIZE;
--	/* This byte is skipped because the kernel does not need to
--	 * know which public key encryption algorithm was used */
--	(*packet_size)++;
-+	if (tag_version == 0x03) {
-+		/* This byte is skipped because the kernel does not need to
-+		* know which public key encryption algorithm was used */
-+		(*packet_size)++;
-+		strcpy(crypt_stat->cipher_mode, "cbc");
-+	} else {
-+		/* This field is repurposed in packet version 0x04 to hold the
-+		 * cipher mode. It is ignored in earlier packet versions. */
-+		rc = ecryptfs_cipher_mode_code_to_string(
-+				crypt_stat->cipher_mode,
-+				data[(*packet_size)++]);
-+		if (rc)
-+			goto out_free;
-+	}
- 	(*new_auth_tok)->session_key.encrypted_key_size =
- 		body_size - (ECRYPTFS_SIG_SIZE + 2);
- 	if ((*new_auth_tok)->session_key.encrypted_key_size
-@@ -1380,18 +1393,34 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 	size_t body_size;
- 	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
- 	size_t length_size;
-+	size_t min_body_size;
-+	u8 file_version;
- 	int rc = 0;
++/* extent metadata (for GCM) */
++struct ecryptfs_extent_metadata {
++	u8 iv_bytes[ECRYPTFS_MAX_IV_BYTES];
++	u8 auth_tag_bytes[ECRYPTFS_GCM_TAG_SIZE];
++};
++
+ /* file private data. */
+ struct ecryptfs_file_info {
+ 	struct file *wfi_file;
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 87ad33e..1778539 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -720,15 +720,31 @@ upper_size_to_lower_size(struct ecryptfs_crypt_stat *crypt_stat,
+ 			 loff_t upper_size)
+ {
+ 	loff_t lower_size;
++	int mode_code = ecryptfs_code_for_cipher_mode_string(
++			crypt_stat->cipher_mode);
  
- 	(*packet_size) = 0;
- 	(*new_auth_tok) = NULL;
--	/**
--	 *This format is inspired by OpenPGP; see RFC 2440
-+	/* This format is inspired by OpenPGP; see RFC 2440
- 	 * packet tag 3
- 	 *
-+	 * This packet format deviates from the RFC in two ways:
-+	 * 1. There is an additional field describing which cipher
-+	 * mode was used.
-+	 *
-+	 * 2. The version field is used to differentiate between different
-+	 * versions of the packet as used in eCryptfs instead of the different
-+	 * version of tag 3 in the RFC.
-+	 *
-+	 * Version 0x04 is a packet that does not have the additional
-+	 * cipher mode field. The cipher mode is then assumed to be CBC.
-+	 *
-+	 * Version 0x05 is a packet that does have the additional cipher mode
-+	 * field. The cipher mode is taken from this header.
-+	 *
- 	 * Tag 3 identifier (1 byte)
- 	 * Max Tag 3 packet size (max 3 bytes)
- 	 * Version (1 byte)
- 	 * Cipher code (1 byte)
-+	 * Cipher mode code (1 byte) (if version >= 0x05)
- 	 * S2K specifier (1 byte)
- 	 * Hash identifier (1 byte)
- 	 * Salt (ECRYPTFS_SALT_SIZE)
-@@ -1400,6 +1429,16 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 	 *
- 	 * (ECRYPTFS_SALT_SIZE + 7) minimum packet size
- 	 */
-+
-+	/* Holds the minimum amount of data for a version 0x04 packet */
-+	min_body_size = (1 /* Version */
-+			   + 1 /* Cipher Code */
-+			   + 1 /* S2K Specifier */
-+			   + 1 /* Hash Identifier */
-+			   + ECRYPTFS_SALT_SIZE
-+			   + 1 /* Hash Iterations */
-+			  );
-+
- 	if (max_packet_size < (ECRYPTFS_SALT_SIZE + 7)) {
- 		printk(KERN_ERR "Max packet size too large\n");
- 		rc = -EINVAL;
-@@ -1428,7 +1467,7 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		       rc);
- 		goto out_free;
- 	}
--	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
-+	if (unlikely(body_size < min_body_size)) {
- 		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
-@@ -1439,8 +1478,19 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
-+	file_version = data[(*packet_size)++];
-+	if (unlikely(file_version != 0x04 && file_version != 0x05)) {
-+		printk(KERN_WARNING "Unknown version number [%d]\n",
-+		       file_version);
-+		rc = -EINVAL;
-+		goto out_free;
-+	}
-+	if (file_version != 0x04) {
-+		/* This file version has an extra byte for cipher mode code */
-+		min_body_size += 1;
-+	}
- 	(*new_auth_tok)->session_key.encrypted_key_size =
--		(body_size - (ECRYPTFS_SALT_SIZE + 5));
-+		(body_size - min_body_size);
- 	if ((*new_auth_tok)->session_key.encrypted_key_size
- 	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
- 		printk(KERN_WARNING "Tag 3 packet contains key larger "
-@@ -1448,12 +1498,6 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--	if (unlikely(data[(*packet_size)++] != 0x04)) {
--		printk(KERN_WARNING "Unknown version number [%d]\n",
--		       data[(*packet_size) - 1]);
--		rc = -EINVAL;
--		goto out_free;
--	}
- 	rc = ecryptfs_cipher_code_to_string(crypt_stat->cipher,
- 					    (u16)data[(*packet_size)]);
- 	if (rc)
-@@ -1468,6 +1512,18 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		crypt_stat->key_size =
- 			(*new_auth_tok)->session_key.encrypted_key_size;
- 	}
-+
-+	/* Read the cipher mode if it is present */
-+	if (file_version != 0x04) {
-+		rc = ecryptfs_cipher_mode_code_to_string(
-+				crypt_stat->cipher_mode,
-+				data[(*packet_size)++]);
-+		if (rc)
-+			goto out_free;
-+	} else {
-+		strcpy(crypt_stat->cipher_mode, "cbc");
-+	}
-+
- 	rc = ecryptfs_init_crypt_ctx(crypt_stat);
- 	if (rc)
- 		goto out_free;
-@@ -2031,6 +2087,7 @@ write_tag_1_packet(char *dest, size_t *remaining_bytes,
- 	size_t encrypted_session_key_valid = 0;
- 	size_t packet_size_length;
- 	size_t max_packet_size;
-+	u8 cipher_mode_code;
- 	int rc = 0;
+ 	lower_size = ecryptfs_lower_header_size(crypt_stat);
+ 	if (upper_size != 0) {
+ 		loff_t num_extents;
++		int metadata_per_extent;
++		struct ecryptfs_extent_metadata extent_metadata;
  
- 	(*packet_size) = 0;
-@@ -2069,7 +2126,7 @@ encrypted_session_key_set:
- 			   + 3                       /* Max Tag 1 packet size */
- 			   + 1                       /* Version */
- 			   + ECRYPTFS_SIG_SIZE       /* Key identifier */
--			   + 1                       /* Cipher identifier */
-+			   + 1                       /* Cipher mode code */
- 			   + key_rec->enc_key_size); /* Encrypted key size */
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet length larger than maximum allowable; "
-@@ -2088,10 +2145,29 @@ encrypted_session_key_set:
- 		goto out;
+ 		num_extents = upper_size >> crypt_stat->extent_shift;
++		metadata_per_extent = crypt_stat->extent_size
++				      / sizeof(extent_metadata);
++
+ 		if (upper_size & ~crypt_stat->extent_mask)
+ 			num_extents++;
+-		lower_size += (num_extents * crypt_stat->extent_size);
++
++		if (mode_code == ECRYPTFS_CIPHER_MODE_GCM) {
++			lower_size +=
++				(num_extents +
++				((num_extents + metadata_per_extent - 1)
++				/ metadata_per_extent)) *
++				crypt_stat->extent_size;
++		} else {
++			lower_size += (num_extents * crypt_stat->extent_size);
++		}
  	}
- 	(*packet_size) += packet_size_length;
--	dest[(*packet_size)++] = 0x03; /* version 3 */
+ 	return lower_size;
+ }
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 0e912f7..7c087ef 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -260,7 +260,7 @@ static void ecryptfs_init_mount_crypt_stat(
+ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 				  uid_t *check_ruid)
+ {
+-	const char *mode_white_list[] = {"cbc"};
++	const char *mode_white_list[] = {"cbc", "gcm"};
+ 	char *p;
+ 	int i = 0;
+ 	int rc = 0;
+diff --git a/fs/ecryptfs/super.c b/fs/ecryptfs/super.c
+index e879cf8..54d61f9 100644
+--- a/fs/ecryptfs/super.c
++++ b/fs/ecryptfs/super.c
+@@ -164,6 +164,9 @@ static int ecryptfs_show_options(struct seq_file *m, struct dentry *root)
+ 	seq_printf(m, ",ecryptfs_cipher=%s",
+ 		mount_crypt_stat->global_default_cipher_name);
+ 
++	seq_printf(m, ",ecryptfs_cipher_mode=%s",
++		mount_crypt_stat->global_default_cipher_mode_name);
 +
-+	cipher_mode_code =
-+		ecryptfs_code_for_cipher_mode_string(crypt_stat->cipher_mode);
-+	if (cipher_mode_code == 0) {
-+		ecryptfs_printk(KERN_WARNING, "Unable to generate code for "
-+				"cipher mode [%s]\n", crypt_stat->cipher_mode);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* Tag Version */
-+	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_CBC)
-+		dest[(*packet_size)++] = 0x03;
-+	else
-+		dest[(*packet_size)++] = 0x04;
- 	memcpy(&dest[(*packet_size)], key_rec->sig, ECRYPTFS_SIG_SIZE);
- 	(*packet_size) += ECRYPTFS_SIG_SIZE;
--	dest[(*packet_size)++] = RFC2440_CIPHER_RSA;
-+	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_CBC) {
-+		/* Version 0x03 packets always contain this constant */
-+		dest[(*packet_size)++] = RFC2440_CIPHER_RSA;
-+	} else {
-+		dest[(*packet_size)++] = cipher_mode_code;
-+	}
- 	memcpy(&dest[(*packet_size)], key_rec->enc_key,
- 	       key_rec->enc_key_size);
- 	(*packet_size) += key_rec->enc_key_size;
-@@ -2189,6 +2265,7 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 	struct scatterlist src_sg[2];
- 	struct mutex *tfm_mutex = NULL;
- 	u8 cipher_code;
-+	u8 cipher_mode_code;
- 	size_t packet_size_length;
- 	size_t max_packet_size;
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
-@@ -2313,7 +2390,39 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 	}
- encrypted_session_key_set:
- 	/* This format is inspired by OpenPGP; see RFC 2440
--	 * packet tag 3 */
-+	 * packet tag 3
-+	 *
-+	 * This packet format deviates from the RFC in two ways:
-+	 * 1. There is an additional field describing which cipher
-+	 * mode was used.
-+	 *
-+	 * 2. The version field is used to differentiate between different
-+	 * versions of the packet as used in eCryptfs instead of the different
-+	 * version of tag 3 in the RFC.
-+	 *
-+	 * Version 0x04 is a packet that does not have the additional
-+	 * cipher mode field. The cipher mode is then assumed to be CBC.
-+	 *
-+	 * Version 0x05 is a packet that does have the additional cipher mode
-+	 * field. The cipher mode is taken from this header.
-+	 *
-+	 * This is for forwards compatability, so that older versions of
-+	 * eCryptfs can still read and write CBC encrypted files from new
-+	 * versions, but will refuse to open files encrypted in modes they do
-+	 * not understand.
-+	 *
-+	 * */
-+
-+	cipher_mode_code =
-+		ecryptfs_code_for_cipher_mode_string(crypt_stat->cipher_mode);
-+
-+	if (cipher_mode_code == 0) {
-+		ecryptfs_printk(KERN_WARNING, "Unable to generate code for "
-+				"cipher mode [%s]\n", crypt_stat->cipher_mode);
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
- 	max_packet_size = (1                         /* Tag 3 identifier */
- 			   + 3                       /* Max Tag 3 packet size */
- 			   + 1                       /* Version */
-@@ -2323,6 +2432,11 @@ encrypted_session_key_set:
- 			   + ECRYPTFS_SALT_SIZE      /* Salt */
- 			   + 1                       /* Hash iterations */
- 			   + key_rec->enc_key_size); /* Encrypted key size */
-+
-+	if (cipher_mode_code != ECRYPTFS_CIPHER_MODE_CBC) {
-+		max_packet_size += 1; /* Cipher mode code. 1 Byte */
-+	}
-+
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet too large; need up to [%td] bytes, but "
- 		       "there are only [%td] available\n", max_packet_size,
-@@ -2342,7 +2456,12 @@ encrypted_session_key_set:
- 		goto out;
- 	}
- 	(*packet_size) += packet_size_length;
--	dest[(*packet_size)++] = 0x04; /* version 4 */
-+	/* Write out tag version */
-+	if (cipher_mode_code == ECRYPTFS_CIPHER_MODE_CBC) {
-+		dest[(*packet_size)++] = 0x04;
-+	} else {
-+		dest[(*packet_size)++] = 0x05;
-+	}
- 	/* TODO: Break from RFC2440 so that arbitrary ciphers can be
- 	 * specified with strings */
- 	cipher_code = ecryptfs_code_for_cipher_string(crypt_stat->cipher,
-@@ -2353,7 +2472,10 @@ encrypted_session_key_set:
- 		rc = -EINVAL;
- 		goto out;
- 	}
-+
- 	dest[(*packet_size)++] = cipher_code;
-+	if (cipher_mode_code != ECRYPTFS_CIPHER_MODE_CBC)
-+		dest[(*packet_size)++] = cipher_mode_code;
- 	dest[(*packet_size)++] = 0x03;	/* S2K */
- 	dest[(*packet_size)++] = 0x01;	/* MD5 (TODO: parameterize) */
- 	memcpy(&dest[(*packet_size)], auth_tok->token.password.salt,
+ 	if (mount_crypt_stat->global_default_cipher_key_size)
+ 		seq_printf(m, ",ecryptfs_key_bytes=%zd",
+ 			   mount_crypt_stat->global_default_cipher_key_size);
 diff --git a/include/linux/ecryptfs.h b/include/linux/ecryptfs.h
-index 8d5ab99..8244e03 100644
+index 8244e03..770ee13 100644
 --- a/include/linux/ecryptfs.h
 +++ b/include/linux/ecryptfs.h
-@@ -44,6 +44,8 @@
- 
+@@ -45,6 +45,7 @@
  #define RFC2440_CIPHER_RSA 0x01
  
-+#define ECRYPTFS_CIPHER_MODE_CBC 0x01
-+
+ #define ECRYPTFS_CIPHER_MODE_CBC 0x01
++#define ECRYPTFS_CIPHER_MODE_GCM 0x02
+ 
  /**
   * For convenience, we may need to pass around the encrypted session
-  * key between kernel and userspace because the authentication token
 -- 
 1.7.10.4
