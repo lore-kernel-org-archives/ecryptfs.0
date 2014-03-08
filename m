@@ -1,78 +1,33 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: ecryptfs log spew from EINTR
-Date: Wed, 5 Mar 2014 11:53:16 -0600
-Message-ID: <20140305175316.GA20812@boyd>
-References: <53175BB0.1020107@intel.com>
+From: Jon Skarpeteig <jon.skarpeteig@gmail.com>
+Subject: NFS -> eCryptfs -> Samba = files disappearing
+Date: Sat, 8 Mar 2014 12:18:02 +0100
+Message-ID: <CAF9utUuXXvZwz=1bD+zAz=_QoKgj2o2m4U+1shMB=jdcGXjUqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42868 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215AbaCERxV (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 5 Mar 2014 12:53:21 -0500
-Content-Disposition: inline
-In-Reply-To: <53175BB0.1020107@intel.com>
+Received: from mail-oa0-f42.google.com ([209.85.219.42]:64862 "EHLO
+	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880AbaCHLSW (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sat, 8 Mar 2014 06:18:22 -0500
+Received: by mail-oa0-f42.google.com with SMTP id i4so5302295oah.29
+        for <ecryptfs@vger.kernel.org>; Sat, 08 Mar 2014 03:18:22 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: ecryptfs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs <ecryptfs@vger.kernel.org>
 
+I have a NAS server exposing data stores over NFS. Then I have an
+Ubuntu 12.04 machine running eCryptfs with filename encryption (rest
+is default from using mount command). The 'decrypted' folder is
+exposed to my Windows machine using Samba.
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This all seems to work at first (create, read, update, delete) - but
+when accessing large files, and doing seek - the entire folder in
+which the file exists disappears. When listing the folder (both samba
+and locally), it's displayed as completely empty.
 
-On 2014-03-05 09:15:28, Dave Hansen wrote:
-> I have a little program that uses mmap() to copy files.  Essentially:
->=20
-> 	addr1 =3D mmap(fd1);
-> 	addr2 =3D mmap(fd2);
-> 	memcpy(addr1, addr2, len);
->=20
-> If these files are on ecryptfs and I interrupt the memcpy() with ^C, I
-> consistently get this in dmesg:
->=20
-> ecryptfs_decrypt_page: Error attempting to read lower page; rc =3D [-4]
-> ecryptfs_readpage: Error decrypting page; rc =3D [-4]
->=20
-> -4 is, of course -EINTR because of the ^C.  Should we be suppressing the
-> message when we see EINTR?
+If I remount the 'decrypted' folder again, the files re-appear
 
-Yes. In fact, eCryptfs shouldn't print a KERN_ERR message at all in this
-situation. KERN_DEBUG at most. eCryptfs is too chatty in many cases.
+How to further debug (and fix) this issue?
 
-I'd like to switch over to the pr_* functions and downgrade many log
-messages to pr_debug() at that time.
-
-Tyler
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJTF2SMAAoJENaSAD2qAscK2E4P/3CP73udYFc9WE3RNc5WAjra
-FO/aRl5OXxmY7wSjQMexod9lQZnLd9uiLzXHcOnQ0462bpeG8i9mBWxOQKo6L0EA
-MMw02I0dp+P2g24LPEIxsB33NeQ0o7uw00GQoZLQY9D5TJ2o9nK87k2skK86GbHn
-KEtVk8WP9PImfbtpFTiDnEG+2w5weFMcHjFd15AvusyX0/0EFArxf+ToFzCNjEuS
-rYkLyvJ3D5k2KwaOBecYKaxwLYOSm9JLYS1fIBkeJRYUGdpaXviCf2KPTErD0kml
-1CF3Banfus0Xdbp8GTJYJOTrCAvbx1UsqE5dO7MLSwBlpemMtloD5EYXFWB3mIjI
-fcY36+eHEfEJXo8rHbuvAYC/ajHj8t5eCti9NrQTstf3ff1Bkw2m6mzjqKe4OE1+
-KWNvRYO6QT43zEvNH4/xyhHovzrMffiSwvzXsuOlTcW3eJXtv7YjvOxCyH47Sn3K
-G68ZvwCCmn744i3PvQ51uNL01wPnaI9xZuYLrHaYvj1NsSYJnC8dceHic1XigksP
-B69siPlGCmqyX6ip/bURIa6v3nLTDv3X/NgNP7ynuxPKSq1oGa7IxgBjmanz3aVx
-DZlfT17HIJZpt+Pjvtvo0rkfmBKROnPbtKY3E6pRKY3sh4JInRO9bm7rPtdhGY7F
-kFT4XtVuG8WZ1ih0zvsS
-=IrLE
------END PGP SIGNATURE-----
-
---YiEDa0DAkWCtVeE4--
+- Jon Skarpeteig
