@@ -1,33 +1,53 @@
-From: Jon Skarpeteig <jon.skarpeteig@gmail.com>
-Subject: NFS -> eCryptfs -> Samba = files disappearing
-Date: Sat, 8 Mar 2014 12:18:02 +0100
-Message-ID: <CAF9utUuXXvZwz=1bD+zAz=_QoKgj2o2m4U+1shMB=jdcGXjUqw@mail.gmail.com>
+From: zero <zero923@yahoo.com>
+Subject: Erasing keys in ram
+Date: Mon, 10 Mar 2014 13:03:51 +0000 (UTC)
+Message-ID: <loom.20140310T134842-921@post.gmane.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:64862 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbaCHLSW (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sat, 8 Mar 2014 06:18:22 -0500
-Received: by mail-oa0-f42.google.com with SMTP id i4so5302295oah.29
-        for <ecryptfs@vger.kernel.org>; Sat, 08 Mar 2014 03:18:22 -0800 (PST)
+Received: from plane.gmane.org ([80.91.229.3]:57173 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752698AbaCJNKG (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Mon, 10 Mar 2014 09:10:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
+	id 1WMzxz-00033m-JD
+	for ecryptfs@vger.kernel.org; Mon, 10 Mar 2014 14:10:03 +0100
+Received: from c193-14-110-229.cust.tele2.se ([193.14.110.229])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Mon, 10 Mar 2014 14:10:03 +0100
+Received: from zero923 by c193-14-110-229.cust.tele2.se with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Mon, 10 Mar 2014 14:10:03 +0100
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs <ecryptfs@vger.kernel.org>
+To: ecryptfs@vger.kernel.org
 
-I have a NAS server exposing data stores over NFS. Then I have an
-Ubuntu 12.04 machine running eCryptfs with filename encryption (rest
-is default from using mount command). The 'decrypted' folder is
-exposed to my Windows machine using Samba.
+I'm thinking about using ecryptfs, to get encryption on top of zfs in linux.
+I have a question about security though. I want to make sure that my files
+are protected if someone gets to my computer after I have unmounted
+ecryptfs, but before rebooting. I've read about the possibility of dumping
+keys in memory to swap. But I think that this could be fixed by simply
+running without swap.
 
-This all seems to work at first (create, read, update, delete) - but
-when accessing large files, and doing seek - the entire folder in
-which the file exists disappears. When listing the folder (both samba
-and locally), it's displayed as completely empty.
+I also know that other programs can write open encrypted files to /tmp, but
+I'm not so worried about that since this can be avoided if you know how the
+programs accessing your opened files work. What I am worried about is the
+key somehow being around after unmounting. 
 
-If I remount the 'decrypted' folder again, the files re-appear
+In an answer on crypto.stackexchange, Mike Halcrow says this: 
+"eCryptfs makes no special effort to prevent key proliferation in memory.
+You can see how bad that problem is by running eCryptfs in a VM, saving
+state, and searching for your key material in the memory image."
+But I'm not sure if this only applies when ecryptfs is mounted.
 
-How to further debug (and fix) this issue?
+It might seem obvious that the key in ram will be erased after unmounting,
+but it would be nice to get confirmation on this, and about possible leaks.
+For example in the truecrypt documentation they explicitly say that: "When a
+non-system TrueCrypt volume is dismounted, TrueCrypt erases its master keys
+(stored in RAM)."
 
-- Jon Skarpeteig
+(I've also asked this question on crypto.stackexchange, with no answer so I
+thought I should come here.)
