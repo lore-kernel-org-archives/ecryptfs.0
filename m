@@ -1,122 +1,115 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: Please patch key_mod.c
-Date: Tue, 27 May 2014 11:06:09 +0200
-Message-ID: <20140527090609.GA26330@boyd>
-References: <536E62DD.8156.E36EA@jafojtik.seznam.cz>
+From: Hanks Wang <wangwenjie@cmos.net>
+Subject: kernel crash after enable ecryptfs under abnormal power off
+Date: Tue, 10 Jun 2014 22:13:22 +0800
+Message-ID: <53971282.3070909@cmos.net>
+References: <536E62DD.8156.E36EA@jafojtik.seznam.cz> <20140527090609.GA26330@boyd> <53970CB4.5050004@cmos.net> <5397116B.2040502@cmos.net> <539711F6.4040804@cmos.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:53865 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbaE0JGN (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 27 May 2014 05:06:13 -0400
-Content-Disposition: inline
-In-Reply-To: <536E62DD.8156.E36EA@jafojtik.seznam.cz>
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:34919 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751163AbaFJON1 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 10 Jun 2014 10:13:27 -0400
+Received: by mail-pb0-f48.google.com with SMTP id rr13so6291600pbb.21
+        for <ecryptfs@vger.kernel.org>; Tue, 10 Jun 2014 07:13:26 -0700 (PDT)
+In-Reply-To: <539711F6.4040804@cmos.net>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Jaroslav Fojtik <jafojtik@seznam.cz>
-Cc: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, =?UTF-8?B?6YKi5Yip5oyv?= <xinglizhen@cmos.net>
 
 
---0OAP2g/MAC+5xKAE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Tyler,
 
-Sorry for missing this patch, I've been traveling.
+It happened kernel crash if we enable ecryptfs in kernel-space and moun=
+t=20
+ecryptfs in the user-space if we reboot device after the device is=20
+powered off abnormally, such as the device is pulled off power line. At=
+=20
+the same time, if we normally power off the device and reboot it, it=20
+works well. I don't try this case on the computer device, it just=20
+happened on my own mobile device, because I want to use ecryptfs on the=
+=20
+mobile area.
 
-On 2014-05-10 19:33:17, Jaroslav Fojtik wrote:
-> Dears,
->=20
-> Please patch key_mod.c.
-
-This change looks good to me. I've pushed it to lp:ecryptfs. Thanks!
-
-Tyler
-
->=20
-> If you receive following message, it is totally frustrating because you d=
-o not know which
-> directory attempted to open. The path at least gives some info about it.
->=20
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->=20
-> mount.ecryptfs /DATA/.BACKUP /DATA/BACKUP -o=20
-> key=3Dpassphrase,ecryptfs_cipher=3Daes,ecryptfs_key_bytes=3D16,ecryptfs_p=
-assthrough=3Dno,ecryptfs_
-> enable_filename_crypto=3Dyes,ecryptfs_fnek_sig=3D87f8f52c6f46cfca
-> Error attempting to evaluate mount options: [-1] Operation not permitted
-> Check your system logs for details on why this happened.
-> Try updating your ecryptfs-utils package, and/or
-> submit a bug report on https://bugs.launchpad.net/ecryptfs
->=20
-> 2 keys in keyring:
-> 620524981: --alswrv     0     0 user: 87f8f52C6f46cfcA
-> 1017206571: --alswrv     0     0 user: 87f8f52c6f46cfca
->=20
-> Mar 30 18:40:39 ESC_router mount.ecryptfs: ERROR: Could not open key_mod =
-directory=20
-> Mar 30 18:40:39 ESC_router mount.ecryptfs: Error attempting to get key mo=
-dule list; rc =3D=20
-> [-1]=20
->=20
->=20
-> best regards
->    Jara
->=20
-> ---------------------------------------------------
->=20
-> *** key_mod.c.old	Sat May 10 17:57:51 2014
-> --- key_mod.c	Sat May 10 17:58:31 2014
-> ***************
-> *** 252,258 ****
->   	}
->   	if (!(dp =3D opendir(dir_name))) {
->   		syslog(LOG_WARNING,
-> ! 		       "ERROR: Could not open key_mod directory\n");
->   		rc =3D -EPERM;
->   		goto out;
->   	}
-> --- 252,258 ----
->   	}
->   	if (!(dp =3D opendir(dir_name))) {
->   		syslog(LOG_WARNING,
-> ! 		       "ERROR: Could not open key_mod directory [%s]\n", dir_name);
->   		rc =3D -EPERM;
->   		goto out;
->   	}
->=20
->=20
->=20
->=20
->=20
+I also read your formal mail thread about kernel crash=20
+http://lkml.iu.edu/hypermail/linux/kernel/1203.1/03801.html, which seem=
+s=20
+to be crashed on the same line. Actually, I used the parameter of=20
+ecryptfs_passthrouth to enable plain test readable. Could you kindly=20
+give me some suggestion about how to quick debug or resolve this proble=
+m?
 
 
 
---0OAP2g/MAC+5xKAE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+My method to mount ecryptfs file system is following:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+mount -t ecryptfs =EF=BD=9E/encrypt  ~/encrypt  -o ecryptfs_key_bytes=3D=
+32 -o=20
+ecryptfs_cipher=3Daes -o no_sig_cache -o passphrase_passwd=3D%s -o=20
+ecryptfs_enable_filename_crypto=3Dn  -o ecryptfs_passthrough -o key=3Dp=
+assphrase
 
-iQIcBAEBCgAGBQJThFWBAAoJENaSAD2qAscKe2MP/28Y/jbGie3mGwsyvY7vqReM
-tNlI/tzCS8K2qSSN+kSeU+jcgdqXh0YxnOqzlHeYiE0Wa6AQoKGK0OlAhhPu1RUF
-Biv+Sd3Ti3Y+yyBAHoJucBVH0DJokwEBvqgT3O9kiZSYbYre5900ipunAepE5ObM
-LSDWtaiqyB1TBHg4B1NHCZzsGTkKlAJwNdAO3Pdilq9Kb1IN0+4K8BymSZZoOEhO
-tArZQvC7qZluX2Fbnia+HAzDrtN6JAuhmipvI6l96JS6Qj0k4Yb6/L+KDClk2cmq
-DzbDhTQYO5a68gpnhlOMnuzQbxaNRZaGAYR7U8sgaCHNaJLLSz09Biq/XpeZSj9Z
-gHmupRrI5YEuTzpZS+siA3koue3DDc1cS0XLUibfOEHbJpM0sjTnArLS9f5VsqFF
-PUKTwDmoqeo7sfgiWFUrV/M2TA/h2J4V+45KCMsDxvtMRj24Qi5GmJUS2uSsSuBU
-oQoMpumAhNuBrX0Ikn9TT+K4VUZIFB9pQbNVXfbSz+nftcz/N2ooGlC/c4oZclFc
-15vUID5U/6LwV26uJfy12Wfxqi7HeEMKaM7eH1jW9sKYuJXxLPr0Eg6c5fgwfDoj
-Vcw3wnsFdwZjukEpLR7etWGSkNUQt++Wwv1cTVffhrMj6mU+hd1ZdIiOsBDuquZx
-x6New0xmJq7aKafvU5Td
-=SOC/
------END PGP SIGNATURE-----
 
---0OAP2g/MAC+5xKAE--
+Detail crash information is:
+-----------------------------------------------------------------------=
+---------------------------
+[   87.924154] c3 kernel BUG at=20
+/home/abuild/rpmbuild/BUILD/kernel-pachira-3.4.5/kernel/fs/ecryptfs/cry=
+pto.c:464!
+[   87.934258] c3 Internal error: Oops - BUG: 0 [#1] PREEMPT SMP ARM
+[   87.940376] c3 Modules linked in: ittiam mali(O) ump(O)
+[   87.945661] c3 CPU: 3    Tainted: G           O  (3.4.5 #1)
+[   87.951261] c3 PC is at ecryptfs_encrypt_page+0x34/0x390
+[   87.956646] c3 LR is at ecryptfs_writepage+0x4c/0x9c
+[   87.961623] c3 pc : [<c0202a4c>]    lr : [<c0201574>]    psr: 400700=
+13
+[   87.961635] c3 sp : c37d3c50  ip : c37d3ce0  fp : c37d3cdc
+[   87.973668] c3 r10: 00000000  r9 : db6f1948  r8 : c0fb1874
+[   87.979199] c3 r7 : c0fb1874  r6 : dc914840  r5 : dc914918  r4 : dc9=
+149c4
+[   87.985985] c3 r3 : 00000003  r2 : c37d3ce0  r1 : c37d3e40  r0 : c0f=
+b1874
+[   87.992836] c3 Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM=20
+Segment kernel
+[   88.000477] c3 Control: 10c53c7d  Table: 9b6ec06a  DAC: 00000015
+[   88.006497] c3
+[   88.006503] c3 PC: 0xc02029cc:
+[   88.011351] c3 29cc  e0614004 ea000003 e3560000 e0855004 15834008=20
+e3a04000 e2800001 e2833010
+[   88.019773] c3 29ec  e1500007 a3a02000 b3a02001 e3540000 d3a02000=20
+e3520000 1affffd9 e3540000
+[   88.028275] c3 2a0c  c3e0000b e89daff8 c0bea5d0 e1a0c00d e92ddff0=20
+e24cb004 e24dd064 e92d4000
+=2E.....
+
+[   89.134149] c3 [<c0202a4c>] (ecryptfs_encrypt_page+0x34/0x390) from=20
+[<c0201574>] (ecryptfs_writepage+0x4c/0x9c)
+[   89.134173] c3 [<c0201574>] (ecryptfs_writepage+0x4c/0x9c) from=20
+[<c00e2a58>] (__writepage+0x24/0x48)
+[   89.134195] c3 [<c00e2a58>] (__writepage+0x24/0x48) from [<c00e305c>=
+]=20
+(write_cache_pages+0x2f4/0x404)
+[   89.134215] c3 [<c00e305c>] (write_cache_pages+0x2f4/0x404) from=20
+[<c00e31bc>] (generic_writepages+0x50/0x6c)
+[   89.134234] c3 [<c00e31bc>] (generic_writepages+0x50/0x6c) from=20
+[<c00e4934>] (do_writepages+0x3c/0x48)
+[   89.134255] c3 [<c00e4934>] (do_writepages+0x3c/0x48) from=20
+[<c0143ca8>] (writeback_single_inode+0x1c4/0x40c)
+[   89.134276] c3 [<c0143ca8>] (writeback_single_inode+0x1c4/0x40c) fro=
+m=20
+[<c0144200>] (writeback_sb_inodes+0x15c/0x214)
+[   89.134295] c3 [<c0144200>] (writeback_sb_inodes+0x15c/0x214) from=20
+[<c014432c>] (__writeback_inodes_wb+0x74/0xc0)
+[   89.134315] c3 [<c014432c>] (__writeback_inodes_wb+0x74/0xc0) from=20
+[<c0144538>] (wb_writeback+0x1c0/0x364)
+[   89.134333] c3 [<c0144538>] (wb_writeback+0x1c0/0x364) from=20
+[<c0144bd4>] (wb_do_writeback+0xf8/0x26c)
+[   89.134352] c3 [<c0144bd4>] (wb_do_writeback+0xf8/0x26c) from=20
+[<c0144e34>] (bdi_writeback_thread+0xec/0x2e4)
+[   89.134373] c3 [<c0144e34>] (bdi_writeback_thread+0xec/0x2e4) from=20
+[<c005f3d8>] (kthread+0x9c/0xa8)
+[   89.134393] c3 [<c005f3d8>] (kthread+0x9c/0xa8) from [<c000ff54>]=20
+(kernel_thread_exit+0x0/0x8)
+[   89.134408] c3 Code: e2864f61 e5963184 e3130004 1a000000 (e7f001f2)
