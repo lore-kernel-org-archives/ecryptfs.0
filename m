@@ -1,37 +1,63 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] ecryptfs: Drop cast
-Date: Thu, 26 Jun 2014 11:58:53 -0700
-Message-ID: <1403809133.7977.63.camel@joe-AO725>
-References: <20140626184233.GA4275@himangi-Dell>
+From: Himangi Saraogi <himangi774@gmail.com>
+Subject: [PATCH v2] ecryptfs: Drop cast
+Date: Fri, 27 Jun 2014 01:11:59 +0530
+Message-ID: <20140626194159.GA7163@himangi-Dell>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20140626184233.GA4275@himangi-Dell>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:50557 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737AbaFZTmH (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 26 Jun 2014 15:42:07 -0400
+Content-Disposition: inline
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+Content-Transfer-Encoding: 7bit
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr, Joe Perches <joe@perches.com>
 
-On Fri, 2014-06-27 at 00:12 +0530, Himangi Saraogi wrote:
-> This patch does away with casts on void * as they are unnecessary.
-[]
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-[]
-> @@ -53,7 +53,7 @@ static void unlock_dir(struct dentry *dir)
->  
->  static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
->  {
-> -	if (ecryptfs_inode_to_lower(inode) == (struct inode *)lower_inode)
-> +	if (ecryptfs_inode_to_lower(inode) == lower_inode)
->  		return 1;
->  	return 0;
->  }
+This patch does away with cast on void * and the if as it is unnecessary.
 
-True, but perhaps this should be
+The following Coccinelle semantic patch was used for making the change:
 
-{
-	return ecryptfs_inode_to_lower(inode) == lower_inode;
-}
+@r@
+expression x;
+void* e;
+type T;
+identifier f;
+@@
 
+(
+  *((T *)e)
+|
+  ((T *)x)[...]
+|
+  ((T *)x)->f
+|
+- (T *)
+  e
+)
 
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+---
+v2: remove the if statement
+ fs/ecryptfs/inode.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 4d6c7e4..e67f9f0 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -53,9 +53,7 @@ static void unlock_dir(struct dentry *dir)
+ 
+ static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
+ {
+-	if (ecryptfs_inode_to_lower(inode) == (struct inode *)lower_inode)
+-		return 1;
+-	return 0;
++	return ecryptfs_inode_to_lower(inode) == lower_inode;
+ }
+ 
+ static int ecryptfs_inode_set(struct inode *inode, void *opaque)
+-- 
+1.9.1
