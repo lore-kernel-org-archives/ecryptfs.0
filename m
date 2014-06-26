@@ -1,63 +1,98 @@
-From: Himangi Saraogi <himangi774@gmail.com>
-Subject: [PATCH v2] ecryptfs: Drop cast
-Date: Fri, 27 Jun 2014 01:11:59 +0530
-Message-ID: <20140626194159.GA7163@himangi-Dell>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH v2] ecryptfs: Drop cast
+Date: Thu, 26 Jun 2014 14:50:52 -0500
+Message-ID: <20140626195051.GB22973@boyd>
+References: <20140626194159.GA7163@himangi-Dell>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:50557 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbaFZTmH (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Thu, 26 Jun 2014 15:42:07 -0400
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="V0207lvV8h4k8FAm"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: ecryptfs-owner@vger.kernel.org
+In-Reply-To: <20140626194159.GA7163@himangi-Dell>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr, Joe Perches <joe@perches.com>
+To: Himangi Saraogi <himangi774@gmail.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr, Joe Perches <joe@perches.com>
 
-This patch does away with cast on void * and the if as it is unnecessary.
 
-The following Coccinelle semantic patch was used for making the change:
+--V0207lvV8h4k8FAm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-@r@
-expression x;
-void* e;
-type T;
-identifier f;
-@@
+On 2014-06-27 01:11:59, Himangi Saraogi wrote:
+> This patch does away with cast on void * and the if as it is unnecessary.
+>=20
+> The following Coccinelle semantic patch was used for making the change:
+>=20
+> @r@
+> expression x;
+> void* e;
+> type T;
+> identifier f;
+> @@
+>=20
+> (
+>   *((T *)e)
+> |
+>   ((T *)x)[...]
+> |
+>   ((T *)x)->f
+> |
+> - (T *)
+>   e
+> )
+>=20
+> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+> ---
+> v2: remove the if statement
+>  fs/ecryptfs/inode.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 
-(
-  *((T *)e)
-|
-  ((T *)x)[...]
-|
-  ((T *)x)->f
-|
-- (T *)
-  e
-)
+Thanks! This looks good to me. I'll take the patch from here.
 
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
----
-v2: remove the if statement
- fs/ecryptfs/inode.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+Tyler
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 4d6c7e4..e67f9f0 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -53,9 +53,7 @@ static void unlock_dir(struct dentry *dir)
- 
- static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
- {
--	if (ecryptfs_inode_to_lower(inode) == (struct inode *)lower_inode)
--		return 1;
--	return 0;
-+	return ecryptfs_inode_to_lower(inode) == lower_inode;
- }
- 
- static int ecryptfs_inode_set(struct inode *inode, void *opaque)
--- 
-1.9.1
+>=20
+> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+> index 4d6c7e4..e67f9f0 100644
+> --- a/fs/ecryptfs/inode.c
+> +++ b/fs/ecryptfs/inode.c
+> @@ -53,9 +53,7 @@ static void unlock_dir(struct dentry *dir)
+> =20
+>  static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
+>  {
+> -	if (ecryptfs_inode_to_lower(inode) =3D=3D (struct inode *)lower_inode)
+> -		return 1;
+> -	return 0;
+> +	return ecryptfs_inode_to_lower(inode) =3D=3D lower_inode;
+>  }
+> =20
+>  static int ecryptfs_inode_set(struct inode *inode, void *opaque)
+> --=20
+> 1.9.1
+>=20
+
+--V0207lvV8h4k8FAm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJTrHmbAAoJENaSAD2qAscKNk8QAMpTc/fJn00WdAENvtcHntZU
+ZWDxhcGH2uNHPoYV/ROSk7Oh9k2T3AN2dlCDnRurMI9AuYgx+tHy1yeidWrOmE3v
++Muav8JC0oZR3iWA2dpPzJ47xwp6bbGLAftXk+51mERLATyJ5ukBiua1Bu+h0A/W
+jYUA9J2TNIgjYMCgXPzN5pu0VswMkR8oy1Hi1FOL2jlhcOEPPczG/bIHInowDpPr
+lTqwAp3Z3c3wiDT47xrtZOy/uNN8Ygm+tcxPeMIFwVDhMWRBt2gg5ra07GFyyJ/i
+ghOFZPnqqBc6lEstUOvtcIFvpSfnpdIUVftk2sNZZxIAwY305wZ7g0/1Gm+rt7cp
+fumMAz2UIORuJ4wY6ZvM7W2DsGIm1EzD3QoufD3WrV8XUvpm/EjyLGa9Gm2Jr0xf
+4zkUe7ZEHQZoX4NEudvGCxhLvypSEB6DMJys9buYy8CF5/BaxwnuF1kj5DlJZ35m
+es9RP57ZjNDiRl7sur883JGpaiX8XA85wpiH6V6llZai75wrP3254jjbusgXIV1B
+vY2XDhlfFlf1TYzsknulJvzWbNIM7R5TRDRw5vZblr5J0W4yUbpW5ScIc5OSwSc8
+nxSeKTAenCCZvn5S0OkS1pv0201vZWfhB8TSsPGX6tHti3YVJnG8tajTLU63UCQv
+IhPWtxHzWP3wg2lU49UT
+=Cl0H
+-----END PGP SIGNATURE-----
+
+--V0207lvV8h4k8FAm--
