@@ -1,98 +1,85 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH v2] ecryptfs: Drop cast
-Date: Thu, 26 Jun 2014 14:50:52 -0500
-Message-ID: <20140626195051.GB22973@boyd>
-References: <20140626194159.GA7163@himangi-Dell>
+Subject: Re: [PATCH 1/1] fs/ecryptfs/messaging.c: remove null test before
+ kfree
+Date: Thu, 3 Jul 2014 16:32:57 -0500
+Message-ID: <20140703213257.GA5089@boyd>
+References: <1402941972-5166-1-git-send-email-fabf@skynet.be>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="V0207lvV8h4k8FAm"
+	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20140626194159.GA7163@himangi-Dell>
+In-Reply-To: <1402941972-5166-1-git-send-email-fabf@skynet.be>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr, Joe Perches <joe@perches.com>
+To: Fabian Frederick <fabf@skynet.be>
+Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
---V0207lvV8h4k8FAm
+--cNdxnHkX5QqsyA0e
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2014-06-27 01:11:59, Himangi Saraogi wrote:
-> This patch does away with cast on void * and the if as it is unnecessary.
+On 2014-06-16 20:06:12, Fabian Frederick wrote:
+> Fix checkpatch warning:
+> WARNING: kfree(NULL) is safe this check is probably not required
 >=20
-> The following Coccinelle semantic patch was used for making the change:
->=20
-> @r@
-> expression x;
-> void* e;
-> type T;
-> identifier f;
-> @@
->=20
-> (
->   *((T *)e)
-> |
->   ((T *)x)[...]
-> |
->   ((T *)x)->f
-> |
-> - (T *)
->   e
-> )
->=20
-> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+> Cc: Tyler Hicks <tyhicks@canonical.com>
+> Cc: ecryptfs@vger.kernel.org
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
 > ---
-> v2: remove the if statement
->  fs/ecryptfs/inode.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
 
-Thanks! This looks good to me. I'll take the patch from here.
+Hi Fabian - Sorry for being slow to respond. This patch looks good. I'll
+push it to my next branch.
 
 Tyler
 
+>  fs/ecryptfs/messaging.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 >=20
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index 4d6c7e4..e67f9f0 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -53,9 +53,7 @@ static void unlock_dir(struct dentry *dir)
-> =20
->  static int ecryptfs_inode_test(struct inode *inode, void *lower_inode)
->  {
-> -	if (ecryptfs_inode_to_lower(inode) =3D=3D (struct inode *)lower_inode)
-> -		return 1;
-> -	return 0;
-> +	return ecryptfs_inode_to_lower(inode) =3D=3D lower_inode;
->  }
-> =20
->  static int ecryptfs_inode_set(struct inode *inode, void *opaque)
+> diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
+> index e57380e..286f10b 100644
+> --- a/fs/ecryptfs/messaging.c
+> +++ b/fs/ecryptfs/messaging.c
+> @@ -434,8 +434,7 @@ void ecryptfs_release_messaging(void)
+>  		mutex_lock(&ecryptfs_msg_ctx_lists_mux);
+>  		for (i =3D 0; i < ecryptfs_message_buf_len; i++) {
+>  			mutex_lock(&ecryptfs_msg_ctx_arr[i].mux);
+> -			if (ecryptfs_msg_ctx_arr[i].msg)
+> -				kfree(ecryptfs_msg_ctx_arr[i].msg);
+> +			kfree(ecryptfs_msg_ctx_arr[i].msg);
+>  			mutex_unlock(&ecryptfs_msg_ctx_arr[i].mux);
+>  		}
+>  		kfree(ecryptfs_msg_ctx_arr);
 > --=20
-> 1.9.1
+> 1.8.4.5
 >=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---V0207lvV8h4k8FAm
+--cNdxnHkX5QqsyA0e
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJTrHmbAAoJENaSAD2qAscKNk8QAMpTc/fJn00WdAENvtcHntZU
-ZWDxhcGH2uNHPoYV/ROSk7Oh9k2T3AN2dlCDnRurMI9AuYgx+tHy1yeidWrOmE3v
-+Muav8JC0oZR3iWA2dpPzJ47xwp6bbGLAftXk+51mERLATyJ5ukBiua1Bu+h0A/W
-jYUA9J2TNIgjYMCgXPzN5pu0VswMkR8oy1Hi1FOL2jlhcOEPPczG/bIHInowDpPr
-lTqwAp3Z3c3wiDT47xrtZOy/uNN8Ygm+tcxPeMIFwVDhMWRBt2gg5ra07GFyyJ/i
-ghOFZPnqqBc6lEstUOvtcIFvpSfnpdIUVftk2sNZZxIAwY305wZ7g0/1Gm+rt7cp
-fumMAz2UIORuJ4wY6ZvM7W2DsGIm1EzD3QoufD3WrV8XUvpm/EjyLGa9Gm2Jr0xf
-4zkUe7ZEHQZoX4NEudvGCxhLvypSEB6DMJys9buYy8CF5/BaxwnuF1kj5DlJZ35m
-es9RP57ZjNDiRl7sur883JGpaiX8XA85wpiH6V6llZai75wrP3254jjbusgXIV1B
-vY2XDhlfFlf1TYzsknulJvzWbNIM7R5TRDRw5vZblr5J0W4yUbpW5ScIc5OSwSc8
-nxSeKTAenCCZvn5S0OkS1pv0201vZWfhB8TSsPGX6tHti3YVJnG8tajTLU63UCQv
-IhPWtxHzWP3wg2lU49UT
-=Cl0H
+iQIcBAEBCgAGBQJTtcwJAAoJENaSAD2qAscKbbMP/2+a95lqTIpcHKKrBZZvHOVH
+DdhVTd/JVTKyps/ljp+7H37Vq5sHrx5UM/FIIo+Meh6+8Pc7DWQuBEjBnO+WVtS3
+8lumqaad+Ubz2ANxRHpp/fDTmhW4xkWPaDUg+S62nZwps2tiukrkkZ2TLQyKoIFw
+8PW2kTa7fngx06StIDPjxp/iS/vkwTthENJkMRAtQ16NRVE+2cL2rpuQheMS3N1h
+MGainwmpL+sSXy3QxUvFWQZrfhSnJBvUqHqDzCStO/SAwOeopXOIrCpzJ54wwz1C
+VPrqTkC/FCDa9TYyOjMu8avlYBxubyYGDQcrwckEeEBN1scQrNjX7/azBpDSW7Tz
+IlYVIk+QZlkH1HDHRRbXNbBoWKY8NabA7ZLF/VeHgpZus0uSdHn9Vj5Yw3U66VJV
+CN+Ob1XRCcbuFB8A3jtz0a1toJ9Y71NLai/i9ljJoImQTVY+sfYQWzGSqCVTveFL
+NOqAIt/D/sWi2MJh7QY3bAmuIg30rv0IQyzpB2QcGnMysKmRM2UBXjeG7d6ADF9X
+FJBIzvtaXY3Dri8VhFL3JsIfn0mPwKa0xY5LXlbvMyXa9yoJoT88ugQD/bfDkmQg
+3nBfbmgWSxcQV/GRAQUEjvocQYFntx7emCMtiaLdYe6/TBAYtI7JyGBNeAwrhsgz
+ySZRLIvT6FlGoi9/cg9v
+=wSYf
 -----END PGP SIGNATURE-----
 
---V0207lvV8h4k8FAm--
+--cNdxnHkX5QqsyA0e--
