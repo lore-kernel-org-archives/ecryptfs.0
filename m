@@ -1,17 +1,17 @@
 From: Chao Yu <chao2.yu@samsung.com>
 Subject: RE: [PATCH] ecryptfs: avoid to access NULL pointer when write metadata
  in xattr
-Date: Mon, 28 Jul 2014 14:16:57 +0800
-Message-ID: <004001cfaa2b$abb909e0$032b1da0$@samsung.com>
+Date: Tue, 26 Aug 2014 13:23:12 +0800
+Message-ID: <008401cfc0ed$efd37ab0$cf7a7010$@samsung.com>
 References: <000001cfa721$57072880$05157980$@samsung.com>
  <20140725033353.GC8446@boyd>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:58577 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840AbaG1GR6 (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 28 Jul 2014 02:17:58 -0400
+Received: from mailout2.samsung.com ([203.254.224.25]:29228 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbaHZFYA (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 26 Aug 2014 01:24:00 -0400
 In-reply-to: <20140725033353.GC8446@boyd>
 Content-language: zh-cn
 Sender: ecryptfs-owner@vger.kernel.org
@@ -22,7 +22,13 @@ Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Hi Tyler,
 
-Sorry for replying late.
+Sorry to bother you!
+
+I didn't see any progress of this patch, is there anything wrong
+with this patch? If there is, please let me know.
+
+Regards,
+Yu
 
 > -----Original Message-----
 > From: Tyler Hicks [mailto:tyhicks@canonical.com]
@@ -112,30 +118,14 @@ Sorry for replying late.
 > accepts the lower_dentry and ecryptfs inode as separate arguments. That
 > way it can work regardless of the eCryptfs dentry not yet being
 > d_initialized().
-
-I guess you want to introduce an inner function like __ecryptfs_setxattr
-which could be invoked by both ecryptfs_write_metadata_to_xattr and
-ecryptfs_setxattr, right? After that, we could pass the right ecryptfs
-inode from ecryptfs_write_metadata_to_xattr to __ecryptfs_setxattr.
-I think it's great way to fix this issue too!
-
 > 
 > After looking at your patch, I don't think that's necessary. Skipping
 > the fsstack_copy_attr_all() should be fine for brand new eCryptfs
 > inodes since the attr copy just happened in ecryptfs_inode_set().
-
-Yes, that's right. I just want to use this simplest way to fix this
-issue. I hope it may not cause other problem.
-Maybe we should add some annotation for readability here. How do you think?
-
 > 
 > I'll test your patch and then push it to the eCryptfs -next branch. I'll
 > also update the bug link to point to the specific comment rather than
 > the unrelated bug itself. Thanks!
-
-Thank you very much! :)
-Any problem in this patch, please tell me.
-
 > 
 > Tyler
 > 
