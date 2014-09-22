@@ -1,45 +1,95 @@
-From: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
-Subject: Practical questions about locking and re-encrypting
-Date: Mon, 22 Sep 2014 17:32:57 +0200
-Message-ID: <20140922173257.Horde.aPhFRVyqiOZUIEEpuKgAfuA@webmail.ugent.be>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: Practical questions about locking and re-encrypting
+Date: Mon, 22 Sep 2014 10:58:25 -0500
+Message-ID: <20140922155824.GA17376@boyd>
+References: <20140922173257.Horde.aPhFRVyqiOZUIEEpuKgAfuA@webmail.ugent.be>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtp2.ugent.be ([157.193.49.126]:42325 "EHLO smtp2.ugent.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753538AbaIVPn3 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Mon, 22 Sep 2014 11:43:29 -0400
-Received: from localhost (mcheck2.ugent.be [157.193.49.249])
-	by smtp2.ugent.be (Postfix) with ESMTP id 96DCF12C493
-	for <ecryptfs@vger.kernel.org>; Mon, 22 Sep 2014 17:33:02 +0200 (CEST)
-Received: from smtp2.ugent.be ([IPv6:::ffff:157.193.49.126])
-	by localhost (mcheck2.UGent.be [::ffff:157.193.43.11]) (amavisd-new, port 10024)
-	with ESMTP id npqjtG9Rfyz4 for <ecryptfs@vger.kernel.org>;
-	Mon, 22 Sep 2014 17:32:58 +0200 (CEST)
-Received: from emilio.ugent.be (emilio.ugent.be [157.193.47.117])
-	by smtp2.ugent.be (Postfix) with ESMTP id 0947F12C48E
-	for <ecryptfs@vger.kernel.org>; Mon, 22 Sep 2014 17:32:58 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by emilio.ugent.be (Postfix) with ESMTP id E3A537DCD9
-	for <ecryptfs@vger.kernel.org>; Mon, 22 Sep 2014 17:32:57 +0200 (CEST)
+Received: from youngberry.canonical.com ([91.189.89.112]:36375 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752344AbaIVP6a (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 22 Sep 2014 11:58:30 -0400
 Content-Disposition: inline
+In-Reply-To: <20140922173257.Horde.aPhFRVyqiOZUIEEpuKgAfuA@webmail.ugent.be>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"; delsp="Yes"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-
-Hi all,
+To: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
+Cc: ecryptfs@vger.kernel.org
 
 
-We want to use ecryptfs on GPFS. How does ecryptfs handles locking if  
-an encrypted directory is mounted on different boxes ? Is data  
-corruption possible while writing?
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Another question: Is there an easy way to re-encrypt a directory with  
-another key? (when having compromised key or so).
+On 2014-09-22 17:32:57, Kenneth Waegeman wrote:
+> Hi all,
 
+Hi Kenneth
 
-Thank you!!
+>=20
+>=20
+> We want to use ecryptfs on GPFS. How does ecryptfs handles locking if an
+> encrypted directory is mounted on different boxes ? Is data corruption
+> possible while writing?
 
-Kenneth
+eCryptfs is not well suited for being stacked on top of a distributed
+file system such as GPFS.
 
+That would result in each node having its own eCryptfs mount. Each
+eCryptfs mount has its own page cache. eCryptfs doesn't do any sort of
+coordination between remote mounts and there's no way for the lower
+filesystem to make eCryptfs aware that file contents, which may be in
+the eCryptfs page cache, have been modified by a remote node.
+
+That means that if a file is read into the eCryptfs page cache on node A
+and then that file is updated on node B, node A will never know an
+update has been made and will never invalidate the old, cached file
+contents from its page cache.
+
+>=20
+> Another question: Is there an easy way to re-encrypt a directory with
+> another key? (when having compromised key or so).
+
+Unfortunately, no. You'd need to set up a new eCryptfs mount, with a new
+key, and copy the files between the two eCryptfs mounts.
+
+Tyler
+
+>=20
+>=20
+> Thank you!!
+>=20
+> Kenneth
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUIEcgAAoJENaSAD2qAscK5DAQAKje8c4+htBt13LLdnFsFvg+
+ZDFYSZNUsOfpRTrkODAj+Ltm5cuObXsOXAg6MBEwnYqxqJqgkvb+Dd1mS4rdfpjs
+wW5Kdl4DDFKZ1YVhaoZLfQzdfuoTGAKHiA5NU12SzTY0nulE3Uf4hWVAbO039K85
+scowR82okEVP5zE6pRow91iXyH6H8/fKjoeUgbi2LIzIwc2a+DpSvvDH3B8WuesS
+7xCBPh7yHOOeo/H8qztLntwOE1cy4p9uzyKaEPwAYGvQfSX4eZ/3IkUJHz0u3+S+
+DbyeflADc624h8mLlbLsmSFgG+e7wghxW8YcZ8AREGjGHEOQ5/gjnvvyvHVETmtM
+YSpJ4yqyI2bxoKCTMXJ05mxe1bg/+Y9PDNJV0UrK6Ou52KmlcgydOeKvXkKQuam0
+DwEm6o3ULLkm/UaQ4XRgg89XrT1hVC6GOQ5r0R762XAyVp/cUDzXjxXiauAvwLh7
+EkzkEzN2VKlg146j68/XPWGiHv8stJkBc4K75kPbUb3h6AuvKczWOCSrizzwDeqz
+EqZ+VctG/fipoI5VMovqRMOk89xaw7dPO/zQpMnu+/X1Nt7dkIl7vd4fBdyLH32Q
+lj4Iqy1VALdSuNRZbzlB+GeFka0b7nWDPEHoHxIz8A62FO5nnqvuzFYDi1ejWHYt
+B1mKEXmbb2sPbSZ9WvSB
+=4Z7J
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
