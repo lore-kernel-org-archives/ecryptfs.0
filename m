@@ -1,56 +1,93 @@
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Subject: [PATCH] ecryptfs: remove unneeded buggy code in ecryptfs_do_create()
-Date: Tue, 23 Sep 2014 00:39:31 +0400
-Message-ID: <1411418371-11953-1-git-send-email-khoroshilov@ispras.ru>
+From: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
+Subject: Re: Practical questions about locking and re-encrypting
+Date: Tue, 23 Sep 2014 11:39:55 +0200
+Message-ID: <20140923113955.Horde.hGWGHtD6UQ5UIT-rZ-tGBFA@webmail.ugent.be>
+References: <20140922173257.Horde.aPhFRVyqiOZUIEEpuKgAfuA@webmail.ugent.be>
+ <20140922155824.GA17376@boyd>
+Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:44195 "EHLO mail.ispras.ru"
+Received: from smtp2.ugent.be ([157.193.49.126]:56877 "EHLO smtp2.ugent.be"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754217AbaIVUjo (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Mon, 22 Sep 2014 16:39:44 -0400
+	id S1754955AbaIWJkA (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Tue, 23 Sep 2014 05:40:00 -0400
+In-Reply-To: <20140922155824.GA17376@boyd>
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"; delsp="Yes"
 Content-Transfer-Encoding: 7bit
 To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>, Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Cc: ecryptfs@vger.kernel.org
 
-There is a bug in error handling of lock_parent() in ecryptfs_do_create():
-lock_parent() acquries mutex even if dget_parent() fails, so mutex should be unlocked anyway.
 
-But dget_parent() does not fail, so the patch just removes unneeded buggy code.
+----- Message from Tyler Hicks <tyhicks@canonical.com> ---------
+    Date: Mon, 22 Sep 2014 10:58:25 -0500
+    From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: Practical questions about locking and re-encrypting
+      To: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
+      Cc: ecryptfs@vger.kernel.org
 
-Found by Linux Driver Verification project (linuxtesting.org).
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- fs/ecryptfs/inode.c | 7 -------
- 1 file changed, 7 deletions(-)
+> On 2014-09-22 17:32:57, Kenneth Waegeman wrote:
+>> Hi all,
+>
+> Hi Kenneth
+>
+>>
+>>
+>> We want to use ecryptfs on GPFS. How does ecryptfs handles locking if an
+>> encrypted directory is mounted on different boxes ? Is data corruption
+>> possible while writing?
+>
+> eCryptfs is not well suited for being stacked on top of a distributed
+> file system such as GPFS.
+>
+> That would result in each node having its own eCryptfs mount. Each
+> eCryptfs mount has its own page cache. eCryptfs doesn't do any sort of
+> coordination between remote mounts and there's no way for the lower
+> filesystem to make eCryptfs aware that file contents, which may be in
+> the eCryptfs page cache, have been modified by a remote node.
+>
+> That means that if a file is read into the eCryptfs page cache on node A
+> and then that file is updated on node B, node A will never know an
+> update has been made and will never invalidate the old, cached file
+> contents from its page cache.
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index d4a9431ec73c..97735c75085f 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -192,12 +192,6 @@ ecryptfs_do_create(struct inode *directory_inode,
- 
- 	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
- 	lower_dir_dentry = lock_parent(lower_dentry);
--	if (IS_ERR(lower_dir_dentry)) {
--		ecryptfs_printk(KERN_ERR, "Error locking directory of "
--				"dentry\n");
--		inode = ERR_CAST(lower_dir_dentry);
--		goto out;
--	}
- 	rc = vfs_create(lower_dir_dentry->d_inode, lower_dentry, mode, true);
- 	if (rc) {
- 		printk(KERN_ERR "%s: Failure to create dentry in lower fs; "
-@@ -215,7 +209,6 @@ ecryptfs_do_create(struct inode *directory_inode,
- 	fsstack_copy_inode_size(directory_inode, lower_dir_dentry->d_inode);
- out_lock:
- 	unlock_dir(lower_dir_dentry);
--out:
- 	return inode;
- }
- 
+When is the pagecache flushed? is sync honoured? or does that happen  
+only on unmount?
+Does this also apply for directories? What happens if 2 hosts  
+modifying different files in same directory?
+
+Thank you for the explanation!
+
+Kenneth
+
+>
+>>
+>> Another question: Is there an easy way to re-encrypt a directory with
+>> another key? (when having compromised key or so).
+>
+> Unfortunately, no. You'd need to set up a new eCryptfs mount, with a new
+> key, and copy the files between the two eCryptfs mounts.
+>
+> Tyler
+>
+>>
+>>
+>> Thank you!!
+>>
+>> Kenneth
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+----- End message from Tyler Hicks <tyhicks@canonical.com> -----
+
 -- 
-1.9.1
+
+Met vriendelijke groeten,
+Kenneth Waegeman
