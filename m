@@ -1,144 +1,71 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: Practical questions about locking and re-encrypting
-Date: Tue, 23 Sep 2014 10:53:20 -0500
-Message-ID: <20140923155319.GB7673@boyd>
-References: <20140922173257.Horde.aPhFRVyqiOZUIEEpuKgAfuA@webmail.ugent.be>
- <20140922155824.GA17376@boyd>
- <20140923113955.Horde.hGWGHtD6UQ5UIT-rZ-tGBFA@webmail.ugent.be>
+From: Priya Bansal <p.bansal@samsung.com>
+Subject: [PATCH] NULL pointer dereference in ecryptfs (ecryptfs_setxattr)
+Date: Wed, 24 Sep 2014 06:58:00 +0000 (GMT)
+Message-ID: <1630743052.107781411541880641.JavaMail.weblogic@epmlwas02d>
+Reply-To: p.bansal@samsung.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wq9mPyueHGvFACwf"
+Content-Transfer-Encoding: base64
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43033 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756017AbaIWPxX (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 23 Sep 2014 11:53:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20140923113955.Horde.hGWGHtD6UQ5UIT-rZ-tGBFA@webmail.ugent.be>
+Received: from mailout2.samsung.com ([203.254.224.25]:61218 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891AbaIXG6E (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 24 Sep 2014 02:58:04 -0400
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0NCE00LX08OPZQ30@mailout2.samsung.com> for
+ ecryptfs@vger.kernel.org; Wed, 24 Sep 2014 15:58:01 +0900 (KST)
+MIME-version: 1.0
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
-Cc: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, p.bansal@samsung.com
 
+VGhpcyBwYXRjaCBmaXhlcyB0aGUgaXNzdWUgd2hpY2ggd2FzIGZvdW5kIGluCiBlY3J5cHRmc19z
+ZXR4YXR0cigpLiBQcmV2aW91c2x5LCB3aGlsZSB0cnlpbmcgdG8gY3JlYXRlIGEgZmlsZSB3aGVu
+IGVjcnlwdGZzCiBpcyBtb3VudGVkIG92ZXIgZXh0NCBmaWxlc3lzdGVtICB3aXRoICBlbmNyeXB0
+ZWQgdmlldyBlbmFibGVkLCB0aGUga2VybmVsCiBjcmFzaGVzLiB0aGUgcmVhc29uIGJlaW5nIHRo
+ZSBmdW5jdGlvbiBmc3N0YWNrX2NvcHlfYXR0cl9hbGwgd2FzIHRyeWluZyB0bwogYWNjZXNzIGRl
+bnRyeS0+ZF9pbm9kZSB3aGljaCB3YXMgbnVsbCBoZW5jZSB0aGUga2VybmVsIGNyYXNoZXMgd2l0
+aCBOVUxMCiBwb2ludGVyIGRlcmVmZXJlbmNlLiBOb3cgYSBjaGVjayBoYXMgYmVlbiBhcHBsaWVk
+IHdoaWNoIHByZXZlbnRzIHN1Y2gKIGNvbmRpdGlvbi4KCkZyb20gNzQ4NTY0NDU3NTZhYmExOGY5
+OGFhNWI5OGFkNDZlN2Q5OGY1NDczNyBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDEKRnJvbTogUHJp
+eWEgQmFuc2FsIDxwLmJhbnNhbEBzYW1zdW5nLmNvbT4KRGF0ZTogRnJpLCAyOSBBdWcgMjAxNCAx
+MDoyNzoyNyArMDUzMApTdWJqZWN0OiBbUEFUQ0hdIEZpeCBpbiBlY3J5cHRmc19zZXR4YXR0ciBm
+b3IgTlVMTCBjaGVjayBiZWZvcmUgY2FsbGluZwogZnNzdGFja19jb3B5X2F0dHJfYWxsLiBUaGlz
+IHBhdGNoIGZpeGVzIHRoZSBpc3N1ZSB3aGljaCB3YXMgZm91bmQgaW4KIGVjcnlwdGZzX3NldHhh
+dHRyKCkuIFByZXZpb3VzbHksIHdoaWxlIHRyeWluZyB0byBjcmVhdGUgYSBmaWxlIHdoZW4gZWNy
+eXB0ZnMKIGlzIG1vdW50ZWQgb3ZlciBleHQ0IGZpbGVzeXN0ZW0gIHdpdGggIGVuY3J5cHRlZCB2
+aWV3IGVuYWJsZWQsIHRoZSBrZXJuZWwKIGNyYXNoZXMuIHRoZSByZWFzb24gYmVpbmcgdGhlIGZ1
+bmN0aW9uIGZzc3RhY2tfY29weV9hdHRyX2FsbCB3YXMgdHJ5aW5nIHRvCiBhY2Nlc3MgZGVudHJ5
+LT5kX2lub2RlIHdoaWNoIHdhcyBudWxsIGhlbmNlIHRoZSBrZXJuZWwgY3Jhc2hlcyB3aXRoIE5V
+TEwKIHBvaW50ZXIgZGVyZWZlcmVuY2UuIE5vdyBhIGNoZWNrIGhhcyBiZWVuIGFwcGxpZWQgd2hp
+Y2ggcHJldmVudHMgc3VjaAogY29uZGl0aW9uLgpTaWduZWQtb2ZmLWJ5OiBQcml5YSBCYW5zYWwg
+PHAuYmFuc2FsQHNhbXN1bmcuY29tPgotLS0KIGxpbnV4LTMuMTYuMS9mcy9lY3J5cHRmcy9pbm9k
+ZS5jIHwgMTggKysrKysrKysrKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0aW9u
+cygrKSwgMiBkZWxldGlvbnMoLSkKZGlmZiAtLWdpdCBhL2xpbnV4LTMuMTYuMS9mcy9lY3J5cHRm
+cy9pbm9kZS5jIGIvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMKaW5kZXggZDRhOTQz
+MS4uN2RhMDNlNSAxMDA2NDQKLS0tIGEvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMK
+KysrIGIvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMKQEAgLTEwMzEsNiArMTAzMSw4
+IEBAIGVjcnlwdGZzX3NldHhhdHRyKHN0cnVjdCBkZW50cnkgKmRlbnRyeSwgY29uc3QgY2hhciAq
+bmFtZSwgY29uc3Qgdm9pZCAqdmFsdWUsCiB7CiAgaW50IHJjID0gMDsKICBzdHJ1Y3QgZGVudHJ5
+ICpsb3dlcl9kZW50cnk7Cisgc3RydWN0IGVjcnlwdGZzX21vdW50X2NyeXB0X3N0YXQgKm1vdW50
+X2NyeXB0X3N0YXQgPQorICAmZWNyeXB0ZnNfc3VwZXJibG9ja190b19wcml2YXRlKGRlbnRyeS0+
+ZF9zYiktPm1vdW50X2NyeXB0X3N0YXQ7CiAKICBsb3dlcl9kZW50cnkgPSBlY3J5cHRmc19kZW50
+cnlfdG9fbG93ZXIoZGVudHJ5KTsKICBpZiAoIWxvd2VyX2RlbnRyeS0+ZF9pbm9kZS0+aV9vcC0+
+c2V0eGF0dHIpIHsKQEAgLTEwMzksOCArMTA0MSwyMCBAQCBlY3J5cHRmc19zZXR4YXR0cihzdHJ1
+Y3QgZGVudHJ5ICpkZW50cnksIGNvbnN0IGNoYXIgKm5hbWUsIGNvbnN0IHZvaWQgKnZhbHVlLAog
+IH0KIAogIHJjID0gdmZzX3NldHhhdHRyKGxvd2VyX2RlbnRyeSwgbmFtZSwgdmFsdWUsIHNpemUs
+IGZsYWdzKTsKLSBpZiAoIXJjKQotICBmc3N0YWNrX2NvcHlfYXR0cl9hbGwoZGVudHJ5LT5kX2lu
+b2RlLCBsb3dlcl9kZW50cnktPmRfaW5vZGUpOworIGlmICghcmMpIHsKKyAgaWYgKGRlbnRyeS0+
+ZF9pbm9kZSA9PSBOVUxMKSB7CisgICBpZiAobW91bnRfY3J5cHRfc3RhdC0+ZmxhZ3MKKyAgICAg
+JiBFQ1JZUFRGU19FTkNSWVBURURfVklFV19FTkFCTEVEKQorICAgIHJjID0gLUVQRVJNOworICAg
+ZWxzZSBpZiAobW91bnRfY3J5cHRfc3RhdC0+ZmxhZ3MKKyAgICAgJiBFQ1JZUFRGU19YQVRUUl9N
+RVRBREFUQV9FTkFCTEVEKQorICAgIGdvdG8gb3V0OworICB9IGVsc2UgeworICAgZnNzdGFja19j
+b3B5X2F0dHJfYWxsKGRlbnRyeS0+ZF9pbm9kZSwKKyAgICAgbG93ZXJfZGVudHJ5LT5kX2lub2Rl
+KTsKKyAgfQorIH0KKwogb3V0OgogIHJldHVybiByYzsKIH0KLS0gCjEuOC4zLjIKCklmIHlvdSBu
+ZWVkIGFueSBvdGhlciBkZXRhaWxzIHJlZ2FyZGluZyB0aGlzIGNvbnRyaWJ1dGlvbiwgcGxlYXNl
+IGNvbnRhY3QgbWUuICAKClRoYW5rcyAmIFJlZ2FyZHMgClByaXlhIEJhbnNhbC4gCkUtbWFpbDog
+cC5iYW5zYWxAc2Ftc3VuZy5jb20K
 
---wq9mPyueHGvFACwf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2014-09-23 11:39:55, Kenneth Waegeman wrote:
->=20
-> ----- Message from Tyler Hicks <tyhicks@canonical.com> ---------
->    Date: Mon, 22 Sep 2014 10:58:25 -0500
->    From: Tyler Hicks <tyhicks@canonical.com>
-> Subject: Re: Practical questions about locking and re-encrypting
->      To: Kenneth Waegeman <Kenneth.Waegeman@UGent.be>
->      Cc: ecryptfs@vger.kernel.org
->=20
->=20
-> >On 2014-09-22 17:32:57, Kenneth Waegeman wrote:
-> >>Hi all,
-> >
-> >Hi Kenneth
-> >
-> >>
-> >>
-> >>We want to use ecryptfs on GPFS. How does ecryptfs handles locking if an
-> >>encrypted directory is mounted on different boxes ? Is data corruption
-> >>possible while writing?
-> >
-> >eCryptfs is not well suited for being stacked on top of a distributed
-> >file system such as GPFS.
-> >
-> >That would result in each node having its own eCryptfs mount. Each
-> >eCryptfs mount has its own page cache. eCryptfs doesn't do any sort of
-> >coordination between remote mounts and there's no way for the lower
-> >filesystem to make eCryptfs aware that file contents, which may be in
-> >the eCryptfs page cache, have been modified by a remote node.
-> >
-> >That means that if a file is read into the eCryptfs page cache on node A
-> >and then that file is updated on node B, node A will never know an
-> >update has been made and will never invalidate the old, cached file
-> >contents from its page cache.
->=20
-> When is the pagecache flushed?
-
-The typical times (periodic background writeout, sync, unmount, etc.)
-and when a file is closed.
-
-> is sync honoured? or does that happen only on unmount?
-
-Sync is honored.
-
-> Does this also apply for directories?
-
-Yes
-
-> What happens if 2 hosts modifying different files in same directory?
-
-If one host has pieces of a file cached and then another host modifies
-those pieces, then the first host will have outdated cached contents. It
-doesn't matter if the files are in the same directory or in different
-directories.
-
-Tyler
-
->=20
-> Thank you for the explanation!
->=20
-> Kenneth
->=20
-> >
-> >>
-> >>Another question: Is there an easy way to re-encrypt a directory with
-> >>another key? (when having compromised key or so).
-> >
-> >Unfortunately, no. You'd need to set up a new eCryptfs mount, with a new
-> >key, and copy the files between the two eCryptfs mounts.
-> >
-> >Tyler
-> >
-> >>
-> >>
-> >>Thank you!!
-> >>
-> >>Kenneth
-> >>
-> >>
-> >>--
-> >>To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> >>the body of a message to majordomo@vger.kernel.org
-> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
->=20
-> ----- End message from Tyler Hicks <tyhicks@canonical.com> -----
->=20
-> --=20
->=20
-> Met vriendelijke groeten,
-> Kenneth Waegeman
->=20
-
---wq9mPyueHGvFACwf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUIZdvAAoJENaSAD2qAscKqQcP/iny4hTpVgviG3fom7k1jlli
-uKfZ5sxfBECIIEnV3LSAMFWJ/3gzKR568nxrJqdJW9Wqh5G7A5b2sKC/5R6e+5RI
-LsJseiUTdUsYGKzPKpAB2KtRm0oOb2Q9VGw/sF63MtZ/eDW0gCkn0RHq6MvwW7Wd
-YIX9jOtGl+gXeXeDw7imLmfv2plvnlXNLovgoQmpwX8SlkywOYMq5lrg08vBYLHn
-kmXsebg7TelBF27cbIByj1jk0XmjLPVvkjKP7DkYhVHlvmktoHlaUqTHXCKDT4ZT
-m8ze1EQOLoWK01VdmO0N0Lufp6jgOQHWJ+8KAn1j/CRhUMuYVXQE3doKmfSmM6TA
-f6kbnPzqlQYKPmzrHCQXnFoyS9KyVa1ihBXHGvjmFLj2B7ARzTed4Wodz7CIani3
-8EalIX63zBFWeYVTi8H8Pt0GHfscbICAVOncPPWzoS+kIq332HSXvlTQJ/GVcMEw
-mijpvKWfRgDEC16R7JCpFgTViDDds/4lDV5UJOU7NBSOT79KbQ/7EpyU7SJryvpP
-/uLn7/s3EbN5SwGa4XRqVMxGsu05qu9ex/Z9JAjUL6ZEWvZwDElXlRqDCtThY14K
-3MYMbX8H668uNdvG2rxbuVBa+Rm2J5V/A+wC+6TnRpZSt9PfA6yB10miMuqmp5l6
-gqpbNF3I0VAJ8IH5HIOX
-=Oqau
------END PGP SIGNATURE-----
-
---wq9mPyueHGvFACwf--
