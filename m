@@ -1,71 +1,42 @@
-From: Priya Bansal <p.bansal@samsung.com>
-Subject: [PATCH] NULL pointer dereference in ecryptfs (ecryptfs_setxattr)
-Date: Wed, 24 Sep 2014 06:58:00 +0000 (GMT)
-Message-ID: <1630743052.107781411541880641.JavaMail.weblogic@epmlwas02d>
-Reply-To: p.bansal@samsung.com
+From: Christian =?ISO-8859-1?Q?St=FCble?= <stueble@sirrix.com>
+Subject: Separating different ecryptfs mounts
+Date: Wed, 24 Sep 2014 10:50:57 +0200
+Message-ID: <6009718.QGyqnh1K9Q@hp-stueble>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:61218 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbaIXG6E (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 24 Sep 2014 02:58:04 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0NCE00LX08OPZQ30@mailout2.samsung.com> for
- ecryptfs@vger.kernel.org; Wed, 24 Sep 2014 15:58:01 +0900 (KST)
-MIME-version: 1.0
+Received: from mx.sirrix.com ([176.9.214.66]:56168 "EHLO mx.sirrix.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085AbaIXJJq (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Wed, 24 Sep 2014 05:09:46 -0400
+Received: from [172.25.20.101] (helo=exchange2010.sirrix.de)
+	by mx.sirrix.com with esmtp (Exim 4.76)
+	(envelope-from <c.stueble@sirrix.com>)
+	id 1XWiHq-0008Ii-Fp
+	for ecryptfs@vger.kernel.org; Wed, 24 Sep 2014 10:50:58 +0200
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, p.bansal@samsung.com
+To: ecryptfs@vger.kernel.org
 
-VGhpcyBwYXRjaCBmaXhlcyB0aGUgaXNzdWUgd2hpY2ggd2FzIGZvdW5kIGluCiBlY3J5cHRmc19z
-ZXR4YXR0cigpLiBQcmV2aW91c2x5LCB3aGlsZSB0cnlpbmcgdG8gY3JlYXRlIGEgZmlsZSB3aGVu
-IGVjcnlwdGZzCiBpcyBtb3VudGVkIG92ZXIgZXh0NCBmaWxlc3lzdGVtICB3aXRoICBlbmNyeXB0
-ZWQgdmlldyBlbmFibGVkLCB0aGUga2VybmVsCiBjcmFzaGVzLiB0aGUgcmVhc29uIGJlaW5nIHRo
-ZSBmdW5jdGlvbiBmc3N0YWNrX2NvcHlfYXR0cl9hbGwgd2FzIHRyeWluZyB0bwogYWNjZXNzIGRl
-bnRyeS0+ZF9pbm9kZSB3aGljaCB3YXMgbnVsbCBoZW5jZSB0aGUga2VybmVsIGNyYXNoZXMgd2l0
-aCBOVUxMCiBwb2ludGVyIGRlcmVmZXJlbmNlLiBOb3cgYSBjaGVjayBoYXMgYmVlbiBhcHBsaWVk
-IHdoaWNoIHByZXZlbnRzIHN1Y2gKIGNvbmRpdGlvbi4KCkZyb20gNzQ4NTY0NDU3NTZhYmExOGY5
-OGFhNWI5OGFkNDZlN2Q5OGY1NDczNyBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDEKRnJvbTogUHJp
-eWEgQmFuc2FsIDxwLmJhbnNhbEBzYW1zdW5nLmNvbT4KRGF0ZTogRnJpLCAyOSBBdWcgMjAxNCAx
-MDoyNzoyNyArMDUzMApTdWJqZWN0OiBbUEFUQ0hdIEZpeCBpbiBlY3J5cHRmc19zZXR4YXR0ciBm
-b3IgTlVMTCBjaGVjayBiZWZvcmUgY2FsbGluZwogZnNzdGFja19jb3B5X2F0dHJfYWxsLiBUaGlz
-IHBhdGNoIGZpeGVzIHRoZSBpc3N1ZSB3aGljaCB3YXMgZm91bmQgaW4KIGVjcnlwdGZzX3NldHhh
-dHRyKCkuIFByZXZpb3VzbHksIHdoaWxlIHRyeWluZyB0byBjcmVhdGUgYSBmaWxlIHdoZW4gZWNy
-eXB0ZnMKIGlzIG1vdW50ZWQgb3ZlciBleHQ0IGZpbGVzeXN0ZW0gIHdpdGggIGVuY3J5cHRlZCB2
-aWV3IGVuYWJsZWQsIHRoZSBrZXJuZWwKIGNyYXNoZXMuIHRoZSByZWFzb24gYmVpbmcgdGhlIGZ1
-bmN0aW9uIGZzc3RhY2tfY29weV9hdHRyX2FsbCB3YXMgdHJ5aW5nIHRvCiBhY2Nlc3MgZGVudHJ5
-LT5kX2lub2RlIHdoaWNoIHdhcyBudWxsIGhlbmNlIHRoZSBrZXJuZWwgY3Jhc2hlcyB3aXRoIE5V
-TEwKIHBvaW50ZXIgZGVyZWZlcmVuY2UuIE5vdyBhIGNoZWNrIGhhcyBiZWVuIGFwcGxpZWQgd2hp
-Y2ggcHJldmVudHMgc3VjaAogY29uZGl0aW9uLgpTaWduZWQtb2ZmLWJ5OiBQcml5YSBCYW5zYWwg
-PHAuYmFuc2FsQHNhbXN1bmcuY29tPgotLS0KIGxpbnV4LTMuMTYuMS9mcy9lY3J5cHRmcy9pbm9k
-ZS5jIHwgMTggKysrKysrKysrKysrKysrKy0tCiAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0aW9u
-cygrKSwgMiBkZWxldGlvbnMoLSkKZGlmZiAtLWdpdCBhL2xpbnV4LTMuMTYuMS9mcy9lY3J5cHRm
-cy9pbm9kZS5jIGIvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMKaW5kZXggZDRhOTQz
-MS4uN2RhMDNlNSAxMDA2NDQKLS0tIGEvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMK
-KysrIGIvbGludXgtMy4xNi4xL2ZzL2VjcnlwdGZzL2lub2RlLmMKQEAgLTEwMzEsNiArMTAzMSw4
-IEBAIGVjcnlwdGZzX3NldHhhdHRyKHN0cnVjdCBkZW50cnkgKmRlbnRyeSwgY29uc3QgY2hhciAq
-bmFtZSwgY29uc3Qgdm9pZCAqdmFsdWUsCiB7CiAgaW50IHJjID0gMDsKICBzdHJ1Y3QgZGVudHJ5
-ICpsb3dlcl9kZW50cnk7Cisgc3RydWN0IGVjcnlwdGZzX21vdW50X2NyeXB0X3N0YXQgKm1vdW50
-X2NyeXB0X3N0YXQgPQorICAmZWNyeXB0ZnNfc3VwZXJibG9ja190b19wcml2YXRlKGRlbnRyeS0+
-ZF9zYiktPm1vdW50X2NyeXB0X3N0YXQ7CiAKICBsb3dlcl9kZW50cnkgPSBlY3J5cHRmc19kZW50
-cnlfdG9fbG93ZXIoZGVudHJ5KTsKICBpZiAoIWxvd2VyX2RlbnRyeS0+ZF9pbm9kZS0+aV9vcC0+
-c2V0eGF0dHIpIHsKQEAgLTEwMzksOCArMTA0MSwyMCBAQCBlY3J5cHRmc19zZXR4YXR0cihzdHJ1
-Y3QgZGVudHJ5ICpkZW50cnksIGNvbnN0IGNoYXIgKm5hbWUsIGNvbnN0IHZvaWQgKnZhbHVlLAog
-IH0KIAogIHJjID0gdmZzX3NldHhhdHRyKGxvd2VyX2RlbnRyeSwgbmFtZSwgdmFsdWUsIHNpemUs
-IGZsYWdzKTsKLSBpZiAoIXJjKQotICBmc3N0YWNrX2NvcHlfYXR0cl9hbGwoZGVudHJ5LT5kX2lu
-b2RlLCBsb3dlcl9kZW50cnktPmRfaW5vZGUpOworIGlmICghcmMpIHsKKyAgaWYgKGRlbnRyeS0+
-ZF9pbm9kZSA9PSBOVUxMKSB7CisgICBpZiAobW91bnRfY3J5cHRfc3RhdC0+ZmxhZ3MKKyAgICAg
-JiBFQ1JZUFRGU19FTkNSWVBURURfVklFV19FTkFCTEVEKQorICAgIHJjID0gLUVQRVJNOworICAg
-ZWxzZSBpZiAobW91bnRfY3J5cHRfc3RhdC0+ZmxhZ3MKKyAgICAgJiBFQ1JZUFRGU19YQVRUUl9N
-RVRBREFUQV9FTkFCTEVEKQorICAgIGdvdG8gb3V0OworICB9IGVsc2UgeworICAgZnNzdGFja19j
-b3B5X2F0dHJfYWxsKGRlbnRyeS0+ZF9pbm9kZSwKKyAgICAgbG93ZXJfZGVudHJ5LT5kX2lub2Rl
-KTsKKyAgfQorIH0KKwogb3V0OgogIHJldHVybiByYzsKIH0KLS0gCjEuOC4zLjIKCklmIHlvdSBu
-ZWVkIGFueSBvdGhlciBkZXRhaWxzIHJlZ2FyZGluZyB0aGlzIGNvbnRyaWJ1dGlvbiwgcGxlYXNl
-IGNvbnRhY3QgbWUuICAKClRoYW5rcyAmIFJlZ2FyZHMgClByaXlhIEJhbnNhbC4gCkUtbWFpbDog
-cC5iYW5zYWxAc2Ftc3VuZy5jb20K
+Hi,
+
+is it possible with ecryptfs to have two different ecryptfs mounts, e.g.,
+
+plain1 -> raw1
+plain2 -> raw2
+
+using two different openssl keys, and to ensure that each key is _only_
+used by its own mount? That is, I want to prevent that files copied between 
+raw1 and raw2 are automatically decrypted. 
+
+To my understanding of the IBM paper about ecryptfs, it should be possible to 
+set a policy defining which mount is allowed to use which key, but I could not 
+find any documentation about it. 
+
+When it is possible, can you explain or point me to some docs describing how I 
+can do this?
+
+Thanks,
+Chris
 
