@@ -1,110 +1,138 @@
-From: Anna Fischer <a.fischer@sirrix.com>
-Subject: AW: Separating different ecryptfs mounts
-Date: Mon, 6 Oct 2014 11:14:45 +0000
-Message-ID: <ECC8F67CE961104EB2AFE8F7FD50F5D040C735@exchange2010.sirrix.de>
-References: <6009718.QGyqnh1K9Q@hp-stueble> <20140924145102.GA20046@boyd>
- <1542927.yeEpMd0H1t@hp-stueble> <5248408.zEIqrqEJ4F@hp-stueble>
- <20141002210519.GC2522@boyd>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH] NULL pointer dereference in ecryptfs (ecryptfs_setxattr)
+Date: Tue, 7 Oct 2014 18:46:31 -0500
+Message-ID: <20141007234630.GA7935@boyd>
+References: <1630743052.107781411541880641.JavaMail.weblogic@epmlwas02d>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx.sirrix.com ([176.9.214.66]:44295 "EHLO mx.sirrix.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbaJFLge convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 6 Oct 2014 07:36:34 -0400
-Received: from [172.25.20.101] (helo=exchange2010.sirrix.de)
-	by mx.sirrix.com with esmtp (Exim 4.76)
-	(envelope-from <a.fischer@sirrix.com>)
-	id 1Xb6Ee-0008VT-I8
-	for ecryptfs@vger.kernel.org; Mon, 06 Oct 2014 13:13:49 +0200
-In-Reply-To: <20141002210519.GC2522@boyd>
-Content-Language: de-DE
+Received: from youngberry.canonical.com ([91.189.89.112]:46434 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755383AbaJGXqj (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 7 Oct 2014 19:46:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1630743052.107781411541880641.JavaMail.weblogic@epmlwas02d>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>
+To: Priya Bansal <p.bansal@samsung.com>
+Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> Betreff: Re: Separating different ecryptfs mounts
->=20
-> My apologies for the long delay.
->=20
-> On 2014-09-25 10:48:23, Christian St=FCble wrote:
-> > Hello,
-> >
-> > I had an error in my configuration, see below:
-> >
-> > Am Donnerstag, 25. September 2014, 10:10:58 schrieb Christian St=FC=
-ble:
-> > > Hi Tyler,
-> > > hi List
-> > >
-> > > we did some more tests to find out whether there are other=20
-> > > alternatives than adding another option and we found some=20
-> > > interesting behavior I do not
-> > > understand:
-> > >
-> > > When mounting the example scenario given below:
-> > >
-> > > 	plain1 -> raw1
-> > > 	plain2 -> raw2
-> > >
-> > > as normal Linux user using sudo and passphrase-based encryption I=
-=20
-> > > get the result as required:
-> > >
-> > > 1) The user can write/read files to/from plain1
-> > > 2) The user can write/read files to/from plain2
-> > > 3) Files exchanged between raw1 and raw2 cannot be read.
-> > > 4) The root, however, can read files exchanged between raw1 and=20
-> > > raw2
-> > >
-> > > It this an intended behavior? It seems that ecryptfs only uses th=
-e=20
-> > > keys directly assigned to the mount for decryption for normal=20
-> > > users, but all keys for the root user.
-> > This behavior is still unclear to me.
->=20
-> I can't reproduce this behavior. I can move the files between the=20
-> lower mount points and read the files out of each upper mount point.
->=20
-> As I mentioned before, directly modifying the lower mount point while=
-=20
-> eCryptfs is mounted is not supported and may result in data loss. You=
-=20
-> should unmount the eCryptfs layer before modifying the lower mount po=
-int.
->=20
-> One thing to check is that you have both mount keys in each session:
->=20
-> $ keyctl show
-> Session Keyring
->  965589071 --alswrv   1000  1000  keyring: _ses
->  155596823 --alswrv   1000 65534   \_ keyring: _uid.1000
->  589053956 --alswrv   1000  1000       \_ user: 253ca7e88811d184
->  760940678 --alswrv   1000  1000       \_ user: 72c0078c0eaa7eec
->=20
-> Different distributions use the kernel keyring and the pam_keyinit PA=
-M=20
-> module differently. eCryptfs searches the user session keyring. You'l=
-l=20
-> only be able to read files created under mounts whose key(s) are in=20
-> the current user session keyring. Doing things like opening a new SSH=
-=20
-> session may result in a new user session keyring, depending on how yo=
-ur system is configured.
 
-Hi Tyler,
+--rwEMma7ioTxnRzrJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I have a question related to the use case Chris is describing. I have s=
-een that at kernel-level, there is an additional mount option "ecryptfs=
-_mount_auth_tok_only" which forces ecryptfs to only use the keys specif=
-ied by 'ecryptfs_sig' and 'ecryptfs_fnek_sig' for *decryption* of files=
- (as I understand it is by default only used for encryption of newly cr=
-eated files under the given mount point).=20
+Hi Priya - Thanks for the report and patch. I have some inline comments.
 
-Can you clarify the (implementation) state of that option? I thought th=
-at is a potential way to restrict what keys are used for individual mou=
-nt points?
+On 2014-09-24 06:58:01, Priya Bansal wrote:
+> This patch fixes the issue which was found in
+>  ecryptfs_setxattr(). Previously, while trying to create a file when ecry=
+ptfs
+>  is mounted over ext4 filesystem  with  encrypted view enabled, the kernel
+>  crashes. the reason being the function fsstack_copy_attr_all was trying =
+to
+>  access dentry->d_inode which was null hence the kernel crashes with NULL
+>  pointer dereference. Now a check has been applied which prevents such
+>  condition.
+>=20
+> From 74856445756aba18f98aa5b98ad46e7d98f54737 Mon Sep 17 00:00:00 2001
+> From: Priya Bansal <p.bansal@samsung.com>
+> Date: Fri, 29 Aug 2014 10:27:27 +0530
+> Subject: [PATCH] Fix in ecryptfs_setxattr for NULL check before calling
+>  fsstack_copy_attr_all. This patch fixes the issue which was found in
+>  ecryptfs_setxattr(). Previously, while trying to create a file when ecry=
+ptfs
+>  is mounted over ext4 filesystem  with  encrypted view enabled, the kernel
+>  crashes. the reason being the function fsstack_copy_attr_all was trying =
+to
+>  access dentry->d_inode which was null hence the kernel crashes with NULL
+>  pointer dereference. Now a check has been applied which prevents such
+>  condition.
+> Signed-off-by: Priya Bansal <p.bansal@samsung.com>
 
-Thanks for your help,
-Anna=20
+This commit message is poorly formatted. Have a look at the
+"15) The canonical patch format" section of the
+Documentation/SubmittingPatches file. It gives a nice description of how
+the commit message should be formatted.
+
+> ---
+>  linux-3.16.1/fs/ecryptfs/inode.c | 18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+> diff --git a/linux-3.16.1/fs/ecryptfs/inode.c b/linux-3.16.1/fs/ecryptfs/=
+inode.c
+> index d4a9431..7da03e5 100644
+> --- a/linux-3.16.1/fs/ecryptfs/inode.c
+> +++ b/linux-3.16.1/fs/ecryptfs/inode.c
+> @@ -1031,6 +1031,8 @@ ecryptfs_setxattr(struct dentry *dentry, const char=
+ *name, const void *value,
+>  {
+>   int rc =3D 0;
+>   struct dentry *lower_dentry;
+> + struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> +  &ecryptfs_superblock_to_private(dentry->d_sb)->mount_crypt_stat;
+> =20
+>   lower_dentry =3D ecryptfs_dentry_to_lower(dentry);
+>   if (!lower_dentry->d_inode->i_op->setxattr) {
+> @@ -1039,8 +1041,20 @@ ecryptfs_setxattr(struct dentry *dentry, const cha=
+r *name, const void *value,
+>   }
+> =20
+>   rc =3D vfs_setxattr(lower_dentry, name, value, size, flags);
+> - if (!rc)
+> -  fsstack_copy_attr_all(dentry->d_inode, lower_dentry->d_inode);
+> + if (!rc) {
+> +  if (dentry->d_inode =3D=3D NULL) {
+> +   if (mount_crypt_stat->flags
+> +     & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
+> +    rc =3D -EPERM;
+> +   else if (mount_crypt_stat->flags
+> +     & ECRYPTFS_XATTR_METADATA_ENABLED)
+> +    goto out;
+> +  } else {
+> +   fsstack_copy_attr_all(dentry->d_inode,
+> +     lower_dentry->d_inode);
+> +  }
+> + }
+> +
+>  out:
+>   return rc;
+>  }
+> --=20
+
+I don't think this is the proper fix. It fixes the NULL pointer
+dereference but ecryptfs_setxattr() shouldn't be reachable in encrypted
+view mounts. There's a feeble attempt to prevent the modification of
+files in ecryptfs_open() when encrypted view is in use but I think we
+should force the MS_RDONLY flag on the superblock when the
+ecryptfs_encrypted_view mount option is specified.
+
+I'll follow this email up with a patch. I'd appreciate any review and/or
+testing you can provide. Thanks!
+
+Tyler
+
+--rwEMma7ioTxnRzrJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJUNHtWAAoJENaSAD2qAscKfE8P/3hNkCWDyUZPEh09kubSKy2N
+eXScZMZyUFbzLiIWAqKaLvxLjU3oW2nv0xJFl7jbf6gIyunfvXNhN8uU3+kwZI4s
+cBtTs/PN/rv4kXTZWr7thIKXAq4XgMlN7WmyzQPAxMLlw9xhIJdOp3oMhHWbdSHr
+q35GfnxTOCdO3B+JHEorQTH5j2Og/76p2HXcMhl0LUopzR98hVCK5F+7XL3YbSBR
+lIxrwWsWO3cP636BNoDBQ1WG0wb39mRQzr5gQ7f5MbzQvajX19FqqLxmFB1pdyE1
+82GC9UfmH0Z7gkyjjKo/0HQFoWaBSU6DKTB+cUJc+LgemNo14fwtKOAxO+W7f0ib
+JpNAEpI0ZdwGXJOEhhNkkOthvBKMfG4gFLXyWt88cnFIx//ADgrNh8bSh/TP8Ip3
+s7gZGPV2qTtPhGW44YuO5PG+nA5lxo2JXv2YtjW6QWUkOMXVs4VjogfzZAKPgPi/
+pFN+/DRw70z583jUOOKj7ohuIahotEw5urIGlbkV0sgT2xGIBQ9xdm9hGEn6H0Um
+mMwW5BTFpfzSlDyfuRB3yCT6bk9HsRVGI8aaZmigsDL4ITSELLf1rO8IU2sQSRft
+tbslqdS+qgzoKi+hBY4pq2CoPmbYAL41s8dkzmOk87VVJSujr4EWZKEy4LppeWSY
+agJ3iFgEhN6LBX/G0HHh
+=dB9Q
+-----END PGP SIGNATURE-----
+
+--rwEMma7ioTxnRzrJ--
