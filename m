@@ -1,27 +1,27 @@
 From: Dmitry Monakhov <dmonakhov@openvz.org>
-Subject: [PATCH 3/3] ecryptfs: add fadvise/set_flags calbacks
-Date: Fri, 10 Oct 2014 20:29:36 +0400
-Message-ID: <1412958576-32621-3-git-send-email-dmonakhov@openvz.org>
-References: <1412958576-32621-1-git-send-email-dmonakhov@openvz.org>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1412958576-32621-1-git-send-email-dmonakhov@openvz.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Subject: [PATCH 3/4] ecryptfs: add fadvise/set_flags calbacks
+Date: Sat, 18 Oct 2014 19:21:27 +0400
+Message-ID: <1413645688-13524-4-git-send-email-dmonakhov@openvz.org>
+References: <1413645688-13524-1-git-send-email-dmonakhov@openvz.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1413645688-13524-1-git-send-email-dmonakhov@openvz.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fsdevel@vger.kernel.org
-Cc: viro@zeniv.linux.org.uk, Dmitry Monakhov <dmonakhov@openvz.org>, tyhicks@canonical.com, ecryptfs@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, viro@zeniv.linux.org.uk, hch@infradead.org, Dmitry Monakhov <dmonakhov@openvz.org>, tyhicks@canonical.com, ecryptfs@vger.kernel.org
 
 CC: tyhicks@canonical.com
 CC: ecryptfs@vger.kernel.org
 Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
 ---
- fs/ecryptfs/file.c |   67 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 67 insertions(+), 0 deletions(-)
+ fs/ecryptfs/file.c |   62 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 62 insertions(+), 0 deletions(-)
 
 diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index db0fad3..637469a 100644
+index 4ffa35e..c84df35 100644
 --- a/fs/ecryptfs/file.c
 +++ b/fs/ecryptfs/file.c
 @@ -31,6 +31,7 @@
@@ -32,7 +32,7 @@ index db0fad3..637469a 100644
  #include <linux/aio.h>
  #include "ecryptfs_kernel.h"
  
-@@ -333,6 +334,68 @@ ecryptfs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+@@ -333,6 +334,63 @@ ecryptfs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  }
  #endif
  
@@ -59,7 +59,7 @@ index db0fad3..637469a 100644
 +}
 +
 +#define ECRYPTFS_FL_MASK (O_NONBLOCK | O_NDELAY | O_NOATIME)
-+static int ecryptfs_set_flags(struct file *file, int flags)
++static int ecryptfs_set_flags(struct file *file, unsigned flags)
 +{
 +	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
 +	struct dentry *ecryptfs_dentry = file->f_path.dentry;
@@ -82,26 +82,21 @@ index db0fad3..637469a 100644
 +		goto out;
 +
 +	if (lower_file->f_op && lower_file->f_op->set_flags) {
-+		rc = lower_file->f_op->set_flags(lower_file, flags);
++		rc = lower_file->f_op->set_flags(lower_file,
++						 flags & ECRYPTFS_FL_MASK);
 +		if (rc)
 +			return rc;
-+	} else {
-+		spin_lock(&lower_file->f_lock);
-+		lower_file->f_flags = (flags & ECRYPTFS_FL_MASK) |
-+			(lower_file->f_flags & ~ECRYPTFS_FL_MASK);
-+		spin_unlock(&lower_file->f_lock);
-+	}
-+	spin_lock(&file->f_lock);
-+	file->f_flags = (flags & ECRYPTFS_FL_MASK) |
-+		(file->f_flags & ~ECRYPTFS_FL_MASK);
-+	spin_unlock(&file->f_lock);
++	} else
++		generic_file_set_flags(file, flags & ECRYPTFS_FL_MASK);
++
++	generic_file_set_flags(file, flags & ECRYPTFS_FL_MASK);
 +out:
 +	return rc;
 +}
  const struct file_operations ecryptfs_dir_fops = {
  	.iterate = ecryptfs_readdir,
  	.read = generic_read_dir,
-@@ -347,6 +410,8 @@ const struct file_operations ecryptfs_dir_fops = {
+@@ -347,6 +405,8 @@ const struct file_operations ecryptfs_dir_fops = {
  	.fasync = ecryptfs_fasync,
  	.splice_read = generic_file_splice_read,
  	.llseek = default_llseek,
@@ -110,7 +105,7 @@ index db0fad3..637469a 100644
  };
  
  const struct file_operations ecryptfs_main_fops = {
-@@ -367,4 +432,6 @@ const struct file_operations ecryptfs_main_fops = {
+@@ -367,4 +427,6 @@ const struct file_operations ecryptfs_main_fops = {
  	.fsync = ecryptfs_fsync,
  	.fasync = ecryptfs_fasync,
  	.splice_read = generic_file_splice_read,
@@ -119,4 +114,3 @@ index db0fad3..637469a 100644
  };
 -- 
 1.7.1
-
