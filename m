@@ -1,44 +1,128 @@
-From: Michael Halcrow <mhalcrow@google.com>
-Subject: [PATCH] eCryptfs: Allocate sufficient buffer space for encrypted filename decoding
-Date: Fri, 21 Nov 2014 09:02:03 -0800
-Message-ID: <1416589323-4762-1-git-send-email-mhalcrow@google.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: PROBLEM: apparent out-of-bounds memory write in
+ fs/ecryptfs/crypto.c
+Date: Fri, 21 Nov 2014 16:02:53 -0800
+Message-ID: <20141122000253.GE18807@outflux.net>
+References: <CAA6XgkE7vDmYn+QCMVkr39D_3V_bcF66P9G0v5=na-aOYq8RcA@mail.gmail.com>
+Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pd0-f201.google.com ([209.85.192.201]:63915 "EHLO
-	mail-pd0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758836AbaKURCV (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 21 Nov 2014 12:02:21 -0500
-Received: by mail-pd0-f201.google.com with SMTP id ft15so884063pdb.4
-        for <ecryptfs@vger.kernel.org>; Fri, 21 Nov 2014 09:02:20 -0800 (PST)
+Received: from smtp.outflux.net ([198.145.64.163]:53405 "EHLO smtp.outflux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752160AbaKVAC5 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Fri, 21 Nov 2014 19:02:57 -0500
+Content-Disposition: inline
+In-Reply-To: <CAA6XgkE7vDmYn+QCMVkr39D_3V_bcF66P9G0v5=na-aOYq8RcA@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: dmitryc@google.com, ecryptfs@vger.kernel.org, Michael Halcrow <mhalcrow@google.com>
+To: Dmitry Chernenkov <dmitryc@google.com>
+Cc: tyhicks@canonical.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, kasan-dev@googlegroups.com
 
-Dmitry Chernenkov used KASAN to discover that eCryptfs writes past the
-end of the allocated buffer during encrypted filename decoding. This
-fix corrects the issue by ensuring that there is sufficient buffer
-space allocated.
+Hi Dmitry,
 
-Signed-off-by: Michael Halcrow <mhalcrow@google.com>
----
- fs/ecryptfs/crypto.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Fri, Nov 21, 2014 at 04:44:02PM +0400, Dmitry Chernenkov wrote:
+> Hi!
+> 
+> The following issue was discovered using Kernel Address Sanitizer
+> we're developing
+> (https://code.google.com/p/address-sanitizer/wiki/AddressSanitizerForKernel,
+> https://github.com/google/kasan/blob/kasan/Documentation/kasan.txt)
+> 
+> The apparent problem is here (fs/ecryptfs/crypto.c:1866 ..  I tested
+> on kernel 3.14, but looks like the issue is still there upstream):
+> 
+> static size_t ecryptfs_max_decoded_size(size_t encoded_size)
+> {
+> /* Not exact; conservatively long. Every block of 4
+> * encoded characters decodes into a block of 3
+> * decoded characters. This segment of code provides
+> * the caller with the maximum amount of allocated
+> * space that @dst will need to point to in a
+> * subsequent call. */
+> return ((encoded_size + 1) * 3) / 4;
+> }
+> 
+> /**
+>  * ecryptfs_decode_from_filename
+>  * @dst: If NULL, this function only sets @dst_size and returns. If
+>  *       non-NULL, this function decodes the encoded octets in @src
+>  *       into the memory that @dst points to.
+>  * @dst_size: Set to the size of the decoded string.
+>  * @src: The encoded set of octets to decode.
+>  * @src_size: The size of the encoded set of octets to decode.
+>  */
+> static void
+> ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+>      const unsigned char *src, size_t src_size)
+> {
+> u8 current_bit_offset = 0;
+> size_t src_byte_offset = 0;
+> size_t dst_byte_offset = 0;
+> 
+> if (dst == NULL) {
+> (*dst_size) = ecryptfs_max_decoded_size(src_size);
+> goto out;
+> }
+> while (src_byte_offset < src_size) {
+> unsigned char src_byte =
+> filename_rev_map[(int)src[src_byte_offset]];
+> 
+> switch (current_bit_offset) {
+> case 0:
+> dst[dst_byte_offset] = (src_byte << 2);
+> current_bit_offset = 6;
+> break;
+> case 6:
+> dst[dst_byte_offset++] |= (src_byte >> 4);
+> dst[dst_byte_offset] = ((src_byte & 0xF)
+> << 4);
+> current_bit_offset = 4;
+> break;
+> case 4:
+> dst[dst_byte_offset++] |= (src_byte >> 2);
+> dst[dst_byte_offset] = (src_byte << 6);
+> current_bit_offset = 2;
+> break;
+> case 2:
+> dst[dst_byte_offset++] |= (src_byte);
+> dst[dst_byte_offset] = 0;
+> current_bit_offset = 0;
+> break;
+> }
+> src_byte_offset++;
+> }
+> (*dst_size) = dst_byte_offset;
+> out:
+> return;
+> }
+> For src_size multiple of 4 (which I assume is usually the case), the
+> line "dst[dst_byte_offset] = 0;" writes  at dst[dst_size] reported in
+> the ecryptfs_max_decoded_size. The caller mallocs exactly dst_size
+> bytes for dst, so the write is outside the allocated space. Depending
+> on allocator, this can be exploited to overwrite the next object's
+> first byte. I didn't exactly understand whether dst should be a
+> 0-terminated string, so we either need to skip writing the trailing
+> zero or allocate 1 more byte.
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 2f6735d..53d4f2e 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -1871,7 +1871,7 @@ static size_t ecryptfs_max_decoded_size(size_t encoded_size)
- 	 * the caller with the maximum amount of allocated
- 	 * space that @dst will need to point to in a
- 	 * subsequent call. */
--	return ((encoded_size + 1) * 3) / 4;
-+	return (((encoded_size + 1) * 3) / 4) + 1;
- }
- 
- /**
+Thanks for reporting this!
+
+Based on a quick read, it looks like the only consumer of the decoded
+memory is ecryptfs_parse_tag_70_packet, and it uses the passed size for
+its parsing. It seems like dropping this line from
+ecryptfs_decode_from_filename() would solve the issue:
+
+    dst[dst_byte_offset] = 0;
+
+The state machine goes from case 2 back to case 0. If we're at the end,
+dst_byte_offset is the correct value, and the rest of the buffer is
+untouched. If we have more to go, case 0 will strictly initialize the
+contents of dst[dst_byte_offset] since it uses "=" not "|=".
+
+Thoughts?
+
+-Kees
+
 -- 
-2.1.0.rc2.206.gedb03e5
+Kees Cook
+Chrome OS Security
