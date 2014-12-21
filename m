@@ -1,81 +1,31 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 3.19-rc1
-Date: Fri, 19 Dec 2014 12:11:47 -0600
-Message-ID: <20141219181146.GA6629@boyd>
+From: Eric Lan <tenoreamer@gmail.com>
+Subject: Feature Request: solving too long filenames
+Date: Sun, 21 Dec 2014 16:53:30 +0000 (UTC)
+Message-ID: <loom.20141221T174607-634@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37222 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbaLSSLw (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 19 Dec 2014 13:11:52 -0500
-Content-Disposition: inline
+Received: from plane.gmane.org ([80.91.229.3]:51482 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751268AbaLUQzF (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Sun, 21 Dec 2014 11:55:05 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
+	id 1Y2jmZ-000679-Ij
+	for ecryptfs@vger.kernel.org; Sun, 21 Dec 2014 17:55:04 +0100
+Received: from 1-175-118-93.dynamic.hinet.net ([1.175.118.93])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Sun, 21 Dec 2014 17:55:03 +0100
+Received: from tenoreamer by 1-175-118-93.dynamic.hinet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Sun, 21 Dec 2014 17:55:03 +0100
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org
 
-
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-The following changes since commit c3351dfabf5c78fb5ddc79d0f7b65ebd9e441337:
-
-  Merge branch 'for-next' of git://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending (2014-10-21 13:06:38 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-3.19-rc1-fixes
-
-for you to fetch changes up to 942080643bce061c3dd9d5718d3b745dcb39a8bc:
-
-  eCryptfs: Remove buggy and unnecessary write in file name decode routine (2014-11-26 15:55:02 -0600)
-
-----------------------------------------------------------------
-Fixes for filename decryption and encrypted view plus a cleanup
-- The filename decryption routines were, at times, writing a zero byte one
-  character past the end of the filename buffer
-- The encrypted view feature attempted, and failed, to roll its own form of
-  enforcing a read-only mount instead of letting the VFS enforce it
-
-----------------------------------------------------------------
-Michael Halcrow (1):
-      eCryptfs: Remove buggy and unnecessary write in file name decode routine
-
-Tyler Hicks (2):
-      eCryptfs: Force RO mount when encrypted view is enabled
-      eCryptfs: Remove unnecessary casts when parsing packet lengths
-
- fs/ecryptfs/crypto.c   |  1 -
- fs/ecryptfs/file.c     | 12 ------------
- fs/ecryptfs/keystore.c |  6 +++---
- fs/ecryptfs/main.c     | 16 +++++++++++++---
- 4 files changed, 16 insertions(+), 19 deletions(-)
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJUlGpiAAoJENaSAD2qAscKClgQAJxnHZA3xDauy/bW9/vd9e9v
-D4xaSkpufV3WfmbJGSgGIaF8Hm72Li5OUk5WJ2GiT3kPiWMTqRNvwWKuzYo2fkep
-E3WUiPNPAzUgrmKcSEHF3oma8IEDOjyEl4uj4jrykXgn8lHu6sRPHY8ZGcUubEuT
-WBczw4A7gsSzdpTmIm0uixck1UIhCVUYOam8lrjVuSI720qPDWoq7nJAsACFoE14
-l/KEnv8S3Annsi2+rJRiC+AJd8sgbfHacU8EZohoLjoph1qW7jlFDdeqUPky7pc4
-asK0IUuEkbdp5+sSaIoc3JC0iOBaE+/hSv2dzh+65XMw8D1MQmxGdJwu+jMawMBn
-Whx1cAjhJozJyJVmjOPWlK7tFqsvDqJexYVsUP4xM3mAthy/eNnTRUW0JuO2+Eeu
-X7NKV/7E+sSUCiesl0HkvXrjF5hquEUiMWxqaK/5iCfom/tfDLBrq0MImuVP0Flj
-oc32jz0TlxhjT7B0H66Z/0sNkYyUeLYxHpGfeTaZ/P/PV7QYLZ1XD8sCjfYti387
-25wIfvKbOpYARrq9XQ5oGqHD0dYrTXqUqIWykApvqQlMT4duNwSQB54CeesB8C4W
-/LSKVL9WjDjJ+G35d1egDY4MOmKIOMaC6lsSWOYYeLhM/vacvdqT3C0uf8S34dPY
-nTu5FV3yCDVjOjX4s+kZ
-=bFse
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+Is it reasonable for eCryptfs to manage a long filename (especially those
+longer than 140 bytes) by specifying a short identifier followed by a serial
+or sequence number  (i.e. ECRYPTFS_#####) and putting the true encrypted
+filename in the header of that encrypted file?
