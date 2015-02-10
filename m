@@ -1,45 +1,37 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: small buffer overflow in ecryptfs_new_file_context()
-Date: Sat, 31 Jan 2015 16:23:44 +0300
-Message-ID: <20150131132344.GA10291@mwanda>
+From: Sylvain Pelissier <sylvain.pelissier@gmail.com>
+Subject: Changing salt value
+Date: Tue, 10 Feb 2015 10:04:07 +0100
+Message-ID: <CAOkUe-CMpJNpStZTOPnASaiEA8VC3kJAqKMBon6xodRgMJ5A1A@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47894 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbbAaNYD (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sat, 31 Jan 2015 08:24:03 -0500
-Content-Disposition: inline
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:48573 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684AbbBJJEJ (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 10 Feb 2015 04:04:09 -0500
+Received: by mail-wg0-f51.google.com with SMTP id k14so31833262wgh.10
+        for <ecryptfs@vger.kernel.org>; Tue, 10 Feb 2015 01:04:08 -0800 (PST)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mhalcrow@us.ibm.com
-Cc: ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-Hello Michael Halcrow,
+ Hi,
 
-The patch 237fead61998: "[PATCH] ecryptfs: fs/Makefile and
-fs/Kconfig" from Oct 4, 2006, leads to the following static checker
-warning:
+I am trying to change the default salt value used by ecryptfs-utils to
+wrapped the encryption key stored in
+"/home/.ecryptfs/user/.ecryptfs/wrapped-passphrase". I'm using Ubuntu
+14.04 with the complete home folder encryption. I created a file
+.ecryptfsrc in the unencrypted home folder of the user which contains:
 
-	fs/ecryptfs/crypto.c:846 ecryptfs_new_file_context()
-	error: off-by-one overflow 'crypt_stat->cipher' size 32.  rl = '0-32'
+salt=04ae48987b177f01
 
-fs/ecryptfs/crypto.c
-   841          cipher_name_len =
-   842                  strlen(mount_crypt_stat->global_default_cipher_name);
-   843          memcpy(crypt_stat->cipher,
-   844                 mount_crypt_stat->global_default_cipher_name,
-   845                 cipher_name_len);
-   846          crypt_stat->cipher[cipher_name_len] = '\0';
+Then I wrap the passphrase key with the tool
+ecryptfs-unwrap-passphrase, I noticed that the result has changed and
+thus I think it uses the new salt value. However, when I replace the
+file /home/.ecryptfs/user/.ecryptfs/wrapped-passphrase with the new
+one, then when I log with the user credential I have the error telling
+that the key is not in the kernel keyring.
+Did I miss something ?
 
-We're basically doing a complicated:
-
-	strcpy(crypt_stat->cipher,
-	       mount_crypt_stat->global_default_cipher_name);
-
-But ->global_default_cipher_name has one more character than ->cipher so
-it doesn't necessarily fit.
-
-regards,
-dan carpenter
+Sylvain
