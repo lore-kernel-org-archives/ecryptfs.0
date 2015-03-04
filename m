@@ -1,103 +1,76 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [PATCH] eCryptfs: don't pass fs-specific ioctl commands through
-Date: Tue, 24 Feb 2015 20:53:26 -0600
-Message-ID: <1424832806-10386-1-git-send-email-tyhicks@canonical.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43309 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103AbbBYCyK (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 24 Feb 2015 21:54:10 -0500
-Sender: ecryptfs-owner@vger.kernel.org
+Subject: [GIT PULL] eCryptfs fixes for 4.0-rc3
+Date: Wed, 4 Mar 2015 16:14:34 -0600
+Message-ID: <20150304221433.GA25320@boyd>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Rocko <rockorequin@hotmail.com>, Colin Ian King <colin.king@canonical.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-eCryptfs can't be aware of what to expect when after passing an
-arbitrary ioctl command through to the lower filesystem. The ioctl
-command may trigger an action in the lower filesystem that is
-incompatible with eCryptfs.
 
-One specific example is when one attempts to use the Btrfs clone
-ioctl command when the source file is in the Btrfs filesystem that
-eCryptfs is mounted on top of and the destination fd is from a new file
-created in the eCryptfs mount. The ioctl syscall incorrectly returns
-success because the command is passed down to Btrfs which thinks that it
-was able to do the clone operation. However, the result is an empty
-eCryptfs file.
+--sm4nu43k4a2Rpi4c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch allows the trim, {g,s}etflags, and {g,s}etversion ioctl
-commands through and then copies up the inode metadata from the lower
-inode to the eCryptfs inode to catch any changes made to the lower
-inode's metadata. Those five ioctl commands are mostly common across all
-filesystems but the whitelist may need to be further pruned in the
-future.
+Hi Linus,
 
-https://bugzilla.kernel.org/show_bug.cgi?id=93691
-https://launchpad.net/bugs/1305335
+The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
 
-Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
-Cc: Rocko <rockorequin@hotmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
----
- fs/ecryptfs/file.c | 34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index b07731e..fd39bad 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -303,9 +303,22 @@ ecryptfs_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	struct file *lower_file = ecryptfs_file_to_lower(file);
- 	long rc = -ENOTTY;
- 
--	if (lower_file->f_op->unlocked_ioctl)
-+	if (!lower_file->f_op->unlocked_ioctl)
-+		return rc;
-+
-+	switch (cmd) {
-+	case FITRIM:
-+	case FS_IOC_GETFLAGS:
-+	case FS_IOC_SETFLAGS:
-+	case FS_IOC_GETVERSION:
-+	case FS_IOC_SETVERSION:
- 		rc = lower_file->f_op->unlocked_ioctl(lower_file, cmd, arg);
--	return rc;
-+		fsstack_copy_attr_all(file_inode(file), file_inode(lower_file));
-+
-+		return rc;
-+	default:
-+		return rc;
-+	}
- }
- 
- #ifdef CONFIG_COMPAT
-@@ -315,9 +328,22 @@ ecryptfs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	struct file *lower_file = ecryptfs_file_to_lower(file);
- 	long rc = -ENOIOCTLCMD;
- 
--	if (lower_file->f_op->compat_ioctl)
-+	if (!lower_file->f_op->compat_ioctl)
-+		return rc;
-+
-+	switch (cmd) {
-+	case FITRIM:
-+	case FS_IOC32_GETFLAGS:
-+	case FS_IOC32_SETFLAGS:
-+	case FS_IOC32_GETVERSION:
-+	case FS_IOC32_SETVERSION:
- 		rc = lower_file->f_op->compat_ioctl(lower_file, cmd, arg);
--	return rc;
-+		fsstack_copy_attr_all(file_inode(file), file_inode(lower_file));
-+
-+		return rc;
-+	default:
-+		return rc;
-+	}
- }
- #endif
- 
--- 
-2.1.0
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-4.0-rc3-fixes
+
+for you to fetch changes up to 6d65261a09adaa374c05de807f73a144d783669e:
+
+  eCryptfs: don't pass fs-specific ioctl commands through (2015-03-03 02:03:56 -0600)
+
+----------------------------------------------------------------
+Fixes for proper ioctl handling and an untriggerable buffer overflow
+- The eCryptfs ioctl handling functions should only pass known-good ioctl
+  commands to the lower filesystem
+- A static checker found a potential buffer overflow. Upon inspection, it is
+  not triggerable due to input validation performed on the mount parameters.
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      eCryptfs: ensure copy to crypt_stat->cipher does not overrun
+
+Tyler Hicks (1):
+      eCryptfs: don't pass fs-specific ioctl commands through
+
+ fs/ecryptfs/ecryptfs_kernel.h |  4 ++--
+ fs/ecryptfs/file.c            | 34 ++++++++++++++++++++++++++++++----
+ fs/ecryptfs/keystore.c        |  2 +-
+ fs/ecryptfs/main.c            |  2 +-
+ 4 files changed, 34 insertions(+), 8 deletions(-)
+
+--sm4nu43k4a2Rpi4c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJU94PJAAoJENaSAD2qAscKSbAQAKSCfk98UcfG9Rn/dGCFtSWt
+Dbo68tuF8Rhw4ZaBiqeV1F4KmB01yhnpeHck1Hm3yhyx10td7iOA3MemNK/vhCkz
++6dRC55cWcp2sfkrQhVmZDUj5MMjIAdZWdB4z2NlB5JONCvi5XbQYqkA2g1Yv6TF
+8bD3hUafwMlYtTMDhxH5fcFI0BOP/hrGxcX+vJGPjx2/hU5Eu7eCLWEMarxgumQq
+Nx8McNPnPIOWjBDQPTQXZ6bbm0lhuO1hAOAwR7EqFn19b+TO1N3/IQKsJT+VgpP8
+DZXp+K6ObJ1i3VAywzEZEreb1Xl/L7rO3XbKBWAPlTBaSsF6TNhU1G1bafw6drUV
+4DBytppqlsvh1r90SHpoLHGwKyfPS0FlH+fsLONDVXMCn64bSk7jGXb3LFUy5fKb
+fIt5j6OcowlDIwsHXvYfb+A01sZZWybEO1nFb54W6cfIIEC8cfv/HO5Tl5S/z0Go
+am8H7+zfk8M3l8TfC5a7842yzDqD0aIBcryWHcZ4h0cTFGOSdWLYDgadiErzkuq6
+5RkgUP0LhnxqtS09N4d+5mVWp5QL98PA0Gap70KgnS1hC776bO2ptK/Ml1NXXIVZ
+T35OblP5pre3h1htVIPOFt03ET5Zn3CZHutfB8WreyPnj0MEtCHUZ/44V2wiZi3G
+BbVPcRnmE8uKMzJ+Nguc
+=2V/O
+-----END PGP SIGNATURE-----
+
+--sm4nu43k4a2Rpi4c--
