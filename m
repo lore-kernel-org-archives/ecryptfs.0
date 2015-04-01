@@ -1,76 +1,67 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 4.0-rc3
-Date: Wed, 4 Mar 2015 16:14:34 -0600
-Message-ID: <20150304221433.GA25320@boyd>
+From: Marc de Verdelhan <mdeverdelhan@gmail.com>
+Subject: Way to decrypt an encrypted /home
+Date: Wed, 1 Apr 2015 09:52:49 +0200
+Message-ID: <CAHTahaZZetDg8=X=G4rTRJJWJBRXrN4N1dK86kUqwOXXKhh7bQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:33137 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117AbbDAHwv (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 1 Apr 2015 03:52:51 -0400
+Received: by lbbzk7 with SMTP id zk7so13779689lbb.0
+        for <ecryptfs@vger.kernel.org>; Wed, 01 Apr 2015 00:52:49 -0700 (PDT)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
+Hi there,
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I made a huge mistake and I need some help.
 
-Hi Linus,
+I was running Linux Mint 17 (based on Ubuntu 14.04) with an encrypted
+home directory (using eCryptfs). /home and / were on separated
+partitions.
+Last week I replaced Mint by Debian. I formatted the / partition and
+kept the /home one. Now I can't decrypt my data. :/
 
-The following changes since commit c517d838eb7d07bbe9507871fab3931deccff539:
+So I installed the ecryptfs-utils package.
 
-  Linux 4.0-rc1 (2015-02-22 18:21:14 -0800)
+"ecryptfs-mount-private" returns:
+Error: Unwrapping passphrase and inserting into the user session
+keyring failed [-5]
+Info: Check the system log for more information from libecryptfs
+ERROR: Your passphrase is incorrect
 
-are available in the git repository at:
+"/var/log/syslog" contains:
+ecryptfs-insert-wrapped-passphrase-into-keyring: Incorrect wrapping
+key for file [/home/login/.ecryptfs/wrapped-passphrase]
+ecryptfs-insert-wrapped-passphrase-into-keyring: Error attempting to
+unwrap passphrase from file
+[/home/login/.ecryptfs/wrapped-passphrase]; rc = [-5]
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-4.0-rc3-fixes
+"ecryptfs-unwrap-passphrase
+/home/.ecryptfs/login/.ecryptfs/wrapped-passphrase" returns:
+Error: Unwrapping passphrase and inserting into the user session
+keyring failed [-5]
+Info: Check the system log for more information from libecryptfs
 
-for you to fetch changes up to 6d65261a09adaa374c05de807f73a144d783669e:
+To be sure I reinstalled the original Linux Mint on the / partition,
+using the same login:password as before my misfortune. Same results.
+I'm ABSOLUTELY sure that I'm using the same login and password than
+last week. I installed Linux Mint 17 on June 2014; the ecryptfs-utils
+version should have been "104-0ubuntu1".
 
-  eCryptfs: don't pass fs-specific ioctl commands through (2015-03-03 02:03:56 -0600)
+So questions are:
+1) What happened? Did I erase a configuration file I shouldn't? I
+would like to understand what operation occurred to be in that
+unpleasant situation?
 
-----------------------------------------------------------------
-Fixes for proper ioctl handling and an untriggerable buffer overflow
-- The eCryptfs ioctl handling functions should only pass known-good ioctl
-  commands to the lower filesystem
-- A static checker found a potential buffer overflow. Upon inspection, it is
-  not triggerable due to input validation performed on the mount parameters.
+2) What are my options? It may involve some C development if needed.
+According to you, is there a way to brute force something? Or a more
+intelligent solution, starting with sit down, have a tea and think.
 
-----------------------------------------------------------------
-Colin Ian King (1):
-      eCryptfs: ensure copy to crypt_stat->cipher does not overrun
+Any help will be greatly appreciated. Thank you for reading.
 
-Tyler Hicks (1):
-      eCryptfs: don't pass fs-specific ioctl commands through
-
- fs/ecryptfs/ecryptfs_kernel.h |  4 ++--
- fs/ecryptfs/file.c            | 34 ++++++++++++++++++++++++++++++----
- fs/ecryptfs/keystore.c        |  2 +-
- fs/ecryptfs/main.c            |  2 +-
- 4 files changed, 34 insertions(+), 8 deletions(-)
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJU94PJAAoJENaSAD2qAscKSbAQAKSCfk98UcfG9Rn/dGCFtSWt
-Dbo68tuF8Rhw4ZaBiqeV1F4KmB01yhnpeHck1Hm3yhyx10td7iOA3MemNK/vhCkz
-+6dRC55cWcp2sfkrQhVmZDUj5MMjIAdZWdB4z2NlB5JONCvi5XbQYqkA2g1Yv6TF
-8bD3hUafwMlYtTMDhxH5fcFI0BOP/hrGxcX+vJGPjx2/hU5Eu7eCLWEMarxgumQq
-Nx8McNPnPIOWjBDQPTQXZ6bbm0lhuO1hAOAwR7EqFn19b+TO1N3/IQKsJT+VgpP8
-DZXp+K6ObJ1i3VAywzEZEreb1Xl/L7rO3XbKBWAPlTBaSsF6TNhU1G1bafw6drUV
-4DBytppqlsvh1r90SHpoLHGwKyfPS0FlH+fsLONDVXMCn64bSk7jGXb3LFUy5fKb
-fIt5j6OcowlDIwsHXvYfb+A01sZZWybEO1nFb54W6cfIIEC8cfv/HO5Tl5S/z0Go
-am8H7+zfk8M3l8TfC5a7842yzDqD0aIBcryWHcZ4h0cTFGOSdWLYDgadiErzkuq6
-5RkgUP0LhnxqtS09N4d+5mVWp5QL98PA0Gap70KgnS1hC776bO2ptK/Ml1NXXIVZ
-T35OblP5pre3h1htVIPOFt03ET5Zn3CZHutfB8WreyPnj0MEtCHUZ/44V2wiZi3G
-BbVPcRnmE8uKMzJ+Nguc
-=2V/O
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
+Marc
