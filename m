@@ -1,49 +1,63 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] eCryptfs: Delete a check before the function call "key_put"
-Date: Fri, 26 Jun 2015 18:25:09 +0200
-Message-ID: <558D7CE5.1090205@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
+From: =?UTF-8?Q?Marc_Pe=C3=B1a_Segarra?= <segarrra@gmail.com>
+Subject: Fwd: Problem "cracking" a key_sig
+Date: Tue, 7 Jul 2015 00:58:06 +0200
+Message-ID: <CACmgvd_TSc6eDBnEg3GVdk40p3k4KxUjTb2=tkrOvr7URXJDCw@mail.gmail.com>
+References: <CACmgvd8d5CAu=i=BNSAEbV5GA+XUe44wPw7xtFuAMkC-nBFzaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:54295 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751913AbbFZQZN (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Fri, 26 Jun 2015 12:25:13 -0400
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
+Received: from mail-vn0-f45.google.com ([209.85.216.45]:41682 "EHLO
+	mail-vn0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755343AbbGFW60 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 6 Jul 2015 18:58:26 -0400
+Received: by vnbf62 with SMTP id f62so9284273vnb.8
+        for <ecryptfs@vger.kernel.org>; Mon, 06 Jul 2015 15:58:25 -0700 (PDT)
+In-Reply-To: <CACmgvd8d5CAu=i=BNSAEbV5GA+XUe44wPw7xtFuAMkC-nBFzaw@mail.gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 26 Jun 2015 18:18:54 +0200
+Hi all,
 
-The key_put() function tests whether its argument is NULL and then
-returns immediately. Thus the test around this call might not be needed.
+I'm using Ubuntu 14.04 and I use ecryptfs to encrypt arbitrary
+directories; to mount the directories I use a command like this:
 
-This issue was detected by using the Coccinelle software.
+sudo mount -t ecryptfs .secret/ secret/ -o
+key=passphrase,ecryptfs_cipher=aes,ecryptfs_key_bytes=32,ecryptfs_passthrough=n,ecryptfs_enable_filename_crypto=n
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- fs/ecryptfs/crypto.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+The thing is that, somehow, I messed it up when pasting the password
+on the first mount in one of the directories (yeah, I know that the
+message saying that I've never mounted with that key before should
+have been quite clarifying)...copied all the data and unmounted it.
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 97315f2..80d6901 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -258,8 +258,7 @@ void ecryptfs_destroy_mount_crypt_stat(
- 				 &mount_crypt_stat->global_auth_tok_list,
- 				 mount_crypt_stat_list) {
- 		list_del(&auth_tok->mount_crypt_stat_list);
--		if (auth_tok->global_auth_tok_key
--		    && !(auth_tok->flags & ECRYPTFS_AUTH_TOK_INVALID))
-+		if (!(auth_tok->flags & ECRYPTFS_AUTH_TOK_INVALID))
- 			key_put(auth_tok->global_auth_tok_key);
- 		kmem_cache_free(ecryptfs_global_auth_tok_cache, auth_tok);
- 	}
--- 
-2.4.4
+Now, when I mount it and try to read files I get errors and messages
+like this in dmesg:
+
+[ 4210.614158] ecryptfs_parse_options: eCryptfs: unrecognized option
+[ecryptfs_debug=5]
+[ 4215.347261] Could not find key with description: [306437480dxxxxxx]
+[ 4215.347269] process_request_key_err: No key
+[ 4215.347272] ecryptfs_parse_packet_set: Could not find a usable
+authentication token
+[ 4215.347277] Valid eCryptfs headers not found in file header region
+or xattr region, inode 919485
+
+After downloading the code of the Ubuntu package I found out that in
+the directory tests/userspace there were the tests for verifying
+passphase signs, so I thought that I could use that to iterate through
+mutations of the pasted passphrase in the hope of reproducing the mess
+I provoked.
+
+The problem I'm having is that the test program expects four parameters:
+pass
+salt
+expected_sig
+expected_fekek
+
+But since in my configuration I don't have a "file encryption key,
+encryption key" I don't know how I could modify it in order to try to
+find my passphrase; or should I use any other executable from
+ecryptfs?
+
+Thanks a lot!
