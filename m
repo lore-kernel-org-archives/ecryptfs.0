@@ -1,180 +1,168 @@
-From: =?UTF-8?Q?Marc_Pe=C3=B1a_Segarra?= <segarrra@gmail.com>
-Subject: Re: Problem "cracking" a key_sig
-Date: Thu, 9 Jul 2015 00:43:32 +0200
-Message-ID: <CACmgvd98G_n=7JUugr2PZKD5n8LTyCOfDaJXHc9q0j=ydjPtZg@mail.gmail.com>
-References: <CACmgvd8d5CAu=i=BNSAEbV5GA+XUe44wPw7xtFuAMkC-nBFzaw@mail.gmail.com>
- <CACmgvd_TSc6eDBnEg3GVdk40p3k4KxUjTb2=tkrOvr7URXJDCw@mail.gmail.com>
- <CAPGmukRMKWsU8FHOq8oeGkJ738ATdG3ZOZxzgWjRbZtkxy-0SA@mail.gmail.com> <CAPGmukSvtbg8vZphHdyoqFbO1PfLgvsAMHpmb2q+xw6yqwtL-Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-vn0-f42.google.com ([209.85.216.42]:36573 "EHLO
-	mail-vn0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbbGHWnw convert rfc822-to-8bit (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 8 Jul 2015 18:43:52 -0400
-Received: by vnbg129 with SMTP id g129so32772624vnb.3
-        for <ecryptfs@vger.kernel.org>; Wed, 08 Jul 2015 15:43:52 -0700 (PDT)
-In-Reply-To: <CAPGmukSvtbg8vZphHdyoqFbO1PfLgvsAMHpmb2q+xw6yqwtL-Q@mail.gmail.com>
-Sender: ecryptfs-owner@vger.kernel.org
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH 12/15] fs: Drop unlikely before IS_ERR(_OR_NULL)
+Date: Fri, 31 Jul 2015 14:08:32 +0530
+Message-ID: <4fd8dd8ed76901a89d6cd17e50ac585ea929f1fb.1438331416.git.viresh.kumar@linaro.org>
+References: <cover.1438331416.git.viresh.kumar@linaro.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <cover.1438331416.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1438331416.git.viresh.kumar@linaro.org>
+References: <cover.1438331416.git.viresh.kumar@linaro.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: "Wiest, Damian" <damian.wiest@apervita.com>
-Cc: ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org
+Cc: linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Anna Schumaker <anna.schumaker@netapp.com>, Boaz Harrosh <ooo@electrozaur.com>, Christoph Hellwig <hch@lst.de>, David Howells <dhowells@redhat.com>, "open list:ECRYPT FILE SYSTEM" <ecryptfs@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Fabian Frederick <fabf@skynet.be>, Joe Perches <joe@perches.com>, "open list:COMMON INTERNET FILE SYSTEM
+	CIFS" <linux-cifs@vger.kernel.org>, "open list:EXT4 FILE SYSTEM" <linux-ext4@vger.kernel.org>, "open list:FILESYSTEMS VFS and
+	infrastructure" <linux-fsdevel@vger.kernel.org>, "open list:NFS, SUNRPC, AND LOCKD CLIENTS" <linux-nfs@vger.kernel.org>, Peng Tao <tao.peng@primarydata.com>, Petr Vandrovec <petr@vandrovec.name>, 
 
-Thanks a lot Damian! Following your advice I've been able to recover
-the mangled password!
+IS_ERR(_OR_NULL) already contain an 'unlikely' compiler flag and there
+is no need to do that again from its callers. Drop it.
 
-I took the instructions from here:
-http://www.unix-ninja.com/p/Securing_your_private_data_with_the_Enterpr=
-ise_Cryptographic_Filesystem/
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ fs/cifs/readdir.c            | 2 +-
+ fs/ecryptfs/inode.c          | 2 +-
+ fs/ext4/extents.c            | 6 +++---
+ fs/ext4/namei.c              | 2 +-
+ fs/namei.c                   | 4 ++--
+ fs/ncpfs/dir.c               | 2 +-
+ fs/nfs/objlayout/objio_osd.c | 2 +-
+ fs/proc/proc_sysctl.c        | 2 +-
+ 8 files changed, 11 insertions(+), 11 deletions(-)
 
-But your aproach seems better.
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index b1eede3678a9..0557c45e9c33 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -84,7 +84,7 @@ cifs_prime_dcache(struct dentry *parent, struct qstr *name,
+ 	cifs_dbg(FYI, "%s: for %s\n", __func__, name->name);
+ 
+ 	dentry = d_hash_and_lookup(parent, name);
+-	if (unlikely(IS_ERR(dentry)))
++	if (IS_ERR(dentry))
+ 		return;
+ 
+ 	if (dentry) {
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 3c4db1172d22..e2e47ba5d313 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -270,7 +270,7 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
+ 
+ 	ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry,
+ 					    mode);
+-	if (unlikely(IS_ERR(ecryptfs_inode))) {
++	if (IS_ERR(ecryptfs_inode)) {
+ 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
+ 				"lower filesystem\n");
+ 		rc = PTR_ERR(ecryptfs_inode);
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index 2553aa8b608d..799f01714767 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -899,7 +899,7 @@ ext4_find_extent(struct inode *inode, ext4_lblk_t block,
+ 
+ 		bh = read_extent_tree_block(inode, path[ppos].p_block, --i,
+ 					    flags);
+-		if (unlikely(IS_ERR(bh))) {
++		if (IS_ERR(bh)) {
+ 			ret = PTR_ERR(bh);
+ 			goto err;
+ 		}
+@@ -5792,7 +5792,7 @@ ext4_swap_extents(handle_t *handle, struct inode *inode1,
+ 		int split = 0;
+ 
+ 		path1 = ext4_find_extent(inode1, lblk1, NULL, EXT4_EX_NOCACHE);
+-		if (unlikely(IS_ERR(path1))) {
++		if (IS_ERR(path1)) {
+ 			*erp = PTR_ERR(path1);
+ 			path1 = NULL;
+ 		finish:
+@@ -5800,7 +5800,7 @@ ext4_swap_extents(handle_t *handle, struct inode *inode1,
+ 			goto repeat;
+ 		}
+ 		path2 = ext4_find_extent(inode2, lblk2, NULL, EXT4_EX_NOCACHE);
+-		if (unlikely(IS_ERR(path2))) {
++		if (IS_ERR(path2)) {
+ 			*erp = PTR_ERR(path2);
+ 			path2 = NULL;
+ 			goto finish;
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index 011dcfb5cce3..0554e4be1fb8 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -1429,7 +1429,7 @@ static struct buffer_head * ext4_find_entry (struct inode *dir,
+ 				}
+ 				num++;
+ 				bh = ext4_getblk(NULL, dir, b++, 0);
+-				if (unlikely(IS_ERR(bh))) {
++				if (IS_ERR(bh)) {
+ 					if (ra_max == 0) {
+ 						ret = bh;
+ 						goto cleanup_and_exit;
+diff --git a/fs/namei.c b/fs/namei.c
+index ae4e4c18b2ac..04fdec230c45 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1942,7 +1942,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
+ 		if (err) {
+ 			const char *s = get_link(nd);
+ 
+-			if (unlikely(IS_ERR(s)))
++			if (IS_ERR(s))
+ 				return PTR_ERR(s);
+ 			err = 0;
+ 			if (unlikely(!s)) {
+@@ -3351,7 +3351,7 @@ struct file *do_file_open_root(struct dentry *dentry, struct vfsmount *mnt,
+ 		return ERR_PTR(-ELOOP);
+ 
+ 	filename = getname_kernel(name);
+-	if (unlikely(IS_ERR(filename)))
++	if (IS_ERR(filename))
+ 		return ERR_CAST(filename);
+ 
+ 	set_nameidata(&nd, -1, filename);
+diff --git a/fs/ncpfs/dir.c b/fs/ncpfs/dir.c
+index 93575e91a7aa..356816e7bc90 100644
+--- a/fs/ncpfs/dir.c
++++ b/fs/ncpfs/dir.c
+@@ -597,7 +597,7 @@ ncp_fill_cache(struct file *file, struct dir_context *ctx,
+ 	qname.name = __name;
+ 
+ 	newdent = d_hash_and_lookup(dentry, &qname);
+-	if (unlikely(IS_ERR(newdent)))
++	if (IS_ERR(newdent))
+ 		goto end_advance;
+ 	if (!newdent) {
+ 		newdent = d_alloc(dentry, &qname);
+diff --git a/fs/nfs/objlayout/objio_osd.c b/fs/nfs/objlayout/objio_osd.c
+index 5aaed363556a..5c0c6b58157f 100644
+--- a/fs/nfs/objlayout/objio_osd.c
++++ b/fs/nfs/objlayout/objio_osd.c
+@@ -124,7 +124,7 @@ objio_alloc_deviceid_node(struct nfs_server *server, struct pnfs_device *pdev,
+ 
+ retry_lookup:
+ 	od = osduld_info_lookup(&odi);
+-	if (unlikely(IS_ERR(od))) {
++	if (IS_ERR(od)) {
+ 		err = PTR_ERR(od);
+ 		dprintk("%s: osduld_info_lookup => %d\n", __func__, err);
+ 		if (err == -ENODEV && retry_flag) {
+diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
+index fdda62e6115e..fe5b6e6c4671 100644
+--- a/fs/proc/proc_sysctl.c
++++ b/fs/proc/proc_sysctl.c
+@@ -948,7 +948,7 @@ static struct ctl_dir *get_subdir(struct ctl_dir *dir,
+ found:
+ 	subdir->header.nreg++;
+ failed:
+-	if (unlikely(IS_ERR(subdir))) {
++	if (IS_ERR(subdir)) {
+ 		pr_err("sysctl could not get directory: ");
+ 		sysctl_print_dir(dir);
+ 		pr_cont("/%*.*s %ld\n",
+-- 
+2.4.0
 
-
-
-On Tue, Jul 7, 2015 at 9:49 PM, Wiest, Damian <damian.wiest@apervita.co=
-m> wrote:
-> Sorry, I was looking at some old notes.  You should mount using the -=
-i
-> option to suppress the ecryptfs mount helper if you're using a
-> passphrase stored in your keyring.
->
-> -Damian
->
->
-> On Tue, Jul 7, 2015 at 2:21 PM, Wiest, Damian <damian.wiest@apervita.=
-com> wrote:
->> If you've got a copy of the auth tok sig that was used, you can
->> repeatedly call ecryptfs-add-passphrase with your guess until you ge=
-t
->> a match.  This will add the passphrase to your keyring, so you may
->> want to clean up bad guesses with keyctl.
->>
->> To avoid this situation in the future I would suggest using either t=
-he
->> ecryptfs-manager or ecryptfs-insert-wrapped-passphrase commands to
->> load the passphrase to your keyring.  ecryptfs-manager will ask you =
-to
->> enter your passphrase twice to catch typos and the
->> ecryptfs-insert-wrapped-passphrase command will fail if you enter th=
-e
->> wrapping passphrase incorrectly.  You can then use the auth tok sig =
-in
->> your mount command instead of the actual passphrase.
->>
->> # ecryptfs-insert-wrapped-passphrase-into-keyring ./wrapped.passphra=
-se
->> Passphrase:
->> Inserted auth tok with sig [2df13936c580ecff] into the user session =
-keyring
->>
->> # mount -t ecryptfs ./.secret ./secret -o
->> ecryptfs_sig=3D2df13936c580ecff,ecryptfs_cipher=3Daes,ecryptfs_key_b=
-ytes=3D32,key=3Dpassphrase,ecryptfs_enable_filename_crypto=3Dn,ecryptfs=
-_passthrough=3Dn
->> Passphrase:
->> Attempting to mount with the following options:
->>   ecryptfs_unlink_sigs
->>   ecryptfs_fnek_sig=3D4e8a0ece5dbf48c8
->>   ecryptfs_key_bytes=3D16
->>   ecryptfs_cipher=3Daes
->>   ecryptfs_sig=3Dff09227dc73d8090
->> Mounted eCryptfs
->>
->> You will still be prompted for a passphrase when mounting, but you c=
-an
->> enter anything and ecryptfs will use the sig you provided to locate
->> the passphrase in your keyring.  Be aware that the values for
->> ecryptfs_sig and ecryptfs_fnek_sig that will displayed after mountin=
-g
->> are bogus.  Also, always test mounting your filesystem a few times t=
-o
->> ensure there are no surprises and backup your passphrase to a secure
->> location.
->>
->> -Damian
->>
->>
->> On Mon, Jul 6, 2015 at 5:58 PM, Marc Pe=C3=B1a Segarra <segarrra@gma=
-il.com> wrote:
->>>
->>> Hi all,
->>>
->>> I'm using Ubuntu 14.04 and I use ecryptfs to encrypt arbitrary
->>> directories; to mount the directories I use a command like this:
->>>
->>> sudo mount -t ecryptfs .secret/ secret/ -o
->>> key=3Dpassphrase,ecryptfs_cipher=3Daes,ecryptfs_key_bytes=3D32,ecry=
-ptfs_passthrough=3Dn,ecryptfs_enable_filename_crypto=3Dn
->>>
->>> The thing is that, somehow, I messed it up when pasting the passwor=
-d
->>> on the first mount in one of the directories (yeah, I know that the
->>> message saying that I've never mounted with that key before should
->>> have been quite clarifying)...copied all the data and unmounted it.
->>>
->>> Now, when I mount it and try to read files I get errors and message=
-s
->>> like this in dmesg:
->>>
->>> [ 4210.614158] ecryptfs_parse_options: eCryptfs: unrecognized optio=
-n
->>> [ecryptfs_debug=3D5]
->>> [ 4215.347261] Could not find key with description: [306437480dxxxx=
-xx]
->>> [ 4215.347269] process_request_key_err: No key
->>> [ 4215.347272] ecryptfs_parse_packet_set: Could not find a usable
->>> authentication token
->>> [ 4215.347277] Valid eCryptfs headers not found in file header regi=
-on
->>> or xattr region, inode 919485
->>>
->>> After downloading the code of the Ubuntu package I found out that i=
-n
->>> the directory tests/userspace there were the tests for verifying
->>> passphase signs, so I thought that I could use that to iterate thro=
-ugh
->>> mutations of the pasted passphrase in the hope of reproducing the m=
-ess
->>> I provoked.
->>>
->>> The problem I'm having is that the test program expects four parame=
-ters:
->>> pass
->>> salt
->>> expected_sig
->>> expected_fekek
->>>
->>> But since in my configuration I don't have a "file encryption key,
->>> encryption key" I don't know how I could modify it in order to try =
-to
->>> find my passphrase; or should I use any other executable from
->>> ecryptfs?
->>>
->>> Thanks a lot!
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe ecryptfs"=
- in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
->
->
-> Confidentiality Notice: This e-mail transmission may contain confiden=
-tial
-> or legally privileged information that is intended only for the indiv=
-idual
-> or entity named in the e-mail address. If you have received this
-> communication in error, please notify me by return e-mail, and destro=
-y this
-> communication and all copies thereof, including any attachments.
->
-> Apervita =C2=AE is a registered trademark of Apervita Inc.
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" i=
-n
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
