@@ -1,93 +1,169 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] eCryptfs: Delete a check before the function call
- "key_put"
-Date: Thu, 6 Aug 2015 09:09:28 -0500
-Message-ID: <20150806140928.GA5766@boyd>
-References: <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
- <558D7CE5.1090205@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="G4iJoqBmSsgzjUCe"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <558D7CE5.1090205@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH V1 Resend 08/11] fs: Drop unlikely before IS_ERR(_OR_NULL)
+Date: Mon, 10 Aug 2015 11:42:30 +0530
+Message-ID: <02a94664a8586b70cb12406eba0276c7b80c3dd9.1439187003.git.viresh.kumar@linaro.org>
+References: <cover.1439187003.git.viresh.kumar@linaro.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <cover.1439187003.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1439187003.git.viresh.kumar@linaro.org>
+References: <cover.1439187003.git.viresh.kumar@linaro.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: ecryptfs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org
+Cc: linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, David Howells <dhowells@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Andreas Dilger <adilger.kernel@dilger.ca>, Anna Schumaker <anna.schumaker@netapp.com>, Boaz Harrosh <ooo@electrozaur.com>, Christoph Hellwig <hch@lst.de>, "open list:ECRYPT FILE SYSTEM" <ecryptfs@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Fabian Frederick <fabf@skynet.be>, "open list:COMMON INTERNET FILE SYSTEM
+	CIFS" <linux-cifs@vger.kernel.org>, "open list:EXT4 FILE SYSTEM" <linux-ext4@vger.kernel.org>, "open list:FILESYSTEMS VFS and
+	infrastructure" <linux-fsdevel@vger.kernel.org>, "open list:NFS, SUNRPC, AND LOCKD CLIENTS" <linux-nfs@vger.kernel.org>, Peng Tao <tao.peng@primarydata.com>, Petr Vandrovec <petr@vandrovec.name>, "moderated list:" <samba-technical@lists.samba.org>
 
+IS_ERR(_OR_NULL) already contain an 'unlikely' compiler flag and there
+is no need to do that again from its callers. Drop it.
 
---G4iJoqBmSsgzjUCe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ fs/cifs/readdir.c            | 2 +-
+ fs/ecryptfs/inode.c          | 2 +-
+ fs/ext4/extents.c            | 6 +++---
+ fs/ext4/namei.c              | 2 +-
+ fs/namei.c                   | 4 ++--
+ fs/ncpfs/dir.c               | 2 +-
+ fs/nfs/objlayout/objio_osd.c | 2 +-
+ fs/proc/proc_sysctl.c        | 2 +-
+ 8 files changed, 11 insertions(+), 11 deletions(-)
 
-On 2015-06-26 18:25:09, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Fri, 26 Jun 2015 18:18:54 +0200
->=20
-> The key_put() function tests whether its argument is NULL and then
-> returns immediately. Thus the test around this call might not be needed.
->=20
-> This issue was detected by using the Coccinelle software.
->=20
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index b1eede3678a9..0557c45e9c33 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -84,7 +84,7 @@ cifs_prime_dcache(struct dentry *parent, struct qstr *name,
+ 	cifs_dbg(FYI, "%s: for %s\n", __func__, name->name);
+ 
+ 	dentry = d_hash_and_lookup(parent, name);
+-	if (unlikely(IS_ERR(dentry)))
++	if (IS_ERR(dentry))
+ 		return;
+ 
+ 	if (dentry) {
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 3c4db1172d22..e2e47ba5d313 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -270,7 +270,7 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
+ 
+ 	ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry,
+ 					    mode);
+-	if (unlikely(IS_ERR(ecryptfs_inode))) {
++	if (IS_ERR(ecryptfs_inode)) {
+ 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
+ 				"lower filesystem\n");
+ 		rc = PTR_ERR(ecryptfs_inode);
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index 2553aa8b608d..799f01714767 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -899,7 +899,7 @@ ext4_find_extent(struct inode *inode, ext4_lblk_t block,
+ 
+ 		bh = read_extent_tree_block(inode, path[ppos].p_block, --i,
+ 					    flags);
+-		if (unlikely(IS_ERR(bh))) {
++		if (IS_ERR(bh)) {
+ 			ret = PTR_ERR(bh);
+ 			goto err;
+ 		}
+@@ -5792,7 +5792,7 @@ ext4_swap_extents(handle_t *handle, struct inode *inode1,
+ 		int split = 0;
+ 
+ 		path1 = ext4_find_extent(inode1, lblk1, NULL, EXT4_EX_NOCACHE);
+-		if (unlikely(IS_ERR(path1))) {
++		if (IS_ERR(path1)) {
+ 			*erp = PTR_ERR(path1);
+ 			path1 = NULL;
+ 		finish:
+@@ -5800,7 +5800,7 @@ ext4_swap_extents(handle_t *handle, struct inode *inode1,
+ 			goto repeat;
+ 		}
+ 		path2 = ext4_find_extent(inode2, lblk2, NULL, EXT4_EX_NOCACHE);
+-		if (unlikely(IS_ERR(path2))) {
++		if (IS_ERR(path2)) {
+ 			*erp = PTR_ERR(path2);
+ 			path2 = NULL;
+ 			goto finish;
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index 9f61e7679a6d..f12b277ad2af 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -1429,7 +1429,7 @@ static struct buffer_head * ext4_find_entry (struct inode *dir,
+ 				}
+ 				num++;
+ 				bh = ext4_getblk(NULL, dir, b++, 0);
+-				if (unlikely(IS_ERR(bh))) {
++				if (IS_ERR(bh)) {
+ 					if (ra_max == 0) {
+ 						ret = bh;
+ 						goto cleanup_and_exit;
+diff --git a/fs/namei.c b/fs/namei.c
+index cacc51ddcf54..67d419e55547 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1942,7 +1942,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
+ 		if (err) {
+ 			const char *s = get_link(nd);
+ 
+-			if (unlikely(IS_ERR(s)))
++			if (IS_ERR(s))
+ 				return PTR_ERR(s);
+ 			err = 0;
+ 			if (unlikely(!s)) {
+@@ -3430,7 +3430,7 @@ struct file *do_file_open_root(struct dentry *dentry, struct vfsmount *mnt,
+ 		return ERR_PTR(-ELOOP);
+ 
+ 	filename = getname_kernel(name);
+-	if (unlikely(IS_ERR(filename)))
++	if (IS_ERR(filename))
+ 		return ERR_CAST(filename);
+ 
+ 	set_nameidata(&nd, -1, filename);
+diff --git a/fs/ncpfs/dir.c b/fs/ncpfs/dir.c
+index 93575e91a7aa..356816e7bc90 100644
+--- a/fs/ncpfs/dir.c
++++ b/fs/ncpfs/dir.c
+@@ -597,7 +597,7 @@ ncp_fill_cache(struct file *file, struct dir_context *ctx,
+ 	qname.name = __name;
+ 
+ 	newdent = d_hash_and_lookup(dentry, &qname);
+-	if (unlikely(IS_ERR(newdent)))
++	if (IS_ERR(newdent))
+ 		goto end_advance;
+ 	if (!newdent) {
+ 		newdent = d_alloc(dentry, &qname);
+diff --git a/fs/nfs/objlayout/objio_osd.c b/fs/nfs/objlayout/objio_osd.c
+index 5aaed363556a..5c0c6b58157f 100644
+--- a/fs/nfs/objlayout/objio_osd.c
++++ b/fs/nfs/objlayout/objio_osd.c
+@@ -124,7 +124,7 @@ objio_alloc_deviceid_node(struct nfs_server *server, struct pnfs_device *pdev,
+ 
+ retry_lookup:
+ 	od = osduld_info_lookup(&odi);
+-	if (unlikely(IS_ERR(od))) {
++	if (IS_ERR(od)) {
+ 		err = PTR_ERR(od);
+ 		dprintk("%s: osduld_info_lookup => %d\n", __func__, err);
+ 		if (err == -ENODEV && retry_flag) {
+diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
+index fdda62e6115e..fe5b6e6c4671 100644
+--- a/fs/proc/proc_sysctl.c
++++ b/fs/proc/proc_sysctl.c
+@@ -948,7 +948,7 @@ static struct ctl_dir *get_subdir(struct ctl_dir *dir,
+ found:
+ 	subdir->header.nreg++;
+ failed:
+-	if (unlikely(IS_ERR(subdir))) {
++	if (IS_ERR(subdir)) {
+ 		pr_err("sysctl could not get directory: ");
+ 		sysctl_print_dir(dir);
+ 		pr_cont("/%*.*s %ld\n",
+-- 
+2.4.0
 
-Thanks for the cleanup. I'll include it in an upcoming eCryptfs pull
-request.
-
-Tyler
-
-> ---
->  fs/ecryptfs/crypto.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->=20
-> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> index 97315f2..80d6901 100644
-> --- a/fs/ecryptfs/crypto.c
-> +++ b/fs/ecryptfs/crypto.c
-> @@ -258,8 +258,7 @@ void ecryptfs_destroy_mount_crypt_stat(
->  				 &mount_crypt_stat->global_auth_tok_list,
->  				 mount_crypt_stat_list) {
->  		list_del(&auth_tok->mount_crypt_stat_list);
-> -		if (auth_tok->global_auth_tok_key
-> -		    && !(auth_tok->flags & ECRYPTFS_AUTH_TOK_INVALID))
-> +		if (!(auth_tok->flags & ECRYPTFS_AUTH_TOK_INVALID))
->  			key_put(auth_tok->global_auth_tok_key);
->  		kmem_cache_free(ecryptfs_global_auth_tok_cache, auth_tok);
->  	}
-> --=20
-> 2.4.4
->=20
-
---G4iJoqBmSsgzjUCe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJVw2qYAAoJENaSAD2qAscKLEsP/147/sq5IemHURa44hUWlVTN
-iM0yQT64FBOTmiek7AJR9t4cG/9Rs3xNUp/pLxfXSO9rw6IFvwXOE8O016doPuu7
-dfk38b8H/QnLXfxCzlAY50h/Nzsg+zEUaRzuATHNaNaFiUvR4qDh0QjLKCr3FXrA
-+NMVgHII3csrkVOEk1QJeji+UuXbQYtnTZ4D9UZvCSEJMBG0SKt49f3Islu42kJ+
-GbPeN6/W+K7T8hTqM6y8x+9e1KhgOsF/UqwmBnqPO1uqRJzJHAkmvBDZdsEJ0XXs
-Fn/AF4Dgi1Lpohv7OZLc/R3ZWnBkrLcZpsG20c8+SjK6saNftK60IHiqjEX1bGhf
-VgXxKscZeGkiXuXW5EeYvAqfJm/QEUsI/FOWzbkDsq3tlEGyNuID6wQ5tiFxC8Mi
-0fDIW1rAwWGaIP1EKnAEJ5XUBSClY8VmiVjIeSryNIksl5HEgOVVGt9Ld4YqTyLa
-mOrj9FGuR899f7szqMCoHAtKc2lbQp5YyhD66pzKnzIjSCJdBWtKZMcBByTO6v+S
-xXZVOJ6/ai9yEec+4FW+Te6YKXJKyzr0gXuUJZdJPRH6AV6H71ICwkHXXNO/RAwd
-x+Ewqs+45Aayqi6ms5WO0fpN1+9nKld2X6UL5HTdDLxUJSpc0HRoYoAXvo3Y0sKc
-EeqGLZQo2O7PS+lVfYdD
-=1cXj
------END PGP SIGNATURE-----
-
---G4iJoqBmSsgzjUCe--
