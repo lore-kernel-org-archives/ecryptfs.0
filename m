@@ -1,40 +1,74 @@
-From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V1 Resend 07/10] fs: Drop unlikely before IS_ERR(_OR_NULL)
-Date: Thu, 20 Aug 2015 21:44:16 +0530
-Message-ID: <20150820161416.GC4159@linux>
-References: <cover.1439375087.git.viresh.kumar@linaro.org>
- <2efb962cb72884f625116cba24fc4fb203c6621f.1439375087.git.viresh.kumar@linaro.org>
- <20150812142815.27968b32@tlielax.poochiereds.net>
- <CAH2r5mvUC2WO6sVqhe_QCgiCJbRbahDsSj=-Uzk7LB_peTqjLQ@mail.gmail.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 4.3-rc1
+Date: Tue, 8 Sep 2015 11:12:49 -0500
+Message-ID: <20150908161248.GB2682@boyd>
 Mime-Version: 1.0
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:47959 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbbIHQMx (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Tue, 8 Sep 2015 12:12:53 -0400
 Content-Disposition: inline
-In-Reply-To: <CAH2r5mvUC2WO6sVqhe_QCgiCJbRbahDsSj=-Uzk7LB_peTqjLQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jeff Layton <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>, Boaz Harrosh <ooo-rh7Tgz9RNieUD9Wbbkgo/g@public.gmane.org>, "open list:NFS, Peng Tao <tao.peng-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Petr Vandrovec
-	<petr-vPk2MGR0e28uaRcfnNAh7A@public.gmane.org>, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org moderated
-	list:COMMON INTERNET FILE SYSTEM CIFS, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>,
-	Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, Tom Haynes <loghyr-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>,
-	Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>, Tyler Hicks
-	<tyhicks-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Weston Andros Adamson <dros-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:COMMON INTERNET FILE SYSTEM CIFS" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:ECRYPT FILE SYSTEM" <ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "open list:FILESYSTEMS VFS and infrastructure" <linux-fsde>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-On 20-08-15, 11:08, Steve French wrote:
-> Reviewed-by: Steve French <smfrench-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> 
-> Do you want me to merge the fs/cifs part of this independently (into
-> cifs-2.6.git staging tree) or are you going to merge all of this
-> (which changes multiple fs) at one time through someone else's tree?
 
-The plan is to merge via Trivial tree, but the Maintainer isn't
-responding yet :)
+--yEPQxsgoJgBvi8ip
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-viresh
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Linus,
+
+The following changes since commit 4469942bbbe5ebf845e04971d8c74e9b6178f9fa:
+
+  Merge tag 'for-linus' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2015-08-05 18:50:38 +0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-4.3-rc1-stale-dcache
+
+for you to fetch changes up to 0dad87fcb732691bfd3183acccda6709e1e759ca:
+
+  eCryptfs: Delete a check before the function call "key_put" (2015-08-18 17:29:49 -0500)
+
+----------------------------------------------------------------
+Invalidate stale eCryptfs dcache entries caused by unlinked lower inodes
+
+----------------------------------------------------------------
+Markus Elfring (1):
+      eCryptfs: Delete a check before the function call "key_put"
+
+Tyler Hicks (1):
+      eCryptfs: Invalidate dcache entries when lower i_nlink is zero
+
+ fs/ecryptfs/crypto.c |  3 +--
+ fs/ecryptfs/dentry.c | 16 ++++++++--------
+ 2 files changed, 9 insertions(+), 10 deletions(-)
+
+--yEPQxsgoJgBvi8ip
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJV7wkAAAoJENaSAD2qAscK3j4QAK5uKLChUJGwYH0+TowpOX94
+sSf0BXDVASS+M9owIqhfew7C+UrB+DPEhwUrmwpi92qL4l3oCXb2/X0F6Wegt9y9
+fxkgfY8xeqkOTUliG5qYKHVV4urmAATlycIarqF6y9yzZ3Bu4AKftufVhm4tMyJV
+Y5SNHCBeBl2/brCQqZ7yQKodEFYG9afubSyJR2s4jYQkSoW/EJ9pQyTLLCAHnlTa
+Ow89DT7Wr4KiMrnUAFf+KXzQQAnMX3YHnDWgw6xQE25M/nD9Ti3iFimx4OXtjlav
+dKtsub4GiwCjbQSuy6FCTq8Xc6W0MD3NX8pNERyfFDDazhdBTFoT95hx0y031oYX
++Bi0q6eUeTvP+aaEiY91wLnbhJJS17rrctDhfNqwsxZDNWN3nbXEM+LDWsL/Ly/R
+N7Y7CLDlsXIzjITegvDHpqljHzRrYnGpCuvCfVLdYe4WPCfCkgcwqfvvHxRFvbP5
+52xvpRhYXjHmpapdn0S5xQem3RYSDsBIAsxFbvUTLvAUrb5eb6GBvLRYkqr9Dkfb
+hg2CgQ50JgT9uGu9qWJufP+4sIsMcXsZQzY0mk3lQIpyCJ/7v0HbOqUBej+bQpNA
+F/rAB93E2YcUJGzf2qUcyZWAoVivoy464FuED4xe7tN7ukvEP0PB8vz/RJvDqxvt
+CS/pGPD5foRSrLUPb32R
+=6TeG
+-----END PGP SIGNATURE-----
+
+--yEPQxsgoJgBvi8ip--
