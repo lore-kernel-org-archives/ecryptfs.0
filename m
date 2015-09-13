@@ -1,74 +1,110 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: [GIT PULL] eCryptfs fixes for 4.3-rc1
-Date: Tue, 8 Sep 2015 11:12:49 -0500
-Message-ID: <20150908161248.GB2682@boyd>
+From: Julia Lawall <Julia.Lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: [PATCH 00/39] drop null test before destroy functions
+Date: Sun, 13 Sep 2015 14:14:53 +0200
+Message-ID: <1442146532-9100-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:47959 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754760AbbIHQMx (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 8 Sep 2015 12:12:53 -0400
-Content-Disposition: inline
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, dccp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, HPDD-discuss-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ocfs2-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, Carolyn Wyborny <carolyn.wyborny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Skidmore <donald.c.skidmore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-atm-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jesse Brandeburg <jesse.brandeburg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Matthew Vick <matthew.vick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitch Williams <mitch.a.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chao Yu <chao2.yu-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-bcache-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Shannon Nelson <shannon.nelson-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TaqPxH82wqD4g@public.gmane.org
 
+Recent commits to kernel/git/torvalds/linux.git have made the following
+functions able to tolerate NULL arguments:
 
---yEPQxsgoJgBvi8ip
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+kmem_cache_destroy (commit 3942d29918522)
+mempool_destroy (commit 4e3ca3e033d1)
+dma_pool_destroy (commit 44d7175da6ea)
 
-Hi Linus,
+These patches remove the associated NULL tests for the files that I found
+easy to compile test.  If these changes are OK, I will address the
+remainder later.
 
-The following changes since commit 4469942bbbe5ebf845e04971d8c74e9b6178f9fa:
+---
 
-  Merge tag 'for-linus' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2015-08-05 18:50:38 +0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-4.3-rc1-stale-dcache
-
-for you to fetch changes up to 0dad87fcb732691bfd3183acccda6709e1e759ca:
-
-  eCryptfs: Delete a check before the function call "key_put" (2015-08-18 17:29:49 -0500)
-
-----------------------------------------------------------------
-Invalidate stale eCryptfs dcache entries caused by unlinked lower inodes
-
-----------------------------------------------------------------
-Markus Elfring (1):
-      eCryptfs: Delete a check before the function call "key_put"
-
-Tyler Hicks (1):
-      eCryptfs: Invalidate dcache entries when lower i_nlink is zero
-
- fs/ecryptfs/crypto.c |  3 +--
- fs/ecryptfs/dentry.c | 16 ++++++++--------
- 2 files changed, 9 insertions(+), 10 deletions(-)
-
---yEPQxsgoJgBvi8ip
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJV7wkAAAoJENaSAD2qAscK3j4QAK5uKLChUJGwYH0+TowpOX94
-sSf0BXDVASS+M9owIqhfew7C+UrB+DPEhwUrmwpi92qL4l3oCXb2/X0F6Wegt9y9
-fxkgfY8xeqkOTUliG5qYKHVV4urmAATlycIarqF6y9yzZ3Bu4AKftufVhm4tMyJV
-Y5SNHCBeBl2/brCQqZ7yQKodEFYG9afubSyJR2s4jYQkSoW/EJ9pQyTLLCAHnlTa
-Ow89DT7Wr4KiMrnUAFf+KXzQQAnMX3YHnDWgw6xQE25M/nD9Ti3iFimx4OXtjlav
-dKtsub4GiwCjbQSuy6FCTq8Xc6W0MD3NX8pNERyfFDDazhdBTFoT95hx0y031oYX
-+Bi0q6eUeTvP+aaEiY91wLnbhJJS17rrctDhfNqwsxZDNWN3nbXEM+LDWsL/Ly/R
-N7Y7CLDlsXIzjITegvDHpqljHzRrYnGpCuvCfVLdYe4WPCfCkgcwqfvvHxRFvbP5
-52xvpRhYXjHmpapdn0S5xQem3RYSDsBIAsxFbvUTLvAUrb5eb6GBvLRYkqr9Dkfb
-hg2CgQ50JgT9uGu9qWJufP+4sIsMcXsZQzY0mk3lQIpyCJ/7v0HbOqUBej+bQpNA
-F/rAB93E2YcUJGzf2qUcyZWAoVivoy464FuED4xe7tN7ukvEP0PB8vz/RJvDqxvt
-CS/pGPD5foRSrLUPb32R
-=6TeG
------END PGP SIGNATURE-----
-
---yEPQxsgoJgBvi8ip--
+ arch/x86/kvm/mmu.c                                 |    6 --
+ block/bio-integrity.c                              |    7 --
+ block/bio.c                                        |    7 --
+ block/blk-core.c                                   |    3 -
+ block/elevator.c                                   |    3 -
+ drivers/atm/he.c                                   |    7 --
+ drivers/block/aoe/aoedev.c                         |    3 -
+ drivers/block/drbd/drbd_main.c                     |   21 ++-----
+ drivers/block/pktcdvd.c                            |    3 -
+ drivers/block/rbd.c                                |    6 --
+ drivers/dma/dmaengine.c                            |    6 --
+ drivers/firmware/google/gsmi.c                     |    3 -
+ drivers/gpu/drm/i915/i915_dma.c                    |   19 ++----
+ drivers/iommu/amd_iommu_init.c                     |    7 --
+ drivers/md/bcache/bset.c                           |    3 -
+ drivers/md/bcache/request.c                        |    3 -
+ drivers/md/bcache/super.c                          |    9 +--
+ drivers/md/dm-bufio.c                              |    3 -
+ drivers/md/dm-cache-target.c                       |    3 -
+ drivers/md/dm-crypt.c                              |    6 --
+ drivers/md/dm-io.c                                 |    3 -
+ drivers/md/dm-log-userspace-base.c                 |    3 -
+ drivers/md/dm-region-hash.c                        |    4 -
+ drivers/md/dm.c                                    |   13 +---
+ drivers/md/multipath.c                             |    3 -
+ drivers/md/raid1.c                                 |    6 --
+ drivers/md/raid10.c                                |    9 +--
+ drivers/md/raid5.c                                 |    3 -
+ drivers/mtd/nand/nandsim.c                         |    3 -
+ drivers/mtd/ubi/attach.c                           |    4 -
+ drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c      |    3 -
+ drivers/staging/lustre/lustre/llite/super25.c      |   16 +----
+ drivers/staging/lustre/lustre/obdclass/genops.c    |   24 ++------
+ drivers/staging/lustre/lustre/obdclass/lu_object.c |    6 --
+ drivers/staging/rdma/hfi1/user_sdma.c              |    3 -
+ drivers/thunderbolt/ctl.c                          |    3 -
+ drivers/usb/gadget/udc/bdc/bdc_core.c              |    3 -
+ drivers/usb/gadget/udc/gr_udc.c                    |    3 -
+ drivers/usb/gadget/udc/mv_u3d_core.c               |    3 -
+ drivers/usb/gadget/udc/mv_udc_core.c               |    3 -
+ drivers/usb/host/fotg210-hcd.c                     |   12 +---
+ drivers/usb/host/fusbh200-hcd.c                    |   12 +---
+ drivers/usb/host/whci/init.c                       |    3 -
+ drivers/usb/host/xhci-mem.c                        |   12 +---
+ fs/btrfs/backref.c                                 |    3 -
+ fs/btrfs/delayed-inode.c                           |    3 -
+ fs/btrfs/delayed-ref.c                             |   12 +---
+ fs/btrfs/disk-io.c                                 |    3 -
+ fs/btrfs/extent_io.c                               |    6 --
+ fs/btrfs/extent_map.c                              |    3 -
+ fs/btrfs/file.c                                    |    3 -
+ fs/btrfs/inode.c                                   |   18 ++----
+ fs/btrfs/ordered-data.c                            |    3 -
+ fs/dlm/memory.c                                    |    6 --
+ fs/ecryptfs/main.c                                 |    3 -
+ fs/ext4/crypto.c                                   |    9 +--
+ fs/ext4/extents_status.c                           |    3 -
+ fs/ext4/mballoc.c                                  |    3 -
+ fs/f2fs/crypto.c                                   |    9 +--
+ fs/gfs2/main.c                                     |   29 ++--------
+ fs/jbd2/journal.c                                  |   15 +----
+ fs/jbd2/revoke.c                                   |   12 +---
+ fs/jbd2/transaction.c                              |    6 --
+ fs/jffs2/malloc.c                                  |   27 +++------
+ fs/nfsd/nfscache.c                                 |    6 --
+ fs/nilfs2/super.c                                  |   12 +---
+ fs/ocfs2/dlm/dlmlock.c                             |    3 -
+ fs/ocfs2/dlm/dlmmaster.c                           |   16 +----
+ fs/ocfs2/super.c                                   |   18 ++----
+ fs/ocfs2/uptodate.c                                |    3 -
+ lib/debugobjects.c                                 |    3 -
+ net/core/sock.c                                    |   12 +---
+ net/dccp/ackvec.c                                  |   12 +---
+ net/dccp/ccid.c                                    |    3 -
+ net/sunrpc/sched.c                                 |   12 +---
+ 75 files changed, 180 insertions(+), 381 deletions(-)
