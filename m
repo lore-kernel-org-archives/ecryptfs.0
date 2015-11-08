@@ -1,21 +1,19 @@
 From: Andrey Markovytch <andreym@codeaurora.org>
 Subject: [PATCH v1] eCryptfs: enhancing eCryptfs to be used with external crypto engine
-Date: Sun,  8 Nov 2015 10:10:00 +0200
-Message-ID: <1446970202-18514-1-git-send-email-andreym@codeaurora.org>
+Date: Sun,  8 Nov 2015 10:14:26 +0200
+Message-ID: <1446970468-21434-1-git-send-email-andreym@codeaurora.org>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:45215 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:45266 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbbKHIKP (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sun, 8 Nov 2015 03:10:15 -0500
+	with ESMTP id S1751788AbbKHIOm (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sun, 8 Nov 2015 03:14:42 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@qti.qualcomm.com>, Andrey Markovytch <andreym@codeaurora.org>, open list <linux-kernel@vger.kernel.org>
-
-From: Andrey Markovytch <andreym@qti.qualcomm.com>
+Cc: ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@codeaurora.org>, open list <linux-kernel@vger.kernel.org>
 
 Currently eCryptfs is responsible for page encryption/decryption.
 This approach will not work when there is HW inline encryption.
