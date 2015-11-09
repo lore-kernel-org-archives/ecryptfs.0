@@ -1,1007 +1,1792 @@
-From: kbuild test robot <lkp@intel.com>
+From: Tyler Hicks <tyhicks@canonical.com>
 Subject: Re: [PATCH v1] eCryptfs: enhancing eCryptfs to be used with external
  crypto engine
-Date: Sun, 8 Nov 2015 19:06:34 +0800
-Message-ID: <201511081928.p7fxWmJn%fengguang.wu@intel.com>
-References: <1446970468-21434-1-git-send-email-andreym@codeaurora.org>
+Date: Mon, 9 Nov 2015 11:55:46 -0600
+Message-ID: <20151109175546.GB29708@boyd>
+References: <1446970202-18514-1-git-send-email-andreym@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="HlL+5n6rz5pIUxbD"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="3uo+9/B/ebqu+fSQ"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12613 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750716AbbKHLHn (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Sun, 8 Nov 2015 06:07:43 -0500
+Received: from youngberry.canonical.com ([91.189.89.112]:44478 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751589AbbKIRzx (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 9 Nov 2015 12:55:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1446970468-21434-1-git-send-email-andreym@codeaurora.org>
+In-Reply-To: <1446970202-18514-1-git-send-email-andreym@codeaurora.org>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 To: Andrey Markovytch <andreym@codeaurora.org>
-Cc: kbuild-all@01.org, tyhicks@canonical.com, ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@codeaurora.org>, open list <linux-kernel@vger.kernel.org>
+Cc: ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@qti.qualcomm.com>, open list <linux-kernel@vger.kernel.org>
 
 
---HlL+5n6rz5pIUxbD
+--3uo+9/B/ebqu+fSQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Andrey,
+Hello Andrey!
 
-[auto build test ERROR on: v4.3-rc7]
-[also build test ERROR on: next-20151106]
+On 2015-11-08 10:10:00, Andrey Markovytch wrote:
+> From: Andrey Markovytch <andreym@qti.qualcomm.com>
+>=20
+> Currently eCryptfs is responsible for page encryption/decryption.
+> This approach will not work when there is HW inline encryption.
+> The proposed change allows external module to register with eCryptfs
+> and provide alternative encryption mechanism and also decide whether
+> encryption should be performed at all, or deferred to a later stage via
+> the inline HW engine.
+> Additional cipher option was introduced to support the HW/external mode
+> under that name of "aes-xts". If no external module has registered
+> to support this cipher, eCryptfs will fall back to the usual "aes"
 
-url:    https://github.com/0day-ci/linux/commits/Andrey-Markovytch/eCryptfs-enhancing-eCryptfs-to-be-used-with-external-crypto-engine/20151108-161722
-config: i386-allmodconfig (attached as .config)
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+What is "HW/external mode"? There's no description in the commit message
+and ecryptfs_register_to_events() does not have a caller so I'm not sure
+of the purpose. Please provide more context.
 
-All errors (new ones prefixed by >>):
+Despite not yet understanding the purpose of this patch, I think that I
+can safely say that "aes-xts" is not an appropriate mount option to use
+when enabling this mode. eCryptfs may support XTS mode one day, using
+the Crypto API, so "HW/external mode" should not own the mount option.
 
->> ERROR: "__iget" undefined!
+Tyler
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>=20
+> Signed-off-by: Lina Zarivach <linaz@codeaurora.org>
+> Signed-off-by: Andrey Markovytch <andreym@codeaurora.org>
+> ---
+>  fs/ecryptfs/Makefile          |   4 +-
+>  fs/ecryptfs/caches_utils.c    |  78 +++++++++
+>  fs/ecryptfs/crypto.c          | 200 +++++++++++++++++++----
+>  fs/ecryptfs/debug.c           |  13 ++
+>  fs/ecryptfs/ecryptfs_kernel.h |  78 +++++++++
+>  fs/ecryptfs/events.c          | 361 ++++++++++++++++++++++++++++++++++++=
+++++++
+>  fs/ecryptfs/file.c            |  36 +++++
+>  fs/ecryptfs/inode.c           |  11 ++
+>  fs/ecryptfs/keystore.c        | 101 ++++++++----
+>  fs/ecryptfs/main.c            |  60 +++++--
+>  fs/ecryptfs/mmap.c            |   6 +
+>  fs/ecryptfs/super.c           |  14 +-
+>  include/linux/ecryptfs.h      |  47 ++++++
+>  13 files changed, 940 insertions(+), 69 deletions(-)
+>  create mode 100644 fs/ecryptfs/caches_utils.c
+>  create mode 100644 fs/ecryptfs/events.c
+>=20
+> diff --git a/fs/ecryptfs/Makefile b/fs/ecryptfs/Makefile
+> index 49678a6..995719c 100644
+> --- a/fs/ecryptfs/Makefile
+> +++ b/fs/ecryptfs/Makefile
+> @@ -4,7 +4,7 @@
+> =20
+>  obj-$(CONFIG_ECRYPT_FS) +=3D ecryptfs.o
+> =20
+> -ecryptfs-y :=3D dentry.o file.o inode.o main.o super.o mmap.o read_write=
+=2Eo \
+> -	      crypto.o keystore.o kthread.o debug.o
+> +ecryptfs-y :=3D dentry.o file.o inode.o main.o super.o mmap.o read_write=
+=2Eo events.o \
+> +	      crypto.o keystore.o kthread.o debug.o caches_utils.o
+> =20
+>  ecryptfs-$(CONFIG_ECRYPT_FS_MESSAGING) +=3D messaging.o miscdev.o
+> diff --git a/fs/ecryptfs/caches_utils.c b/fs/ecryptfs/caches_utils.c
+> new file mode 100644
+> index 0000000..c599c96
+> --- /dev/null
+> +++ b/fs/ecryptfs/caches_utils.c
+> @@ -0,0 +1,78 @@
+> +/*
+> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/fs.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/pagemap.h>
+> +#include <linux/pagevec.h>
+> +
+> +#include "../internal.h"
+> +
+> +void ecryptfs_drop_pagecache_sb(struct super_block *sb, void *unused)
+> +{
+> +	struct inode *inode, *toput_inode =3D NULL;
+> +
+> +	spin_lock(&sb->s_inode_list_lock);
+> +	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+> +		spin_lock(&inode->i_lock);
+> +		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
+> +		    (inode->i_mapping->nrpages =3D=3D 0)) {
+> +			spin_unlock(&inode->i_lock);
+> +			continue;
+> +		}
+> +		__iget(inode);
+> +		spin_unlock(&inode->i_lock);
+> +		spin_unlock(&sb->s_inode_list_lock);
+> +
+> +		invalidate_mapping_pages(inode->i_mapping, 0, -1);
+> +		iput(toput_inode);
+> +		toput_inode =3D inode;
+> +
+> +		spin_lock(&sb->s_inode_list_lock);
+> +	}
+> +	spin_unlock(&sb->s_inode_list_lock);
+> +	iput(toput_inode);
+> +}
+> +
+> +void clean_inode_pages(struct address_space *mapping,
+> +		pgoff_t start, pgoff_t end)
+> +{
+> +	struct pagevec pvec;
+> +		pgoff_t index =3D start;
+> +		int i;
+> +
+> +		pagevec_init(&pvec, 0);
+> +		while (index <=3D end && pagevec_lookup(&pvec, mapping, index,
+> +				min(end - index,
+> +					(pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
+> +			for (i =3D 0; i < pagevec_count(&pvec); i++) {
+> +				struct page *page =3D pvec.pages[i];
+> +
+> +				/* We rely upon deletion
+> +				 * not changing page->index
+> +				 */
+> +				index =3D page->index;
+> +				if (index > end)
+> +					break;
+> +				if (!trylock_page(page))
+> +					continue;
+> +				WARN_ON(page->index !=3D index);
+> +				zero_user(page, 0, PAGE_CACHE_SIZE);
+> +				unlock_page(page);
+> +			}
+> +			pagevec_release(&pvec);
+> +			cond_resched();
+> +			index++;
+> +		}
+> +}
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index 80d6901..99ebf13 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/scatterlist.h>
+>  #include <linux/slab.h>
+>  #include <asm/unaligned.h>
+> +#include <linux/ecryptfs.h>
+>  #include "ecryptfs_kernel.h"
+> =20
+>  #define DECRYPT		0
+> @@ -350,9 +351,9 @@ static int crypt_scatterlist(struct ecryptfs_crypt_st=
+at *crypt_stat,
+>  	       || !(crypt_stat->flags & ECRYPTFS_STRUCT_INITIALIZED));
+>  	if (unlikely(ecryptfs_verbosity > 0)) {
+>  		ecryptfs_printk(KERN_DEBUG, "Key size [%zd]; key:\n",
+> -				crypt_stat->key_size);
+> +				ecryptfs_get_key_size_to_enc_data(crypt_stat));
+>  		ecryptfs_dump_hex(crypt_stat->key,
+> -				  crypt_stat->key_size);
+> +				ecryptfs_get_key_size_to_enc_data(crypt_stat));
+>  	}
+> =20
+>  	init_completion(&ecr.completion);
+> @@ -371,7 +372,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_st=
+at *crypt_stat,
+>  	/* Consider doing this once, when the file is opened */
+>  	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
+>  		rc =3D crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
+> -					      crypt_stat->key_size);
+> +				ecryptfs_get_key_size_to_enc_data(crypt_stat));
+>  		if (rc) {
+>  			ecryptfs_printk(KERN_ERR,
+>  					"Error setting key; rc =3D [%d]\n",
+> @@ -466,6 +467,31 @@ out:
+>  	return rc;
+>  }
+> =20
+> +static void init_ecryption_parameters(bool *hw_crypt, bool *cipher_suppo=
+rted,
+> +				struct ecryptfs_crypt_stat *crypt_stat)
+> +{
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> +
+> +	if (!hw_crypt || !cipher_supported)
+> +		return;
+> +
+> +	*cipher_supported =3D false;
+> +	*hw_crypt =3D false;
+> +
+> +	if (get_events() && get_events()->is_cipher_supported_cb) {
+> +		*cipher_supported =3D
+> +			get_events()->is_cipher_supported_cb(
+> +				ecryptfs_get_full_cipher(crypt_stat->cipher,
+> +				crypt_stat->cipher_mode, final, sizeof(final)));
+> +		if (*cipher_supported) {
+> +			/* we should apply external algorythm
+> +			 * assume that is_hw_crypt() cbck is supplied
+> +			 */
+> +			*hw_crypt =3D get_events()->is_hw_crypt_cb();
+> +		}
+> +	}
+> +}
+> +
+>  /**
+>   * ecryptfs_encrypt_page
+>   * @page: Page mapped from the eCryptfs inode for the file; contains
+> @@ -491,11 +517,18 @@ int ecryptfs_encrypt_page(struct page *page)
+>  	loff_t extent_offset;
+>  	loff_t lower_offset;
+>  	int rc =3D 0;
+> +	bool is_hw_crypt;
+> +	bool is_cipher_supported;
+> +
+> =20
+>  	ecryptfs_inode =3D page->mapping->host;
+>  	crypt_stat =3D
+>  		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
+>  	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
+> +
+> +	init_ecryption_parameters(&is_hw_crypt,
+> +		&is_cipher_supported, crypt_stat);
+> +
+>  	enc_extent_page =3D alloc_page(GFP_USER);
+>  	if (!enc_extent_page) {
+>  		rc =3D -ENOMEM;
+> @@ -503,24 +536,51 @@ int ecryptfs_encrypt_page(struct page *page)
+>  				"encrypted extent\n");
+>  		goto out;
+>  	}
+> -
+> -	for (extent_offset =3D 0;
+> -	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
+> -	     extent_offset++) {
+> -		rc =3D crypt_extent(crypt_stat, enc_extent_page, page,
+> -				  extent_offset, ENCRYPT);
+> -		if (rc) {
+> -			printk(KERN_ERR "%s: Error encrypting extent; "
+> -			       "rc =3D [%d]\n", __func__, rc);
+> -			goto out;
+> -		}
+> +	if (is_hw_crypt) {
+> +		/* no need for encryption */
+> +	} else {
+> +			for (extent_offset =3D 0;
+> +				extent_offset <
+> +				(PAGE_CACHE_SIZE / crypt_stat->extent_size);
+> +				extent_offset++) {
+> +
+> +				if (is_cipher_supported) {
+> +					if (!get_events()->encrypt_cb) {
+> +						rc =3D -EPERM;
+> +						goto out;
+> +					}
+> +					rc =3D get_events()->encrypt_cb(page,
+> +						enc_extent_page,
+> +						ecryptfs_inode_to_lower(
+> +							ecryptfs_inode),
+> +							extent_offset);
+> +				} else {
+> +					rc =3D crypt_extent(crypt_stat,
+> +						enc_extent_page, page,
+> +						extent_offset, ENCRYPT);
+> +				}
+> +				if (rc) {
+> +					ecryptfs_printk(KERN_ERR,
+> +					"%s: Error encrypting; rc =3D [%d]\n",
+> +					__func__, rc);
+> +					goto out;
+> +				}
+> +			}
+>  	}
+> =20
+>  	lower_offset =3D lower_offset_for_page(crypt_stat, page);
+> -	enc_extent_virt =3D kmap(enc_extent_page);
+> +	if (is_hw_crypt)
+> +		enc_extent_virt =3D kmap(page);
+> +	else
+> +		enc_extent_virt =3D kmap(enc_extent_page);
+> +
+>  	rc =3D ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offs=
+et,
+>  				  PAGE_CACHE_SIZE);
+> -	kunmap(enc_extent_page);
+> +	if (!is_hw_crypt)
+> +		kunmap(enc_extent_page);
+> +	else
+> +		kunmap(page);
+> +
+>  	if (rc < 0) {
+>  		ecryptfs_printk(KERN_ERR,
+>  			"Error attempting to write lower page; rc =3D [%d]\n",
+> @@ -559,6 +619,8 @@ int ecryptfs_decrypt_page(struct page *page)
+>  	unsigned long extent_offset;
+>  	loff_t lower_offset;
+>  	int rc =3D 0;
+> +	bool is_cipher_supported;
+> +	bool is_hw_crypt;
+> =20
+>  	ecryptfs_inode =3D page->mapping->host;
+>  	crypt_stat =3D
+> @@ -577,13 +639,33 @@ int ecryptfs_decrypt_page(struct page *page)
+>  		goto out;
+>  	}
+> =20
+> +	init_ecryption_parameters(&is_hw_crypt,
+> +		&is_cipher_supported, crypt_stat);
+> +
+> +	if (is_hw_crypt) {
+> +		rc =3D 0;
+> +		return rc;
+> +	}
+> +
+>  	for (extent_offset =3D 0;
+>  	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
+>  	     extent_offset++) {
+> -		rc =3D crypt_extent(crypt_stat, page, page,
+> +		if (is_cipher_supported) {
+> +			if (!get_events()->decrypt_cb) {
+> +				rc =3D -EPERM;
+> +				goto out;
+> +			}
+> +
+> +			rc =3D get_events()->decrypt_cb(page, page,
+> +				ecryptfs_inode_to_lower(ecryptfs_inode),
+> +				extent_offset);
+> +
+> +		} else
+> +			rc =3D crypt_extent(crypt_stat, page, page,
+>  				  extent_offset, DECRYPT);
+> +
+>  		if (rc) {
+> -			printk(KERN_ERR "%s: Error encrypting extent; "
+> +			ecryptfs_printk(KERN_ERR, "%s: Error decrypting extent;"
+>  			       "rc =3D [%d]\n", __func__, rc);
+>  			goto out;
+>  		}
+> @@ -612,7 +694,7 @@ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_sta=
+t *crypt_stat)
+>  			"Initializing cipher [%s]; strlen =3D [%d]; "
+>  			"key_size_bits =3D [%zd]\n",
+>  			crypt_stat->cipher, (int)strlen(crypt_stat->cipher),
+> -			crypt_stat->key_size << 3);
+> +			ecryptfs_get_key_size_to_enc_data(crypt_stat) << 3);
+>  	mutex_lock(&crypt_stat->cs_tfm_mutex);
+>  	if (crypt_stat->tfm) {
+>  		rc =3D 0;
+> @@ -694,7 +776,7 @@ int ecryptfs_compute_root_iv(struct ecryptfs_crypt_st=
+at *crypt_stat)
+>  		goto out;
+>  	}
+>  	rc =3D ecryptfs_calculate_md5(dst, crypt_stat, crypt_stat->key,
+> -				    crypt_stat->key_size);
+> +			ecryptfs_get_key_size_to_enc_data(crypt_stat));
+>  	if (rc) {
+>  		ecryptfs_printk(KERN_WARNING, "Error attempting to compute "
+>  				"MD5 while generating root IV\n");
+> @@ -721,6 +803,35 @@ static void ecryptfs_generate_new_key(struct ecryptf=
+s_crypt_stat *crypt_stat)
+>  	}
+>  }
+> =20
+> +static int ecryptfs_generate_new_salt(struct ecryptfs_crypt_stat *crypt_=
+stat)
+> +{
+> +	size_t salt_size =3D 0;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> +
+> +	salt_size =3D ecryptfs_get_salt_size_for_cipher(
+> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
+> +						 crypt_stat->cipher_mode,
+> +						 final, sizeof(final)));
+> +
+> +	if (salt_size =3D=3D 0)
+> +		return 0;
+> +
+> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size)) {
+> +		ecryptfs_printk(KERN_WARNING, "not enough space for salt\n");
+> +		crypt_stat->flags |=3D ECRYPTFS_SECURITY_WARNING;
+> +		return -EINVAL;
+> +	}
+> +
+> +	get_random_bytes(crypt_stat->key + crypt_stat->key_size, salt_size);
+> +	if (unlikely(ecryptfs_verbosity > 0)) {
+> +		ecryptfs_printk(KERN_DEBUG, "Generated new session salt:\n");
+> +		ecryptfs_dump_hex(crypt_stat->key + crypt_stat->key_size,
+> +				  salt_size);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /**
+>   * ecryptfs_copy_mount_wide_flags_to_inode_flags
+>   * @crypt_stat: The inode's cryptographic context
+> @@ -823,7 +934,6 @@ int ecryptfs_new_file_context(struct inode *ecryptfs_=
+inode)
+>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+>  	    &ecryptfs_superblock_to_private(
+>  		    ecryptfs_inode->i_sb)->mount_crypt_stat;
+> -	int cipher_name_len;
+>  	int rc =3D 0;
+> =20
+>  	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
+> @@ -837,15 +947,19 @@ int ecryptfs_new_file_context(struct inode *ecryptf=
+s_inode)
+>  		       "to the inode key sigs; rc =3D [%d]\n", rc);
+>  		goto out;
+>  	}
+> -	cipher_name_len =3D
+> -		strlen(mount_crypt_stat->global_default_cipher_name);
+> -	memcpy(crypt_stat->cipher,
+> +	strlcpy(crypt_stat->cipher,
+>  	       mount_crypt_stat->global_default_cipher_name,
+> -	       cipher_name_len);
+> -	crypt_stat->cipher[cipher_name_len] =3D '\0';
+> +	       sizeof(crypt_stat->cipher));
+> +
+> +	strlcpy(crypt_stat->cipher_mode,
+> +			mount_crypt_stat->global_default_cipher_mode,
+> +			sizeof(crypt_stat->cipher_mode));
+> +
+>  	crypt_stat->key_size =3D
+>  		mount_crypt_stat->global_default_cipher_key_size;
+>  	ecryptfs_generate_new_key(crypt_stat);
+> +	ecryptfs_generate_new_salt(crypt_stat);
+> +
+>  	rc =3D ecryptfs_init_crypt_ctx(crypt_stat);
+>  	if (rc)
+>  		ecryptfs_printk(KERN_ERR, "Error initializing cryptographic "
+> @@ -971,7 +1085,8 @@ ecryptfs_cipher_code_str_map[] =3D {
+>  	{"twofish", RFC2440_CIPHER_TWOFISH},
+>  	{"cast6", RFC2440_CIPHER_CAST_6},
+>  	{"aes", RFC2440_CIPHER_AES_192},
+> -	{"aes", RFC2440_CIPHER_AES_256}
+> +	{"aes", RFC2440_CIPHER_AES_256},
+> +	{"aes_xts", RFC2440_CIPHER_AES_XTS_256}
+>  };
+> =20
+>  /**
+> @@ -999,6 +1114,11 @@ u8 ecryptfs_code_for_cipher_string(char *cipher_nam=
+e, size_t key_bytes)
+>  		case 32:
+>  			code =3D RFC2440_CIPHER_AES_256;
+>  		}
+> +	} else if (strcmp(cipher_name, "aes_xts") =3D=3D 0) {
+> +		switch (key_bytes) {
+> +		case 32:
+> +			code =3D RFC2440_CIPHER_AES_XTS_256;
+> +		}
+>  	} else {
+>  		for (i =3D 0; i < ARRAY_SIZE(ecryptfs_cipher_code_str_map); i++)
+>  			if (strcmp(cipher_name, map[i].cipher_str) =3D=3D 0) {
+> @@ -1038,9 +1158,24 @@ int ecryptfs_read_and_validate_header_region(struc=
+t inode *inode)
+>  	u8 file_size[ECRYPTFS_SIZE_AND_MARKER_BYTES];
+>  	u8 *marker =3D file_size + ECRYPTFS_FILE_SIZE_BYTES;
+>  	int rc;
+> +	unsigned int ra_pages_org;
+> +	struct file *lower_file =3D NULL;
+> +
+> +	if (!inode)
+> +		return -EIO;
+> +	lower_file =3D ecryptfs_inode_to_private(inode)->lower_file;
+> +	if (!lower_file)
+> +		return -EIO;
+> +
+> +	/*disable read a head mechanism for a while */
+> +	ra_pages_org =3D lower_file->f_ra.ra_pages;
+> +	lower_file->f_ra.ra_pages =3D 0;
+> =20
+>  	rc =3D ecryptfs_read_lower(file_size, 0, ECRYPTFS_SIZE_AND_MARKER_BYTES,
+>  				 inode);
+> +	lower_file->f_ra.ra_pages =3D ra_pages_org;
+> +	/* restore read a head mechanism */
+> +
+>  	if (rc < ECRYPTFS_SIZE_AND_MARKER_BYTES)
+>  		return rc >=3D 0 ? -EINVAL : rc;
+>  	rc =3D ecryptfs_validate_marker(marker);
+> @@ -1430,6 +1565,11 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs=
+_dentry)
+>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+>  		&ecryptfs_superblock_to_private(
+>  			ecryptfs_dentry->d_sb)->mount_crypt_stat;
+> +	unsigned int ra_pages_org;
+> +	struct file *lower_file =3D
+> +		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file;
+> +	if (!lower_file)
+> +		return -EIO;
+> =20
+>  	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
+>  						      mount_crypt_stat);
+> @@ -1441,8 +1581,14 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs=
+_dentry)
+>  		       __func__);
+>  		goto out;
+>  	}
+> +	/*disable read a head mechanism */
+> +	ra_pages_org =3D lower_file->f_ra.ra_pages;
+> +	lower_file->f_ra.ra_pages =3D 0;
+> +
+>  	rc =3D ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
+>  				 ecryptfs_inode);
+> +	lower_file->f_ra.ra_pages =3D ra_pages_org; /* restore it back */
+> +
+>  	if (rc >=3D 0)
+>  		rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
+>  						ecryptfs_dentry,
+> diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
+> index 3d2bdf5..2b60137 100644
+> --- a/fs/ecryptfs/debug.c
+> +++ b/fs/ecryptfs/debug.c
+> @@ -119,3 +119,16 @@ void ecryptfs_dump_hex(char *data, int bytes)
+>  		printk("\n");
+>  }
+> =20
+> +void ecryptfs_dump_salt_hex(char *data, int key_size, char *cipher)
+> +{
+> +	size_t salt_size =3D ecryptfs_get_salt_size_for_cipher(cipher);
+> +
+> +	if (salt_size =3D=3D 0)
+> +		return;
+> +
+> +	if (!ecryptfs_check_space_for_salt(key_size, salt_size))
+> +		return;
+> +
+> +	ecryptfs_printk(KERN_DEBUG, "Decrypted session salt key:\n");
+> +	ecryptfs_dump_hex(data + key_size, salt_size);
+> +}
+> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+> index 5ba029e..56297f3 100644
+> --- a/fs/ecryptfs/ecryptfs_kernel.h
+> +++ b/fs/ecryptfs/ecryptfs_kernel.h
+> @@ -245,6 +245,7 @@ struct ecryptfs_crypt_stat {
+>  	struct mutex cs_tfm_mutex;
+>  	struct mutex cs_hash_tfm_mutex;
+>  	struct mutex cs_mutex;
+> +	unsigned char cipher_mode[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+>  };
+> =20
+>  /* inode private data. */
+> @@ -267,6 +268,8 @@ struct ecryptfs_dentry_info {
+>  	};
+>  };
+> =20
+> +
+> +
+>  /**
+>   * ecryptfs_global_auth_tok - A key used to encrypt all new files under =
+the mountpoint
+>   * @flags: Status flags
+> @@ -345,6 +348,8 @@ struct ecryptfs_mount_crypt_stat {
+>  	unsigned char global_default_fn_cipher_name[
+>  		ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+>  	char global_default_fnek_sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+> +	unsigned char global_default_cipher_mode[ECRYPTFS_MAX_CIPHER_NAME_SIZE
+> +							 + 1];
+>  };
+> =20
+>  /* superblock private data. */
+> @@ -527,6 +532,53 @@ ecryptfs_dentry_to_lower_path(struct dentry *dentry)
+>  	return &((struct ecryptfs_dentry_info *)dentry->d_fsdata)->lower_path;
+>  }
+> =20
+> +/**
+> + * Given a cipher and mode strings, the function
+> + * concatenates them to create a new string of
+> + * <cipher>_<mode> format.
+> + */
+> +static inline unsigned char *ecryptfs_get_full_cipher(
+> +	unsigned char *cipher, unsigned char *mode,
+> +	unsigned char *final, size_t final_size)
+> +{
+> +	memset(final, 0, final_size);
+> +
+> +	if (strlen(mode) > 0) {
+> +		snprintf(final, final_size, "%s_%s", cipher, mode);
+> +		return final;
+> +	}
+> +
+> +	return cipher;
+> +}
+> +
+> +/**
+> + * Given a <cipher>[_<mode>] formatted string, the function
+> + * extracts cipher string and/or mode string.
+> + * Note: the passed cipher and/or mode strings will be null-terminated.
+> + */
+> +static inline void ecryptfs_parse_full_cipher(
+> +	char *s, char *cipher, char *mode)
+> +{
+> +	char input[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1+1];
+> +			/* +1 for '_'; +1 for '\0' */
+> +	char *p;
+> +	char *input_p =3D input;
+> +
+> +	if (s =3D=3D NULL || cipher =3D=3D NULL)
+> +		return;
+> +
+> +	memset(input, 0, sizeof(input));
+> +	strlcpy(input, s, sizeof(input));
+> +
+> +	p =3D strsep(&input_p, "_");
+> +	strlcpy(cipher, p, ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1);
+> +
+> +
+> +	/* check if mode is specified */
+> +	if (input_p !=3D NULL && mode !=3D NULL)
+> +		strlcpy(mode, input_p, ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1);
+> +}
+> +
+>  #define ecryptfs_printk(type, fmt, arg...) \
+>          __ecryptfs_printk(type "%s: " fmt, __func__, ## arg);
+>  __printf(1, 2)
+> @@ -575,6 +627,7 @@ int ecryptfs_encrypt_and_encode_filename(
+>  	const char *name, size_t name_size);
+>  struct dentry *ecryptfs_lower_dentry(struct dentry *this_dentry);
+>  void ecryptfs_dump_hex(char *data, int bytes);
+> +void ecryptfs_dump_salt_hex(char *data, int key_size, char *cipher);
+>  int virt_to_scatterlist(const void *addr, int size, struct scatterlist *=
+sg,
+>  			int sg_size);
+>  int ecryptfs_compute_root_iv(struct ecryptfs_crypt_stat *crypt_stat);
+> @@ -718,4 +771,29 @@ int ecryptfs_set_f_namelen(long *namelen, long lower=
+_namelen,
+>  int ecryptfs_derive_iv(char *iv, struct ecryptfs_crypt_stat *crypt_stat,
+>  		       loff_t offset);
+> =20
+> +void clean_inode_pages(struct address_space *mapping,
+> +		pgoff_t start, pgoff_t end);
+> +
+> +void ecryptfs_drop_pagecache_sb(struct super_block *sb, void *unused);
+> +
+> +void ecryptfs_free_events(void);
+> +
+> +void ecryptfs_freepage(struct page *page);
+> +
+> +struct ecryptfs_events *get_events(void);
+> +
+> +size_t ecryptfs_get_salt_size_for_cipher(const char *cipher);
+> +
+> +size_t ecryptfs_get_key_size_to_enc_data(
+> +		struct ecryptfs_crypt_stat *crypt_stat);
+> +
+> +size_t ecryptfs_get_key_size_to_store_key(
+> +		struct ecryptfs_crypt_stat *crypt_stat);
+> +
+> +size_t ecryptfs_get_key_size_to_restore_key(size_t stored_key_size,
+> +		const char *cipher);
+> +
+> +bool ecryptfs_check_space_for_salt(const size_t key_size,
+> +		const size_t salt_size);
+> +
+>  #endif /* #ifndef ECRYPTFS_KERNEL_H */
+> diff --git a/fs/ecryptfs/events.c b/fs/ecryptfs/events.c
+> new file mode 100644
+> index 0000000..10a8983
+> --- /dev/null
+> +++ b/fs/ecryptfs/events.c
+> @@ -0,0 +1,361 @@
+> +/**
+> + * eCryptfs: Linux filesystem encryption layer
+> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/string.h>
+> +#include <linux/ecryptfs.h>
+> +#include <linux/mutex.h>
+> +#include <linux/types.h>
+> +#include <linux/slab.h>
+> +#include <linux/pagemap.h>
+> +#include <linux/random.h>
+> +#include "ecryptfs_kernel.h"
+> +
+> +static DEFINE_MUTEX(events_mutex);
+> +static struct ecryptfs_events *events_ptr;
+> +static int handle;
+> +
+> +void ecryptfs_free_events(void)
+> +{
+> +	mutex_lock(&events_mutex);
+> +	if (events_ptr !=3D NULL) {
+> +		kfree(events_ptr);
+> +		events_ptr =3D NULL;
+> +	}
+> +
+> +	mutex_unlock(&events_mutex);
+> +}
+> +
+> +/**
+> + * Register to ecryptfs events, by passing callback
+> + * functions to be called upon events occurrence.
+> + * The function returns a handle to be passed
+> + * to unregister function.
+> + */
+> +int ecryptfs_register_to_events(struct ecryptfs_events *ops)
+> +{
+> +	int ret_value =3D 0;
+> +
+> +	if (!ops)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&events_mutex);
+> +
+> +	if (events_ptr !=3D NULL) {
+> +		ecryptfs_printk(KERN_ERR,
+> +			"already registered!\n");
+> +		ret_value =3D -EPERM;
+> +		goto out;
+> +	}
+> +	events_ptr =3D
+> +		kzalloc(sizeof(struct ecryptfs_events), GFP_KERNEL);
+> +
+> +	if (!events_ptr) {
+> +		ecryptfs_printk(KERN_ERR, "malloc failure\n");
+> +		ret_value =3D -ENOMEM;
+> +		goto out;
+> +	}
+> +	/* copy the callbacks */
+> +	events_ptr->open_cb =3D ops->open_cb;
+> +	events_ptr->release_cb =3D ops->release_cb;
+> +	events_ptr->encrypt_cb =3D ops->encrypt_cb;
+> +	events_ptr->decrypt_cb =3D ops->decrypt_cb;
+> +	events_ptr->is_cipher_supported_cb =3D
+> +		ops->is_cipher_supported_cb;
+> +	events_ptr->is_hw_crypt_cb =3D ops->is_hw_crypt_cb;
+> +	events_ptr->get_salt_key_size_cb =3D ops->get_salt_key_size_cb;
+> +
+> +	get_random_bytes(&handle, sizeof(handle));
+> +	ret_value =3D handle;
+> +
+> +out:
+> +	mutex_unlock(&events_mutex);
+> +	return ret_value;
+> +}
+> +
+> +/**
+> + * Unregister from ecryptfs events.
+> + */
+> +int ecryptfs_unregister_from_events(int user_handle)
+> +{
+> +	int ret_value =3D 0;
+> +
+> +	mutex_lock(&events_mutex);
+> +
+> +	if (!events_ptr) {
+> +		ret_value =3D -EINVAL;
+> +		goto out;
+> +	}
+> +	if (user_handle !=3D handle) {
+> +		ret_value =3D ECRYPTFS_INVALID_EVENTS_HANDLE;
+> +		goto out;
+> +	}
+> +
+> +	kfree(events_ptr);
+> +	events_ptr =3D NULL;
+> +
+> +out:
+> +	mutex_unlock(&events_mutex);
+> +	return ret_value;
+> +}
+> +
+> +/**
+> + * This function decides whether the passed file offset
+> + * belongs to ecryptfs metadata or not.
+> + * The caller must pass ecryptfs data, which was received in one
+> + * of the callback invocations.
+> + */
+> +bool ecryptfs_is_page_in_metadata(void *data, pgoff_t offset)
+> +{
+> +
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +	bool ret =3D true;
+> +
+> +	if (!data) {
+> +		ecryptfs_printk(KERN_ERR, "ecryptfs_is_page_in_metadata: invalid data =
+parameter\n");
+> +		ret =3D false;
+> +		goto end;
+> +	}
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +
+> +	if (stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+> +		ret =3D false;
+> +		goto end;
+> +	}
+> +
+> +	if (offset >=3D (stat->metadata_size/PAGE_CACHE_SIZE)) {
+> +		ret =3D false;
+> +		goto end;
+> +	}
+> +end:
+> +	return ret;
+> +}
+> +
+> +/**
+> + * Given two ecryptfs data, the function
+> + * decides whether they are equal.
+> + */
+> +inline bool ecryptfs_is_data_equal(void *data1, void *data2)
+> +{
+> +	/* pointer comparison*/
+> +	return data1 =3D=3D data2;
+> +}
+> +
+> +/**
+> + * Given ecryptfs data, the function
+> + * returns appropriate key size.
+> + */
+> +size_t ecryptfs_get_key_size(void *data)
+> +{
+> +
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +
+> +	if (!data)
+> +		return 0;
+> +
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +	return stat->key_size;
+> +}
+> +
+> +/**
+> + * Given ecryptfs data, the function
+> + * returns appropriate salt size.
+> + *
+> + * !!! crypt_stat cipher name and mode must be initialized
+> + */
+> +size_t ecryptfs_get_salt_size(void *data)
+> +{
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> +
+> +	if (!data) {
+> +		ecryptfs_printk(KERN_ERR,
+> +				"ecryptfs_get_salt_size: invalid data parameter\n");
+> +		return 0;
+> +	}
+> +
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +	return ecryptfs_get_salt_size_for_cipher(
+> +			ecryptfs_get_full_cipher(stat->cipher,
+> +						 stat->cipher_mode,
+> +						 final, sizeof(final)));
+> +
+> +}
+> +
+> +/**
+> + * Given ecryptfs data, the function
+> + * returns appropriate cipher.
+> + */
+> +const unsigned char *ecryptfs_get_cipher(void *data)
+> +{
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +
+> +	if (!data) {
+> +		ecryptfs_printk(KERN_ERR,
+> +			"ecryptfs_get_cipher: invalid data parameter\n");
+> +		return NULL;
+> +	}
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +	return ecryptfs_get_full_cipher(stat->cipher, stat->cipher_mode,
+> +			final, sizeof(final));
+> +}
+> +
+> +/**
+> + * Given ecryptfs data, the function
+> + * returns file encryption key.
+> + */
+> +const unsigned char *ecryptfs_get_key(void *data)
+> +{
+> +
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +
+> +	if (!data) {
+> +		ecryptfs_printk(KERN_ERR,
+> +			"ecryptfs_get_key: invalid data parameter\n");
+> +		return NULL;
+> +	}
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +	return stat->key;
+> +}
+> +
+> +/**
+> + * Given ecryptfs data, the function
+> + * returns file encryption salt.
+> + */
+> +const unsigned char *ecryptfs_get_salt(void *data)
+> +{
+> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> +
+> +	if (!data) {
+> +		ecryptfs_printk(KERN_ERR,
+> +			"ecryptfs_get_salt: invalid data parameter\n");
+> +		return NULL;
+> +	}
+> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> +	return stat->key + ecryptfs_get_salt_size(data);
+> +}
+> +
+> +/**
+> + * Returns ecryptfs events pointer
+> + */
+> +inline struct ecryptfs_events *get_events(void)
+> +{
+> +	return events_ptr;
+> +}
+> +
+> +/**
+> + * If external crypto module requires salt in addition to key,
+> + * we store it as part of key array (if there is enough space)
+> + * Checks whether a salt key can fit into array allocated for
+> + * regular key
+> + */
+> +bool ecryptfs_check_space_for_salt(const size_t key_size,
+> +		const size_t salt_size)
+> +{
+> +	if ((salt_size + key_size) > ECRYPTFS_MAX_KEY_BYTES)
+> +		return false;
+> +
+> +	return true;
+> +}
+> +
+> +/*
+> + * If there is salt that is used by external crypto module, it is stored
+> + * in the same array where regular key is. Salt is going to be used by
+> + * external crypto module only, so for all internal crypto operations sa=
+lt
+> + * should be ignored.
+> + *
+> + * Get key size in cases where it is going to be used for data encryption
+> + * or for all other general purposes
+> + */
+> +size_t ecryptfs_get_key_size_to_enc_data(
+> +		struct ecryptfs_crypt_stat *crypt_stat)
+> +{
+> +	if (!crypt_stat)
+> +		return 0;
+> +
+> +	return crypt_stat->key_size;
+> +}
+> +
+> +/*
+> + * If there is salt that is used by external crypto module, it is stored
+> + * in the same array where regular key is. Salt is going to be used by
+> + * external crypto module only, but we still need to save and restore it
+> + * (in encrypted form) as part of ecryptfs header along with the regular
+> + * key.
+> + *
+> + * Get key size in cases where it is going to be stored persistently
+> + *
+> + * !!! crypt_stat cipher name and mode must be initialized
+> + */
+> +size_t ecryptfs_get_key_size_to_store_key(
+> +		struct ecryptfs_crypt_stat *crypt_stat)
+> +{
+> +	size_t salt_size =3D 0;
+> +
+> +	if (!crypt_stat)
+> +		return 0;
+> +
+> +	salt_size =3D ecryptfs_get_salt_size(crypt_stat);
+> +
+> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size)) {
+> +		ecryptfs_printk(KERN_WARNING,
+> +			"ecryptfs_get_key_size_to_store_key: not enough space for salt\n");
+> +		return crypt_stat->key_size;
+> +	}
+> +
+> +	return crypt_stat->key_size + salt_size;
+> +}
+> +
+> +/*
+> + * If there is salt that is used by external crypto module, it is stored
+> + * in the same array where regular key is. Salt is going to be used by
+> + * external crypto module only, but we still need to save and restore it
+> + * (in encrypted form) as part of ecryptfs header along with the regular
+> + * key.
+> + *
+> + * Get key size in cases where it is going to be restored from storage
+> + *
+> + * !!! crypt_stat cipher name and mode must be initialized
+> + */
+> +size_t ecryptfs_get_key_size_to_restore_key(size_t stored_key_size,
+> +		const char *cipher)
+> +{
+> +	size_t salt_size =3D 0;
+> +
+> +	if (!cipher)
+> +		return 0;
+> +
+> +	salt_size =3D ecryptfs_get_salt_size_for_cipher(cipher);
+> +
+> +	if (salt_size >=3D stored_key_size) {
+> +		ecryptfs_printk(KERN_WARNING,
+> +			"ecryptfs_get_key_size_to_restore_key: salt %zu >=3D stred size %zu\n=
+",
+> +			salt_size, stored_key_size);
+> +
+> +		return stored_key_size;
+> +	}
+> +
+> +	return stored_key_size - salt_size;
+> +}
+> +
+> +/**
+> + * Given cipher, the function returns appropriate salt size.
+> + */
+> +size_t ecryptfs_get_salt_size_for_cipher(const char *cipher)
+> +{
+> +	if (!get_events() || !(get_events()->get_salt_key_size_cb))
+> +		return 0;
+> +
+> +	return get_events()->get_salt_key_size_cb(cipher);
+> +}
+> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+> index feef8a9..c346c9e 100644
+> --- a/fs/ecryptfs/file.c
+> +++ b/fs/ecryptfs/file.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/security.h>
+>  #include <linux/compat.h>
+>  #include <linux/fs_stack.h>
+> +#include <linux/ecryptfs.h>
+>  #include "ecryptfs_kernel.h"
+> =20
+>  /**
+> @@ -184,6 +185,9 @@ static int ecryptfs_open(struct inode *inode, struct =
+file *file)
+>  	int rc =3D 0;
+>  	struct ecryptfs_crypt_stat *crypt_stat =3D NULL;
+>  	struct dentry *ecryptfs_dentry =3D file->f_path.dentry;
+> +	int ret;
+> +
+> +
+>  	/* Private value of ecryptfs_dentry allocated in
+>  	 * ecryptfs_lookup() */
+>  	struct ecryptfs_file_info *file_info;
+> @@ -231,12 +235,31 @@ static int ecryptfs_open(struct inode *inode, struc=
+t file *file)
+>  		rc =3D 0;
+>  		goto out;
+>  	}
+> +
+>  	rc =3D read_or_initialize_metadata(ecryptfs_dentry);
+>  	if (rc)
+>  		goto out_put;
+>  	ecryptfs_printk(KERN_DEBUG, "inode w/ addr =3D [0x%p], i_ino =3D "
+>  			"[0x%.16lx] size: [0x%.16llx]\n", inode, inode->i_ino,
+>  			(unsigned long long)i_size_read(inode));
+> +
+> +	if (get_events() && get_events()->open_cb) {
+> +
+> +		ret =3D vfs_fsync(file, false);
+> +
+> +		if (ret)
+> +			ecryptfs_printk(KERN_ERR,
+> +				"failed to sync file ret =3D %d.\n", ret);
+> +
+> +		get_events()->open_cb(ecryptfs_inode_to_lower(inode),
+> +			crypt_stat);
+> +
+> +		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+> +			truncate_inode_pages(inode->i_mapping, 0);
+> +			truncate_inode_pages(
+> +				ecryptfs_inode_to_lower(inode)->i_mapping, 0);
+> +		}
+> +	}
+>  	goto out;
+>  out_put:
+>  	ecryptfs_put_lower_file(inode);
+> @@ -261,9 +284,22 @@ static int ecryptfs_flush(struct file *file, fl_owne=
+r_t td)
+> =20
+>  static int ecryptfs_release(struct inode *inode, struct file *file)
+>  {
+> +
+> +	int ret;
+> +
+> +	ret =3D vfs_fsync(file, false);
+> +
+> +	if (ret)
+> +		pr_err("failed to sync file ret =3D %d.\n", ret);
+> +
+>  	ecryptfs_put_lower_file(inode);
+>  	kmem_cache_free(ecryptfs_file_info_cache,
+>  			ecryptfs_file_to_private(file));
+> +
+> +	clean_inode_pages(inode->i_mapping, 0, -1);
+> +	clean_inode_pages(ecryptfs_inode_to_lower(inode)->i_mapping, 0, -1);
+> +	truncate_inode_pages(inode->i_mapping, 0);
+> +	truncate_inode_pages(ecryptfs_inode_to_lower(inode)->i_mapping, 0);
+>  	return 0;
+>  }
+> =20
+> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+> index 3c4db11..e0d72e7 100644
+> --- a/fs/ecryptfs/inode.c
+> +++ b/fs/ecryptfs/inode.c
+> @@ -261,12 +261,15 @@ out:
+>   *
+>   * Returns zero on success; non-zero on error condition
+>   */
+> +
+> +
+>  static int
+>  ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_d=
+entry,
+>  		umode_t mode, bool excl)
+>  {
+>  	struct inode *ecryptfs_inode;
+>  	int rc;
+> +	struct ecryptfs_crypt_stat *crypt_stat;
+> =20
+>  	ecryptfs_inode =3D ecryptfs_do_create(directory_inode, ecryptfs_dentry,
+>  					    mode);
+> @@ -276,6 +279,7 @@ ecryptfs_create(struct inode *directory_inode, struct=
+ dentry *ecryptfs_dentry,
+>  		rc =3D PTR_ERR(ecryptfs_inode);
+>  		goto out;
+>  	}
+> +
+>  	/* At this point, a file exists on "disk"; we need to make sure
+>  	 * that this on disk file is prepared to be an ecryptfs file */
+>  	rc =3D ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
+> @@ -288,6 +292,13 @@ ecryptfs_create(struct inode *directory_inode, struc=
+t dentry *ecryptfs_dentry,
+>  		goto out;
+>  	}
+>  	unlock_new_inode(ecryptfs_inode);
+> +
+> +	crypt_stat =3D &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+> +	if (get_events() && get_events()->open_cb)
+> +		get_events()->open_cb(
+> +				ecryptfs_inode_to_lower(ecryptfs_inode),
+> +					crypt_stat);
+> +
+>  	d_instantiate(ecryptfs_dentry, ecryptfs_inode);
+>  out:
+>  	return rc;
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 6bd67e2..82b99c7 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -315,7 +315,8 @@ write_tag_66_packet(char *signature, u8 cipher_code,
+>  	 *         | File Encryption Key Size | 1 or 2 bytes |
+>  	 *         | File Encryption Key      | arbitrary    |
+>  	 */
+> -	data_len =3D (5 + ECRYPTFS_SIG_SIZE_HEX + crypt_stat->key_size);
+> +	data_len =3D (5 + ECRYPTFS_SIG_SIZE_HEX +
+> +			ecryptfs_get_key_size_to_store_key(crypt_stat));
+>  	*packet =3D kmalloc(data_len, GFP_KERNEL);
+>  	message =3D *packet;
+>  	if (!message) {
+> @@ -335,8 +336,9 @@ write_tag_66_packet(char *signature, u8 cipher_code,
+>  	memcpy(&message[i], signature, ECRYPTFS_SIG_SIZE_HEX);
+>  	i +=3D ECRYPTFS_SIG_SIZE_HEX;
+>  	/* The encrypted key includes 1 byte cipher code and 2 byte checksum */
+> -	rc =3D ecryptfs_write_packet_length(&message[i], crypt_stat->key_size +=
+ 3,
+> -					  &packet_size_len);
+> +	rc =3D ecryptfs_write_packet_length(&message[i],
+> +			ecryptfs_get_key_size_to_store_key(crypt_stat) + 3,
+> +			&packet_size_len);
+>  	if (rc) {
+>  		ecryptfs_printk(KERN_ERR, "Error generating tag 66 packet "
+>  				"header; cannot generate packet length\n");
+> @@ -344,9 +346,10 @@ write_tag_66_packet(char *signature, u8 cipher_code,
+>  	}
+>  	i +=3D packet_size_len;
+>  	message[i++] =3D cipher_code;
+> -	memcpy(&message[i], crypt_stat->key, crypt_stat->key_size);
+> -	i +=3D crypt_stat->key_size;
+> -	for (j =3D 0; j < crypt_stat->key_size; j++)
+> +	memcpy(&message[i], crypt_stat->key,
+> +			ecryptfs_get_key_size_to_store_key(crypt_stat));
+> +	i +=3D ecryptfs_get_key_size_to_store_key(crypt_stat);
+> +	for (j =3D 0; j < ecryptfs_get_key_size_to_store_key(crypt_stat); j++)
+>  		checksum +=3D crypt_stat->key[j];
+>  	message[i++] =3D (checksum / 256) % 256;
+>  	message[i++] =3D (checksum % 256);
+> @@ -918,6 +921,7 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t =
+*filename_size,
+>  	struct ecryptfs_parse_tag_70_packet_silly_stack *s;
+>  	struct key *auth_tok_key =3D NULL;
+>  	int rc =3D 0;
+> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
+> =20
+>  	(*packet_size) =3D 0;
+>  	(*filename_size) =3D 0;
+> @@ -977,12 +981,13 @@ ecryptfs_parse_tag_70_packet(char **filename, size_=
+t *filename_size,
+>  	s->fnek_sig_hex[ECRYPTFS_SIG_SIZE_HEX] =3D '\0';
+>  	(*packet_size) +=3D ECRYPTFS_SIG_SIZE;
+>  	s->cipher_code =3D data[(*packet_size)++];
+> -	rc =3D ecryptfs_cipher_code_to_string(s->cipher_string, s->cipher_code);
+> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher, s->cipher_code);
+>  	if (rc) {
+>  		printk(KERN_WARNING "%s: Cipher code [%d] is invalid\n",
+>  		       __func__, s->cipher_code);
+>  		goto out;
+>  	}
+> +	ecryptfs_parse_full_cipher(full_cipher, s->cipher_string, 0);
+>  	rc =3D ecryptfs_find_auth_tok_for_sig(&auth_tok_key,
+>  					    &s->auth_tok, mount_crypt_stat,
+>  					    s->fnek_sig_hex);
+> @@ -1151,6 +1156,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_a=
+uth_tok *auth_tok,
+>  	char *payload =3D NULL;
+>  	size_t payload_len =3D 0;
+>  	int rc;
+> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
+> =20
+>  	rc =3D ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
+>  	if (rc) {
+> @@ -1184,21 +1190,31 @@ decrypt_pki_encrypted_session_key(struct ecryptfs=
+_auth_tok *auth_tok,
+>  		       rc);
+>  		goto out;
+>  	}
+> -	auth_tok->session_key.flags |=3D ECRYPTFS_CONTAINS_DECRYPTED_KEY;
+> -	memcpy(crypt_stat->key, auth_tok->session_key.decrypted_key,
+> -	       auth_tok->session_key.decrypted_key_size);
+> -	crypt_stat->key_size =3D auth_tok->session_key.decrypted_key_size;
+> -	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_code);
+> +
+> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher, cipher_code);
+>  	if (rc) {
+>  		ecryptfs_printk(KERN_ERR, "Cipher code [%d] is invalid\n",
+>  				cipher_code)
+> -		goto out;
+> +					goto out;
+>  	}
+> +
+> +	auth_tok->session_key.flags |=3D ECRYPTFS_CONTAINS_DECRYPTED_KEY;
+> +	memcpy(crypt_stat->key, auth_tok->session_key.decrypted_key,
+> +	       auth_tok->session_key.decrypted_key_size);
+> +	crypt_stat->key_size =3D ecryptfs_get_key_size_to_restore_key(
+> +			auth_tok->session_key.decrypted_key_size, full_cipher);
+> +
+> +	ecryptfs_parse_full_cipher(full_cipher,
+> +		crypt_stat->cipher, crypt_stat->cipher_mode);
+> +
+>  	crypt_stat->flags |=3D ECRYPTFS_KEY_VALID;
+>  	if (ecryptfs_verbosity > 0) {
+>  		ecryptfs_printk(KERN_DEBUG, "Decrypted session key:\n");
+>  		ecryptfs_dump_hex(crypt_stat->key,
+>  				  crypt_stat->key_size);
+> +
+> +		ecryptfs_dump_salt_hex(crypt_stat->key, crypt_stat->key_size,
+> +				full_cipher);
+>  	}
+>  out:
+>  	kfree(msg);
+> @@ -1380,6 +1396,7 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *cryp=
+t_stat,
+>  	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
+>  	size_t length_size;
+>  	int rc =3D 0;
+> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
+> =20
+>  	(*packet_size) =3D 0;
+>  	(*new_auth_tok) =3D NULL;
+> @@ -1453,10 +1470,13 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *cr=
+ypt_stat,
+>  		rc =3D -EINVAL;
+>  		goto out_free;
+>  	}
+> -	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher,
+> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher,
+>  					    (u16)data[(*packet_size)]);
+>  	if (rc)
+>  		goto out_free;
+> +	ecryptfs_parse_full_cipher(full_cipher,
+> +		crypt_stat->cipher, crypt_stat->cipher_mode);
+> +
+>  	/* A little extra work to differentiate among the AES key
+>  	 * sizes; see RFC2440 */
+>  	switch(data[(*packet_size)++]) {
+> @@ -1465,7 +1485,10 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat *cry=
+pt_stat,
+>  		break;
+>  	default:
+>  		crypt_stat->key_size =3D
+> -			(*new_auth_tok)->session_key.encrypted_key_size;
+> +			ecryptfs_get_key_size_to_restore_key(
+> +			(*new_auth_tok)->session_key.encrypted_key_size,
+> +			full_cipher);
+> +
+>  	}
+>  	rc =3D ecryptfs_init_crypt_ctx(crypt_stat);
+>  	if (rc)
+> @@ -1664,6 +1687,8 @@ static int
+>  decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_=
+tok,
+>  					 struct ecryptfs_crypt_stat *crypt_stat)
+>  {
+> +
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+>  	struct scatterlist dst_sg[2];
+>  	struct scatterlist src_sg[2];
+>  	struct mutex *tfm_mutex;
+> @@ -1713,7 +1738,7 @@ decrypt_passphrase_encrypted_session_key(struct ecr=
+yptfs_auth_tok *auth_tok,
+>  	mutex_lock(tfm_mutex);
+>  	rc =3D crypto_blkcipher_setkey(
+>  		desc.tfm, auth_tok->token.password.session_key_encryption_key,
+> -		crypt_stat->key_size);
+> +		auth_tok->token.password.session_key_encryption_key_bytes);
+>  	if (unlikely(rc < 0)) {
+>  		mutex_unlock(tfm_mutex);
+>  		printk(KERN_ERR "Error setting key for crypto context\n");
+> @@ -1736,6 +1761,10 @@ decrypt_passphrase_encrypted_session_key(struct ec=
+ryptfs_auth_tok *auth_tok,
+>  				crypt_stat->key_size);
+>  		ecryptfs_dump_hex(crypt_stat->key,
+>  				  crypt_stat->key_size);
+> +		ecryptfs_dump_salt_hex(crypt_stat->key, crypt_stat->key_size,
+> +				ecryptfs_get_full_cipher(crypt_stat->cipher,
+> +					crypt_stat->cipher_mode,
+> +					final, sizeof(final)));
+>  	}
+>  out:
+>  	return rc;
+> @@ -1972,12 +2001,17 @@ pki_encrypt_session_key(struct key *auth_tok_key,
+>  	size_t payload_len =3D 0;
+>  	struct ecryptfs_message *msg;
+>  	int rc;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> =20
+>  	rc =3D write_tag_66_packet(auth_tok->token.private_key.signature,
+> -				 ecryptfs_code_for_cipher_string(
+> -					 crypt_stat->cipher,
+> -					 crypt_stat->key_size),
+> -				 crypt_stat, &payload, &payload_len);
+> +			ecryptfs_code_for_cipher_string(
+> +					ecryptfs_get_full_cipher(
+> +						crypt_stat->cipher,
+> +						crypt_stat->cipher_mode,
+> +						final, sizeof(final)),
+> +					ecryptfs_get_key_size_to_enc_data(
+> +						crypt_stat)),
+> +					crypt_stat, &payload, &payload_len);
+>  	up_write(&(auth_tok_key->sem));
+>  	key_put(auth_tok_key);
+>  	if (rc) {
+> @@ -2035,7 +2069,7 @@ write_tag_1_packet(char *dest, size_t *remaining_by=
+tes,
+>  	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signature,
+>  			  ECRYPTFS_SIG_SIZE);
+>  	encrypted_session_key_valid =3D 0;
+> -	for (i =3D 0; i < crypt_stat->key_size; i++)
+> +	for (i =3D 0; i < ecryptfs_get_key_size_to_store_key(crypt_stat); i++)
+>  		encrypted_session_key_valid |=3D
+>  			auth_tok->session_key.encrypted_key[i];
+>  	if (encrypted_session_key_valid) {
+> @@ -2189,6 +2223,7 @@ write_tag_3_packet(char *dest, size_t *remaining_by=
+tes,
+>  	u8 cipher_code;
+>  	size_t packet_size_length;
+>  	size_t max_packet_size;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+>  		crypt_stat->mount_crypt_stat;
+>  	struct blkcipher_desc desc =3D {
+> @@ -2221,13 +2256,14 @@ write_tag_3_packet(char *dest, size_t *remaining_=
+bytes,
+>  			mount_crypt_stat->global_default_cipher_key_size;
+>  	if (auth_tok->session_key.encrypted_key_size =3D=3D 0)
+>  		auth_tok->session_key.encrypted_key_size =3D
+> -			crypt_stat->key_size;
+> +			ecryptfs_get_key_size_to_store_key(crypt_stat);
+>  	if (crypt_stat->key_size =3D=3D 24
+>  	    && strcmp("aes", crypt_stat->cipher) =3D=3D 0) {
+>  		memset((crypt_stat->key + 24), 0, 8);
+>  		auth_tok->session_key.encrypted_key_size =3D 32;
+>  	} else
+> -		auth_tok->session_key.encrypted_key_size =3D crypt_stat->key_size;
+> +		auth_tok->session_key.encrypted_key_size =3D
+> +				ecryptfs_get_key_size_to_store_key(crypt_stat);
+>  	key_rec->enc_key_size =3D
+>  		auth_tok->session_key.encrypted_key_size;
+>  	encrypted_session_key_valid =3D 0;
+> @@ -2251,8 +2287,8 @@ write_tag_3_packet(char *dest, size_t *remaining_by=
+tes,
+>  				auth_tok->token.password.
+>  				session_key_encryption_key_bytes);
+>  		memcpy(session_key_encryption_key,
+> -		       auth_tok->token.password.session_key_encryption_key,
+> -		       crypt_stat->key_size);
+> +		auth_tok->token.password.session_key_encryption_key,
+> +		auth_tok->token.password.session_key_encryption_key_bytes);
+>  		ecryptfs_printk(KERN_DEBUG,
+>  				"Cached session key encryption key:\n");
+>  		if (ecryptfs_verbosity > 0)
+> @@ -2285,7 +2321,7 @@ write_tag_3_packet(char *dest, size_t *remaining_by=
+tes,
+>  	}
+>  	mutex_lock(tfm_mutex);
+>  	rc =3D crypto_blkcipher_setkey(desc.tfm, session_key_encryption_key,
+> -				     crypt_stat->key_size);
+> +		auth_tok->token.password.session_key_encryption_key_bytes);
+>  	if (rc < 0) {
+>  		mutex_unlock(tfm_mutex);
+>  		ecryptfs_printk(KERN_ERR, "Error setting key for crypto "
+> @@ -2294,7 +2330,12 @@ write_tag_3_packet(char *dest, size_t *remaining_b=
+ytes,
+>  	}
+>  	rc =3D 0;
+>  	ecryptfs_printk(KERN_DEBUG, "Encrypting [%zd] bytes of the key\n",
+> -			crypt_stat->key_size);
+> +		crypt_stat->key_size);
+> +	ecryptfs_printk(KERN_DEBUG, "Encrypting [%zd] bytes of the salt key\n",
+> +		ecryptfs_get_salt_size_for_cipher(
+> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
+> +				crypt_stat->cipher_mode,
+> +				final, sizeof(final))));
+>  	rc =3D crypto_blkcipher_encrypt(&desc, dst_sg, src_sg,
+>  				      (*key_rec).enc_key_size);
+>  	mutex_unlock(tfm_mutex);
+> @@ -2343,8 +2384,10 @@ encrypted_session_key_set:
+>  	dest[(*packet_size)++] =3D 0x04; /* version 4 */
+>  	/* TODO: Break from RFC2440 so that arbitrary ciphers can be
+>  	 * specified with strings */
+> -	cipher_code =3D ecryptfs_code_for_cipher_string(crypt_stat->cipher,
+> -						      crypt_stat->key_size);
+> +	cipher_code =3D ecryptfs_code_for_cipher_string(
+> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
+> +				crypt_stat->cipher_mode, final, sizeof(final)),
+> +			crypt_stat->key_size);
+>  	if (cipher_code =3D=3D 0) {
+>  		ecryptfs_printk(KERN_WARNING, "Unable to generate code for "
+>  				"cipher [%s]\n", crypt_stat->cipher);
+> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+> index e83f31c..b8ab8c7 100644
+> --- a/fs/ecryptfs/main.c
+> +++ b/fs/ecryptfs/main.c
+> @@ -165,7 +165,13 @@ void ecryptfs_put_lower_file(struct inode *inode)
+>  		fput(inode_info->lower_file);
+>  		inode_info->lower_file =3D NULL;
+>  		mutex_unlock(&inode_info->lower_file_mutex);
+> +
+> +		if (get_events() && get_events()->release_cb)
+> +			get_events()->release_cb(
+> +			ecryptfs_inode_to_lower(inode));
+>  	}
+> +
+> +
+>  }
+> =20
+>  enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig,
+> @@ -266,6 +272,7 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_=
+info *sbi, char *options,
+>  	int cipher_key_bytes_set =3D 0;
+>  	int fn_cipher_key_bytes;
+>  	int fn_cipher_key_bytes_set =3D 0;
+> +	size_t salt_size =3D 0;
+>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+>  		&sbi->mount_crypt_stat;
+>  	substring_t args[MAX_OPT_ARGS];
+> @@ -280,6 +287,7 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_=
+info *sbi, char *options,
+>  	char *cipher_key_bytes_src;
+>  	char *fn_cipher_key_bytes_src;
+>  	u8 cipher_code;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> =20
+>  	*check_ruid =3D 0;
+> =20
+> @@ -309,12 +317,14 @@ static int ecryptfs_parse_options(struct ecryptfs_s=
+b_info *sbi, char *options,
+>  		case ecryptfs_opt_ecryptfs_cipher:
+>  			cipher_name_src =3D args[0].from;
+>  			cipher_name_dst =3D
+> -				mount_crypt_stat->
+> -				global_default_cipher_name;
+> -			strncpy(cipher_name_dst, cipher_name_src,
+> -				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
+> -			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] =3D '\0';
+> +				mount_crypt_stat->global_default_cipher_name;
+> +
+> +			ecryptfs_parse_full_cipher(cipher_name_src,
+> +				mount_crypt_stat->global_default_cipher_name,
+> +				mount_crypt_stat->global_default_cipher_mode);
+> +
+>  			cipher_name_set =3D 1;
+> +
+>  			break;
+>  		case ecryptfs_opt_ecryptfs_key_bytes:
+>  			cipher_key_bytes_src =3D args[0].from;
+> @@ -411,24 +421,50 @@ static int ecryptfs_parse_options(struct ecryptfs_s=
+b_info *sbi, char *options,
+>  		strcpy(mount_crypt_stat->global_default_cipher_name,
+>  		       ECRYPTFS_DEFAULT_CIPHER);
+>  	}
+> +
+>  	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
+>  	    && !fn_cipher_name_set)
+>  		strcpy(mount_crypt_stat->global_default_fn_cipher_name,
+>  		       mount_crypt_stat->global_default_cipher_name);
+> -	if (!cipher_key_bytes_set)
+> +
+> +	if (cipher_key_bytes_set) {
+> +
+> +		salt_size =3D ecryptfs_get_salt_size_for_cipher(
+> +				ecryptfs_get_full_cipher(
+> +				mount_crypt_stat->global_default_cipher_name,
+> +				mount_crypt_stat->global_default_cipher_mode,
+> +				final, sizeof(final)));
+> +
+> +		if (!ecryptfs_check_space_for_salt(
+> +			mount_crypt_stat->global_default_cipher_key_size,
+> +			salt_size)) {
+> +			ecryptfs_printk(
+> +				KERN_WARNING,
+> +				"eCryptfs internal error: no space for salt");
+> +		}
+> +	} else
+>  		mount_crypt_stat->global_default_cipher_key_size =3D 0;
+> +
+>  	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
+>  	    && !fn_cipher_key_bytes_set)
+>  		mount_crypt_stat->global_default_fn_cipher_key_bytes =3D
+>  			mount_crypt_stat->global_default_cipher_key_size;
+> =20
+>  	cipher_code =3D ecryptfs_code_for_cipher_string(
+> -		mount_crypt_stat->global_default_cipher_name,
+> +			ecryptfs_get_full_cipher(
+> +				mount_crypt_stat->global_default_cipher_name,
+> +				mount_crypt_stat->global_default_cipher_mode,
+> +				final, sizeof(final)),
+>  		mount_crypt_stat->global_default_cipher_key_size);
+>  	if (!cipher_code) {
+> -		ecryptfs_printk(KERN_ERR,
+> -				"eCryptfs doesn't support cipher: %s",
+> -				mount_crypt_stat->global_default_cipher_name);
+> +		ecryptfs_printk(
+> +			KERN_ERR,
+> +			"eCryptfs doesn't support cipher: %s and key size %zu",
+> +			ecryptfs_get_full_cipher(
+> +				mount_crypt_stat->global_default_cipher_name,
+> +				mount_crypt_stat->global_default_cipher_mode,
+> +				final, sizeof(final)),
+> +			mount_crypt_stat->global_default_cipher_key_size);
+>  		rc =3D -EINVAL;
+>  		goto out;
+>  	}
+> @@ -488,6 +524,7 @@ static struct file_system_type ecryptfs_fs_type;
+>   * @dev_name: The path to mount over
+>   * @raw_data: The options passed into the kernel
+>   */
+> +
+>  static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, i=
+nt flags,
+>  			const char *dev_name, void *raw_data)
+>  {
+> @@ -557,6 +594,8 @@ static struct dentry *ecryptfs_mount(struct file_syst=
+em_type *fs_type, int flags
+> =20
+>  	ecryptfs_set_superblock_lower(s, path.dentry->d_sb);
+> =20
+> +	ecryptfs_drop_pagecache_sb(ecryptfs_superblock_to_lower(s), NULL);
+> +
+>  	/**
+>  	 * Set the POSIX ACL flag based on whether they're enabled in the lower
+>  	 * mount.
+> @@ -894,6 +933,7 @@ static void __exit ecryptfs_exit(void)
+>  	do_sysfs_unregistration();
+>  	unregister_filesystem(&ecryptfs_fs_type);
+>  	ecryptfs_free_kmem_caches();
+> +	ecryptfs_free_events();
+>  }
+> =20
+>  MODULE_AUTHOR("Michael A. Halcrow <mhalcrow@us.ibm.com>");
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index caba848..bdbc72d 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -552,10 +552,16 @@ static sector_t ecryptfs_bmap(struct address_space =
+*mapping, sector_t block)
+>  	return rc;
+>  }
+> =20
+> +void ecryptfs_freepage(struct page *page)
+> +{
+> +	zero_user(page, 0, PAGE_CACHE_SIZE);
+> +}
+> +
+>  const struct address_space_operations ecryptfs_aops =3D {
+>  	.writepage =3D ecryptfs_writepage,
+>  	.readpage =3D ecryptfs_readpage,
+>  	.write_begin =3D ecryptfs_write_begin,
+>  	.write_end =3D ecryptfs_write_end,
+>  	.bmap =3D ecryptfs_bmap,
+> +	.freepage =3D ecryptfs_freepage,
+>  };
+> diff --git a/fs/ecryptfs/super.c b/fs/ecryptfs/super.c
+> index afa1b81..25e436d 100644
+> --- a/fs/ecryptfs/super.c
+> +++ b/fs/ecryptfs/super.c
+> @@ -69,6 +69,9 @@ static void ecryptfs_i_callback(struct rcu_head *head)
+>  {
+>  	struct inode *inode =3D container_of(head, struct inode, i_rcu);
+>  	struct ecryptfs_inode_info *inode_info;
+> +	if (inode =3D=3D NULL)
+> +		return;
+> +
+>  	inode_info =3D ecryptfs_inode_to_private(inode);
+> =20
+>  	kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
+> @@ -88,9 +91,12 @@ static void ecryptfs_destroy_inode(struct inode *inode)
+>  	struct ecryptfs_inode_info *inode_info;
+> =20
+>  	inode_info =3D ecryptfs_inode_to_private(inode);
+> +
+>  	BUG_ON(inode_info->lower_file);
+> +
+>  	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
+>  	call_rcu(&inode->i_rcu, ecryptfs_i_callback);
+> +
+>  }
+> =20
+>  /**
+> @@ -149,6 +155,9 @@ static int ecryptfs_show_options(struct seq_file *m, =
+struct dentry *root)
+>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+>  		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
+>  	struct ecryptfs_global_auth_tok *walker;
+> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
+> +
+> +	memset(final, 0, sizeof(final));
+> =20
+>  	mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
+>  	list_for_each_entry(walker,
+> @@ -162,7 +171,10 @@ static int ecryptfs_show_options(struct seq_file *m,=
+ struct dentry *root)
+>  	mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
+> =20
+>  	seq_printf(m, ",ecryptfs_cipher=3D%s",
+> -		mount_crypt_stat->global_default_cipher_name);
+> +			ecryptfs_get_full_cipher(
+> +				mount_crypt_stat->global_default_cipher_name,
+> +				mount_crypt_stat->global_default_cipher_mode,
+> +				final, sizeof(final)));
+> =20
+>  	if (mount_crypt_stat->global_default_cipher_key_size)
+>  		seq_printf(m, ",ecryptfs_key_bytes=3D%zd",
+> diff --git a/include/linux/ecryptfs.h b/include/linux/ecryptfs.h
+> index 8d5ab99..55433c6 100644
+> --- a/include/linux/ecryptfs.h
+> +++ b/include/linux/ecryptfs.h
+> @@ -1,6 +1,9 @@
+>  #ifndef _LINUX_ECRYPTFS_H
+>  #define _LINUX_ECRYPTFS_H
+> =20
+> +struct inode;
+> +struct page;
+> +
+>  /* Version verification for shared data structures w/ userspace */
+>  #define ECRYPTFS_VERSION_MAJOR 0x00
+>  #define ECRYPTFS_VERSION_MINOR 0x04
+> @@ -41,6 +44,7 @@
+>  #define RFC2440_CIPHER_AES_256 0x09
+>  #define RFC2440_CIPHER_TWOFISH 0x0a
+>  #define RFC2440_CIPHER_CAST_6 0x0b
+> +#define RFC2440_CIPHER_AES_XTS_256 0x0c
+> =20
+>  #define RFC2440_CIPHER_RSA 0x01
+> =20
+> @@ -102,4 +106,47 @@ struct ecryptfs_auth_tok {
+>  	} token;
+>  } __attribute__ ((packed));
+> =20
+> +#define ECRYPTFS_INVALID_EVENTS_HANDLE -1
+> +
+> +/**
+> + * ecryptfs_events struct represents a partial interface
+> + * towards ecryptfs module. If registered to ecryptfs events,
+> + * one can receive push notifications.
+> + * A first callback received from ecryptfs will probably be
+> + * about file opening (open_cb),
+> + * in which ecryptfs passes its ecryptfs_data for future usage.
+> + * This data represents a file and must be passed in every query functio=
+ns
+> + * such as ecryptfs_get_key_size(), ecryptfs_get_cipher() etc.
+> + */
+> +struct ecryptfs_events {
+> +	bool (*is_cipher_supported_cb)(const char *cipher);
+> +	void (*open_cb)(struct inode *inode, void *ecrytpfs_data);
+> +	void (*release_cb)(struct inode *inode);
+> +	int (*encrypt_cb)(struct page *in_page, struct page *out_page,
+> +		struct inode *inode, unsigned long extent_offset);
+> +	int (*decrypt_cb)(struct page *in_page, struct page *out_page,
+> +		struct inode *inode, unsigned long extent_offset);
+> +	bool (*is_hw_crypt_cb)(void);
+> +	size_t (*get_salt_key_size_cb)(const char *cipher);
+> +};
+> +
+> +
+> +int ecryptfs_register_to_events(struct ecryptfs_events *ops);
+> +
+> +int ecryptfs_unregister_from_events(int user_handle);
+> +
+> +const unsigned char *ecryptfs_get_key(void *ecrytpfs_data);
+> +
+> +size_t ecryptfs_get_key_size(void *ecrytpfs_data);
+> +
+> +const unsigned char *ecryptfs_get_salt(void *ecrytpfs_data);
+> +
+> +size_t ecryptfs_get_salt_size(void *ecrytpfs_data);
+> +
+> +const unsigned char *ecryptfs_get_cipher(void *ecrytpfs_data);
+> +
+> +bool ecryptfs_is_page_in_metadata(void *ecrytpfs_data, pgoff_t offset);
+> +
+> +bool ecryptfs_is_data_equal(void *ecrytpfs_data1, void *ecrytpfs_data2);
+> +
+>  #endif /* _LINUX_ECRYPTFS_H */
+> --=20
+> Qualcomm Israel, on behalf of Qualcomm Innovation Center, Inc.
+> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+> a Linux Foundation Collaborative Project
+>=20
 
---HlL+5n6rz5pIUxbD
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+--3uo+9/B/ebqu+fSQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-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
-MEgLYTGArNlbR59/AfFNeDxdJwMA
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
---HlL+5n6rz5pIUxbD--
+iQIcBAEBCgAGBQJWQN4iAAoJENaSAD2qAscKmfoP/1YLiCfQCaW1Zi7KC6aOSDyI
+VNbgJm1rCHGvopq/qXlr4ForOBC/iVFaC7sJmpYZaTGFOk19ImaZKL9H/RIUksUf
+k2Qql+z4Cgc30wVUC312ws13QRFHvLByGphgiQ6lBXw4ksE74u9S5ALCsz7MXSpv
+RjZU1cxJvfqAMmVtztPc0+47vQin/MFJcQ/e8ez9XrEAe4oPtUlMbdmex1Lb1W+r
+mVPXtqnxq++NbnBw5AZAbKobHRmzhW2pUw8R4/u9QC+T2l1Hn3nE8rW60mU7TZ96
+hwSdHLf6C+hLNr40NfGM52Fz9vnaYG5tDSq30Vkih73+l2RfKMlAgzDaiSUIIbGD
+88TfU+m5bFZDoJw6WjQ4K33yzm6VHX8ZY568wW6DWpU6i26CUCyta9luCT0DDjQ1
+NAEkuPR706ANgYEJmBsuh5vj08c9DTZogz5VrD6XC6WvuxOWHR904sLCR3XIMll4
+iye+2FBA9IIRG69i3jvwb5T+HNHBJQ2GNk8Cl/OOJzOv3D5ta9/OsTCGbf5OSAE4
+EgtqJMJT1mL2mYVKvXizCm76+Q0QoevbX71/2r7nDEYyMfC5y85cbzuzUEDfh3B9
+U5lmNkLbg7Xtwnct6v7LVfC+fWegx6bPP8OVY2DwYv8a6uUOYkjvpjNZXoYohzX+
+Msazt5wu9Gq9nthq+fmf
+=yXnw
+-----END PGP SIGNATURE-----
+
+--3uo+9/B/ebqu+fSQ--
