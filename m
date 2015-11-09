@@ -1,72 +1,88 @@
-From: Tyler Hicks <tyhicks@canonical.com>
+From: Michael Halcrow <mhalcrow@google.com>
 Subject: Re: [PATCH v1] eCryptfs: enhancing eCryptfs to be used with external
  crypto engine
-Date: Mon, 9 Nov 2015 15:05:37 -0600
-Message-ID: <20151109210536.GC29708@boyd>
+Date: Mon, 9 Nov 2015 14:17:53 -0800
+Message-ID: <20151109221753.GA23529@google.com>
 References: <1446970202-18514-1-git-send-email-andreym@codeaurora.org>
  <20151109175546.GB29708@boyd>
  <ffb284e4b9c148a8d0c217fef67d9156.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="PuGuTyElPB9bOcsM"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:46154 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbbKIVFo (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 9 Nov 2015 16:05:44 -0500
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:34242 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046AbbKIWR4 (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 9 Nov 2015 17:17:56 -0500
+Received: by padhx2 with SMTP id hx2so203622624pad.1
+        for <ecryptfs@vger.kernel.org>; Mon, 09 Nov 2015 14:17:55 -0800 (PST)
 Content-Disposition: inline
 In-Reply-To: <ffb284e4b9c148a8d0c217fef67d9156.squirrel@www.codeaurora.org>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: andreym@codeaurora.org
-Cc: ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@qti.qualcomm.com>, open list <linux-kernel@vger.kernel.org>
+Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linaz@codeaurora.org, Andrey Markovytch <andreym@qti.qualcomm.com>, open list <linux-kernel@vger.kernel.org>
 
-
---PuGuTyElPB9bOcsM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2015-11-09 20:56:02, andreym@codeaurora.org wrote:
+On Mon, Nov 09, 2015 at 08:56:02PM -0000, andreym@codeaurora.org wrote:
 > Hello, Tyler
->=20
+> 
 > I'll try to provide more detailed explanation, should it be satisfactory
 > enough I will update the patch description.
->=20
+> 
 > The problem with current eCryptfs is that it has total control on how and
-> when the encryption is performed and this control can't be altered. One
-> example when this can be a problem is when we want to utilize an
+> when the encryption is performed and this control can't be altered.
+
+That's by design.
+
+eCryptfs has received at least one audit in 2014, and the auditor
+didn't find any serious security flaws. eCryptfs users have
+expectations about its security because of that.
+
+It looks like you are replacing the encryption mechanism with an
+out-of-kernel mechanism that implements a different encryption
+mode. Users on this platform who use "eCryptfs" are actually getting
+something different than what has been reviewed and audited.
+
+On a first glance through the patch, it's not clear to me what this
+out-of-kernel encryption mechanism is supposed to do. Can you point to
+any design documents? From this patch, I gather that it implements
+AES-256-XTS. Does the implementation conform to guidance in NIST
+Special Publication 800-38E and IEEE P1619/D16?
+
+> One example when this can be a problem is when we want to utilize an
 > underlying inline HW encryption engine which allows encrypting blocks 'on
 > the fly' as they are being written to the storage. In such a case relevant
 > blocks just need to be marked as 'should be encrypted'. No actual
 > encryption should be done by eCryptfs as it will be much slower.
 
-Is this a hardware crypto accelerator? If so, why not create a crypto
-api driver so all subsystems can take advantage of the acceleration
-instead of baking support into individual subsystems?
+What's the motivation for exposing this functionality through
+eCryptfs? If eCryptfs really is the best place for this, then what are
+the plans for EXT4 and F2FS, which both have per-file encryption? What
+do your usage scenarios look like? What's your adversarial model?
 
 > The provided framework allows transferring this control (if needed) to
 > some external module which will do the encryption itfelf or just mark the
 > appropriate blocks.
->=20
+> 
 > There is no caller for ecryptfs_register_to_events() since this change
 > only provides framework, it doesn't provide the module itself, the module
 > could be HW dependent.
-
-Will the code that you plan to call ecryptfs_register_to_events() be
-upstream? If so, have you posted it?
-
-Tyler
-
+> 
 > Regarding the mounting option, it merely serves as example of new cipher
 > mode that can be served by registered module.
+
+If anyone can just easily swap out encryption modes, it's harder to
+make any meaningful security statements about eCryptfs. Especially
+given that pressure to hit benchmark targets can motivate unsafe
+choices.
+
 > There is a special callback function that should be implemented by the
 > registered module that tells whether a particular cipher is supported by
 > it :
 > is_cipher_supported_cb()
->=20
+> 
 > The mounting option itself is not necessary, I can remove it
->=20
+> 
 > > Hello Andrey!
 > >
 > > On 2015-11-08 10:10:00, Andrey Markovytch wrote:
@@ -121,16 +137,16 @@ Tyler
 > >> +++ b/fs/ecryptfs/Makefile
 > >> @@ -4,7 +4,7 @@
 > >>
-> >>  obj-$(CONFIG_ECRYPT_FS) +=3D ecryptfs.o
+> >>  obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
 > >>
-> >> -ecryptfs-y :=3D dentry.o file.o inode.o main.o super.o mmap.o
+> >> -ecryptfs-y := dentry.o file.o inode.o main.o super.o mmap.o
 > >> read_write.o \
 > >> -	      crypto.o keystore.o kthread.o debug.o
-> >> +ecryptfs-y :=3D dentry.o file.o inode.o main.o super.o mmap.o
+> >> +ecryptfs-y := dentry.o file.o inode.o main.o super.o mmap.o
 > >> read_write.o events.o \
 > >> +	      crypto.o keystore.o kthread.o debug.o caches_utils.o
 > >>
-> >>  ecryptfs-$(CONFIG_ECRYPT_FS_MESSAGING) +=3D messaging.o miscdev.o
+> >>  ecryptfs-$(CONFIG_ECRYPT_FS_MESSAGING) += messaging.o miscdev.o
 > >> diff --git a/fs/ecryptfs/caches_utils.c b/fs/ecryptfs/caches_utils.c
 > >> new file mode 100644
 > >> index 0000000..c599c96
@@ -140,8 +156,7 @@ Tyler
 > >> +/*
 > >> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
 > >> + *
-> >> + * This program is free software; you can redistribute it and/or modi=
-fy
+> >> + * This program is free software; you can redistribute it and/or modify
 > >> + * it under the terms of the GNU General Public License version 2 and
 > >> + * only version 2 as published by the Free Software Foundation.
 > >> + *
@@ -161,13 +176,13 @@ fy
 > >> +
 > >> +void ecryptfs_drop_pagecache_sb(struct super_block *sb, void *unused)
 > >> +{
-> >> +	struct inode *inode, *toput_inode =3D NULL;
+> >> +	struct inode *inode, *toput_inode = NULL;
 > >> +
 > >> +	spin_lock(&sb->s_inode_list_lock);
 > >> +	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
 > >> +		spin_lock(&inode->i_lock);
 > >> +		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
-> >> +		    (inode->i_mapping->nrpages =3D=3D 0)) {
+> >> +		    (inode->i_mapping->nrpages == 0)) {
 > >> +			spin_unlock(&inode->i_lock);
 > >> +			continue;
 > >> +		}
@@ -177,7 +192,7 @@ fy
 > >> +
 > >> +		invalidate_mapping_pages(inode->i_mapping, 0, -1);
 > >> +		iput(toput_inode);
-> >> +		toput_inode =3D inode;
+> >> +		toput_inode = inode;
 > >> +
 > >> +		spin_lock(&sb->s_inode_list_lock);
 > >> +	}
@@ -189,25 +204,25 @@ fy
 > >> +		pgoff_t start, pgoff_t end)
 > >> +{
 > >> +	struct pagevec pvec;
-> >> +		pgoff_t index =3D start;
+> >> +		pgoff_t index = start;
 > >> +		int i;
 > >> +
 > >> +		pagevec_init(&pvec, 0);
-> >> +		while (index <=3D end && pagevec_lookup(&pvec, mapping, index,
+> >> +		while (index <= end && pagevec_lookup(&pvec, mapping, index,
 > >> +				min(end - index,
 > >> +					(pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
-> >> +			for (i =3D 0; i < pagevec_count(&pvec); i++) {
-> >> +				struct page *page =3D pvec.pages[i];
+> >> +			for (i = 0; i < pagevec_count(&pvec); i++) {
+> >> +				struct page *page = pvec.pages[i];
 > >> +
 > >> +				/* We rely upon deletion
 > >> +				 * not changing page->index
 > >> +				 */
-> >> +				index =3D page->index;
+> >> +				index = page->index;
 > >> +				if (index > end)
 > >> +					break;
 > >> +				if (!trylock_page(page))
 > >> +					continue;
-> >> +				WARN_ON(page->index !=3D index);
+> >> +				WARN_ON(page->index != index);
 > >> +				zero_user(page, 0, PAGE_CACHE_SIZE);
 > >> +				unlock_page(page);
 > >> +			}
@@ -245,12 +260,12 @@ fy
 > >> ecryptfs_crypt_stat *crypt_stat,
 > >>  	/* Consider doing this once, when the file is opened */
 > >>  	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
-> >>  		rc =3D crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
+> >>  		rc = crypto_ablkcipher_setkey(crypt_stat->tfm, crypt_stat->key,
 > >> -					      crypt_stat->key_size);
 > >> +				ecryptfs_get_key_size_to_enc_data(crypt_stat));
 > >>  		if (rc) {
 > >>  			ecryptfs_printk(KERN_ERR,
-> >>  					"Error setting key; rc =3D [%d]\n",
+> >>  					"Error setting key; rc = [%d]\n",
 > >> @@ -466,6 +467,31 @@ out:
 > >>  	return rc;
 > >>  }
@@ -264,11 +279,11 @@ fy
 > >> +	if (!hw_crypt || !cipher_supported)
 > >> +		return;
 > >> +
-> >> +	*cipher_supported =3D false;
-> >> +	*hw_crypt =3D false;
+> >> +	*cipher_supported = false;
+> >> +	*hw_crypt = false;
 > >> +
 > >> +	if (get_events() && get_events()->is_cipher_supported_cb) {
-> >> +		*cipher_supported =3D
+> >> +		*cipher_supported =
 > >> +			get_events()->is_cipher_supported_cb(
 > >> +				ecryptfs_get_full_cipher(crypt_stat->cipher,
 > >> +				crypt_stat->cipher_mode, final, sizeof(final)));
@@ -276,7 +291,7 @@ fy
 > >> +			/* we should apply external algorythm
 > >> +			 * assume that is_hw_crypt() cbck is supplied
 > >> +			 */
-> >> +			*hw_crypt =3D get_events()->is_hw_crypt_cb();
+> >> +			*hw_crypt = get_events()->is_hw_crypt_cb();
 > >> +		}
 > >> +	}
 > >> +}
@@ -287,77 +302,77 @@ fy
 > >> @@ -491,11 +517,18 @@ int ecryptfs_encrypt_page(struct page *page)
 > >>  	loff_t extent_offset;
 > >>  	loff_t lower_offset;
-> >>  	int rc =3D 0;
+> >>  	int rc = 0;
 > >> +	bool is_hw_crypt;
 > >> +	bool is_cipher_supported;
 > >> +
 > >>
-> >>  	ecryptfs_inode =3D page->mapping->host;
-> >>  	crypt_stat =3D
+> >>  	ecryptfs_inode = page->mapping->host;
+> >>  	crypt_stat =
 > >>  		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
 > >>  	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
 > >> +
 > >> +	init_ecryption_parameters(&is_hw_crypt,
 > >> +		&is_cipher_supported, crypt_stat);
 > >> +
-> >>  	enc_extent_page =3D alloc_page(GFP_USER);
+> >>  	enc_extent_page = alloc_page(GFP_USER);
 > >>  	if (!enc_extent_page) {
-> >>  		rc =3D -ENOMEM;
+> >>  		rc = -ENOMEM;
 > >> @@ -503,24 +536,51 @@ int ecryptfs_encrypt_page(struct page *page)
 > >>  				"encrypted extent\n");
 > >>  		goto out;
 > >>  	}
 > >> -
-> >> -	for (extent_offset =3D 0;
+> >> -	for (extent_offset = 0;
 > >> -	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
 > >> -	     extent_offset++) {
-> >> -		rc =3D crypt_extent(crypt_stat, enc_extent_page, page,
+> >> -		rc = crypt_extent(crypt_stat, enc_extent_page, page,
 > >> -				  extent_offset, ENCRYPT);
 > >> -		if (rc) {
 > >> -			printk(KERN_ERR "%s: Error encrypting extent; "
-> >> -			       "rc =3D [%d]\n", __func__, rc);
+> >> -			       "rc = [%d]\n", __func__, rc);
 > >> -			goto out;
 > >> -		}
 > >> +	if (is_hw_crypt) {
 > >> +		/* no need for encryption */
 > >> +	} else {
-> >> +			for (extent_offset =3D 0;
+> >> +			for (extent_offset = 0;
 > >> +				extent_offset <
 > >> +				(PAGE_CACHE_SIZE / crypt_stat->extent_size);
 > >> +				extent_offset++) {
 > >> +
 > >> +				if (is_cipher_supported) {
 > >> +					if (!get_events()->encrypt_cb) {
-> >> +						rc =3D -EPERM;
+> >> +						rc = -EPERM;
 > >> +						goto out;
 > >> +					}
-> >> +					rc =3D get_events()->encrypt_cb(page,
+> >> +					rc = get_events()->encrypt_cb(page,
 > >> +						enc_extent_page,
 > >> +						ecryptfs_inode_to_lower(
 > >> +							ecryptfs_inode),
 > >> +							extent_offset);
 > >> +				} else {
-> >> +					rc =3D crypt_extent(crypt_stat,
+> >> +					rc = crypt_extent(crypt_stat,
 > >> +						enc_extent_page, page,
 > >> +						extent_offset, ENCRYPT);
 > >> +				}
 > >> +				if (rc) {
 > >> +					ecryptfs_printk(KERN_ERR,
-> >> +					"%s: Error encrypting; rc =3D [%d]\n",
+> >> +					"%s: Error encrypting; rc = [%d]\n",
 > >> +					__func__, rc);
 > >> +					goto out;
 > >> +				}
 > >> +			}
 > >>  	}
 > >>
-> >>  	lower_offset =3D lower_offset_for_page(crypt_stat, page);
-> >> -	enc_extent_virt =3D kmap(enc_extent_page);
+> >>  	lower_offset = lower_offset_for_page(crypt_stat, page);
+> >> -	enc_extent_virt = kmap(enc_extent_page);
 > >> +	if (is_hw_crypt)
-> >> +		enc_extent_virt =3D kmap(page);
+> >> +		enc_extent_virt = kmap(page);
 > >> +	else
-> >> +		enc_extent_virt =3D kmap(enc_extent_page);
+> >> +		enc_extent_virt = kmap(enc_extent_page);
 > >> +
-> >>  	rc =3D ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
+> >>  	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
 > >> lower_offset,
 > >>  				  PAGE_CACHE_SIZE);
 > >> -	kunmap(enc_extent_page);
@@ -368,16 +383,16 @@ fy
 > >> +
 > >>  	if (rc < 0) {
 > >>  		ecryptfs_printk(KERN_ERR,
-> >>  			"Error attempting to write lower page; rc =3D [%d]\n",
+> >>  			"Error attempting to write lower page; rc = [%d]\n",
 > >> @@ -559,6 +619,8 @@ int ecryptfs_decrypt_page(struct page *page)
 > >>  	unsigned long extent_offset;
 > >>  	loff_t lower_offset;
-> >>  	int rc =3D 0;
+> >>  	int rc = 0;
 > >> +	bool is_cipher_supported;
 > >> +	bool is_hw_crypt;
 > >>
-> >>  	ecryptfs_inode =3D page->mapping->host;
-> >>  	crypt_stat =3D
+> >>  	ecryptfs_inode = page->mapping->host;
+> >>  	crypt_stat =
 > >> @@ -577,13 +639,33 @@ int ecryptfs_decrypt_page(struct page *page)
 > >>  		goto out;
 > >>  	}
@@ -386,49 +401,49 @@ fy
 > >> +		&is_cipher_supported, crypt_stat);
 > >> +
 > >> +	if (is_hw_crypt) {
-> >> +		rc =3D 0;
+> >> +		rc = 0;
 > >> +		return rc;
 > >> +	}
 > >> +
-> >>  	for (extent_offset =3D 0;
+> >>  	for (extent_offset = 0;
 > >>  	     extent_offset < (PAGE_CACHE_SIZE / crypt_stat->extent_size);
 > >>  	     extent_offset++) {
-> >> -		rc =3D crypt_extent(crypt_stat, page, page,
+> >> -		rc = crypt_extent(crypt_stat, page, page,
 > >> +		if (is_cipher_supported) {
 > >> +			if (!get_events()->decrypt_cb) {
-> >> +				rc =3D -EPERM;
+> >> +				rc = -EPERM;
 > >> +				goto out;
 > >> +			}
 > >> +
-> >> +			rc =3D get_events()->decrypt_cb(page, page,
+> >> +			rc = get_events()->decrypt_cb(page, page,
 > >> +				ecryptfs_inode_to_lower(ecryptfs_inode),
 > >> +				extent_offset);
 > >> +
 > >> +		} else
-> >> +			rc =3D crypt_extent(crypt_stat, page, page,
+> >> +			rc = crypt_extent(crypt_stat, page, page,
 > >>  				  extent_offset, DECRYPT);
 > >> +
 > >>  		if (rc) {
 > >> -			printk(KERN_ERR "%s: Error encrypting extent; "
 > >> +			ecryptfs_printk(KERN_ERR, "%s: Error decrypting extent;"
-> >>  			       "rc =3D [%d]\n", __func__, rc);
+> >>  			       "rc = [%d]\n", __func__, rc);
 > >>  			goto out;
 > >>  		}
 > >> @@ -612,7 +694,7 @@ int ecryptfs_init_crypt_ctx(struct
 > >> ecryptfs_crypt_stat *crypt_stat)
-> >>  			"Initializing cipher [%s]; strlen =3D [%d]; "
-> >>  			"key_size_bits =3D [%zd]\n",
+> >>  			"Initializing cipher [%s]; strlen = [%d]; "
+> >>  			"key_size_bits = [%zd]\n",
 > >>  			crypt_stat->cipher, (int)strlen(crypt_stat->cipher),
 > >> -			crypt_stat->key_size << 3);
 > >> +			ecryptfs_get_key_size_to_enc_data(crypt_stat) << 3);
 > >>  	mutex_lock(&crypt_stat->cs_tfm_mutex);
 > >>  	if (crypt_stat->tfm) {
-> >>  		rc =3D 0;
+> >>  		rc = 0;
 > >> @@ -694,7 +776,7 @@ int ecryptfs_compute_root_iv(struct
 > >> ecryptfs_crypt_stat *crypt_stat)
 > >>  		goto out;
 > >>  	}
-> >>  	rc =3D ecryptfs_calculate_md5(dst, crypt_stat, crypt_stat->key,
+> >>  	rc = ecryptfs_calculate_md5(dst, crypt_stat, crypt_stat->key,
 > >> -				    crypt_stat->key_size);
 > >> +			ecryptfs_get_key_size_to_enc_data(crypt_stat));
 > >>  	if (rc) {
@@ -442,21 +457,20 @@ fy
 > >> +static int ecryptfs_generate_new_salt(struct ecryptfs_crypt_stat
 > >> *crypt_stat)
 > >> +{
-> >> +	size_t salt_size =3D 0;
+> >> +	size_t salt_size = 0;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
 > >> +
-> >> +	salt_size =3D ecryptfs_get_salt_size_for_cipher(
+> >> +	salt_size = ecryptfs_get_salt_size_for_cipher(
 > >> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
 > >> +						 crypt_stat->cipher_mode,
 > >> +						 final, sizeof(final)));
 > >> +
-> >> +	if (salt_size =3D=3D 0)
+> >> +	if (salt_size == 0)
 > >> +		return 0;
 > >> +
-> >> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size))=
- {
+> >> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size)) {
 > >> +		ecryptfs_printk(KERN_WARNING, "not enough space for salt\n");
-> >> +		crypt_stat->flags |=3D ECRYPTFS_SECURITY_WARNING;
+> >> +		crypt_stat->flags |= ECRYPTFS_SECURITY_WARNING;
 > >> +		return -EINVAL;
 > >> +	}
 > >> +
@@ -475,40 +489,40 @@ fy
 > >>   * @crypt_stat: The inode's cryptographic context
 > >> @@ -823,7 +934,6 @@ int ecryptfs_new_file_context(struct inode
 > >> *ecryptfs_inode)
-> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 > >>  	    &ecryptfs_superblock_to_private(
 > >>  		    ecryptfs_inode->i_sb)->mount_crypt_stat;
 > >> -	int cipher_name_len;
-> >>  	int rc =3D 0;
+> >>  	int rc = 0;
 > >>
 > >>  	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
 > >> @@ -837,15 +947,19 @@ int ecryptfs_new_file_context(struct inode
 > >> *ecryptfs_inode)
-> >>  		       "to the inode key sigs; rc =3D [%d]\n", rc);
+> >>  		       "to the inode key sigs; rc = [%d]\n", rc);
 > >>  		goto out;
 > >>  	}
-> >> -	cipher_name_len =3D
+> >> -	cipher_name_len =
 > >> -		strlen(mount_crypt_stat->global_default_cipher_name);
 > >> -	memcpy(crypt_stat->cipher,
 > >> +	strlcpy(crypt_stat->cipher,
 > >>  	       mount_crypt_stat->global_default_cipher_name,
 > >> -	       cipher_name_len);
-> >> -	crypt_stat->cipher[cipher_name_len] =3D '\0';
+> >> -	crypt_stat->cipher[cipher_name_len] = '\0';
 > >> +	       sizeof(crypt_stat->cipher));
 > >> +
 > >> +	strlcpy(crypt_stat->cipher_mode,
 > >> +			mount_crypt_stat->global_default_cipher_mode,
 > >> +			sizeof(crypt_stat->cipher_mode));
 > >> +
-> >>  	crypt_stat->key_size =3D
+> >>  	crypt_stat->key_size =
 > >>  		mount_crypt_stat->global_default_cipher_key_size;
 > >>  	ecryptfs_generate_new_key(crypt_stat);
 > >> +	ecryptfs_generate_new_salt(crypt_stat);
 > >> +
-> >>  	rc =3D ecryptfs_init_crypt_ctx(crypt_stat);
+> >>  	rc = ecryptfs_init_crypt_ctx(crypt_stat);
 > >>  	if (rc)
 > >>  		ecryptfs_printk(KERN_ERR, "Error initializing cryptographic "
-> >> @@ -971,7 +1085,8 @@ ecryptfs_cipher_code_str_map[] =3D {
+> >> @@ -971,7 +1085,8 @@ ecryptfs_cipher_code_str_map[] = {
 > >>  	{"twofish", RFC2440_CIPHER_TWOFISH},
 > >>  	{"cast6", RFC2440_CIPHER_CAST_6},
 > >>  	{"aes", RFC2440_CIPHER_AES_192},
@@ -521,50 +535,49 @@ fy
 > >> @@ -999,6 +1114,11 @@ u8 ecryptfs_code_for_cipher_string(char
 > >> *cipher_name, size_t key_bytes)
 > >>  		case 32:
-> >>  			code =3D RFC2440_CIPHER_AES_256;
+> >>  			code = RFC2440_CIPHER_AES_256;
 > >>  		}
-> >> +	} else if (strcmp(cipher_name, "aes_xts") =3D=3D 0) {
+> >> +	} else if (strcmp(cipher_name, "aes_xts") == 0) {
 > >> +		switch (key_bytes) {
 > >> +		case 32:
-> >> +			code =3D RFC2440_CIPHER_AES_XTS_256;
+> >> +			code = RFC2440_CIPHER_AES_XTS_256;
 > >> +		}
 > >>  	} else {
-> >>  		for (i =3D 0; i < ARRAY_SIZE(ecryptfs_cipher_code_str_map); i++)
-> >>  			if (strcmp(cipher_name, map[i].cipher_str) =3D=3D 0) {
+> >>  		for (i = 0; i < ARRAY_SIZE(ecryptfs_cipher_code_str_map); i++)
+> >>  			if (strcmp(cipher_name, map[i].cipher_str) == 0) {
 > >> @@ -1038,9 +1158,24 @@ int
 > >> ecryptfs_read_and_validate_header_region(struct inode *inode)
 > >>  	u8 file_size[ECRYPTFS_SIZE_AND_MARKER_BYTES];
-> >>  	u8 *marker =3D file_size + ECRYPTFS_FILE_SIZE_BYTES;
+> >>  	u8 *marker = file_size + ECRYPTFS_FILE_SIZE_BYTES;
 > >>  	int rc;
 > >> +	unsigned int ra_pages_org;
-> >> +	struct file *lower_file =3D NULL;
+> >> +	struct file *lower_file = NULL;
 > >> +
 > >> +	if (!inode)
 > >> +		return -EIO;
-> >> +	lower_file =3D ecryptfs_inode_to_private(inode)->lower_file;
+> >> +	lower_file = ecryptfs_inode_to_private(inode)->lower_file;
 > >> +	if (!lower_file)
 > >> +		return -EIO;
 > >> +
 > >> +	/*disable read a head mechanism for a while */
-> >> +	ra_pages_org =3D lower_file->f_ra.ra_pages;
-> >> +	lower_file->f_ra.ra_pages =3D 0;
+> >> +	ra_pages_org = lower_file->f_ra.ra_pages;
+> >> +	lower_file->f_ra.ra_pages = 0;
 > >>
-> >>  	rc =3D ecryptfs_read_lower(file_size, 0, ECRYPTFS_SIZE_AND_MARKER_BY=
-TES,
+> >>  	rc = ecryptfs_read_lower(file_size, 0, ECRYPTFS_SIZE_AND_MARKER_BYTES,
 > >>  				 inode);
-> >> +	lower_file->f_ra.ra_pages =3D ra_pages_org;
+> >> +	lower_file->f_ra.ra_pages = ra_pages_org;
 > >> +	/* restore read a head mechanism */
 > >> +
 > >>  	if (rc < ECRYPTFS_SIZE_AND_MARKER_BYTES)
-> >>  		return rc >=3D 0 ? -EINVAL : rc;
-> >>  	rc =3D ecryptfs_validate_marker(marker);
+> >>  		return rc >= 0 ? -EINVAL : rc;
+> >>  	rc = ecryptfs_validate_marker(marker);
 > >> @@ -1430,6 +1565,11 @@ int ecryptfs_read_metadata(struct dentry
 > >> *ecryptfs_dentry)
-> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 > >>  		&ecryptfs_superblock_to_private(
 > >>  			ecryptfs_dentry->d_sb)->mount_crypt_stat;
 > >> +	unsigned int ra_pages_org;
-> >> +	struct file *lower_file =3D
+> >> +	struct file *lower_file =
 > >> +		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file;
 > >> +	if (!lower_file)
 > >> +		return -EIO;
@@ -577,15 +590,15 @@ TES,
 > >>  		goto out;
 > >>  	}
 > >> +	/*disable read a head mechanism */
-> >> +	ra_pages_org =3D lower_file->f_ra.ra_pages;
-> >> +	lower_file->f_ra.ra_pages =3D 0;
+> >> +	ra_pages_org = lower_file->f_ra.ra_pages;
+> >> +	lower_file->f_ra.ra_pages = 0;
 > >> +
-> >>  	rc =3D ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
+> >>  	rc = ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
 > >>  				 ecryptfs_inode);
-> >> +	lower_file->f_ra.ra_pages =3D ra_pages_org; /* restore it back */
+> >> +	lower_file->f_ra.ra_pages = ra_pages_org; /* restore it back */
 > >> +
-> >>  	if (rc >=3D 0)
-> >>  		rc =3D ecryptfs_read_headers_virt(page_virt, crypt_stat,
+> >>  	if (rc >= 0)
+> >>  		rc = ecryptfs_read_headers_virt(page_virt, crypt_stat,
 > >>  						ecryptfs_dentry,
 > >> diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
 > >> index 3d2bdf5..2b60137 100644
@@ -597,9 +610,9 @@ TES,
 > >>
 > >> +void ecryptfs_dump_salt_hex(char *data, int key_size, char *cipher)
 > >> +{
-> >> +	size_t salt_size =3D ecryptfs_get_salt_size_for_cipher(cipher);
+> >> +	size_t salt_size = ecryptfs_get_salt_size_for_cipher(cipher);
 > >> +
-> >> +	if (salt_size =3D=3D 0)
+> >> +	if (salt_size == 0)
 > >> +		return;
 > >> +
 > >> +	if (!ecryptfs_check_space_for_salt(key_size, salt_size))
@@ -628,24 +641,21 @@ TES,
 > >> +
 > >> +
 > >>  /**
-> >>   * ecryptfs_global_auth_tok - A key used to encrypt all new files und=
-er
+> >>   * ecryptfs_global_auth_tok - A key used to encrypt all new files under
 > >> the mountpoint
 > >>   * @flags: Status flags
 > >> @@ -345,6 +348,8 @@ struct ecryptfs_mount_crypt_stat {
 > >>  	unsigned char global_default_fn_cipher_name[
 > >>  		ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
 > >>  	char global_default_fnek_sig[ECRYPTFS_SIG_SIZE_HEX + 1];
-> >> +	unsigned char global_default_cipher_mode[ECRYPTFS_MAX_CIPHER_NAME_SI=
-ZE
+> >> +	unsigned char global_default_cipher_mode[ECRYPTFS_MAX_CIPHER_NAME_SIZE
 > >> +							 + 1];
 > >>  };
 > >>
 > >>  /* superblock private data. */
 > >> @@ -527,6 +532,53 @@ ecryptfs_dentry_to_lower_path(struct dentry
 > >> *dentry)
-> >>  	return &((struct ecryptfs_dentry_info *)dentry->d_fsdata)->lower_pat=
-h;
+> >>  	return &((struct ecryptfs_dentry_info *)dentry->d_fsdata)->lower_path;
 > >>  }
 > >>
 > >> +/**
@@ -670,8 +680,7 @@ h;
 > >> +/**
 > >> + * Given a <cipher>[_<mode>] formatted string, the function
 > >> + * extracts cipher string and/or mode string.
-> >> + * Note: the passed cipher and/or mode strings will be null-terminate=
-d.
+> >> + * Note: the passed cipher and/or mode strings will be null-terminated.
 > >> + */
 > >> +static inline void ecryptfs_parse_full_cipher(
 > >> +	char *s, char *cipher, char *mode)
@@ -679,20 +688,20 @@ d.
 > >> +	char input[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1+1];
 > >> +			/* +1 for '_'; +1 for '\0' */
 > >> +	char *p;
-> >> +	char *input_p =3D input;
+> >> +	char *input_p = input;
 > >> +
-> >> +	if (s =3D=3D NULL || cipher =3D=3D NULL)
+> >> +	if (s == NULL || cipher == NULL)
 > >> +		return;
 > >> +
 > >> +	memset(input, 0, sizeof(input));
 > >> +	strlcpy(input, s, sizeof(input));
 > >> +
-> >> +	p =3D strsep(&input_p, "_");
+> >> +	p = strsep(&input_p, "_");
 > >> +	strlcpy(cipher, p, ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1);
 > >> +
 > >> +
 > >> +	/* check if mode is specified */
-> >> +	if (input_p !=3D NULL && mode !=3D NULL)
+> >> +	if (input_p != NULL && mode != NULL)
 > >> +		strlcpy(mode, input_p, ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1);
 > >> +}
 > >> +
@@ -750,8 +759,7 @@ d.
 > >> + * eCryptfs: Linux filesystem encryption layer
 > >> + * Copyright (c) 2015, The Linux Foundation. All rights reserved.
 > >> + *
-> >> + * This program is free software; you can redistribute it and/or modi=
-fy
+> >> + * This program is free software; you can redistribute it and/or modify
 > >> + * it under the terms of the GNU General Public License version 2 and
 > >> + * only version 2 as published by the Free Software Foundation.
 > >> + *
@@ -777,9 +785,9 @@ fy
 > >> +void ecryptfs_free_events(void)
 > >> +{
 > >> +	mutex_lock(&events_mutex);
-> >> +	if (events_ptr !=3D NULL) {
+> >> +	if (events_ptr != NULL) {
 > >> +		kfree(events_ptr);
-> >> +		events_ptr =3D NULL;
+> >> +		events_ptr = NULL;
 > >> +	}
 > >> +
 > >> +	mutex_unlock(&events_mutex);
@@ -793,39 +801,39 @@ fy
 > >> + */
 > >> +int ecryptfs_register_to_events(struct ecryptfs_events *ops)
 > >> +{
-> >> +	int ret_value =3D 0;
+> >> +	int ret_value = 0;
 > >> +
 > >> +	if (!ops)
 > >> +		return -EINVAL;
 > >> +
 > >> +	mutex_lock(&events_mutex);
 > >> +
-> >> +	if (events_ptr !=3D NULL) {
+> >> +	if (events_ptr != NULL) {
 > >> +		ecryptfs_printk(KERN_ERR,
 > >> +			"already registered!\n");
-> >> +		ret_value =3D -EPERM;
+> >> +		ret_value = -EPERM;
 > >> +		goto out;
 > >> +	}
-> >> +	events_ptr =3D
+> >> +	events_ptr =
 > >> +		kzalloc(sizeof(struct ecryptfs_events), GFP_KERNEL);
 > >> +
 > >> +	if (!events_ptr) {
 > >> +		ecryptfs_printk(KERN_ERR, "malloc failure\n");
-> >> +		ret_value =3D -ENOMEM;
+> >> +		ret_value = -ENOMEM;
 > >> +		goto out;
 > >> +	}
 > >> +	/* copy the callbacks */
-> >> +	events_ptr->open_cb =3D ops->open_cb;
-> >> +	events_ptr->release_cb =3D ops->release_cb;
-> >> +	events_ptr->encrypt_cb =3D ops->encrypt_cb;
-> >> +	events_ptr->decrypt_cb =3D ops->decrypt_cb;
-> >> +	events_ptr->is_cipher_supported_cb =3D
+> >> +	events_ptr->open_cb = ops->open_cb;
+> >> +	events_ptr->release_cb = ops->release_cb;
+> >> +	events_ptr->encrypt_cb = ops->encrypt_cb;
+> >> +	events_ptr->decrypt_cb = ops->decrypt_cb;
+> >> +	events_ptr->is_cipher_supported_cb =
 > >> +		ops->is_cipher_supported_cb;
-> >> +	events_ptr->is_hw_crypt_cb =3D ops->is_hw_crypt_cb;
-> >> +	events_ptr->get_salt_key_size_cb =3D ops->get_salt_key_size_cb;
+> >> +	events_ptr->is_hw_crypt_cb = ops->is_hw_crypt_cb;
+> >> +	events_ptr->get_salt_key_size_cb = ops->get_salt_key_size_cb;
 > >> +
 > >> +	get_random_bytes(&handle, sizeof(handle));
-> >> +	ret_value =3D handle;
+> >> +	ret_value = handle;
 > >> +
 > >> +out:
 > >> +	mutex_unlock(&events_mutex);
@@ -837,21 +845,21 @@ fy
 > >> + */
 > >> +int ecryptfs_unregister_from_events(int user_handle)
 > >> +{
-> >> +	int ret_value =3D 0;
+> >> +	int ret_value = 0;
 > >> +
 > >> +	mutex_lock(&events_mutex);
 > >> +
 > >> +	if (!events_ptr) {
-> >> +		ret_value =3D -EINVAL;
+> >> +		ret_value = -EINVAL;
 > >> +		goto out;
 > >> +	}
-> >> +	if (user_handle !=3D handle) {
-> >> +		ret_value =3D ECRYPTFS_INVALID_EVENTS_HANDLE;
+> >> +	if (user_handle != handle) {
+> >> +		ret_value = ECRYPTFS_INVALID_EVENTS_HANDLE;
 > >> +		goto out;
 > >> +	}
 > >> +
 > >> +	kfree(events_ptr);
-> >> +	events_ptr =3D NULL;
+> >> +	events_ptr = NULL;
 > >> +
 > >> +out:
 > >> +	mutex_unlock(&events_mutex);
@@ -867,25 +875,24 @@ fy
 > >> +bool ecryptfs_is_page_in_metadata(void *data, pgoff_t offset)
 > >> +{
 > >> +
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
-> >> +	bool ret =3D true;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
+> >> +	bool ret = true;
 > >> +
 > >> +	if (!data) {
-> >> +		ecryptfs_printk(KERN_ERR, "ecryptfs_is_page_in_metadata: invalid da=
-ta
+> >> +		ecryptfs_printk(KERN_ERR, "ecryptfs_is_page_in_metadata: invalid data
 > >> parameter\n");
-> >> +		ret =3D false;
+> >> +		ret = false;
 > >> +		goto end;
 > >> +	}
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +
 > >> +	if (stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
-> >> +		ret =3D false;
+> >> +		ret = false;
 > >> +		goto end;
 > >> +	}
 > >> +
-> >> +	if (offset >=3D (stat->metadata_size/PAGE_CACHE_SIZE)) {
-> >> +		ret =3D false;
+> >> +	if (offset >= (stat->metadata_size/PAGE_CACHE_SIZE)) {
+> >> +		ret = false;
 > >> +		goto end;
 > >> +	}
 > >> +end:
@@ -899,7 +906,7 @@ ta
 > >> +inline bool ecryptfs_is_data_equal(void *data1, void *data2)
 > >> +{
 > >> +	/* pointer comparison*/
-> >> +	return data1 =3D=3D data2;
+> >> +	return data1 == data2;
 > >> +}
 > >> +
 > >> +/**
@@ -909,12 +916,12 @@ ta
 > >> +size_t ecryptfs_get_key_size(void *data)
 > >> +{
 > >> +
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
 > >> +
 > >> +	if (!data)
 > >> +		return 0;
 > >> +
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +	return stat->key_size;
 > >> +}
 > >> +
@@ -926,7 +933,7 @@ ta
 > >> + */
 > >> +size_t ecryptfs_get_salt_size(void *data)
 > >> +{
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
 > >> +
 > >> +	if (!data) {
@@ -935,7 +942,7 @@ ta
 > >> +		return 0;
 > >> +	}
 > >> +
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +	return ecryptfs_get_salt_size_for_cipher(
 > >> +			ecryptfs_get_full_cipher(stat->cipher,
 > >> +						 stat->cipher_mode,
@@ -950,14 +957,14 @@ ta
 > >> +const unsigned char *ecryptfs_get_cipher(void *data)
 > >> +{
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
 > >> +
 > >> +	if (!data) {
 > >> +		ecryptfs_printk(KERN_ERR,
 > >> +			"ecryptfs_get_cipher: invalid data parameter\n");
 > >> +		return NULL;
 > >> +	}
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +	return ecryptfs_get_full_cipher(stat->cipher, stat->cipher_mode,
 > >> +			final, sizeof(final));
 > >> +}
@@ -969,14 +976,14 @@ ta
 > >> +const unsigned char *ecryptfs_get_key(void *data)
 > >> +{
 > >> +
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
 > >> +
 > >> +	if (!data) {
 > >> +		ecryptfs_printk(KERN_ERR,
 > >> +			"ecryptfs_get_key: invalid data parameter\n");
 > >> +		return NULL;
 > >> +	}
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +	return stat->key;
 > >> +}
 > >> +
@@ -986,14 +993,14 @@ ta
 > >> + */
 > >> +const unsigned char *ecryptfs_get_salt(void *data)
 > >> +{
-> >> +	struct ecryptfs_crypt_stat *stat =3D NULL;
+> >> +	struct ecryptfs_crypt_stat *stat = NULL;
 > >> +
 > >> +	if (!data) {
 > >> +		ecryptfs_printk(KERN_ERR,
 > >> +			"ecryptfs_get_salt: invalid data parameter\n");
 > >> +		return NULL;
 > >> +	}
-> >> +	stat =3D (struct ecryptfs_crypt_stat *)data;
+> >> +	stat = (struct ecryptfs_crypt_stat *)data;
 > >> +	return stat->key + ecryptfs_get_salt_size(data);
 > >> +}
 > >> +
@@ -1058,15 +1065,14 @@ ta
 > >> +size_t ecryptfs_get_key_size_to_store_key(
 > >> +		struct ecryptfs_crypt_stat *crypt_stat)
 > >> +{
-> >> +	size_t salt_size =3D 0;
+> >> +	size_t salt_size = 0;
 > >> +
 > >> +	if (!crypt_stat)
 > >> +		return 0;
 > >> +
-> >> +	salt_size =3D ecryptfs_get_salt_size(crypt_stat);
+> >> +	salt_size = ecryptfs_get_salt_size(crypt_stat);
 > >> +
-> >> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size))=
- {
+> >> +	if (!ecryptfs_check_space_for_salt(crypt_stat->key_size, salt_size)) {
 > >> +		ecryptfs_printk(KERN_WARNING,
 > >> +			"ecryptfs_get_key_size_to_store_key: not enough space for salt\n");
 > >> +		return crypt_stat->key_size;
@@ -1092,16 +1098,16 @@ ta
 > >> +size_t ecryptfs_get_key_size_to_restore_key(size_t stored_key_size,
 > >> +		const char *cipher)
 > >> +{
-> >> +	size_t salt_size =3D 0;
+> >> +	size_t salt_size = 0;
 > >> +
 > >> +	if (!cipher)
 > >> +		return 0;
 > >> +
-> >> +	salt_size =3D ecryptfs_get_salt_size_for_cipher(cipher);
+> >> +	salt_size = ecryptfs_get_salt_size_for_cipher(cipher);
 > >> +
-> >> +	if (salt_size >=3D stored_key_size) {
+> >> +	if (salt_size >= stored_key_size) {
 > >> +		ecryptfs_printk(KERN_WARNING,
-> >> +			"ecryptfs_get_key_size_to_restore_key: salt %zu >=3D stred size
+> >> +			"ecryptfs_get_key_size_to_restore_key: salt %zu >= stred size
 > >> %zu\n",
 > >> +			salt_size, stored_key_size);
 > >> +
@@ -1133,12 +1139,11 @@ ta
 > >>  #include "ecryptfs_kernel.h"
 > >>
 > >>  /**
-> >> @@ -184,6 +185,9 @@ static int ecryptfs_open(struct inode *inode, stru=
-ct
+> >> @@ -184,6 +185,9 @@ static int ecryptfs_open(struct inode *inode, struct
 > >> file *file)
-> >>  	int rc =3D 0;
-> >>  	struct ecryptfs_crypt_stat *crypt_stat =3D NULL;
-> >>  	struct dentry *ecryptfs_dentry =3D file->f_path.dentry;
+> >>  	int rc = 0;
+> >>  	struct ecryptfs_crypt_stat *crypt_stat = NULL;
+> >>  	struct dentry *ecryptfs_dentry = file->f_path.dentry;
 > >> +	int ret;
 > >> +
 > >> +
@@ -1147,24 +1152,24 @@ ct
 > >>  	struct ecryptfs_file_info *file_info;
 > >> @@ -231,12 +235,31 @@ static int ecryptfs_open(struct inode *inode,
 > >> struct file *file)
-> >>  		rc =3D 0;
+> >>  		rc = 0;
 > >>  		goto out;
 > >>  	}
 > >> +
-> >>  	rc =3D read_or_initialize_metadata(ecryptfs_dentry);
+> >>  	rc = read_or_initialize_metadata(ecryptfs_dentry);
 > >>  	if (rc)
 > >>  		goto out_put;
-> >>  	ecryptfs_printk(KERN_DEBUG, "inode w/ addr =3D [0x%p], i_ino =3D "
+> >>  	ecryptfs_printk(KERN_DEBUG, "inode w/ addr = [0x%p], i_ino = "
 > >>  			"[0x%.16lx] size: [0x%.16llx]\n", inode, inode->i_ino,
 > >>  			(unsigned long long)i_size_read(inode));
 > >> +
 > >> +	if (get_events() && get_events()->open_cb) {
 > >> +
-> >> +		ret =3D vfs_fsync(file, false);
+> >> +		ret = vfs_fsync(file, false);
 > >> +
 > >> +		if (ret)
 > >> +			ecryptfs_printk(KERN_ERR,
-> >> +				"failed to sync file ret =3D %d.\n", ret);
+> >> +				"failed to sync file ret = %d.\n", ret);
 > >> +
 > >> +		get_events()->open_cb(ecryptfs_inode_to_lower(inode),
 > >> +			crypt_stat);
@@ -1186,10 +1191,10 @@ ct
 > >> +
 > >> +	int ret;
 > >> +
-> >> +	ret =3D vfs_fsync(file, false);
+> >> +	ret = vfs_fsync(file, false);
 > >> +
 > >> +	if (ret)
-> >> +		pr_err("failed to sync file ret =3D %d.\n", ret);
+> >> +		pr_err("failed to sync file ret = %d.\n", ret);
 > >> +
 > >>  	ecryptfs_put_lower_file(inode);
 > >>  	kmem_cache_free(ecryptfs_file_info_cache,
@@ -1221,26 +1226,24 @@ ct
 > >>  	int rc;
 > >> +	struct ecryptfs_crypt_stat *crypt_stat;
 > >>
-> >>  	ecryptfs_inode =3D ecryptfs_do_create(directory_inode, ecryptfs_dent=
-ry,
+> >>  	ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry,
 > >>  					    mode);
 > >> @@ -276,6 +279,7 @@ ecryptfs_create(struct inode *directory_inode,
 > >> struct dentry *ecryptfs_dentry,
-> >>  		rc =3D PTR_ERR(ecryptfs_inode);
+> >>  		rc = PTR_ERR(ecryptfs_inode);
 > >>  		goto out;
 > >>  	}
 > >> +
 > >>  	/* At this point, a file exists on "disk"; we need to make sure
 > >>  	 * that this on disk file is prepared to be an ecryptfs file */
-> >>  	rc =3D ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
+> >>  	rc = ecryptfs_initialize_file(ecryptfs_dentry, ecryptfs_inode);
 > >> @@ -288,6 +292,13 @@ ecryptfs_create(struct inode *directory_inode,
 > >> struct dentry *ecryptfs_dentry,
 > >>  		goto out;
 > >>  	}
 > >>  	unlock_new_inode(ecryptfs_inode);
 > >> +
-> >> +	crypt_stat =3D &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_sta=
-t;
+> >> +	crypt_stat = &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
 > >> +	if (get_events() && get_events()->open_cb)
 > >> +		get_events()->open_cb(
 > >> +				ecryptfs_inode_to_lower(ecryptfs_inode),
@@ -1253,28 +1256,25 @@ t;
 > >> index 6bd67e2..82b99c7 100644
 > >> --- a/fs/ecryptfs/keystore.c
 > >> +++ b/fs/ecryptfs/keystore.c
-> >> @@ -315,7 +315,8 @@ write_tag_66_packet(char *signature, u8 cipher_cod=
-e,
+> >> @@ -315,7 +315,8 @@ write_tag_66_packet(char *signature, u8 cipher_code,
 > >>  	 *         | File Encryption Key Size | 1 or 2 bytes |
 > >>  	 *         | File Encryption Key      | arbitrary    |
 > >>  	 */
-> >> -	data_len =3D (5 + ECRYPTFS_SIG_SIZE_HEX + crypt_stat->key_size);
-> >> +	data_len =3D (5 + ECRYPTFS_SIG_SIZE_HEX +
+> >> -	data_len = (5 + ECRYPTFS_SIG_SIZE_HEX + crypt_stat->key_size);
+> >> +	data_len = (5 + ECRYPTFS_SIG_SIZE_HEX +
 > >> +			ecryptfs_get_key_size_to_store_key(crypt_stat));
-> >>  	*packet =3D kmalloc(data_len, GFP_KERNEL);
-> >>  	message =3D *packet;
+> >>  	*packet = kmalloc(data_len, GFP_KERNEL);
+> >>  	message = *packet;
 > >>  	if (!message) {
-> >> @@ -335,8 +336,9 @@ write_tag_66_packet(char *signature, u8 cipher_cod=
-e,
+> >> @@ -335,8 +336,9 @@ write_tag_66_packet(char *signature, u8 cipher_code,
 > >>  	memcpy(&message[i], signature, ECRYPTFS_SIG_SIZE_HEX);
-> >>  	i +=3D ECRYPTFS_SIG_SIZE_HEX;
+> >>  	i += ECRYPTFS_SIG_SIZE_HEX;
 > >>  	/* The encrypted key includes 1 byte cipher code and 2 byte checksum
 > >> */
-> >> -	rc =3D ecryptfs_write_packet_length(&message[i], crypt_stat->key_siz=
-e +
+> >> -	rc = ecryptfs_write_packet_length(&message[i], crypt_stat->key_size +
 > >> 3,
 > >> -					  &packet_size_len);
-> >> +	rc =3D ecryptfs_write_packet_length(&message[i],
+> >> +	rc = ecryptfs_write_packet_length(&message[i],
 > >> +			ecryptfs_get_key_size_to_store_key(crypt_stat) + 3,
 > >> +			&packet_size_len);
 > >>  	if (rc) {
@@ -1283,68 +1283,64 @@ e +
 > >> @@ -344,9 +346,10 @@ write_tag_66_packet(char *signature, u8
 > >> cipher_code,
 > >>  	}
-> >>  	i +=3D packet_size_len;
-> >>  	message[i++] =3D cipher_code;
+> >>  	i += packet_size_len;
+> >>  	message[i++] = cipher_code;
 > >> -	memcpy(&message[i], crypt_stat->key, crypt_stat->key_size);
-> >> -	i +=3D crypt_stat->key_size;
-> >> -	for (j =3D 0; j < crypt_stat->key_size; j++)
+> >> -	i += crypt_stat->key_size;
+> >> -	for (j = 0; j < crypt_stat->key_size; j++)
 > >> +	memcpy(&message[i], crypt_stat->key,
 > >> +			ecryptfs_get_key_size_to_store_key(crypt_stat));
-> >> +	i +=3D ecryptfs_get_key_size_to_store_key(crypt_stat);
-> >> +	for (j =3D 0; j < ecryptfs_get_key_size_to_store_key(crypt_stat); j+=
-+)
-> >>  		checksum +=3D crypt_stat->key[j];
-> >>  	message[i++] =3D (checksum / 256) % 256;
-> >>  	message[i++] =3D (checksum % 256);
-> >> @@ -918,6 +921,7 @@ ecryptfs_parse_tag_70_packet(char **filename, size=
-_t
+> >> +	i += ecryptfs_get_key_size_to_store_key(crypt_stat);
+> >> +	for (j = 0; j < ecryptfs_get_key_size_to_store_key(crypt_stat); j++)
+> >>  		checksum += crypt_stat->key[j];
+> >>  	message[i++] = (checksum / 256) % 256;
+> >>  	message[i++] = (checksum % 256);
+> >> @@ -918,6 +921,7 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t
 > >> *filename_size,
 > >>  	struct ecryptfs_parse_tag_70_packet_silly_stack *s;
-> >>  	struct key *auth_tok_key =3D NULL;
-> >>  	int rc =3D 0;
+> >>  	struct key *auth_tok_key = NULL;
+> >>  	int rc = 0;
 > >> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
 > >>
-> >>  	(*packet_size) =3D 0;
-> >>  	(*filename_size) =3D 0;
+> >>  	(*packet_size) = 0;
+> >>  	(*filename_size) = 0;
 > >> @@ -977,12 +981,13 @@ ecryptfs_parse_tag_70_packet(char **filename,
 > >> size_t *filename_size,
-> >>  	s->fnek_sig_hex[ECRYPTFS_SIG_SIZE_HEX] =3D '\0';
-> >>  	(*packet_size) +=3D ECRYPTFS_SIG_SIZE;
-> >>  	s->cipher_code =3D data[(*packet_size)++];
-> >> -	rc =3D ecryptfs_cipher_code_to_string(s->cipher_string, s->cipher_co=
-de);
-> >> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher, s->cipher_code);
+> >>  	s->fnek_sig_hex[ECRYPTFS_SIG_SIZE_HEX] = '\0';
+> >>  	(*packet_size) += ECRYPTFS_SIG_SIZE;
+> >>  	s->cipher_code = data[(*packet_size)++];
+> >> -	rc = ecryptfs_cipher_code_to_string(s->cipher_string, s->cipher_code);
+> >> +	rc = ecryptfs_cipher_code_to_string(full_cipher, s->cipher_code);
 > >>  	if (rc) {
 > >>  		printk(KERN_WARNING "%s: Cipher code [%d] is invalid\n",
 > >>  		       __func__, s->cipher_code);
 > >>  		goto out;
 > >>  	}
 > >> +	ecryptfs_parse_full_cipher(full_cipher, s->cipher_string, 0);
-> >>  	rc =3D ecryptfs_find_auth_tok_for_sig(&auth_tok_key,
+> >>  	rc = ecryptfs_find_auth_tok_for_sig(&auth_tok_key,
 > >>  					    &s->auth_tok, mount_crypt_stat,
 > >>  					    s->fnek_sig_hex);
 > >> @@ -1151,6 +1156,7 @@ decrypt_pki_encrypted_session_key(struct
 > >> ecryptfs_auth_tok *auth_tok,
-> >>  	char *payload =3D NULL;
-> >>  	size_t payload_len =3D 0;
+> >>  	char *payload = NULL;
+> >>  	size_t payload_len = 0;
 > >>  	int rc;
 > >> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
 > >>
-> >>  	rc =3D ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
+> >>  	rc = ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
 > >>  	if (rc) {
 > >> @@ -1184,21 +1190,31 @@ decrypt_pki_encrypted_session_key(struct
 > >> ecryptfs_auth_tok *auth_tok,
 > >>  		       rc);
 > >>  		goto out;
 > >>  	}
-> >> -	auth_tok->session_key.flags |=3D ECRYPTFS_CONTAINS_DECRYPTED_KEY;
+> >> -	auth_tok->session_key.flags |= ECRYPTFS_CONTAINS_DECRYPTED_KEY;
 > >> -	memcpy(crypt_stat->key, auth_tok->session_key.decrypted_key,
 > >> -	       auth_tok->session_key.decrypted_key_size);
-> >> -	crypt_stat->key_size =3D auth_tok->session_key.decrypted_key_size;
-> >> -	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_cod=
-e);
+> >> -	crypt_stat->key_size = auth_tok->session_key.decrypted_key_size;
+> >> -	rc = ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_code);
 > >> +
-> >> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher, cipher_code);
+> >> +	rc = ecryptfs_cipher_code_to_string(full_cipher, cipher_code);
 > >>  	if (rc) {
 > >>  		ecryptfs_printk(KERN_ERR, "Cipher code [%d] is invalid\n",
 > >>  				cipher_code)
@@ -1352,16 +1348,16 @@ e);
 > >> +					goto out;
 > >>  	}
 > >> +
-> >> +	auth_tok->session_key.flags |=3D ECRYPTFS_CONTAINS_DECRYPTED_KEY;
+> >> +	auth_tok->session_key.flags |= ECRYPTFS_CONTAINS_DECRYPTED_KEY;
 > >> +	memcpy(crypt_stat->key, auth_tok->session_key.decrypted_key,
 > >> +	       auth_tok->session_key.decrypted_key_size);
-> >> +	crypt_stat->key_size =3D ecryptfs_get_key_size_to_restore_key(
+> >> +	crypt_stat->key_size = ecryptfs_get_key_size_to_restore_key(
 > >> +			auth_tok->session_key.decrypted_key_size, full_cipher);
 > >> +
 > >> +	ecryptfs_parse_full_cipher(full_cipher,
 > >> +		crypt_stat->cipher, crypt_stat->cipher_mode);
 > >> +
-> >>  	crypt_stat->flags |=3D ECRYPTFS_KEY_VALID;
+> >>  	crypt_stat->flags |= ECRYPTFS_KEY_VALID;
 > >>  	if (ecryptfs_verbosity > 0) {
 > >>  		ecryptfs_printk(KERN_DEBUG, "Decrypted session key:\n");
 > >>  		ecryptfs_dump_hex(crypt_stat->key,
@@ -1376,18 +1372,18 @@ e);
 > >> *crypt_stat,
 > >>  	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
 > >>  	size_t length_size;
-> >>  	int rc =3D 0;
+> >>  	int rc = 0;
 > >> +	char full_cipher[ECRYPTFS_MAX_CIPHER_NAME_SIZE];
 > >>
-> >>  	(*packet_size) =3D 0;
-> >>  	(*new_auth_tok) =3D NULL;
+> >>  	(*packet_size) = 0;
+> >>  	(*new_auth_tok) = NULL;
 > >> @@ -1453,10 +1470,13 @@ parse_tag_3_packet(struct ecryptfs_crypt_stat
 > >> *crypt_stat,
-> >>  		rc =3D -EINVAL;
+> >>  		rc = -EINVAL;
 > >>  		goto out_free;
 > >>  	}
-> >> -	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher,
-> >> +	rc =3D ecryptfs_cipher_code_to_string(full_cipher,
+> >> -	rc = ecryptfs_cipher_code_to_string(crypt_stat->cipher,
+> >> +	rc = ecryptfs_cipher_code_to_string(full_cipher,
 > >>  					    (u16)data[(*packet_size)]);
 > >>  	if (rc)
 > >>  		goto out_free;
@@ -1401,14 +1397,14 @@ e);
 > >> *crypt_stat,
 > >>  		break;
 > >>  	default:
-> >>  		crypt_stat->key_size =3D
+> >>  		crypt_stat->key_size =
 > >> -			(*new_auth_tok)->session_key.encrypted_key_size;
 > >> +			ecryptfs_get_key_size_to_restore_key(
 > >> +			(*new_auth_tok)->session_key.encrypted_key_size,
 > >> +			full_cipher);
 > >> +
 > >>  	}
-> >>  	rc =3D ecryptfs_init_crypt_ctx(crypt_stat);
+> >>  	rc = ecryptfs_init_crypt_ctx(crypt_stat);
 > >>  	if (rc)
 > >> @@ -1664,6 +1687,8 @@ static int
 > >>  decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok
@@ -1423,7 +1419,7 @@ e);
 > >> @@ -1713,7 +1738,7 @@ decrypt_passphrase_encrypted_session_key(struct
 > >> ecryptfs_auth_tok *auth_tok,
 > >>  	mutex_lock(tfm_mutex);
-> >>  	rc =3D crypto_blkcipher_setkey(
+> >>  	rc = crypto_blkcipher_setkey(
 > >>  		desc.tfm, auth_tok->token.password.session_key_encryption_key,
 > >> -		crypt_stat->key_size);
 > >> +		auth_tok->token.password.session_key_encryption_key_bytes);
@@ -1444,12 +1440,12 @@ e);
 > >>  	return rc;
 > >> @@ -1972,12 +2001,17 @@ pki_encrypt_session_key(struct key
 > >> *auth_tok_key,
-> >>  	size_t payload_len =3D 0;
+> >>  	size_t payload_len = 0;
 > >>  	struct ecryptfs_message *msg;
 > >>  	int rc;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
 > >>
-> >>  	rc =3D write_tag_66_packet(auth_tok->token.private_key.signature,
+> >>  	rc = write_tag_66_packet(auth_tok->token.private_key.signature,
 > >> -				 ecryptfs_code_for_cipher_string(
 > >> -					 crypt_stat->cipher,
 > >> -					 crypt_stat->key_size),
@@ -1467,14 +1463,12 @@ e);
 > >>  	if (rc) {
 > >> @@ -2035,7 +2069,7 @@ write_tag_1_packet(char *dest, size_t
 > >> *remaining_bytes,
-> >>  	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signatur=
-e,
+> >>  	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signature,
 > >>  			  ECRYPTFS_SIG_SIZE);
-> >>  	encrypted_session_key_valid =3D 0;
-> >> -	for (i =3D 0; i < crypt_stat->key_size; i++)
-> >> +	for (i =3D 0; i < ecryptfs_get_key_size_to_store_key(crypt_stat); i+=
-+)
-> >>  		encrypted_session_key_valid |=3D
+> >>  	encrypted_session_key_valid = 0;
+> >> -	for (i = 0; i < crypt_stat->key_size; i++)
+> >> +	for (i = 0; i < ecryptfs_get_key_size_to_store_key(crypt_stat); i++)
+> >>  		encrypted_session_key_valid |=
 > >>  			auth_tok->session_key.encrypted_key[i];
 > >>  	if (encrypted_session_key_valid) {
 > >> @@ -2189,6 +2223,7 @@ write_tag_3_packet(char *dest, size_t
@@ -1483,27 +1477,27 @@ e,
 > >>  	size_t packet_size_length;
 > >>  	size_t max_packet_size;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
-> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 > >>  		crypt_stat->mount_crypt_stat;
-> >>  	struct blkcipher_desc desc =3D {
+> >>  	struct blkcipher_desc desc = {
 > >> @@ -2221,13 +2256,14 @@ write_tag_3_packet(char *dest, size_t
 > >> *remaining_bytes,
 > >>  			mount_crypt_stat->global_default_cipher_key_size;
-> >>  	if (auth_tok->session_key.encrypted_key_size =3D=3D 0)
-> >>  		auth_tok->session_key.encrypted_key_size =3D
+> >>  	if (auth_tok->session_key.encrypted_key_size == 0)
+> >>  		auth_tok->session_key.encrypted_key_size =
 > >> -			crypt_stat->key_size;
 > >> +			ecryptfs_get_key_size_to_store_key(crypt_stat);
-> >>  	if (crypt_stat->key_size =3D=3D 24
-> >>  	    && strcmp("aes", crypt_stat->cipher) =3D=3D 0) {
+> >>  	if (crypt_stat->key_size == 24
+> >>  	    && strcmp("aes", crypt_stat->cipher) == 0) {
 > >>  		memset((crypt_stat->key + 24), 0, 8);
-> >>  		auth_tok->session_key.encrypted_key_size =3D 32;
+> >>  		auth_tok->session_key.encrypted_key_size = 32;
 > >>  	} else
-> >> -		auth_tok->session_key.encrypted_key_size =3D crypt_stat->key_size;
-> >> +		auth_tok->session_key.encrypted_key_size =3D
+> >> -		auth_tok->session_key.encrypted_key_size = crypt_stat->key_size;
+> >> +		auth_tok->session_key.encrypted_key_size =
 > >> +				ecryptfs_get_key_size_to_store_key(crypt_stat);
-> >>  	key_rec->enc_key_size =3D
+> >>  	key_rec->enc_key_size =
 > >>  		auth_tok->session_key.encrypted_key_size;
-> >>  	encrypted_session_key_valid =3D 0;
+> >>  	encrypted_session_key_valid = 0;
 > >> @@ -2251,8 +2287,8 @@ write_tag_3_packet(char *dest, size_t
 > >> *remaining_bytes,
 > >>  				auth_tok->token.password.
@@ -1520,7 +1514,7 @@ e,
 > >> *remaining_bytes,
 > >>  	}
 > >>  	mutex_lock(tfm_mutex);
-> >>  	rc =3D crypto_blkcipher_setkey(desc.tfm, session_key_encryption_key,
+> >>  	rc = crypto_blkcipher_setkey(desc.tfm, session_key_encryption_key,
 > >> -				     crypt_stat->key_size);
 > >> +		auth_tok->token.password.session_key_encryption_key_bytes);
 > >>  	if (rc < 0) {
@@ -1529,7 +1523,7 @@ e,
 > >> @@ -2294,7 +2330,12 @@ write_tag_3_packet(char *dest, size_t
 > >> *remaining_bytes,
 > >>  	}
-> >>  	rc =3D 0;
+> >>  	rc = 0;
 > >>  	ecryptfs_printk(KERN_DEBUG, "Encrypting [%zd] bytes of the key\n",
 > >> -			crypt_stat->key_size);
 > >> +		crypt_stat->key_size);
@@ -1539,20 +1533,20 @@ e,
 > >> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
 > >> +				crypt_stat->cipher_mode,
 > >> +				final, sizeof(final))));
-> >>  	rc =3D crypto_blkcipher_encrypt(&desc, dst_sg, src_sg,
+> >>  	rc = crypto_blkcipher_encrypt(&desc, dst_sg, src_sg,
 > >>  				      (*key_rec).enc_key_size);
 > >>  	mutex_unlock(tfm_mutex);
 > >> @@ -2343,8 +2384,10 @@ encrypted_session_key_set:
-> >>  	dest[(*packet_size)++] =3D 0x04; /* version 4 */
+> >>  	dest[(*packet_size)++] = 0x04; /* version 4 */
 > >>  	/* TODO: Break from RFC2440 so that arbitrary ciphers can be
 > >>  	 * specified with strings */
-> >> -	cipher_code =3D ecryptfs_code_for_cipher_string(crypt_stat->cipher,
+> >> -	cipher_code = ecryptfs_code_for_cipher_string(crypt_stat->cipher,
 > >> -						      crypt_stat->key_size);
-> >> +	cipher_code =3D ecryptfs_code_for_cipher_string(
+> >> +	cipher_code = ecryptfs_code_for_cipher_string(
 > >> +			ecryptfs_get_full_cipher(crypt_stat->cipher,
 > >> +				crypt_stat->cipher_mode, final, sizeof(final)),
 > >> +			crypt_stat->key_size);
-> >>  	if (cipher_code =3D=3D 0) {
+> >>  	if (cipher_code == 0) {
 > >>  		ecryptfs_printk(KERN_WARNING, "Unable to generate code for "
 > >>  				"cipher [%s]\n", crypt_stat->cipher);
 > >> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
@@ -1561,7 +1555,7 @@ e,
 > >> +++ b/fs/ecryptfs/main.c
 > >> @@ -165,7 +165,13 @@ void ecryptfs_put_lower_file(struct inode *inode)
 > >>  		fput(inode_info->lower_file);
-> >>  		inode_info->lower_file =3D NULL;
+> >>  		inode_info->lower_file = NULL;
 > >>  		mutex_unlock(&inode_info->lower_file_mutex);
 > >> +
 > >> +		if (get_events() && get_events()->release_cb)
@@ -1575,11 +1569,11 @@ e,
 > >>  enum { ecryptfs_opt_sig, ecryptfs_opt_ecryptfs_sig,
 > >> @@ -266,6 +272,7 @@ static int ecryptfs_parse_options(struct
 > >> ecryptfs_sb_info *sbi, char *options,
-> >>  	int cipher_key_bytes_set =3D 0;
+> >>  	int cipher_key_bytes_set = 0;
 > >>  	int fn_cipher_key_bytes;
-> >>  	int fn_cipher_key_bytes_set =3D 0;
-> >> +	size_t salt_size =3D 0;
-> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> >>  	int fn_cipher_key_bytes_set = 0;
+> >> +	size_t salt_size = 0;
+> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 > >>  		&sbi->mount_crypt_stat;
 > >>  	substring_t args[MAX_OPT_ARGS];
 > >> @@ -280,6 +287,7 @@ static int ecryptfs_parse_options(struct
@@ -1589,29 +1583,29 @@ e,
 > >>  	u8 cipher_code;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
 > >>
-> >>  	*check_ruid =3D 0;
+> >>  	*check_ruid = 0;
 > >>
 > >> @@ -309,12 +317,14 @@ static int ecryptfs_parse_options(struct
 > >> ecryptfs_sb_info *sbi, char *options,
 > >>  		case ecryptfs_opt_ecryptfs_cipher:
-> >>  			cipher_name_src =3D args[0].from;
-> >>  			cipher_name_dst =3D
+> >>  			cipher_name_src = args[0].from;
+> >>  			cipher_name_dst =
 > >> -				mount_crypt_stat->
 > >> -				global_default_cipher_name;
 > >> -			strncpy(cipher_name_dst, cipher_name_src,
 > >> -				ECRYPTFS_MAX_CIPHER_NAME_SIZE);
-> >> -			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] =3D '\0';
+> >> -			cipher_name_dst[ECRYPTFS_MAX_CIPHER_NAME_SIZE] = '\0';
 > >> +				mount_crypt_stat->global_default_cipher_name;
 > >> +
 > >> +			ecryptfs_parse_full_cipher(cipher_name_src,
 > >> +				mount_crypt_stat->global_default_cipher_name,
 > >> +				mount_crypt_stat->global_default_cipher_mode);
 > >> +
-> >>  			cipher_name_set =3D 1;
+> >>  			cipher_name_set = 1;
 > >> +
 > >>  			break;
 > >>  		case ecryptfs_opt_ecryptfs_key_bytes:
-> >>  			cipher_key_bytes_src =3D args[0].from;
+> >>  			cipher_key_bytes_src = args[0].from;
 > >> @@ -411,24 +421,50 @@ static int ecryptfs_parse_options(struct
 > >> ecryptfs_sb_info *sbi, char *options,
 > >>  		strcpy(mount_crypt_stat->global_default_cipher_name,
@@ -1626,7 +1620,7 @@ e,
 > >> +
 > >> +	if (cipher_key_bytes_set) {
 > >> +
-> >> +		salt_size =3D ecryptfs_get_salt_size_for_cipher(
+> >> +		salt_size = ecryptfs_get_salt_size_for_cipher(
 > >> +				ecryptfs_get_full_cipher(
 > >> +				mount_crypt_stat->global_default_cipher_name,
 > >> +				mount_crypt_stat->global_default_cipher_mode,
@@ -1640,14 +1634,14 @@ e,
 > >> +				"eCryptfs internal error: no space for salt");
 > >> +		}
 > >> +	} else
-> >>  		mount_crypt_stat->global_default_cipher_key_size =3D 0;
+> >>  		mount_crypt_stat->global_default_cipher_key_size = 0;
 > >> +
 > >>  	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES)
 > >>  	    && !fn_cipher_key_bytes_set)
-> >>  		mount_crypt_stat->global_default_fn_cipher_key_bytes =3D
+> >>  		mount_crypt_stat->global_default_fn_cipher_key_bytes =
 > >>  			mount_crypt_stat->global_default_cipher_key_size;
 > >>
-> >>  	cipher_code =3D ecryptfs_code_for_cipher_string(
+> >>  	cipher_code = ecryptfs_code_for_cipher_string(
 > >> -		mount_crypt_stat->global_default_cipher_name,
 > >> +			ecryptfs_get_full_cipher(
 > >> +				mount_crypt_stat->global_default_cipher_name,
@@ -1666,7 +1660,7 @@ e,
 > >> +				mount_crypt_stat->global_default_cipher_mode,
 > >> +				final, sizeof(final)),
 > >> +			mount_crypt_stat->global_default_cipher_key_size);
-> >>  		rc =3D -EINVAL;
+> >>  		rc = -EINVAL;
 > >>  		goto out;
 > >>  	}
 > >> @@ -488,6 +524,7 @@ static struct file_system_type ecryptfs_fs_type;
@@ -1701,8 +1695,7 @@ e,
 > >> index caba848..bdbc72d 100644
 > >> --- a/fs/ecryptfs/mmap.c
 > >> +++ b/fs/ecryptfs/mmap.c
-> >> @@ -552,10 +552,16 @@ static sector_t ecryptfs_bmap(struct address_spa=
-ce
+> >> @@ -552,10 +552,16 @@ static sector_t ecryptfs_bmap(struct address_space
 > >> *mapping, sector_t block)
 > >>  	return rc;
 > >>  }
@@ -1712,34 +1705,33 @@ ce
 > >> +	zero_user(page, 0, PAGE_CACHE_SIZE);
 > >> +}
 > >> +
-> >>  const struct address_space_operations ecryptfs_aops =3D {
-> >>  	.writepage =3D ecryptfs_writepage,
-> >>  	.readpage =3D ecryptfs_readpage,
-> >>  	.write_begin =3D ecryptfs_write_begin,
-> >>  	.write_end =3D ecryptfs_write_end,
-> >>  	.bmap =3D ecryptfs_bmap,
-> >> +	.freepage =3D ecryptfs_freepage,
+> >>  const struct address_space_operations ecryptfs_aops = {
+> >>  	.writepage = ecryptfs_writepage,
+> >>  	.readpage = ecryptfs_readpage,
+> >>  	.write_begin = ecryptfs_write_begin,
+> >>  	.write_end = ecryptfs_write_end,
+> >>  	.bmap = ecryptfs_bmap,
+> >> +	.freepage = ecryptfs_freepage,
 > >>  };
 > >> diff --git a/fs/ecryptfs/super.c b/fs/ecryptfs/super.c
 > >> index afa1b81..25e436d 100644
 > >> --- a/fs/ecryptfs/super.c
 > >> +++ b/fs/ecryptfs/super.c
-> >> @@ -69,6 +69,9 @@ static void ecryptfs_i_callback(struct rcu_head *hea=
-d)
+> >> @@ -69,6 +69,9 @@ static void ecryptfs_i_callback(struct rcu_head *head)
 > >>  {
-> >>  	struct inode *inode =3D container_of(head, struct inode, i_rcu);
+> >>  	struct inode *inode = container_of(head, struct inode, i_rcu);
 > >>  	struct ecryptfs_inode_info *inode_info;
-> >> +	if (inode =3D=3D NULL)
+> >> +	if (inode == NULL)
 > >> +		return;
 > >> +
-> >>  	inode_info =3D ecryptfs_inode_to_private(inode);
+> >>  	inode_info = ecryptfs_inode_to_private(inode);
 > >>
 > >>  	kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
 > >> @@ -88,9 +91,12 @@ static void ecryptfs_destroy_inode(struct inode
 > >> *inode)
 > >>  	struct ecryptfs_inode_info *inode_info;
 > >>
-> >>  	inode_info =3D ecryptfs_inode_to_private(inode);
+> >>  	inode_info = ecryptfs_inode_to_private(inode);
 > >> +
 > >>  	BUG_ON(inode_info->lower_file);
 > >> +
@@ -1749,10 +1741,9 @@ d)
 > >>  }
 > >>
 > >>  /**
-> >> @@ -149,6 +155,9 @@ static int ecryptfs_show_options(struct seq_file *=
-m,
+> >> @@ -149,6 +155,9 @@ static int ecryptfs_show_options(struct seq_file *m,
 > >> struct dentry *root)
-> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =3D
+> >>  	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 > >>  		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
 > >>  	struct ecryptfs_global_auth_tok *walker;
 > >> +	unsigned char final[2*ECRYPTFS_MAX_CIPHER_NAME_SIZE+1];
@@ -1765,7 +1756,7 @@ m,
 > >> *m, struct dentry *root)
 > >>  	mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
 > >>
-> >>  	seq_printf(m, ",ecryptfs_cipher=3D%s",
+> >>  	seq_printf(m, ",ecryptfs_cipher=%s",
 > >> -		mount_crypt_stat->global_default_cipher_name);
 > >> +			ecryptfs_get_full_cipher(
 > >> +				mount_crypt_stat->global_default_cipher_name,
@@ -1773,7 +1764,7 @@ m,
 > >> +				final, sizeof(final)));
 > >>
 > >>  	if (mount_crypt_stat->global_default_cipher_key_size)
-> >>  		seq_printf(m, ",ecryptfs_key_bytes=3D%zd",
+> >>  		seq_printf(m, ",ecryptfs_key_bytes=%zd",
 > >> diff --git a/include/linux/ecryptfs.h b/include/linux/ecryptfs.h
 > >> index 8d5ab99..55433c6 100644
 > >> --- a/include/linux/ecryptfs.h
@@ -1840,8 +1831,7 @@ m,
 > >> +
 > >> +const unsigned char *ecryptfs_get_cipher(void *ecrytpfs_data);
 > >> +
-> >> +bool ecryptfs_is_page_in_metadata(void *ecrytpfs_data, pgoff_t offset=
-);
+> >> +bool ecryptfs_is_page_in_metadata(void *ecrytpfs_data, pgoff_t offset);
 > >> +
 > >> +bool ecryptfs_is_data_equal(void *ecrytpfs_data1, void
 > >> *ecrytpfs_data2);
@@ -1854,28 +1844,8 @@ m,
 > >> a Linux Foundation Collaborative Project
 > >>
 > >
->=20
-
---PuGuTyElPB9bOcsM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWQQqgAAoJENaSAD2qAscKFlsP/Rf/eYGULP1IpA9Ry2FPlqtR
-ZZzg1uhzeNImyrY8DE1wfQ3UG76IaQ4dTensqa9f41H+NsltSUKu1nsfy8Wk300q
-/RCpfqt3dHGNtvtUNDWNb9sfu8mVsUDgOstDiLwea2ntnSVvxYtIqc5iK6eh6tJu
-Gz19sMLKkgZAXvMGjtaZqXNdZk0caBeBCAaZqLs0KyQYXCGtrz02S3yy4nQV7ziq
-tuYDLBmWjFHYxf0NY2/VQacFY1TRBScRlZW5EhKmOvREQ+ummvorDhZafXBashal
-lbc/qH7z1N9RspY+IKVdDqPdub8TXYULJCts/UZzDcM6aiJj45Ir0LVIU+2UktrZ
-+cP9Ocla3NLJ01AYDkvomAz1xsdKQ4EQB7uzL/CUXRfpMzUf3zdc1K6OX2wgF/jQ
-fLWjmtq4SfWCm2hoxKY3GIduEC0EasJfN4Mo6N0fGfuPV24HOVmf7thjlNGQdJ8+
-ThGRT+7K/8j8ETwm0oGQlabHH+Nr/UMXu7Iutda7fCCGAykJvxYODiI36rN7WWrp
-P0lj71IOMSa64xsTm3G74x33unzY6w7rwcg7kRomtY5sd3+1Gm8ASGvEwZqAd2rL
-t1IVfzaMSYNPRn4fI/b2SZjOQ2g7p6cFm7Rb+fgO1orKIsFfY4wnpmDqvlDe2ca7
-gWUgdg+Vpq4C4W4/OpzG
-=/GHJ
------END PGP SIGNATURE-----
-
---PuGuTyElPB9bOcsM--
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
