@@ -1,29 +1,16 @@
 From: andreym@codeaurora.org
 Subject: Re: [PATCH v1] eCryptfs: enhancing eCryptfs to be used with external
  crypto engine
-Date: Mon, 23 Nov 2015 20:14:48 -0000
-Message-ID: <64929e28fb98b970b3ea01129fa5b785.squirrel@www.codeaurora.org>
-References: <1446970202-18514-1-git-send-email-andreym@codeaurora.org>
-    <20151109175546.GB29708@boyd>
-    <ffb284e4b9c148a8d0c217fef67d9156.squirrel@www.codeaurora.org>
-    <20151109210536.GC29708@boyd>
-    <9607bc288c2f7eb2ae7e302772cb8057.squirrel@www.codeaurora.org>
-    <20151110221803.GB9683@boyd>
-    <2cc3f8be6a459fdd0252d5fbed01cfee.squirrel@www.codeaurora.org>
-    <20151111205529.GA21616@google.com>
-    <02abb1082a86ec11e9a58cf79d480c5a.squirrel@www.codeaurora.org>
+Date: Mon, 23 Nov 2015 20:42:04 -0000
+Message-ID: <5630edf2c03fb987ad05859c85db12d2.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7BIT
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57296 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbbKWUOw (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 23 Nov 2015 15:14:52 -0500
-In-Reply-To: <02abb1082a86ec11e9a58cf79d480c5a.squirrel@www.codeaurora.org>
-Sender: ecryptfs-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Cc: Michael Halcrow <mhalcrow@google.com>, andreym@codeaurora.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linaz@codeaurora.org, open list <linux-kernel@vger.kernel.org>, tytso@mit.edu
+To: "Michael Halcrow  <mhalcrow@google.com>,  Tyler Hicks " <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, linaz@codeaurora.org, open list <linux-kernel@vger.kernel.org>, tytso@mit.edu
 
 Hi Tyler, Michael
 
@@ -2199,4 +2186,5 @@ Regards, Andrey
 >>
 >
 >
+
 
