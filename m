@@ -1,108 +1,70 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: Key derivation and passprhase wrapping
-Date: Tue, 19 Jan 2016 21:05:57 -0600
-Message-ID: <20160120030556.GC5623@boyd>
-References: <794484591.224591.1452104561446.JavaMail.zimbra@halfgaar.net>
- <676716416.231851.1453112857325.JavaMail.zimbra@halfgaar.net>
+From: Wiebe Cazemier <wiebe@halfgaar.net>
+Subject: Re: bcrypt or other key derivation algorithm
+Date: Wed, 20 Jan 2016 20:33:29 +0100 (CET)
+Message-ID: <1009266489.234663.1453318409855.JavaMail.zimbra@halfgaar.net>
+References: <148109963.231852.1453113382610.JavaMail.zimbra@halfgaar.net> <477778683.231885.1453114296832.JavaMail.zimbra@halfgaar.net> <20160120024844.GA5623@boyd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="8NvZYKFJsRX2Djef"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57265 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933613AbcATDGB (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Tue, 19 Jan 2016 22:06:01 -0500
-Content-Disposition: inline
-In-Reply-To: <676716416.231851.1453112857325.JavaMail.zimbra@halfgaar.net>
+Received: from meel.halfgaar.net ([83.137.146.229]:44816 "EHLO
+	meel.halfgaar.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751112AbcATTdi (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 20 Jan 2016 14:33:38 -0500
+In-Reply-To: <20160120024844.GA5623@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Wiebe Cazemier <wiebe@halfgaar.net>
+Content-Type: text/plain; charset="us-ascii"
+To: Tyler Hicks <tyhicks@canonical.com>
 Cc: ecryptfs@vger.kernel.org
 
+----- Original Message -----
+> From: "Tyler Hicks" <tyhicks@canonical.com>
+> To: "Wiebe Cazemier" <wiebe@halfgaar.net>
+> Cc: ecryptfs@vger.kernel.org
+> Sent: Wednesday, 20 January, 2016 3:48:44 AM
+> Subject: Re: bcrypt or other key derivation algorithm
+> 
+> > It should be easy enough to borrow code from OpenSSH, which uses
+> > bcrypt in their secure new private key file format (ssh-keygen -o;
+> > their old format is pretty weak (MD5 once, encrypt with AES 128)).
+> > 
+> > Questions:
+> > 
+> > 1) The v2 wrapped does not have a field to indicate which algorithm is
+> >    used (like /etc/shadow (crypt API) has). Does this necessitate a
+> >    v3, which does have said field?
+> 
+> Yes. The v2 wrapped passphrase format was intended to be the most simple
+> fix possible for CVE-2014-9687 in order to make backporting to stable
+> releases and transparent upgrades easy.
+> 
+> The thought was always that a v3 would be needed to support greater
+> algorithm agility.
 
---8NvZYKFJsRX2Djef
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Has there already been plans for the layout of v3? Is it as simple as my suggestion?
 
-On 2016-01-18 11:27:37, Wiebe Cazemier wrote:
-> Hi,=20
->=20
-> I was looking at the ecryptfs source code, and saw that the actual
-> encryption key inserted into the kernel keyring is the *original*
-> wrapped passphrase, SHA512'ed 65536 times. Why is a user-given
-> passphrase encrypted as key, and not data from /dev/random?
+The read_v2_wrapped_passphrase_file method could be renamed to read_v2plus_wrapped_passphrase_file and use different offsets for v3. 
 
-This assumes that the mount.ecryptfs helper is used and not the
-mount.ecryptfs_private helper.
+> 
+> > 2) Are there objections to including BSD licensed code from OpenSSH?
+> 
+> That bit of code looks like it is under the 4-clause BSD license. I
+> think that'll be a problem since the ecryptfs-utils project is GPLv2.
+> 
+> Can you reuse the crypt(3) interface, passing the "2a" ID for bcrypt?
 
-mount.ecryptfs does key stretching (SHA512 * 65536) on a user-provided
-passphrase and uses that as the file encryption key encryption key
-(FEKEK). This keeps things simple so that the only thing a user needs to
-access their encrypted files is the passphrase. There's no chance of
-losing track of a file containing a wrapped FEKEK that is randomly
-generated. However, mount.ecryptfs could be extended to make use of
-wrapped, randomly generated FEKEK which would provide a more secure
-option.
+The man page for crypt says: 
 
-> I unwrapped the passphrase on my Linux Mint system and saw it is
-> actually a random string, so the Ubuntu/Mint installer took care of it
-> for me. But why is that responsibility given to the user / outside
-> world?
+  2a | Blowfish (not in mainline glibc; added in some Linux distributions)". 
 
-All of the logic that set up that random FEKEK is in upstream
-ecryptfs-utils. The confusion is probably caused by the unfortunate
-split between the mount.ecryptfs and mount.ecryptfs_private helpers.
+A Debian 5 system I still have says:
 
-> One of the problems is that I can't change it. Had I made a
-> ecryptfs archive myself and wrapped 'hello' as passphrase, that weak
-> key will be used and cannot be changed by rewrapping.
->=20
-> Would it be possible/feasible to do something like:
->=20
-> * generate random encryption key A for insertion into kernel keyring.
-> * derive encryption key B from password with 'generate_passphrase_sig(...=
-)' to encrypt key A.
-> * In v2 wrapped passphrase file, Octets 26-N1, store encrypted A, instead=
- of encrypted passphrase.
+  2a | Blowfish (on some Linux distributions)
 
-I'm not following the intent here. You're wanting to change the FEKEK
-that the Ubuntu/Mint installer generated?
+It's not as portable, apparently.
 
-Tyler
+Also, it's a little inconvenient that it returns an encoded string, not bytes. But I guess that's convertable.
 
->=20
-> Depending on how it's implemented, it could even be done completely backw=
-ards compatible (by ignoring the to-wrap passphrase).
->=20
-> Regards,
->=20
-> Wiebe
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll look a bit more for bcrypt code/libs.
 
---8NvZYKFJsRX2Djef
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWnvmUAAoJENaSAD2qAscK4H4P+gJw/+dwA6JEPPVYQVtnP0GD
-Nk0K/MIxHGNFM7fUkl1StQkWM1NIDI76aOxD24A3vMHZnGcjDGbt/8NWSgTPNuDq
-gwZQf6kzvKFHpfAl+Qq9EZO5aM6dNwLMepSFdmfRiQxJ3rOQhu9KX75COUVIhro4
-Sfzf+nTGoYxUPtuYMzAFz4Q2RfK4TUJ8kr+j6IuFdpNkGkHff4Ymw3QAFD3No/zg
-gIJvON5DXbvWwtkB9Ifmk7nQVFOOAG/FtRUAF5cf9UX8lqw5Ea0LpvzclTpCnOt7
-g9FSOX5hqqAYmLOfYlZsui++5+dLZF+fmt5mfvFh+X/N81S2smr+koKIhd5gaoJX
-cL6yidcKwGfpTldmIpaA1QJpTeZ2J89Rk2kPNrFYuDc0GAsqQXqXt5pd3FRHRSf3
-QTrLhCYhy6sS1gJGbM6IsqDY+FDwP0bG6VstaaaQyOdkl4BYzyncuos3gcDoykef
-yPhK8wsnUfzdUYArI6bCoVFZRgcGJqPXRFuJzNOVBKlmSc6uDLTGKbeO+jZb2R9Z
-C93Bom6EWyl7uKMGG2UvgzbK1T6RZAE6CK31giRRAmdyG8BndjZuIWXdBYW9aND8
-FZbzPoHekjyK9jHYm++2moxpAFkCZrNXM3BWKtoKZdA2jgzt/VjA9FjfWqD3Flb7
-+c10dqZ93hQ2XpQkNGcp
-=KXv4
------END PGP SIGNATURE-----
-
---8NvZYKFJsRX2Djef--
+Is ecryptfs Linux only, BTW?
