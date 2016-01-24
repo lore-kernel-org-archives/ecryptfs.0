@@ -1,29 +1,35 @@
-From: zhangzhilei <sdhzdmzzl@sina.com>
-Subject: how to retrun different size to different process when I use ecryptfs
-Date: Fri, 22 Jan 2016 07:28:11 +0000 (UTC)
-Message-ID: <loom.20160122T080227-125@post.gmane.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: [PATCH 0/26] crypto: Use skcipher and ahash/shash where possible
+Date: Sun, 24 Jan 2016 21:10:21 +0800
+Message-ID: <20160124131021.GA31153@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:60984 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751273AbcAVHfI (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Fri, 22 Jan 2016 02:35:08 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
-	id 1aMWFN-0006cf-BU
-	for ecryptfs@vger.kernel.org; Fri, 22 Jan 2016 08:35:06 +0100
-Received: from 218.247.237.32 ([218.247.237.32])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Fri, 22 Jan 2016 08:35:05 +0100
-Received: from sdhzdmzzl by 218.247.237.32 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Fri, 22 Jan 2016 08:35:05 +0100
-Sender: ecryptfs-owner@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-crypto-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, devel@driverdev.osuosl.org, dm-devel@redhat.com, linux-wireless@vger.kernel.org, linux-cifs@vger.kernel.org, ecryptfs@vger.kernel.org, linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-nfs@vger.kernel.org, keyrings@vger.kernel.org, linux-bluetooth@vger.kernel.org, ceph-devel@vger.kernel.org, linux-wpan@vger.kernel.org, linux-afs@lists.infradead.org, drbd-dev@lists.linbit.com, linux-nfc@lists.01.org, open-iscsi@googlegroups.com
 
-SGkKCiAgICBhIGZpbGUgbmFtZWQgMS50eHQgLGFuZCB0aGUgY29udGVudCBpcyAxMjM0LHdoZW4gbW91bnRlZCBlY3J5cHRmcywgc2l6ZQppcyA0LGFmdGVyIHVtb3VudGVkIGVjcnlwdGZzLCBzaXplIGlzIDEyMjg4LgogICAgSSBoYXZlICBpbXBsZW1lbnRlZCBhIGZlYXR1cmUgbGlrZSB0aGlzIGJ5IG1vZGlmeSBlY3J5cHRmcyBzb3VyY2UgY29kZToKICAgIDE6d2hlbiBnZWRpdCByZWFkIHRoaXMgZmlsZSwgcmV0dXJuIHNpemUgaXMgNCxhbmQgdGhlIGNvbnRlbnQgIGlzIDEyMzQ7CiAgICAyOndoZW4gc29tZSBvdGhlciBwcm9jZXNzIHJlYWQgdGhpcyBmaWxlLCB0aGUgY29udGVudCBpcyBsaWtlIHdoYXQKdW1vdW50ZWQgcmVhZDsKCiAgICB3aGVuIGZpbGUgaXMgY2xvc2UsIEkgdXNlIGlfc2l6ZV93cml0ZSB0byB3cml0ZSBiYWNrIHRoZSBzaXplIG9mIGZpbGU7CiAgICBhZnRlciBnZWRpdCBjbG9zZSB0aGUgZmlsZSAsdXNlIHN0YXQgLHNpemUgaXMgNDsKICAgIGFmdGVyIGFueSBvdGhlciBwcm9jZXNzIGNsb3NlIHRoZSBmaWxlLHVzZSBzdGF0ICxzaXplIGlzIDEyMjg4OwoKICAgIHdoYXQgSSB3YW50IHRvIGFzayBpcyBob3cgY2FuIGRpZmZl
- cmVudCBzaXplIHJldHVybiB3aGVuIGRpZmZlcmVudApwcm9jZXNzIHJlYWQgc2l6ZSBieSBzdGF044CCIAogICAgIGkuZe+8mnRoZSBmaWxlIHNpemUgaXMgMTAwO3doZW4gcHJvY2VzcyBhIHN0YXRzIGl0LCByZXR1cm4gc2l6ZSAxMDAwLGFuZAp3aGVuIHByb2Nlc3Mgc3RhdHMgaXQsIHJldHVybiBzaXplIDEwMDsKICAgICBidXQgd2hlbiBJIHVzZSBzdGF0LCBpdCBhcHBlYXJzIHRoYXQgc3RhdCBkaXJlY3QgcmVhZCBjYWNoZSAsbm90IGdvZXMKaW50byBlY3J5cHRmcydzIHByb2NlZHVyZTsKCiAgICAgdGhhbmsgeW91IQ==
+Hi:
+
+The crypto hash interface has been obsolete for many years and
+this series converts all remaining users to shash and ahash as
+appropriate.  Despite the name ahash can be used synchronously
+and is the preferred interface for those dealing with SGs.
+
+The blkcipher and ablkcipher interfaces are also being phased out
+and is being replaced with the merged skcipher interface which
+is essentially the same as ablkcipher but without the implicit
+IV generators.  This series converts all users of blkcipher and
+ablkcipher over to skcipher.
+
+If you have any objections please shout.  Otherwise I would like
+to take these patches through the cryptodev tree so we can proceed
+with phasing out the obsolete interfaces.
+
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
