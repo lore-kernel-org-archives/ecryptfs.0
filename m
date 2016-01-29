@@ -1,122 +1,95 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: bcrypt or other key derivation algorithm
-Date: Fri, 29 Jan 2016 16:34:34 -0600
-Message-ID: <20160129223434.GC15683@boyd>
-References: <148109963.231852.1453113382610.JavaMail.zimbra@halfgaar.net>
- <477778683.231885.1453114296832.JavaMail.zimbra@halfgaar.net>
- <CAOkUe-DgVJ6DPaL0UnTM7T1FzDEvWV6_HwsSvVDVTj5F_JW6vg@mail.gmail.com>
- <2036538347.232681.1453192534353.JavaMail.zimbra@halfgaar.net>
+Subject: Re: Key derivation and passprhase wrapping
+Date: Fri, 29 Jan 2016 16:57:11 -0600
+Message-ID: <20160129225710.GD15683@boyd>
+References: <794484591.224591.1452104561446.JavaMail.zimbra@halfgaar.net>
+ <676716416.231851.1453112857325.JavaMail.zimbra@halfgaar.net>
+ <20160120030556.GC5623@boyd>
+ <1032370780.234696.1453319503133.JavaMail.zimbra@halfgaar.net>
+ <497366096.234710.1453320193682.JavaMail.zimbra@halfgaar.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="jousvV0MzM2p6OtC"
+	protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39937 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:40046 "EHLO
 	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570AbcA2Wej (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 29 Jan 2016 17:34:39 -0500
+	with ESMTP id S1752633AbcA2W5P (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Fri, 29 Jan 2016 17:57:15 -0500
 Content-Disposition: inline
-In-Reply-To: <2036538347.232681.1453192534353.JavaMail.zimbra@halfgaar.net>
+In-Reply-To: <497366096.234710.1453320193682.JavaMail.zimbra@halfgaar.net>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 To: Wiebe Cazemier <wiebe@halfgaar.net>
-Cc: Sylvain Pelissier <sylvain.pelissier@gmail.com>, ecryptfs@vger.kernel.org
+Cc: ecryptfs@vger.kernel.org
 
 
---jousvV0MzM2p6OtC
-Content-Type: text/plain; charset=us-ascii
+--DrWhICOqskFTAXiy
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On 2016-01-19 09:35:34, Wiebe Cazemier wrote:
+On 2016-01-20 21:03:13, Wiebe Cazemier wrote:
 > ----- Original Message -----
-> > From: "Sylvain Pelissier" <sylvain.pelissier@gmail.com>
-> > To: "Wiebe Cazemier" <wiebe@halfgaar.net>
+> > From: "Wiebe Cazemier" <wiebe@halfgaar.net>
+> > To: "Tyler Hicks" <tyhicks@canonical.com>
 > > Cc: ecryptfs@vger.kernel.org
-> > Sent: Monday, 18 January, 2016 12:00:36 PM
-> > Subject: Re: bcrypt or other key derivation algorithm
+> > Sent: Wednesday, 20 January, 2016 8:51:43 PM
+> > Subject: Re: Key derivation and passprhase wrapping
 > >=20
-> > Hi,
+> > I think I missed an important bit. I was looking at ecryptfs-wrap-passp=
+hrase,
+> > which makes you supply the FEK and FEKEK, but ecryptfs-setup-private
+> > actually already uses a random passphrase:
 > >=20
-> > I think it is a good idea to support stronger algorithms. As a new
-> > hashing algorithm, you can also consider Argon2 algorithm, the winner
-> > of the Password hashing compettion (https://password-hashing.net/).
-> > The implementation is already available:
-> > https://github.com/p-h-c/phc-winner-argon2.
-> > Reagrds
+> > -m, --mountpass MOUNTPASS
+> >     Passphrase for mounting the ecryptfs directory, default is 16 bytes=
+ from
+> >     /dev/urandom if omitted
 > >=20
-> > Sylvain
 >=20
-> That's interesting. I wonder why nobody is talking about it. Bcrypt and s=
-crypt are all the rage, and even those are not fully trusted by all, becaus=
-e they haven't withstood the test of time.
+> I do see an issue though. The bash script says:
 >=20
-> Question remains though, I can't implement it without knowing what to do =
-with the v2 wrapped passphrase file. I can think of something myself, but I=
-'d rather do something that I know won't be rejected :)
+>   random_data=3D`head -c 16000 /dev/urandom | od -x` || error_testing "$t=
+emp" "$(gettext 'Could not generate random data')"
 >=20
-> From the source code:
+> But when urandom can't be read (doesn't exist, no file handles, whatever):
 >=20
->  * Reads a version 2 wrapped passphrase file containing the following for=
-mat:
->  *
->  *   Octet  0:      A ':' character
->  *   Octet  1:      uint8_t value indicating file version (MUST be 0x02)
->  *   Octets 2-9:    Wrapping salt
->  *   Octets 10-25:  Signature of wrapping key (16 octets)
->  *   Octets 26-N1:  Variable length field containing the encrypted
->  *                  passphrase. (Up to 64 octets. Must be non-empty.)
+>   random_data=3D`head -c 16000 /dev/urando | od -x` || echo "fail"
+>   head: cannot open =E2=80=98/dev/urando=E2=80=99 for reading: No such fi=
+le or directory
 >=20
-> Would a v3 be in order?:
+> Note, no 'fail' and $? =3D=3D 0. And:
 >=20
->  *   Octet  0:      A ':' character
->  *   Octet  1:      uint8_t value indicating file version (MUST be 0x03)
->  *   Octet  2:      uint8_t id of hashing algorithm.
+>   echo $random_data
+>   0000000
 
-Don't you mean KDF instead of hashing algorithm here? (scrypt, PBKDF2,
-etc.)
+For completeness, we should mention that this is being tracked in
+Launchpad:
 
->  *   Octets 3-10:   Wrapping salt
->  *   Octets 11-26:  Signature of wrapping key (16 octets)
->  *   Octets 27-N1:  Variable length field containing the encrypted
->  *                  passphrase. (Up to 64 octets. Must be non-empty.)
-
-If octet 2 is KDF instead of hashing algorithm, octets 3-N1 are going
-to vary based on the KDF used. For instance, scrypt will need to store
-the values of N, r, and p while PBKDF2 will need to store the number of
-iterations.
+ https://launchpad.net/bugs/1539553
 
 Tyler
 
->=20
->=20
-> Regards,
->=20
-> Wiebe
-> --
-> To unsubscribe from this list: send the line "unsubscribe ecryptfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---jousvV0MzM2p6OtC
+--DrWhICOqskFTAXiy
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJWq+j6AAoJENaSAD2qAscKQ6YP/0fVZgFJ/NVjUSIEyfqjWwmM
-R+Q5gUy7vQ5IYBPWLLf9g9aiuheLMTD7FZ6oQyZCSER0kfJWSlaUlm56JtKI5oF+
-MM/KwyqvJWNKVLnJ5XJGBpagzH9v4Iwq3zcdLWrPg5cTk6cju/G/woSyjXvPxyho
-ZiJbV0FYuLr14diFwKz2x8JaBREFyCxFknhLYrBOLKbyA1Vm99Aswnp4whcyTPlW
-EwmP/f7QpZbiiUb98XWPiCDwEhJLUIziIWFyR8g/aR82p7r/9qy1Kq7u3ozYXfUB
-E/ErwSDqdhvQ/Jah+99CKWs9TGG0m2csQ5bo+IUDI06i40sJWenxO8Yh5txeu4po
-mRKkrSZtzA+9slUdiDmR/rP1H/4vXUu6K8ZdK86Y/ZBcWmyh4XM3akb/Cq5kkwr+
-QWDfDzT7HDjfIglCqTyVaXcnvedUTm6xwhHE8jBJJoLOGK2z6J9tUInXd/uqbkdC
-Rb4YXQHC5lpC2q/pKWXKm1U98JqTd/zCqaK30ODEh8tL1xyNMKjYue/X8hGr/Rlw
-8/ATcN7rZVsRx3vkBMLJAHc7AUBeaTvR/C+8EOH96vX+JkdNin/NLz2ALUMfBGJa
-qgunVyzvZFO0vJUvFkVaMrEwb3GC4pcCAvDY+JRn/n2ZNGrPlQ2KTtuR3SPIcTeh
-dQe3sdudTgX9tG4uVV6Z
-=4WWf
+iQIcBAEBCgAGBQJWq+5GAAoJENaSAD2qAscKZMQP/R+kkGai/L9n+QDqozUHWwzj
++sEZiFmMq6r8mIsMcBK6ox+nVeDWWqQVxQegBAmYE/LeX8bPAnxueRlkZANW8Cnc
+S9tUoVf/dzTouz48jhwsjrO+kxxWZkjgNjh+sU9DTZZwoBEZcbUJaSRDL4q3ehii
+EfLogUtTpem+a0GD0lt48IjZEFs0hhIhezb1D4TSb7Z4wQzmOZJne2hpI3ecTOLz
+0VjMdoKeEJxUxz9a+Lel3bOqIWRueBCAi0ikn5o4mVw8Y/TsVDIzOh4ieURm5AGq
+6R4izSWnJ6hewEK58vf4YzjsA5vhNGU9SW4Ubz0MVKHoEQ83Hdi/dIl2kg0PNFYe
+rpB+Z68Q20yI2f9ZFDnh89KVMhjJuAYI6Csn7lptM/XBwtcsQAzAYgmsno7ADm7M
+L9p4d9g7qPzaoMy83TPlx9i8qVXf/Vc4poaynROsjjLf9i3nAjvvBFVCF3Cwu/w+
+xT/lZh3jZJL73rjiPa9gSbmscSzFcmS4FxMZkU+PEit3TiRghBU2OuZQ0uyPbT1w
+8yACc9QLve/RtnfmVsgn5ChZeU4poVjZK6WhzgcHdQL+866u6gCE46OfH+dBG9j8
+HSzYTwqT+7FGRdhVLvFk6oSHbeVK4RvHNpQHyQkYnRA4o9eBfc770p7y6IE8mDCA
+AxjXFbonK32rsMTvf9oh
+=NSXS
 -----END PGP SIGNATURE-----
 
---jousvV0MzM2p6OtC--
+--DrWhICOqskFTAXiy--
