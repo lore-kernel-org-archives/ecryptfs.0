@@ -1,95 +1,78 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: Key derivation and passprhase wrapping
-Date: Fri, 29 Jan 2016 16:57:11 -0600
-Message-ID: <20160129225710.GD15683@boyd>
-References: <794484591.224591.1452104561446.JavaMail.zimbra@halfgaar.net>
- <676716416.231851.1453112857325.JavaMail.zimbra@halfgaar.net>
- <20160120030556.GC5623@boyd>
- <1032370780.234696.1453319503133.JavaMail.zimbra@halfgaar.net>
- <497366096.234710.1453320193682.JavaMail.zimbra@halfgaar.net>
+From: Wiebe Cazemier <wiebe@halfgaar.net>
+Subject: Re: bcrypt or other key derivation algorithm
+Date: Mon, 1 Feb 2016 10:50:02 +0100 (CET)
+Message-ID: <1568282244.245128.1454320201987.JavaMail.zimbra@halfgaar.net>
+References: <148109963.231852.1453113382610.JavaMail.zimbra@halfgaar.net> <477778683.231885.1453114296832.JavaMail.zimbra@halfgaar.net> <CAOkUe-DgVJ6DPaL0UnTM7T1FzDEvWV6_HwsSvVDVTj5F_JW6vg@mail.gmail.com> <2036538347.232681.1453192534353.JavaMail.zimbra@halfgaar.net> <20160129223434.GC15683@boyd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:40046 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633AbcA2W5P (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Fri, 29 Jan 2016 17:57:15 -0500
-Content-Disposition: inline
-In-Reply-To: <497366096.234710.1453320193682.JavaMail.zimbra@halfgaar.net>
+Received: from meel.halfgaar.net ([83.137.146.229]:33206 "EHLO
+	meel.halfgaar.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751554AbcBAJuO (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 1 Feb 2016 04:50:14 -0500
+In-Reply-To: <20160129223434.GC15683@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Wiebe Cazemier <wiebe@halfgaar.net>
-Cc: ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: Sylvain Pelissier <sylvain.pelissier@gmail.com>, ecryptfs@vger.kernel.org
 
+----- Original Message -----
+> From: "Tyler Hicks" <tyhicks@canonical.com>
+> To: "Wiebe Cazemier" <wiebe@halfgaar.net>
+> Cc: "Sylvain Pelissier" <sylvain.pelissier@gmail.com>, ecryptfs@vger.kernel.org
+> Sent: Friday, 29 January, 2016 11:34:34 PM
+> Subject: Re: bcrypt or other key derivation algorithm
+> > 
+> > That's interesting. I wonder why nobody is talking about it. Bcrypt and
+> > scrypt are all the rage, and even those are not fully trusted by all,
+> > because they haven't withstood the test of time.
+> > 
+> > Question remains though, I can't implement it without knowing what to do
+> > with the v2 wrapped passphrase file. I can think of something myself, but
+> > I'd rather do something that I know won't be rejected :)
+> > 
+> > From the source code:
+> > 
+> >  * Reads a version 2 wrapped passphrase file containing the following
+> >  format:
+> >  *
+> >  *   Octet  0:      A ':' character
+> >  *   Octet  1:      uint8_t value indicating file version (MUST be 0x02)
+> >  *   Octets 2-9:    Wrapping salt
+> >  *   Octets 10-25:  Signature of wrapping key (16 octets)
+> >  *   Octets 26-N1:  Variable length field containing the encrypted
+> >  *                  passphrase. (Up to 64 octets. Must be non-empty.)
+> > 
+> > Would a v3 be in order?:
+> > 
+> >  *   Octet  0:      A ':' character
+> >  *   Octet  1:      uint8_t value indicating file version (MUST be 0x03)
+> >  *   Octet  2:      uint8_t id of hashing algorithm.
+> 
+> Don't you mean KDF instead of hashing algorithm here? (scrypt, PBKDF2,
+> etc.)
 
---DrWhICOqskFTAXiy
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yeah, of course. I was thinking to much about hashing when I wrote this.
 
-On 2016-01-20 21:03:13, Wiebe Cazemier wrote:
-> ----- Original Message -----
-> > From: "Wiebe Cazemier" <wiebe@halfgaar.net>
-> > To: "Tyler Hicks" <tyhicks@canonical.com>
-> > Cc: ecryptfs@vger.kernel.org
-> > Sent: Wednesday, 20 January, 2016 8:51:43 PM
-> > Subject: Re: Key derivation and passprhase wrapping
-> >=20
-> > I think I missed an important bit. I was looking at ecryptfs-wrap-passp=
-hrase,
-> > which makes you supply the FEK and FEKEK, but ecryptfs-setup-private
-> > actually already uses a random passphrase:
-> >=20
-> > -m, --mountpass MOUNTPASS
-> >     Passphrase for mounting the ecryptfs directory, default is 16 bytes=
- from
-> >     /dev/urandom if omitted
-> >=20
->=20
-> I do see an issue though. The bash script says:
->=20
->   random_data=3D`head -c 16000 /dev/urandom | od -x` || error_testing "$t=
-emp" "$(gettext 'Could not generate random data')"
->=20
-> But when urandom can't be read (doesn't exist, no file handles, whatever):
->=20
->   random_data=3D`head -c 16000 /dev/urando | od -x` || echo "fail"
->   head: cannot open =E2=80=98/dev/urando=E2=80=99 for reading: No such fi=
-le or directory
->=20
-> Note, no 'fail' and $? =3D=3D 0. And:
->=20
->   echo $random_data
->   0000000
+> 
+> >  *   Octets 3-10:   Wrapping salt
+> >  *   Octets 11-26:  Signature of wrapping key (16 octets)
+> >  *   Octets 27-N1:  Variable length field containing the encrypted
+> >  *                  passphrase. (Up to 64 octets. Must be non-empty.)
+> 
+> If octet 2 is KDF instead of hashing algorithm, octets 3-N1 are going
+> to vary based on the KDF used. For instance, scrypt will need to store
+> the values of N, r, and p while PBKDF2 will need to store the number of
+> iterations.
 
-For completeness, we should mention that this is being tracked in
-Launchpad:
+Then I suggest having a variable length byte array in it. The signature can be constant regardless of KDF, so I'd say:
 
- https://launchpad.net/bugs/1539553
+* Octet 0       :
+* Octet 1       File version in uint_8
+* Octet 2       KDF in uint8
+* Octet 3-18    Signature (16 octects)
+* Octet 19-N1   byte array, depending on KDF. 
 
-Tyler
+When the KDF is SHA512*65536 as it's now, 19-N1 can contain the salt and encrypted passphrase. For other KDFs, it can be whatever the desired algorithm needs.
 
---DrWhICOqskFTAXiy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJWq+5GAAoJENaSAD2qAscKZMQP/R+kkGai/L9n+QDqozUHWwzj
-+sEZiFmMq6r8mIsMcBK6ox+nVeDWWqQVxQegBAmYE/LeX8bPAnxueRlkZANW8Cnc
-S9tUoVf/dzTouz48jhwsjrO+kxxWZkjgNjh+sU9DTZZwoBEZcbUJaSRDL4q3ehii
-EfLogUtTpem+a0GD0lt48IjZEFs0hhIhezb1D4TSb7Z4wQzmOZJne2hpI3ecTOLz
-0VjMdoKeEJxUxz9a+Lel3bOqIWRueBCAi0ikn5o4mVw8Y/TsVDIzOh4ieURm5AGq
-6R4izSWnJ6hewEK58vf4YzjsA5vhNGU9SW4Ubz0MVKHoEQ83Hdi/dIl2kg0PNFYe
-rpB+Z68Q20yI2f9ZFDnh89KVMhjJuAYI6Csn7lptM/XBwtcsQAzAYgmsno7ADm7M
-L9p4d9g7qPzaoMy83TPlx9i8qVXf/Vc4poaynROsjjLf9i3nAjvvBFVCF3Cwu/w+
-xT/lZh3jZJL73rjiPa9gSbmscSzFcmS4FxMZkU+PEit3TiRghBU2OuZQ0uyPbT1w
-8yACc9QLve/RtnfmVsgn5ChZeU4poVjZK6WhzgcHdQL+866u6gCE46OfH+dBG9j8
-HSzYTwqT+7FGRdhVLvFk6oSHbeVK4RvHNpQHyQkYnRA4o9eBfc770p7y6IE8mDCA
-AxjXFbonK32rsMTvf9oh
-=NSXS
------END PGP SIGNATURE-----
-
---DrWhICOqskFTAXiy--
