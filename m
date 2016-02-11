@@ -1,43 +1,55 @@
-From: Wei Yuan <weiyuan.wei@huawei.com>
-Subject: [PATCH] eCryptfs: fix typos in comment
-Date: Sat, 6 Feb 2016 15:47:30 +0800
-Message-ID: <1454744850-32144-1-git-send-email-weiyuan.wei@huawei.com>
+From: tmg <t.m.gerlach@freenet.de>
+Subject: File recovery via testdisk / photorec
+Date: Thu, 11 Feb 2016 21:15:23 +0000 (UTC)
+Message-ID: <loom.20160211T215847-237@post.gmane.org>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from plane.gmane.org ([80.91.229.3]:46647 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751414AbcBKVkG (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Thu, 11 Feb 2016 16:40:06 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
+	id 1aTyy3-0002Q1-MA
+	for ecryptfs@vger.kernel.org; Thu, 11 Feb 2016 22:40:03 +0100
+Received: from dslb-188-104-158-193.188.104.pools.vodafone-ip.de ([188.104.158.193])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Thu, 11 Feb 2016 22:40:03 +0100
+Received: from t.m.gerlach by dslb-188-104-158-193.188.104.pools.vodafone-ip.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <ecryptfs@vger.kernel.org>; Thu, 11 Feb 2016 22:40:03 +0100
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-Signed-off-by: Weiyuan <weiyuan.wei@huawei.com>
----
- fs/ecryptfs/crypto.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Dear developers and users,
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 80d6901..d47a7d4 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -44,7 +44,7 @@
-  * ecryptfs_to_hex
-  * @dst: Buffer to take hex character representation of contents of
-  *       src; must be at least of size (src_size * 2)
-- * @src: Buffer to be converted to a hex string respresentation
-+ * @src: Buffer to be converted to a hex string representation
-  * @src_size: number of bytes to convert
-  */
- void ecryptfs_to_hex(char *dst, char *src, size_t src_size)
-@@ -59,7 +59,7 @@ void ecryptfs_to_hex(char *dst, char *src, size_t src_size)
-  * ecryptfs_from_hex
-  * @dst: Buffer to take the bytes from src hex; must be at least of
-  *       size (src_size / 2)
-- * @src: Buffer to be converted from a hex string respresentation to raw value
-+ * @src: Buffer to be converted from a hex string representation to raw value
-  * @dst_size: size of dst buffer, or number of hex characters pairs to convert
-  */
- void ecryptfs_from_hex(char *dst, char *src, int dst_size)
--- 
-2.1.0
+I've searched a lot around the web, but didn't find any satisfying answer.
+Consider the following situation:
 
+- You have your home directory /home/<user> encrypted with ecryptfs
+- You know your passphrase, that is, no trouble to decrypt the directory
+
+Question: How do you recover deleted files from the mounted (decrypted) home 
+or the ecryptfs container?
+
+All the ecryptfs recover strategies I've read so far were like
+- use a livecd
+- go and fire ecryptfs-recover-private, and mount your home readonly
+- copy your files to a save place
+
+But what about files that I can't regularly copy, because they are deleted?
+
+If it was an unencrypted ext4, I would do (using ubuntu)
+$ dd if=/dev/sda of=/media/user/sda.img
+$ testdisk /media/user/sda.img
+
+Can we run testdisk on the .ecryptfs container, or even the mounted home?
+
+
+Thank you for any suggestion and best regards,
+
+TMG
