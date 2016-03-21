@@ -1,67 +1,48 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: eCryptfs: Use skcipher and shash
-Date: Wed, 16 Mar 2016 17:06:01 +0800
-Message-ID: <20160316090601.GA29058@gondor.apana.org.au>
-References: <20160316074141.GB12860@mwanda>
+From: Joe Lauer <joe@greenback.com>
+Subject: Max 26 concurrent ecryptfs mounts?
+Date: Mon, 21 Mar 2016 17:20:40 -0400
+Message-ID: <CAOgMywMKtc6Bzr88z97GHSeTTmj-rOZk7kCzDQgCoR2xZLCWuw@mail.gmail.com>
 Mime-Version: 1.0
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160316074141.GB12860@mwanda>
-Sender: linux-crypto-owner@vger.kernel.org
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-yw0-f173.google.com ([209.85.161.173]:35225 "EHLO
+	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757953AbcCUVUl (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Mar 2016 17:20:41 -0400
+Received: by mail-yw0-f173.google.com with SMTP id g127so230745082ywf.2
+        for <ecryptfs@vger.kernel.org>; Mon, 21 Mar 2016 14:20:41 -0700 (PDT)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: ecryptfs@vger.kernel.org, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
+To: ecryptfs@vger.kernel.org
 
-On Wed, Mar 16, 2016 at 10:41:41AM +0300, Dan Carpenter wrote:
-> Hello Herbert Xu,
-> 
-> The patch 3095e8e366b4: "eCryptfs: Use skcipher and shash" from Jan
-> 25, 2016, leads to the following static checker warning:
-> 
-> 	fs/ecryptfs/keystore.c:1117 ecryptfs_parse_tag_70_packet()
-> 	error: potential null dereference 's'.  (kzalloc returns null)
+Hi ecryptfs community,
 
-Thanks for catching this Dan.  It's probably easiest if I add
-this to the crypto tree.
+We're trying to use ecryptfs to create a large number of uniquely
+encrypted directories.  We really like the idea that these are
+overlayed on the existing filesystem and can all have different
+encryption keys assigned.  So I'm hoping we can make ecryptfs work.
 
----8<---
-eCryptfs: Fix null pointer dereference on kzalloc error path
+It appears that we can create 26 directories (which also means 26
+different mounts), but then we get a exit value of 134 from
+mount.ecryptfs on the 27th user.  Here is the exact error message:
 
-The conversion to skcipher and shash added a couple of null pointer
-dereference bugs on the kzalloc failure path.  This patch fixes them.
+Error attempting to evaluate mount options: [-122] Disk quota exceeded
+Check your system logs for details on why this happened.
+Try updating your ecryptfs-utils package, and/or
+submit a bug report on https://bugs.launchpad.net/ecryptfs
 
-Fixes: 3095e8e366b4 ("eCryptfs: Use skcipher and shash")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+My theory is that since we mount everything using "sudo" and thus as
+root, that its reusing the same keyring and maybe is hitting the 32K
+limit on kernel keyrings.
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index c5c84df..9893d15 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -635,8 +635,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
- 	if (!s) {
- 		printk(KERN_ERR "%s: Out of memory whilst trying to kmalloc "
- 		       "[%zd] bytes of kernel memory\n", __func__, sizeof(*s));
--		rc = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 	(*packet_size) = 0;
- 	rc = ecryptfs_find_auth_tok_for_sig(
-@@ -922,8 +921,7 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
- 	if (!s) {
- 		printk(KERN_ERR "%s: Out of memory whilst trying to kmalloc "
- 		       "[%zd] bytes of kernel memory\n", __func__, sizeof(*s));
--		rc = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 	if (max_packet_size < ECRYPTFS_TAG_70_MIN_METADATA_SIZE) {
- 		printk(KERN_WARNING "%s: max_packet_size is [%zd]; it must be "
+So my questions:
 
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+1) Is my theory correct?
+
+2) Are there any workarounds?  Any magic kernel settings I can tune to
+allow for more?  Or can we actually mount a directory under a
+different account than root so that a new keyring is used as opposed
+for root.
+
+Thx.
