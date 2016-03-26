@@ -1,48 +1,117 @@
-From: Joe Lauer <joe@greenback.com>
-Subject: Max 26 concurrent ecryptfs mounts?
-Date: Mon, 21 Mar 2016 17:20:40 -0400
-Message-ID: <CAOgMywMKtc6Bzr88z97GHSeTTmj-rOZk7kCzDQgCoR2xZLCWuw@mail.gmail.com>
+From: "James Johnston" <johnstonj.public@codenest.com>
+Subject: Practical use of ecryptfs, encrypted keys, and TPM: how to convert existing user key to encrypted key?
+Date: Sat, 26 Mar 2016 20:46:32 -0000
+Message-ID: <001301d187a0$95552f40$bfff8dc0$@codenest.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.161.173]:35225 "EHLO
-	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757953AbcCUVUl (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 21 Mar 2016 17:20:41 -0400
-Received: by mail-yw0-f173.google.com with SMTP id g127so230745082ywf.2
-        for <ecryptfs@vger.kernel.org>; Mon, 21 Mar 2016 14:20:41 -0700 (PDT)
+Received: from sender163-mail.zoho.com ([74.201.84.163]:24653 "EHLO
+	sender163-mail.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753817AbcCZUq3 convert rfc822-to-8bit (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Sat, 26 Mar 2016 16:46:29 -0400
+Content-Language: en-us
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: ecryptfs@vger.kernel.org, keyrings@vger.kernel.org
 
-Hi ecryptfs community,
+Hi,
 
-We're trying to use ecryptfs to create a large number of uniquely
-encrypted directories.  We really like the idea that these are
-overlayed on the existing filesystem and can all have different
-encryption keys assigned.  So I'm hoping we can make ecryptfs work.
+Short version of this question is:  How do I convert a user key on the keyring
+storing ecryptfs authentication token / FEFEK to an encrypted key on keyring?
+(I.e. how to add an encrypted key with user-specified plaintext data, instead
+of a randomly-generated key - such as a pre-existing mounting passphrase for
+an existing ecryptfs file system.)  Read on for why...
 
-It appears that we can create 26 directories (which also means 26
-different mounts), but then we get a exit value of 134 from
-mount.ecryptfs on the 27th user.  Here is the exact error message:
+I'm trying to figure out how to practically use ecryptfs with a TPM, and the
+information I'm finding is generally out-of-date/obsolete.  All I've found is
+blog articles or IBM whitepapers from a few years ago that appear to use
+features that don't exist anymore / unmaintained features.  I've gathered that
+the proper way to do this now involves trusted and encrypted kernel keys, as
+per:
 
-Error attempting to evaluate mount options: [-122] Disk quota exceeded
-Check your system logs for details on why this happened.
-Try updating your ecryptfs-utils package, and/or
-submit a bug report on https://bugs.launchpad.net/ecryptfs
+ * https://www.kernel.org/doc/Documentation/security/keys-ecryptfs.txt
+ * https://www.kernel.org/doc/Documentation/security/keys-trusted-encrypted.txt
 
-My theory is that since we mount everything using "sudo" and thus as
-root, that its reusing the same keyring and maybe is hitting the 32K
-limit on kernel keyrings.
+The strategy outlined in the above documentation indicates the idea would be to
+make a new trusted key, sealed with the TPM, and then use it to make a new
+encrypted key in the ecryptfs format, specifying the trusted key as the master.
+That's easy enough to follow, and does what I'm looking for, except...
 
-So my questions:
+The problem is if the TPM dies, I need to recover my data (e.g. computer dies,
+and need to restore from encrypted backups).  What I'm wanting to do is use a
+passphrase to decrypt data if the TPM is not available, to be used only in
+special circumstances.  Alternatively, users might have a pre-existing
+ecryptfs file system with a mounting passphrase / FEFEK already chosen - i.e.
+you don't want to re-encrypt all your files just to use the TPM.  This seems
+like an obvious need, yet I'm have trouble figuring out the "how". 
 
-1) Is my theory correct?
+From the above documentation:
 
-2) Are there any workarounds?  Any magic kernel settings I can tune to
-allow for more?  Or can we actually mount a directory under a
-different account than root so that a new keyring is used as opposed
-for root.
+    The data structure defined by eCryptfs to contain information required for the
+    FEK decryption is called authentication token and, currently, can be stored in a
+    kernel key of the 'user' type, inserted in the user's session specific keyring
+    by the userspace utility 'mount.ecryptfs' shipped with the package
+    'ecryptfs-utils'.
 
-Thx.
+    Encrypted keys of the newly introduced [ecryptfs encrypted] format store an
+    authentication token in its payload with a FEFEK randomly generated by the
+    kernel and protected by the parent master key.  [What if I want to use an
+    existing FEFEK?]
+
+OK, so it sounds to me like the kernel is storing the encrypted key in the same
+format as a regular user key that would be added to the keyring by the ecryptfs
+userspace tools (e.g. by ecryptfs-add-passphrase or the mount helper).  That is,
+the payload of the user key and the encrypted key are basically one and the
+same, except the kernel won't allow userspace to read the encrypted key in
+unencrypted format.  Right?
+
+So I think what I want to do is this - am I on the right track here?
+
+1.  Use ecryptfs-add-passphrase to add a mounting passphrase to the keyring.
+    (It could be a mounting passphrase for an existing ecryptfs filesystem).
+    Now I have a user key on the keyring storing an ecryptfs authentication
+    token.  The mounting passphrase can be complex and stored in an offline
+    secure location, perhaps protected by ecryptfs-wrap-passphrase, and only
+    used in a data recovery scenario (e.g. if the TPM goes up in smoke). 
+2.  Create a new trusted key in the keyring, as per above documentation.
+3.  Convert the existing user key storing authentication token from
+    ecrypt-add-passphrase in step #1 into an encrypted key on the keyring, using
+    the trusted key as the master key.  (This is where I'm stuck.)
+4.  Remove the user key from the keyring since we don't need it any more.
+5.  Use "keyctl pipe" to save the encrypted key to a file on disk for later
+    mounting.
+
+Ordinary day-to-day mounting would work like:
+1.  Load and unseal trusted key into keyring.
+2.  Load encrypted key blob from step #5 above into encrypted key in keyring,
+    using trusted key as master key. 
+3.  Mount using the encrypted key from previous step.
+
+If the TPM is destroyed or lost:
+1.  Use ecryptfs-add-passphrase to add the mounting passphrase from backup into
+    an authentication token stored in a user key.
+2.  Mount using this user key.
+
+So my key question is this:  How do I convert a user key storing authentication
+token to an encrypted key, as in step #3 in the setup procedure above?  For
+example, docs say this to decrypt an existing encrypted key previously exported
+with keyctl pipe <encrypted ID>:
+
+    keyctl add encrypted name "load hex_blob" ring
+
+But I want to do something like this to make a new encrypted key from some
+pre-existing plaintext:
+
+    keyctl add encrypted name "load ecryptfs trusted:masterkey `keyctl print <id of user key holding plaintext authentication token / FEFEK / mounting passphrase>`" @u
+
+(This as opposed to the random new key generated with
+"add encrypted name "new ecryptfs"")
+
+If the above isn't possible then what am I missing in my strategy?  Feels like
+I'm missing some obvious information here.
+
+Best regards,
+
+James Johnston
+
