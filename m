@@ -1,91 +1,76 @@
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: Re: Practical use of ecryptfs, encrypted keys, and TPM: how to
- convert existing user key to encrypted key?
-Date: Mon, 28 Mar 2016 13:02:03 -0400
-Message-ID: <1459184523.2751.142.camel@linux.vnet.ibm.com>
-References: <001301d187a0$95552f40$bfff8dc0$@codenest.com>
-	 <1459177151.2751.118.camel@linux.vnet.ibm.com>
-	 <003e01d18907$4bdf0b20$e39d2160$@codenest.com>
+From: Hans-Joachim Kliemeck <info@kliemeck.de>
+Subject: combination of cifs and ecryptfs
+Date: Mon, 28 Mar 2016 22:06:14 +0200
+Message-ID: <56F98EB6.30707@kliemeck.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from e28smtp02.in.ibm.com ([125.16.236.2]:47688 "EHLO
-	e28smtp02.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754086AbcC1RCP (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 28 Mar 2016 13:02:15 -0400
-Received: from localhost
-	by e28smtp02.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <ecryptfs@vger.kernel.org> from <zohar@linux.vnet.ibm.com>;
-	Mon, 28 Mar 2016 22:32:11 +0530
-In-Reply-To: <003e01d18907$4bdf0b20$e39d2160$@codenest.com>
+Received: from mail.normalesvieh.de ([5.9.208.126]:41930 "EHLO
+	mail.normalesvieh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314AbcC1Uii (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 28 Mar 2016 16:38:38 -0400
+Received: from p54b9aaf2.dip0.t-ipconnect.de ([84.185.170.242] helo=[192.168.0.196])
+	by mail.normalesvieh.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+	(Exim 4.84)
+	(envelope-from <info@kliemeck.de>)
+	id 1akdQR-0004ss-Oi
+	for ecryptfs@vger.kernel.org; Mon, 28 Mar 2016 22:06:12 +0200
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: James Johnston <johnstonj.public@codenest.com>
-Cc: ecryptfs@vger.kernel.org, keyrings@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-On Mon, 2016-03-28 at 15:34 +0000, James Johnston wrote:
-> Hi Mimi,
-> 
-> Thanks for taking a look at this question.
-> 
-> > > The problem is if the TPM dies, I need to recover my data (e.g. computer dies,
-> > > and need to restore from encrypted backups).  What I'm wanting to do is use a
-> > > passphrase to decrypt data if the TPM is not available, to be used only in
-> > > special circumstances.
-> > 
-> > Encrypted keys can be updated so that they're encrypted with a different
-> > user or trusted key, but the key type (user | trusted) can not be
-> > changed.  Allowing the key type to change would kind of defeat the
-> > purpose of using a trusted key in the first place.
-> 
-> Agree 100% that changing the master key type from trusted to user would defeat the
-> whole point.  But that's not really the request here.
-> 
-> What is the harm about initially populating the encrypted key type with a known
-> mounting passphrase instead of random data?  For example, if the user has an
-> existing ecryptfs file system they now wish to protect with the TPM?  I don't
-> think it's the kernel's place to judge whether I think my payload has been
-> compromised or not, or if it is sufficiently random.  I cannot think of any
-> problem with this, so it seems to me, if it's not currently possible, this would
-> be an area of needed improvement in the kernel to enable the proposed real-world
-> use?
+Dear List,
 
-Yes, this would resolve the existing ecryptfs key usecase scenario, but
-I don't think it is needed for the initial use case scenario of a TPM
-failure.   A concern with this approach is how to safely initialize the
-encrypted key payload.   Its probably not a good idea to pass it on the
-command line.  Maybe prompt for it?
+i'm experiencing problems related to the combination of ecryptfs and
+cifs. Due to the lack of encryption on cifs, i decided to mount a remote
+share and encrypt the traffic with ecryptfs.
 
-> I mean, as I currently understand it, the only way to use trusted & encrypted
-> keys together involves randomly-generated encrypted keys, whose plaintext
-> contents cannot be easily backed up since we cannot (and should not) be able
-> to change the master key type.  But now the potential for data loss if the TPM
-> fails seems certain, thus making this feature an interesting academic exercise
-> but useless in the real world where backups are needed when real-world hardware
-> stops working.  Am I missing something?
+my setup:
 
-Another option would to be migrate the TPM key, which was used to seal
-the trusted (asymmetric) key, to a backup server.  If something happens
-to the local TPM, the trusted key could be re-sealed on a new TPM.  (I
-have not tried doing this.)
+systems:
+Ubuntu 14.04 (3.13.0-83-generic) / 16.04 (4.4.0-15-generic)
 
-Mimi
+folders:
+/opt/backup/remote/ - ecryptfs main folder
+/opt/backup/remote-encrypted/ - cifs folder
 
-> To contrast, with LUKS or BitLocker for example, the decryption key for the
-> block device can be recovered using multiple methods.  For example, a
-> passphrase can be used to decrypt the main key for the drive.  Alternatively,
-> one could conceivably use a different LUKS slot for use by the TPM, such as
-> done by the tpm-luks project.  So I can use TPM for day-to-day use, and then
-> put the passphrase in a safe offline place in case I have to recover when the
-> TPM stops working.
-> 
-> I thought about the problem some more yesterday.  I guess one could use
-> tpm_unsealdata and then ecryptfs-add-passphrase by hand from the command line.
-> But then the authentication token is stored in a regular user key, not within
-> the protection of an "encrypted" key type.  So the security is not as good
-> because userspace can read the authentication token in plaintext at any time.
-> 
-> Best regards,
-> 
-> James Johnston
+fstab:
+//XXXXXXX/backup /opt/backup/remote-encrypted/ cifs
+defaults,_netdev,username=XXXXX,password=XXXXXX 0 0
+/opt/backup/remote-encrypted/ /opt/backup/remote/ ecryptfs
+defaults,noatime,nodiratime,_netdev,ecryptfs_cipher=aes,ecryptfs_key_bytes=32,ecryptfs_enable_filename_crypto=n,ecryptfs_passthrough=n,ecryptfs_sig=XXXXXX,no_sig_cache,key=passphrase:passphrase_passwd=XXXXXXXXXXXXXX
+0 0
+
+remote cifs server:
+seems to be a proftpd with mod_sftp (with CIFS Unix Extensions), but i
+can not determine its version. Its the backup server from my ISP (Hetzner)
+
+
+The reason i post this to the ecryptfs mailing list: I took a deep look
+at whats going on and it seems that ecryptfs is opening a readonly file
+with read-write access. Therefore cifs issues a read-write request
+against the server and the server will always deny it, because the file
+is marked as readonly. If the ecryptfs mointpoint is mounted readonly,
+the read access to the corresponding file will succeed. It looks like
+ecryptfs does not care about the permissions of the encrypted file and
+it will open it with read-write regardless which mode is requested.
+
+steps to reproduce this (FYI, sudoers permissions are 0440)
+
+root@backuptest:~# rsync /etc/sudoers /opt/backup/remote/rsnapshot/ &&
+umount /opt/backup/remote* && mount -a
+root@backuptest:~# cat /opt/backup/remote/rsnapshot/sudoers
+[14144.024849] Error opening lower file for lower_dentry
+[0xffff880078086480] and lower_mnt [0xffff880078882320]; rc = [-13]
+[14144.024873] ecryptfs_i_size_read: Error attempting to initialize the
+lower file for the dentry with name [sudoers]; rc = [-13]
+cat: /opt/backup/remote/rsnapshot/sudoers: Permission denied
+
+I found a similar problem, maybe its related:
+http://askubuntu.com/questions/609533/cannot-access-file-on-ecryptfs-on-cifs-permission-denied
+
+any idea whats wrong with ecryptfs or with my settings?
+
+Thank you in advance,
+Hans-Joachim
