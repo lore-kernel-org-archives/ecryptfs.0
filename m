@@ -1,65 +1,93 @@
-From: "James Johnston" <johnstonj.public@codenest.com>
-Subject: RE: Practical use of ecryptfs, encrypted keys, and TPM: how to convert existing user key to encrypted key?
-Date: Mon, 28 Mar 2016 23:25:11 -0000
-Message-ID: <007801d18949$141d56a0$3c5803e0$@codenest.com>
-References: <001301d187a0$95552f40$bfff8dc0$@codenest.com>	 <1459177151.2751.118.camel@linux.vnet.ibm.com>	 <003e01d18907$4bdf0b20$e39d2160$@codenest.com> <1459184523.2751.142.camel@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Ricky Zhou <rickyz@chromium.org>
+Subject: [PATCH] ecryptfs: open lower files on kthread under SELinux
+Date: Thu, 31 Mar 2016 19:36:38 -0700
+Message-ID: <1459478198-37952-1-git-send-email-rickyz@chromium.org>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from sender163-mail.zoho.com ([74.201.84.163]:24834 "EHLO
-	sender163-mail.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317AbcC1XZS (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Mon, 28 Mar 2016 19:25:18 -0400
-In-Reply-To: <1459184523.2751.142.camel@linux.vnet.ibm.com>
-Content-Language: en-us
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:35179 "EHLO
+	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422AbcDAChO (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 31 Mar 2016 22:37:14 -0400
+Received: by mail-pf0-f176.google.com with SMTP id n5so83284376pfn.2
+        for <ecryptfs@vger.kernel.org>; Thu, 31 Mar 2016 19:37:14 -0700 (PDT)
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: 'Mimi Zohar' <zohar@linux.vnet.ibm.com>
-Cc: ecryptfs@vger.kernel.org, keyrings@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: tyhicks@canonical.com
+Cc: ecryptfs@vger.kernel.org, keescook@chromium.org, Ricky Zhou <rickyz@chromium.org>
 
-> > > > The problem is if the TPM dies, I need to recover my data (e.g. computer dies,
-> > > > and need to restore from encrypted backups).  What I'm wanting to do is use a
-> > > > passphrase to decrypt data if the TPM is not available, to be used only in
-> > > > special circumstances.
-> > >
-> > > Encrypted keys can be updated so that they're encrypted with a different
-> > > user or trusted key, but the key type (user | trusted) can not be
-> > > changed.  Allowing the key type to change would kind of defeat the
-> > > purpose of using a trusted key in the first place.
-> >
-> > Agree 100% that changing the master key type from trusted to user would defeat the
-> > whole point.  But that's not really the request here.
-> >
-> > What is the harm about initially populating the encrypted key type with a known
-> > mounting passphrase instead of random data?  For example, if the user has an
-> > existing ecryptfs file system they now wish to protect with the TPM?  I don't
-> > think it's the kernel's place to judge whether I think my payload has been
-> > compromised or not, or if it is sufficiently random.  I cannot think of any
-> > problem with this, so it seems to me, if it's not currently possible, this would
-> > be an area of needed improvement in the kernel to enable the proposed real-world
-> > use?
-> 
-> Yes, this would resolve the existing ecryptfs key usecase scenario, but
-> I don't think it is needed for the initial use case scenario of a TPM
-> failure.   A concern with this approach is how to safely initialize the
-> encrypted key payload.   Its probably not a good idea to pass it on the
-> command line.  Maybe prompt for it?
+When SELinux is enabled, files are associated with the current task's
+SID when they are opened. Before this change, the lower file would
+sometimes be associated with the SID of the first process to open the
+corresponding eCryptfs file. If a second process attempts to access this
+file through the same lower file, the access is denied unless the
+SELinux policy allows the second process to use files opened by the
+first process (the FD__USE permission).
 
-To clarify, there's not currently a way to do this then, right?  (i.e. I didn't
-miss anything?)  After my initial e-mail, I examined kernel sources and I
-couldn't spot anything that wasn't in the documentation, but I wanted to be
-sure.
+Since it may not be desirable to allow all processes this permission,
+this change always opens the lower file from a thread with the kernel
+SID. This way, the policy only needs to grant all processes FD__USE on
+the kernel context (which in practice, is exactly the use of eCryptfs
+lower files).
 
-What if you just used a user key payload?  For example, specifying another key
-instead of the key size like this:
+Signed-off-by: Ricky Zhou <rickyz@chromium.org>
+---
+ fs/ecryptfs/kthread.c | 34 ++++++++++++++++++++++++----------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
 
-    keyctl add encrypted mykey "new default trusted:master user:payload"
-
-would read the payload of "payload" user key and use it as plaintext of the new
-encrypted key, instead of generating a random key.  If <format> is ecryptfs,
-then the user key would be expected to be an authentication token added to the
-kernel by ecryptfs-add-passphrase (which handles prompting user).
-
-James
-
+diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+index 866bb18..0ce7828 100644
+--- a/fs/ecryptfs/kthread.c
++++ b/fs/ecryptfs/kthread.c
+@@ -25,6 +25,7 @@
+ #include <linux/slab.h>
+ #include <linux/wait.h>
+ #include <linux/mount.h>
++#include <linux/selinux.h>
+ #include "ecryptfs_kernel.h"
+ 
+ struct ecryptfs_open_req {
+@@ -141,17 +142,30 @@ int ecryptfs_privileged_open(struct file **lower_file,
+ 	req.path.dentry = lower_dentry;
+ 	req.path.mnt = lower_mnt;
+ 
+-	/* Corresponding dput() and mntput() are done when the
+-	 * lower file is fput() when all eCryptfs files for the inode are
+-	 * released. */
+-	flags |= IS_RDONLY(d_inode(lower_dentry)) ? O_RDONLY : O_RDWR;
+-	(*lower_file) = dentry_open(&req.path, flags, cred);
+-	if (!IS_ERR(*lower_file))
+-		goto out;
+-	if ((flags & O_ACCMODE) == O_RDONLY) {
+-		rc = PTR_ERR((*lower_file));
+-		goto out;
++	/*
++	 * When SELinux is enabled, force the lower file to be opened by the
++	 * kernel thread. Otherwise, the lower file will be associated with the
++	 * SELinux context of the first process that opens it, which may prevent
++	 * a different process from using it, unless that process has permission
++	 * to use fds from the first process.
++	 *
++	 * If SELinux is enabled, then any process that needs read access to an
++	 * ecryptfs filesytem must allow fd:use on the kernel context.
++	 */
++	if (!selinux_is_enabled()) {
++		/* Corresponding dput() and mntput() are done when the lower
++		 * file is fput() when all eCryptfs files for the inode are
++		 * released. */
++		flags |= IS_RDONLY(d_inode(lower_dentry)) ? O_RDONLY : O_RDWR;
++		(*lower_file) = dentry_open(&req.path, flags, cred);
++		if (!IS_ERR(*lower_file))
++			goto out;
++		if ((flags & O_ACCMODE) == O_RDONLY) {
++			rc = PTR_ERR((*lower_file));
++			goto out;
++		}
+ 	}
++
+ 	mutex_lock(&ecryptfs_kthread_ctl.mux);
+ 	if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
+ 		rc = -EIO;
+-- 
+2.8.0.rc3.226.g39d4020
