@@ -1,52 +1,51 @@
-From: James Muir <muir.james.a@gmail.com>
-Subject: Re: Max 26 concurrent ecryptfs mounts?
-Date: Sun, 10 Apr 2016 07:59:32 -0400
-Message-ID: <570A4024.9090005@gmail.com>
-References: <CAOgMywMKtc6Bzr88z97GHSeTTmj-rOZk7kCzDQgCoR2xZLCWuw@mail.gmail.com>
+From: Ricky Zhou <rickyz@chromium.org>
+Subject: Re: [PATCH] ecryptfs: open lower files on kthread under SELinux
+Date: Mon, 11 Apr 2016 15:46:37 -0700
+Message-ID: <CAJmxDmSthc-LePXFrNJKY1Hj7d4ettuTzvnh-X9rh7RT6=3SPg@mail.gmail.com>
+References: <1459478198-37952-1-git-send-email-rickyz@chromium.org>
+	<20160409001502.GC25631@boyd>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:33492 "EHLO
-	mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbcDJL7f (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Sun, 10 Apr 2016 07:59:35 -0400
-Received: by mail-qk0-f178.google.com with SMTP id k135so56860447qke.0
-        for <ecryptfs@vger.kernel.org>; Sun, 10 Apr 2016 04:59:34 -0700 (PDT)
-In-Reply-To: <CAOgMywMKtc6Bzr88z97GHSeTTmj-rOZk7kCzDQgCoR2xZLCWuw@mail.gmail.com>
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:35860 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755129AbcDKWql (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Mon, 11 Apr 2016 18:46:41 -0400
+Received: by mail-vk0-f43.google.com with SMTP id c4so904912vkb.3
+        for <ecryptfs@vger.kernel.org>; Mon, 11 Apr 2016 15:46:40 -0700 (PDT)
+Received: from mail-vk0-f43.google.com (mail-vk0-f43.google.com. [209.85.213.43])
+        by smtp.gmail.com with ESMTPSA id d10sm4545457uad.24.2016.04.11.15.46.39
+        for <ecryptfs@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Mon, 11 Apr 2016 15:46:39 -0700 (PDT)
+Received: by mail-vk0-f43.google.com with SMTP id c4so904454vkb.3
+        for <ecryptfs@vger.kernel.org>; Mon, 11 Apr 2016 15:46:39 -0700 (PDT)
+In-Reply-To: <20160409001502.GC25631@boyd>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Joe Lauer <joe@greenback.com>, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, Kees Cook <keescook@chromium.org>
 
-On 16-03-21 05:20 PM, Joe Lauer wrote:
-> 2) Are there any workarounds?  Any magic kernel settings I can tune to
-> allow for more?  Or can we actually mount a directory under a
-> different account than root so that a new keyring is used as opposed
-> for root.
+On Fri, Apr 8, 2016 at 5:15 PM, Tyler Hicks <tyhicks@canonical.com> wrote:
+> 1) The kthread doesn't look like it will perform well enough to handle
+>    all lower opens. We could probably squeeze some extra performance out
+>    of it but I think the better solution is to temporarily change creds,
+>    do the lower open, and change back to the original cred. See callers
+>    of prepare_creds() for examples of this.
+Yup, that was definitely my biggest concern with this change - thanks
+for the pointers, I'll take a look at what it'll take to replace the
+kthread with override_creds/revert_creds instead.
 
-You can increase the quota by writing to certain proc files.  It is 
-documented in the kernel source:  Documentation/security/keys.txt
+> 2) I don't think that delegating open() is sufficient. What about inode
+>    based operations such as chown()? I think that we'll have a very
+>    similar problem.
+My impression was that this wasn't likely to be an issue since for
+normal filesystems, SELinux doesn't associate any contexts from the
+current task with inodes (task_sid in inode_security_struct should
+only be used for things like sockets or tmpfs - and the case of tmpfs,
+I think the resulting behavior is actually expected and correct under
+ecryptfs).
 
-quoting:
-
-> Four new sysctl files have been added also for the purpose of controlling the
-> quota limits on keys:
->
->  (*) /proc/sys/kernel/keys/root_maxkeys
->      /proc/sys/kernel/keys/root_maxbytes
->
->      These files hold the maximum number of keys that root may have and the
->      maximum total number of bytes of data that root may have stored in those
->      keys.
->
->  (*) /proc/sys/kernel/keys/maxkeys
->      /proc/sys/kernel/keys/maxbytes
->
->      These files hold the maximum number of keys that each non-root user may
->      have and the maximum total number of bytes of data that each of those
->      users may have stored in their keys.
->
-> Root may alter these by writing each new limit as a decimal number string to
-> the appropriate file.
-
--James M
+Thanks,
+Ricky
