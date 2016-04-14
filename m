@@ -1,389 +1,124 @@
-From: Ricky Zhou <rickyz@chromium.org>
-Subject: [PATCH v2] ecryptfs: open lower files using kernel creds
-Date: Tue, 12 Apr 2016 03:15:44 -0700
-Message-ID: <1460456144-27669-1-git-send-email-rickyz@chromium.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Nicolas Boichat <drinkcat@chromium.org>
+Subject: INFO: inconsistent lock state in ecryptfs_calculate_md5
+Date: Thu, 14 Apr 2016 22:03:48 +0800
+Message-ID: <CANMq1KBeZrH6Mvm=gy1BEnMthGpGb21udPrvsbxuu1D8DWkk6g@mail.gmail.com>
+Mime-Version: 1.0
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-vk0-f45.google.com ([209.85.213.45]:36283 "EHLO
+	mail-vk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752790AbcDNODt (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Thu, 14 Apr 2016 10:03:49 -0400
+Received: by mail-vk0-f45.google.com with SMTP id c4so110354135vkb.3
+        for <ecryptfs@vger.kernel.org>; Thu, 14 Apr 2016 07:03:49 -0700 (PDT)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, keescook@chromium.org
+To: ecryptfs@vger.kernel.org, linux-crypto@vger.kernel.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Herbert Xu <herbert@gondor.apana.org.au>, linux-kernel@vger.kernel.org
 
-In LSMs such as SELinux, files can be associated with state from the
-credentials of the task that opens it. Since ecryptfs shares a single
-handle to lower files across tasks that access it, others tasks can
-later be denied access to the lower file as a result.
+Hi,
 
-This change removes the kthread and unconditionally opens lower files
-with kernel service credentials. Under SELinux, users will need to allow
-the FD__USE permissions on the kernel context to process that need to
-access files on an ecryptfs filesystem.
+We've run into the following lockdep warning while using a system with
+ecryptfs, under heavy memory pressure.
 
-Signed-off-by: Ricky Zhou <rickyz@chromium.org>
----
- fs/ecryptfs/Makefile          |   2 +-
- fs/ecryptfs/ecryptfs_kernel.h |   4 -
- fs/ecryptfs/kthread.c         | 172 ------------------------------------------
- fs/ecryptfs/main.c            |  78 +++++++++++++++----
- 4 files changed, 65 insertions(+), 191 deletions(-)
- delete mode 100644 fs/ecryptfs/kthread.c
+If I understand the issue correctly,
+fs/ecryptfs/crypto.c:ecryptfs_calculate_md5:
+ - Locks &crypt_stat->cs_hash_tfm_mutex
+ -> Calls crypto_alloc_hash
+   -> Calls crypto_alloc_base
+      ->  __crypto_alloc_tfm
+        -> kzalloc(tfm_size, GFP_KERNEL)
+           -> Which, under memory pressure, may attempt to flush
+pages, which would reenter ecryptfs_calculate_md5, try to lock the
+mutex again, and cause a deadlock.
 
-diff --git a/fs/ecryptfs/Makefile b/fs/ecryptfs/Makefile
-index 49678a6..f0bcf51 100644
---- a/fs/ecryptfs/Makefile
-+++ b/fs/ecryptfs/Makefile
-@@ -5,6 +5,6 @@
- obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
- 
- ecryptfs-y := dentry.o file.o inode.o main.o super.o mmap.o read_write.o \
--	      crypto.o keystore.o kthread.o debug.o
-+	      crypto.o keystore.o debug.o
- 
- ecryptfs-$(CONFIG_ECRYPT_FS_MESSAGING) += messaging.o miscdev.o
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index d123fba..6434736 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -695,10 +695,6 @@ int ecryptfs_find_daemon_by_euid(struct ecryptfs_daemon **daemon);
- #endif
- int ecryptfs_init_kthread(void);
- void ecryptfs_destroy_kthread(void);
--int ecryptfs_privileged_open(struct file **lower_file,
--			     struct dentry *lower_dentry,
--			     struct vfsmount *lower_mnt,
--			     const struct cred *cred);
- int ecryptfs_get_lower_file(struct dentry *dentry, struct inode *inode);
- void ecryptfs_put_lower_file(struct inode *inode);
- int
-diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
-deleted file mode 100644
-index 866bb18..0000000
---- a/fs/ecryptfs/kthread.c
-+++ /dev/null
-@@ -1,172 +0,0 @@
--/**
-- * eCryptfs: Linux filesystem encryption layer
-- *
-- * Copyright (C) 2008 International Business Machines Corp.
-- *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License as
-- * published by the Free Software Foundation; either version 2 of the
-- * License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-- * 02111-1307, USA.
-- */
--
--#include <linux/kthread.h>
--#include <linux/freezer.h>
--#include <linux/slab.h>
--#include <linux/wait.h>
--#include <linux/mount.h>
--#include "ecryptfs_kernel.h"
--
--struct ecryptfs_open_req {
--	struct file **lower_file;
--	struct path path;
--	struct completion done;
--	struct list_head kthread_ctl_list;
--};
--
--static struct ecryptfs_kthread_ctl {
--#define ECRYPTFS_KTHREAD_ZOMBIE 0x00000001
--	u32 flags;
--	struct mutex mux;
--	struct list_head req_list;
--	wait_queue_head_t wait;
--} ecryptfs_kthread_ctl;
--
--static struct task_struct *ecryptfs_kthread;
--
--/**
-- * ecryptfs_threadfn
-- * @ignored: ignored
-- *
-- * The eCryptfs kernel thread that has the responsibility of getting
-- * the lower file with RW permissions.
-- *
-- * Returns zero on success; non-zero otherwise
-- */
--static int ecryptfs_threadfn(void *ignored)
--{
--	set_freezable();
--	while (1)  {
--		struct ecryptfs_open_req *req;
--
--		wait_event_freezable(
--			ecryptfs_kthread_ctl.wait,
--			(!list_empty(&ecryptfs_kthread_ctl.req_list)
--			 || kthread_should_stop()));
--		mutex_lock(&ecryptfs_kthread_ctl.mux);
--		if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
--			mutex_unlock(&ecryptfs_kthread_ctl.mux);
--			goto out;
--		}
--		while (!list_empty(&ecryptfs_kthread_ctl.req_list)) {
--			req = list_first_entry(&ecryptfs_kthread_ctl.req_list,
--					       struct ecryptfs_open_req,
--					       kthread_ctl_list);
--			list_del(&req->kthread_ctl_list);
--			*req->lower_file = dentry_open(&req->path,
--				(O_RDWR | O_LARGEFILE), current_cred());
--			complete(&req->done);
--		}
--		mutex_unlock(&ecryptfs_kthread_ctl.mux);
--	}
--out:
--	return 0;
--}
--
--int __init ecryptfs_init_kthread(void)
--{
--	int rc = 0;
--
--	mutex_init(&ecryptfs_kthread_ctl.mux);
--	init_waitqueue_head(&ecryptfs_kthread_ctl.wait);
--	INIT_LIST_HEAD(&ecryptfs_kthread_ctl.req_list);
--	ecryptfs_kthread = kthread_run(&ecryptfs_threadfn, NULL,
--				       "ecryptfs-kthread");
--	if (IS_ERR(ecryptfs_kthread)) {
--		rc = PTR_ERR(ecryptfs_kthread);
--		printk(KERN_ERR "%s: Failed to create kernel thread; rc = [%d]"
--		       "\n", __func__, rc);
--	}
--	return rc;
--}
--
--void ecryptfs_destroy_kthread(void)
--{
--	struct ecryptfs_open_req *req, *tmp;
--
--	mutex_lock(&ecryptfs_kthread_ctl.mux);
--	ecryptfs_kthread_ctl.flags |= ECRYPTFS_KTHREAD_ZOMBIE;
--	list_for_each_entry_safe(req, tmp, &ecryptfs_kthread_ctl.req_list,
--				 kthread_ctl_list) {
--		list_del(&req->kthread_ctl_list);
--		*req->lower_file = ERR_PTR(-EIO);
--		complete(&req->done);
--	}
--	mutex_unlock(&ecryptfs_kthread_ctl.mux);
--	kthread_stop(ecryptfs_kthread);
--	wake_up(&ecryptfs_kthread_ctl.wait);
--}
--
--/**
-- * ecryptfs_privileged_open
-- * @lower_file: Result of dentry_open by root on lower dentry
-- * @lower_dentry: Lower dentry for file to open
-- * @lower_mnt: Lower vfsmount for file to open
-- *
-- * This function gets a r/w file opened againt the lower dentry.
-- *
-- * Returns zero on success; non-zero otherwise
-- */
--int ecryptfs_privileged_open(struct file **lower_file,
--			     struct dentry *lower_dentry,
--			     struct vfsmount *lower_mnt,
--			     const struct cred *cred)
--{
--	struct ecryptfs_open_req req;
--	int flags = O_LARGEFILE;
--	int rc = 0;
--
--	init_completion(&req.done);
--	req.lower_file = lower_file;
--	req.path.dentry = lower_dentry;
--	req.path.mnt = lower_mnt;
--
--	/* Corresponding dput() and mntput() are done when the
--	 * lower file is fput() when all eCryptfs files for the inode are
--	 * released. */
--	flags |= IS_RDONLY(d_inode(lower_dentry)) ? O_RDONLY : O_RDWR;
--	(*lower_file) = dentry_open(&req.path, flags, cred);
--	if (!IS_ERR(*lower_file))
--		goto out;
--	if ((flags & O_ACCMODE) == O_RDONLY) {
--		rc = PTR_ERR((*lower_file));
--		goto out;
--	}
--	mutex_lock(&ecryptfs_kthread_ctl.mux);
--	if (ecryptfs_kthread_ctl.flags & ECRYPTFS_KTHREAD_ZOMBIE) {
--		rc = -EIO;
--		mutex_unlock(&ecryptfs_kthread_ctl.mux);
--		printk(KERN_ERR "%s: We are in the middle of shutting down; "
--		       "aborting privileged request to open lower file\n",
--			__func__);
--		goto out;
--	}
--	list_add_tail(&req.kthread_ctl_list, &ecryptfs_kthread_ctl.req_list);
--	mutex_unlock(&ecryptfs_kthread_ctl.mux);
--	wake_up(&ecryptfs_kthread_ctl.wait);
--	wait_for_completion(&req.done);
--	if (IS_ERR(*lower_file))
--		rc = PTR_ERR(*lower_file);
--out:
--	return rc;
--}
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 1698132..9459fbb 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -24,6 +24,7 @@
-  * 02111-1307, USA.
-  */
- 
-+#include <linux/cred.h>
- #include <linux/dcache.h>
- #include <linux/file.h>
- #include <linux/module.h>
-@@ -95,6 +96,56 @@ void __ecryptfs_printk(const char *fmt, ...)
- }
- 
- /**
-+ * Credentials for opening lower files.
-+ */
-+static const struct cred *kernel_cred;
-+
-+/**
-+ * ecryptfs_privileged_open
-+ * @lower_file: Result of dentry_open by root on lower dentry
-+ * @lower_dentry: Lower dentry for file to open
-+ * @lower_mnt: Lower vfsmount for file to open
-+ *
-+ * This function gets a r/w file opened againt the lower dentry.
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
-+static int ecryptfs_privileged_open(struct file **lower_file,
-+				    struct dentry *lower_dentry,
-+				    struct vfsmount *lower_mnt)
-+{
-+	struct path path;
-+	int flags = O_LARGEFILE;
-+	int rc = 0;
-+	const struct cred *old_cred;
-+
-+	path.dentry = lower_dentry;
-+	path.mnt = lower_mnt;
-+	flags |= IS_RDONLY(d_inode(lower_dentry)) ? O_RDONLY : O_RDWR;
-+
-+	/*
-+	 * Use kernel service credentials to open the lower file, as the current
-+	 * task may not have write privileges.  Uses kernel creds instead of
-+	 * normal creds with CAP_DAC_OVERRIDE because because some LSMs like
-+	 * SELinux associate the file with extra state from the current
-+	 * credentials. When this happens, access to the lower file can
-+	 * be affected by which task was the first to open it.
-+	 */
-+	old_cred = override_creds(kernel_cred);
-+
-+	/* Corresponding dput() and mntput() are done when the
-+	 * lower file is fput() when all eCryptfs files for the inode are
-+	 * released. */
-+	(*lower_file) = dentry_open(&path, flags, kernel_cred);
-+
-+	revert_creds(old_cred);
-+
-+	if (IS_ERR(*lower_file))
-+		rc = PTR_ERR(*lower_file);
-+	return rc;
-+}
-+
-+/**
-  * ecryptfs_init_lower_file
-  * @ecryptfs_dentry: Fully initialized eCryptfs dentry object, with
-  *                   the lower dentry and the lower mount set
-@@ -118,12 +169,10 @@ void __ecryptfs_printk(const char *fmt, ...)
- static int ecryptfs_init_lower_file(struct dentry *dentry,
- 				    struct file **lower_file)
- {
--	const struct cred *cred = current_cred();
- 	struct path *path = ecryptfs_dentry_to_lower_path(dentry);
- 	int rc;
- 
--	rc = ecryptfs_privileged_open(lower_file, path->dentry, path->mnt,
--				      cred);
-+	rc = ecryptfs_privileged_open(lower_file, path->dentry, path->mnt);
- 	if (rc) {
- 		printk(KERN_ERR "Error opening lower file "
- 		       "for lower_dentry [0x%p] and lower_mnt [0x%p]; "
-@@ -829,29 +878,30 @@ static int __init ecryptfs_init(void)
- 				(unsigned long)PAGE_SIZE);
- 		goto out;
- 	}
-+	kernel_cred = prepare_kernel_cred(NULL);
-+	if (kernel_cred == NULL) {
-+		rc = -ENOMEM;
-+		ecryptfs_printk(KERN_ERR,
-+				"Failed to prepare kernel credentials\n");
-+		goto out;
-+	}
- 	rc = ecryptfs_init_kmem_caches();
- 	if (rc) {
- 		printk(KERN_ERR
- 		       "Failed to allocate one or more kmem_cache objects\n");
--		goto out;
-+		goto out_put_cred;
- 	}
- 	rc = do_sysfs_registration();
- 	if (rc) {
- 		printk(KERN_ERR "sysfs registration failed\n");
- 		goto out_free_kmem_caches;
- 	}
--	rc = ecryptfs_init_kthread();
--	if (rc) {
--		printk(KERN_ERR "%s: kthread initialization failed; "
--		       "rc = [%d]\n", __func__, rc);
--		goto out_do_sysfs_unregistration;
--	}
- 	rc = ecryptfs_init_messaging();
- 	if (rc) {
- 		printk(KERN_ERR "Failure occurred while attempting to "
- 				"initialize the communications channel to "
- 				"ecryptfsd\n");
--		goto out_destroy_kthread;
-+		goto out_do_sysfs_unregistration;
- 	}
- 	rc = ecryptfs_init_crypto();
- 	if (rc) {
-@@ -873,12 +923,12 @@ out_destroy_crypto:
- 	ecryptfs_destroy_crypto();
- out_release_messaging:
- 	ecryptfs_release_messaging();
--out_destroy_kthread:
--	ecryptfs_destroy_kthread();
- out_do_sysfs_unregistration:
- 	do_sysfs_unregistration();
- out_free_kmem_caches:
- 	ecryptfs_free_kmem_caches();
-+out_put_cred:
-+	put_cred(kernel_cred);
- out:
- 	return rc;
- }
-@@ -892,10 +942,10 @@ static void __exit ecryptfs_exit(void)
- 		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
- 		       "rc = [%d]\n", rc);
- 	ecryptfs_release_messaging();
--	ecryptfs_destroy_kthread();
- 	do_sysfs_unregistration();
- 	unregister_filesystem(&ecryptfs_fs_type);
- 	ecryptfs_free_kmem_caches();
-+	put_cred(kernel_cred);
- }
- 
- MODULE_AUTHOR("Michael A. Halcrow <mhalcrow@us.ibm.com>");
--- 
-2.8.0.rc3.226.g39d4020
+This is a 3.18-based kernel, and this upstream commit:
+3095e8e366b471f3bcdbf21c9c72a45718ff8756 "eCryptfs: Use skcipher and
+shash" gets rid of the call to crypto_alloc_hash, and instead calls
+crypto_alloc_shash, but it looks like there is a similar issue there
+(another kmalloc with GFP_KERNEL).
 
+I wonder if we should release the mutex during the alloc call, or if
+there is another better way to fix this (this should be a fairly
+common filesystem issue, I imagine?).
+
+Suggestions and patches welcome.
+
+Best,
+
+Nicolas
+
+[ 1291.295366] =================================
+[ 1291.299679] [ INFO: inconsistent lock state ]
+[ 1291.303997] 3.18.0 #234 Not tainted
+[ 1291.307449] ---------------------------------
+[ 1291.311764] inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
+[ 1291.318234] kswapd0/62 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[ 1291.323238]  (&crypt_stat->cs_hash_tfm_mutex){+.+.?.}, at:
+[<ffffffc00041bf90>] ecryptfs_calculate_md5+0x58/0x170
+[ 1291.333437] {RECLAIM_FS-ON-W} state was registered at:
+[ 1291.338526]   [<ffffffc00026da9c>] mark_lock+0x2dc/0x6a8
+[ 1291.343796]   [<ffffffc00026df04>] mark_held_locks+0x9c/0xc4
+[ 1291.349407]   [<ffffffc000270de4>] lockdep_trace_alloc+0xc4/0xd8
+[ 1291.355366]   [<ffffffc000338bcc>] __kmalloc+0x90/0x278
+[ 1291.360551]   [<ffffffc000442fc0>] __crypto_alloc_tfm+0x98/0x184
+[ 1291.366507]   [<ffffffc000443108>] crypto_alloc_base+0x5c/0xa8
+[ 1291.372289]   [<ffffffc00041bfbc>] ecryptfs_calculate_md5+0x84/0x170
+[ 1291.378590]   [<ffffffc00041d368>] ecryptfs_compute_root_iv+0xbc/0x13c
+[ 1291.385063]   [<ffffffc00041d558>] ecryptfs_new_file_context+0x170/0x1f8
+[ 1291.391709]   [<ffffffc000419dac>] ecryptfs_initialize_file+0x74/0x108
+[ 1291.398181]   [<ffffffc000419f58>] ecryptfs_create+0x118/0x17c
+[ 1291.403964]   [<ffffffc00035082c>] vfs_create+0x98/0xe4
+[ 1291.409144]   [<ffffffc000350dd4>] do_last.isra.30+0x55c/0xb04
+[ 1291.414928]   [<ffffffc000351938>] path_openat+0x5bc/0x60c
+[ 1291.420368]   [<ffffffc000352954>] do_filp_open+0x4c/0xb8
+[ 1291.425722]   [<ffffffc0003416ec>] do_sys_open+0x180/0x2e8
+[ 1291.431161]   [<ffffffc000392738>] compat_SyS_open+0x34/0x48
+[ 1291.436773]   [<ffffffc000205470>] el0_svc_naked+0x20/0x28
+[ 1291.442214] irq event stamp: 4500643
+[ 1291.445753] hardirqs last  enabled at (4500643):
+[<ffffffc0002fa398>] get_page_from_freelist+0x400/0x5f0
+[ 1291.455158] hardirqs last disabled at (4500642):
+[<ffffffc0002fa104>] get_page_from_freelist+0x16c/0x5f0
+[ 1291.464560] softirqs last  enabled at (4498536):
+[<ffffffc000228560>] __do_softirq+0x38c/0x428
+[ 1291.473103] softirqs last disabled at (4498531):
+[<ffffffc000228900>] irq_exit+0x7c/0xd8
+[ 1291.481127]
+[ 1291.481127] other info that might help us debug this:
+[ 1291.487596]  Possible unsafe locking scenario:
+[ 1291.487596]
+[ 1291.493462]        CPU0
+[ 1291.495880]        ----
+[ 1291.498298]   lock(&crypt_stat->cs_hash_tfm_mutex);
+[ 1291.503137]   <Interrupt>
+[ 1291.505727]     lock(&crypt_stat->cs_hash_tfm_mutex);
+[ 1291.510737]
+[ 1291.510737]  *** DEADLOCK ***
+[ 1291.510737]
+[ 1291.516603] no locks held by kswapd0/62.
+[ 1291.520486]
+[ 1291.520486] stack backtrace:
+[ 1291.524803] CPU: 2 PID: 62 Comm: kswapd0 Not tainted 3.18.0 #234
+[ 1291.535932] Call trace:
+[ 1291.538353] [<ffffffc000209ed8>] dump_backtrace+0x0/0x140
+[ 1291.543703] [<ffffffc00020a034>] show_stack+0x1c/0x28
+[ 1291.548709] [<ffffffc0008a45c8>] dump_stack+0x80/0xc4
+[ 1291.553713] [<ffffffc0008a36c4>] print_usage_bug.part.35+0x270/0x28c
+[ 1291.560010] [<ffffffc00026dc0c>] mark_lock+0x44c/0x6a8
+[ 1291.565100] [<ffffffc00026ecf0>] __lock_acquire+0x920/0x19a8
+[ 1291.570707] [<ffffffc0002705f4>] lock_acquire+0x138/0x188
+[ 1291.576057] [<ffffffc0008a7df0>] mutex_lock_nested+0x8c/0x3fc
+[ 1291.581751] [<ffffffc00041bf8c>] ecryptfs_calculate_md5+0x54/0x170
+[ 1291.587876] [<ffffffc00041c890>] ecryptfs_derive_iv+0xec/0x184
+[ 1291.593656] [<ffffffc00041c99c>] crypt_extent+0x74/0x1b0
+[ 1291.598919] [<ffffffc00041cebc>] ecryptfs_encrypt_page+0xdc/0x1c8
+[ 1291.604958] [<ffffffc00041b174>] ecryptfs_writepage+0x1c/0x7c
+[ 1291.610653] [<ffffffc0003053cc>] shrink_page_list+0x578/0x978
+[ 1291.616346] [<ffffffc000305ddc>] shrink_inactive_list+0x264/0x4e8
+[ 1291.622384] [<ffffffc00030679c>] shrink_lruvec+0x3ec/0x5a4
+[ 1291.627820] [<ffffffc0003069ac>] shrink_zone+0x58/0x118
+[ 1291.632997] [<ffffffc000307310>] balance_pgdat+0x300/0x550
+[ 1291.638432] [<ffffffc0003079d4>] kswapd+0x474/0x51c
+[ 1291.643264] [<ffffffc0002437c0>] kthread+0xf0/0xfc
