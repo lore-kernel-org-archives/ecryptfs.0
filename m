@@ -1,153 +1,163 @@
 From: James Simmons <jsimmons@infradead.org>
-Subject: Re: [RFC 0/8] Xattr inode operation removal
-Date: Wed, 4 May 2016 21:13:40 +0100 (BST)
-Message-ID: <alpine.LFD.2.20.1605042113090.32671@casper.infradead.org>
+Subject: [PATCH] xattr handlers: fixup generic_listxattr
+Date: Wed, 11 May 2016 16:54:01 +0100 (BST)
+Message-ID: <alpine.LFD.2.20.1605111649310.27778@casper.infradead.org>
 References: <1462229118-13123-1-git-send-email-agruenba@redhat.com> <551ED650-CBF8-40D6-85A0-BDB3C281C247@dilger.ca>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:38965 "EHLO
+Received: from casper.infradead.org ([85.118.1.10]:38702 "EHLO
 	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbcEDUNq (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 4 May 2016 16:13:46 -0400
+	with ESMTP id S1751405AbcEKPyJ (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 11 May 2016 11:54:09 -0400
 In-Reply-To: <551ED650-CBF8-40D6-85A0-BDB3C281C247@dilger.ca>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andreas Dilger <adilger@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, Lustre Developement <lustre-devel@lists.lustre.org>
 
-> On May 2, 2016, at 4:45 PM, Andreas Gruenbacher <agruenba@redhat.com> wrote:
-> > 
-> > Hi all,
-> > 
-> > what are your thoughts on this patch set?  It applies on top of the
-> > work.xattr branch [*], converts the remaining filesystems over to xattr
-> > handlers, and replaces the getxattr, setxattr, and removexattr inode
-> > operations.  The only way to implement getxattr, setxattr, and
-> > removexattr with this approach is through xattr handlers.
-> 
-> Maybe I'm missing the point of this patch, but is there a long-term benefit
-> to this change?  It seems to be replacing the ->getxattr() and related inode
-> methods with a generic ->xattr handler list that needs to be demultiplexed
-> on each access?  Is there a net improvement in functionality that comes
-> out the other end?  That isn't at all clear from your comments or the
-> patches themselves.  It seems that all of LOC savings is from deleting
-> the .setxattr, .getxattr, and .removexattr lines from inode_operations
-> but there is added complexity in the rest of the code?
-> 
-> Cheers, Andreas
-> 
-> > 
-> > *** Please don't merge yet: this is boot tested only so far! ***
-> > 
-> > Lustre currently also breaks; I haven't succeeded in cleaning up the
-> > mess there.  Oleg and Andreas, would you like to look into that?
 
-Al do you plan on merging this for 4.7-rc1?
+While looking at porting lustre to use xattr handlers I
+noticed issues in generic_listxattr() when handle->list()
+is used. The function generic_listxattr() generates it
+results from the handle->name field. If the current handle
+name field is NULL then generic_listxattr() will call
+handle->list() if it exist. Calling handle->list() has no
+affect on the output since their is no way to set the
+name field of the handler. This patch allows the passing
+in of the handler to *list() so the handle->name field
+can be set. Now with the ability to create the name field
+after its contents are transfer to the passed in buffer
+the name field has to be freed to prevent memory leaks.
+Also freeing the memory of the name field ensures that
+the *list() function will be called at a latter time
+which ensures the xattr list is not stale. This patch
+is against Viro's work.xattrs branch.
 
+Signed-off-by: James Simmons <jsimmons@infradead.org>
+---
+ fs/ext2/xattr.c       |    2 +-
+ fs/ext4/xattr.c       |    2 +-
+ fs/f2fs/xattr.c       |    2 +-
+ fs/reiserfs/xattr.c   |    2 +-
+ fs/squashfs/xattr.c   |    2 +-
+ fs/xattr.c            |    8 ++++++--
+ include/linux/xattr.h |    2 +-
+ 7 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/fs/ext2/xattr.c b/fs/ext2/xattr.c
+index 1a5e3bf..0aab6a5 100644
+--- a/fs/ext2/xattr.c
++++ b/fs/ext2/xattr.c
+@@ -290,7 +290,7 @@ bad_block:	ext2_error(inode->i_sb, "ext2_xattr_list",
+ 		const struct xattr_handler *handler =
+ 			ext2_xattr_handler(entry->e_name_index);
  
-> > Thanks,
-> > Andreas
-> > 
-> > [*] https://git.kernel.org/cgit/linux/kernel/git/viro/vfs.git/log/?h=work.xattr
-> > 
-> > Andreas Gruenbacher (8):
-> >  ecryptfs: Switch to generic xattr handlers
-> >  overlayfs: Switch to generic xattr handlers
-> >  fuse: Switch to generic xattr handlers
-> >  evm: Turn evm_update_evmxattr into void function
-> >  xattr: Add per-inode xattr handlers as a new inode operation
-> >  xattr: Add __vfs_{get,set,remove}xattr helpers
-> >  xattr: Stop calling {get,set,remove}xattr inode operations
-> >  xattr: Remove generic xattr handlers
-> > 
-> > fs/9p/vfs_inode_dotl.c                |   9 --
-> > fs/bad_inode.c                        |  33 +++--
-> > fs/btrfs/inode.c                      |  12 --
-> > fs/cachefiles/bind.c                  |   4 +-
-> > fs/cachefiles/namei.c                 |   4 +-
-> > fs/ceph/dir.c                         |   3 -
-> > fs/ceph/inode.c                       |   6 -
-> > fs/cifs/cifsfs.c                      |   9 --
-> > fs/ecryptfs/ecryptfs_kernel.h         |   2 +
-> > fs/ecryptfs/inode.c                   |  64 +++++-----
-> > fs/ecryptfs/main.c                    |   1 +
-> > fs/ecryptfs/mmap.c                    |  15 +--
-> > fs/ext2/file.c                        |   3 -
-> > fs/ext2/namei.c                       |   6 -
-> > fs/ext2/symlink.c                     |   6 -
-> > fs/ext4/file.c                        |   3 -
-> > fs/ext4/namei.c                       |   6 -
-> > fs/ext4/symlink.c                     |   9 --
-> > fs/f2fs/file.c                        |   3 -
-> > fs/f2fs/namei.c                       |  12 --
-> > fs/fuse/dir.c                         |  40 ++++--
-> > fs/fuse/fuse_i.h                      |   2 +
-> > fs/fuse/inode.c                       |   1 +
-> > fs/gfs2/inode.c                       |   9 --
-> > fs/hfs/inode.c                        |   2 -
-> > fs/hfsplus/dir.c                      |   3 -
-> > fs/hfsplus/inode.c                    |   3 -
-> > fs/jffs2/dir.c                        |   3 -
-> > fs/jffs2/file.c                       |   3 -
-> > fs/jffs2/symlink.c                    |   3 -
-> > fs/jfs/file.c                         |   3 -
-> > fs/jfs/namei.c                        |   3 -
-> > fs/jfs/symlink.c                      |   6 -
-> > fs/kernfs/dir.c                       |   3 -
-> > fs/kernfs/inode.c                     |   3 -
-> > fs/kernfs/symlink.c                   |   3 -
-> > fs/libfs.c                            |  26 +---
-> > fs/nfs/nfs3proc.c                     |   6 -
-> > fs/nfs/nfs4proc.c                     |   6 -
-> > fs/ocfs2/file.c                       |   3 -
-> > fs/ocfs2/namei.c                      |   3 -
-> > fs/ocfs2/symlink.c                    |   3 -
-> > fs/orangefs/inode.c                   |   3 -
-> > fs/orangefs/namei.c                   |   3 -
-> > fs/orangefs/symlink.c                 |   1 -
-> > fs/overlayfs/copy_up.c                |   4 -
-> > fs/overlayfs/dir.c                    |   3 -
-> > fs/overlayfs/inode.c                  |  46 +++++--
-> > fs/overlayfs/overlayfs.h              |   6 +-
-> > fs/overlayfs/super.c                  |   5 +-
-> > fs/reiserfs/file.c                    |   3 -
-> > fs/reiserfs/namei.c                   |   9 --
-> > fs/squashfs/inode.c                   |   1 -
-> > fs/squashfs/namei.c                   |   1 -
-> > fs/squashfs/symlink.c                 |   1 -
-> > fs/squashfs/xattr.h                   |   1 -
-> > fs/ubifs/dir.c                        |   3 -
-> > fs/ubifs/file.c                       |   6 -
-> > fs/xattr.c                            | 231 ++++++++++++++++------------------
-> > fs/xfs/xfs_iops.c                     |  12 --
-> > include/linux/fs.h                    |   5 +-
-> > include/linux/xattr.h                 |  12 +-
-> > mm/shmem.c                            |  15 ---
-> > net/socket.c                          |   1 -
-> > security/commoncap.c                  |  25 ++--
-> > security/integrity/evm/evm.h          |   7 +-
-> > security/integrity/evm/evm_crypto.c   |  20 ++-
-> > security/integrity/evm/evm_main.c     |   5 +-
-> > security/integrity/ima/ima_appraise.c |  23 ++--
-> > security/selinux/hooks.c              |  28 +----
-> > security/smack/smack_lsm.c            |  28 ++---
-> > 71 files changed, 314 insertions(+), 541 deletions(-)
-> > 
-> > --
-> > 2.5.5
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> Cheers, Andreas
-> 
-> 
-> 
-> 
-> 
-> 
+-		if (handler && (!handler->list || handler->list(dentry))) {
++		if (handler && (!handler->list || handler->list(handler, dentry))) {
+ 			const char *prefix = handler->prefix ?: handler->name;
+ 			size_t prefix_len = strlen(prefix);
+ 			size_t size = prefix_len + entry->e_name_len + 1;
+diff --git a/fs/ext4/xattr.c b/fs/ext4/xattr.c
+index 0441e05..0941198 100644
+--- a/fs/ext4/xattr.c
++++ b/fs/ext4/xattr.c
+@@ -402,7 +402,7 @@ ext4_xattr_list_entries(struct dentry *dentry, struct ext4_xattr_entry *entry,
+ 		const struct xattr_handler *handler =
+ 			ext4_xattr_handler(entry->e_name_index);
+ 
+-		if (handler && (!handler->list || handler->list(dentry))) {
++		if (handler && (!handler->list || handler->list(handler, dentry))) {
+ 			const char *prefix = handler->prefix ?: handler->name;
+ 			size_t prefix_len = strlen(prefix);
+ 			size_t size = prefix_len + entry->e_name_len + 1;
+diff --git a/fs/f2fs/xattr.c b/fs/f2fs/xattr.c
+index 17fd2b1..0cb0fc1 100644
+--- a/fs/f2fs/xattr.c
++++ b/fs/f2fs/xattr.c
+@@ -412,7 +412,7 @@ ssize_t f2fs_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
+ 		size_t prefix_len;
+ 		size_t size;
+ 
+-		if (!handler || (handler->list && !handler->list(dentry)))
++		if (!handler || (handler->list && !handler->list(handler, dentry)))
+ 			continue;
+ 
+ 		prefix = handler->prefix ?: handler->name;
+diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
+index 02137bb..509d2a0 100644
+--- a/fs/reiserfs/xattr.c
++++ b/fs/reiserfs/xattr.c
+@@ -787,7 +787,7 @@ static int listxattr_filler(struct dir_context *ctx, const char *name,
+ 		handler = find_xattr_handler_prefix(b->dentry->d_sb->s_xattr,
+ 						    name);
+ 		if (!handler /* Unsupported xattr name */ ||
+-		    (handler->list && !handler->list(b->dentry)))
++		    (handler->list && !handler->list(handler, b->dentry)))
+ 			return 0;
+ 		size = namelen + 1;
+ 		if (b->buf) {
+diff --git a/fs/squashfs/xattr.c b/fs/squashfs/xattr.c
+index 1548b37..64e8573 100644
+--- a/fs/squashfs/xattr.c
++++ b/fs/squashfs/xattr.c
+@@ -67,7 +67,7 @@ ssize_t squashfs_listxattr(struct dentry *d, char *buffer,
+ 
+ 		name_size = le16_to_cpu(entry.size);
+ 		handler = squashfs_xattr_handler(le16_to_cpu(entry.type));
+-		if (handler && (!handler->list || handler->list(d))) {
++		if (handler && (!handler->list || handler->list(handler, d))) {
+ 			const char *prefix = handler->prefix ?: handler->name;
+ 			size_t prefix_size = strlen(prefix);
+ 
+diff --git a/fs/xattr.c b/fs/xattr.c
+index b11945e..1ec51a7 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -716,9 +716,11 @@ generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
+ 	if (!buffer) {
+ 		for_each_xattr_handler(handlers, handler) {
+ 			if (!handler->name ||
+-			    (handler->list && !handler->list(dentry)))
++			    (handler->list && !handler->list(handler, dentry)))
+ 				continue;
+ 			size += strlen(handler->name) + 1;
++			if (handler->list)
++				kfree(handler->name);
+ 		}
+ 	} else {
+ 		char *buf = buffer;
+@@ -726,7 +728,7 @@ generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
+ 
+ 		for_each_xattr_handler(handlers, handler) {
+ 			if (!handler->name ||
+-			    (handler->list && !handler->list(dentry)))
++			    (handler->list && !handler->list(handler, dentry)))
+ 				continue;
+ 			len = strlen(handler->name);
+ 			if (len + 1 > buffer_size)
+@@ -734,6 +736,8 @@ generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size)
+ 			memcpy(buf, handler->name, len + 1);
+ 			buf += len + 1;
+ 			buffer_size -= len + 1;
++			if (handler->list)
++				kfree(handler->name);
+ 		}
+ 		size = buf - buffer;
+ 	}
+diff --git a/include/linux/xattr.h b/include/linux/xattr.h
+index 1cc4c57..e4fb463 100644
+--- a/include/linux/xattr.h
++++ b/include/linux/xattr.h
+@@ -28,7 +28,7 @@ struct xattr_handler {
+ 	const char *name;
+ 	const char *prefix;
+ 	int flags;      /* fs private flags */
+-	bool (*list)(struct dentry *dentry);
++	bool (*list)(const struct xattr_handler *, struct dentry *dentry);
+ 	int (*get)(const struct xattr_handler *, struct dentry *dentry,
+ 		   struct inode *inode, const char *name, void *buffer,
+ 		   size_t size);
+-- 
+1.7.1
