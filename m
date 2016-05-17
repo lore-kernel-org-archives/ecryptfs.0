@@ -1,42 +1,50 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [RFC 8/8] xattr: Remove generic xattr handlers
-Date: Sun, 15 May 2016 16:10:48 +0100
-Message-ID: <20160515151048.GD14480@ZenIV.linux.org.uk>
-References: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
- <1462229118-13123-9-git-send-email-agruenba@redhat.com>
+From: James Simmons <jsimmons@infradead.org>
+Subject: Re: [PATCH] xattr handlers: fixup generic_listxattr
+Date: Tue, 17 May 2016 02:12:15 +0100 (BST)
+Message-ID: <alpine.LFD.2.20.1605170137480.13979@casper.infradead.org>
+References: <1462229118-13123-1-git-send-email-agruenba@redhat.com> <551ED650-CBF8-40D6-85A0-BDB3C281C247@dilger.ca> <alpine.LFD.2.20.1605111649310.27778@casper.infradead.org> <CAHc6FU4LPMkMqYcY17ksDBBhLfUhGyz6K6HvLogCZKvahDzdwQ@mail.gmail.com>
 Mime-Version: 1.0
-Return-path: <linux-unionfs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462229118-13123-9-git-send-email-agruenba@redhat.com>
-Sender: linux-unionfs-owner@vger.kernel.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <CAHc6FU4LPMkMqYcY17ksDBBhLfUhGyz6K6HvLogCZKvahDzdwQ@mail.gmail.com>
+Sender: owner-linux-security-module@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, LSM <linux-security-module@vger.kernel.org>, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, Lustre Developement <lustre-devel@lists.lustre.org>
 
-On Tue, May 03, 2016 at 12:45:18AM +0200, Andreas Gruenbacher wrote:
 
-> diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
-> index bb9549b..4b7a510 100644
-> --- a/fs/hfs/inode.c
-> +++ b/fs/hfs/inode.c
-> @@ -687,7 +687,5 @@ static const struct file_operations hfs_file_operations = {
->  static const struct inode_operations hfs_file_inode_operations = {
->  	.lookup		= hfs_file_lookup,
->  	.setattr	= hfs_inode_setattr,
-> -	.setxattr	= generic_setxattr,
-> -	.getxattr	= generic_getxattr,
+> generic_listxattr() is different from generic_getxattr() /
+> generic_setxattr() / generic_removexattr. It makes sense only for
+> filesystems that support a fixed set of xattrs, which means that all
+> handlers will have handler->name set.
+> 
+> If any of the handlers has handler->prefix set instead, that handler
+> matches a whole set of attributes. Generic_listxattr() would have to
+> fill in all of those names matching that handler, but it doesn't know
+> which those are.
+> 
+> It is common for filesystems to have their own listxattr inode
+> operation and still use generic_{get,set,remove}xattr.
 
-Where has that come from?  I don't see anything else in your series touching
-that file and work.xattr doesn't touch it either.  With
-static const struct inode_operations hfs_file_inode_operations = {
-        .lookup         = hfs_file_lookup,
-        .setattr        = hfs_inode_setattr,
-        .setxattr       = hfs_setxattr,
-        .getxattr       = hfs_getxattr,
-        .listxattr      = hfs_listxattr,
-};
-being what's in the tree.  And it *is* an interesting one, seeing that this
-is one case where some inodes on a given fs do have ->...xattr and some do
-not, so I'd like to see the details.
+That clears things up a bit. So that leaves a few questions. First 
+question is looking at several of the file system's implementations
+I noticed it contains loops such as:
+
+list_for_each_xattr(entry, base_addr) {
+	const struct xattr_handler *handler =                
+		blah_xattr_handler(entry->e_name_index);
+        const char *prefix;
+        size_t prefix_len;
+        size_t size;
+
+        if (!handler || (handler->list && !handler->list(dentry)))
+        	continue;
+
+	...
+}
+
+Is the handler->list() test needed for a private listxattr implementation? 
+Also I don't see anyone using handler->list() which which brings up the
+next question. What is the purpose of list() function? 
+ 
