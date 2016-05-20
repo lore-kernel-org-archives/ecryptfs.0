@@ -1,62 +1,174 @@
 From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: Re: [PATCH] xattr handlers: fixup generic_listxattr
-Date: Tue, 17 May 2016 04:03:32 +0200
-Message-ID: <CAHc6FU5x2ShKT1FYvSMtX2ucqQNO9ojm434hPEPKSGYM_FREjw@mail.gmail.com>
-References: <1462229118-13123-1-git-send-email-agruenba@redhat.com>
-	<551ED650-CBF8-40D6-85A0-BDB3C281C247@dilger.ca>
-	<alpine.LFD.2.20.1605111649310.27778@casper.infradead.org>
-	<CAHc6FU4LPMkMqYcY17ksDBBhLfUhGyz6K6HvLogCZKvahDzdwQ@mail.gmail.com>
-	<alpine.LFD.2.20.1605170137480.13979@casper.infradead.org>
-Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.20.1605170137480.13979@casper.infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Subject: [PATCH v2 00/18] Xattr inode operation removal
+Date: Fri, 20 May 2016 13:14:17 +0200
+Message-ID: <1463742875-9836-1-git-send-email-agruenba@redhat.com>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57589 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751667AbcETLOq (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Fri, 20 May 2016 07:14:46 -0400
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Simmons <jsimmons@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, fuse-devel@lists.sourceforge.net, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, LSM <linux-security-module@vger.kernel.org>, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, Lustre Developement <lustre-devel@lists.lustre.org>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, Mimi Zohar <zohar@linux.vnet.ibm.com>, linux-ima-devel@lists.sourceforge.net, linux-security-module@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-On Tue, May 17, 2016 at 3:12 AM, James Simmons <jsimmons@infradead.org> wrote:
->> generic_listxattr() is different from generic_getxattr() /
->> generic_setxattr() / generic_removexattr. It makes sense only for
->> filesystems that support a fixed set of xattrs, which means that all
->> handlers will have handler->name set.
->>
->> If any of the handlers has handler->prefix set instead, that handler
->> matches a whole set of attributes. Generic_listxattr() would have to
->> fill in all of those names matching that handler, but it doesn't know
->> which those are.
->>
->> It is common for filesystems to have their own listxattr inode
->> operation and still use generic_{get,set,remove}xattr.
->
-> That clears things up a bit. So that leaves a few questions. First
-> question is looking at several of the file system's implementations
-> I noticed it contains loops such as:
->
-> list_for_each_xattr(entry, base_addr) {
->         const struct xattr_handler *handler =
->                 blah_xattr_handler(entry->e_name_index);
->         const char *prefix;
->         size_t prefix_len;
->         size_t size;
->
->         if (!handler || (handler->list && !handler->list(dentry)))
->                 continue;
->
->         ...
-> }
->
-> Is the handler->list() test needed for a private listxattr implementation?
-> Also I don't see anyone using handler->list() which which brings up the
-> next question. What is the purpose of list() function?
+This is version 2 of the xattr inode operation removal patch series. The
+patches are available in git form at:
 
-Trusted xattrs are meant to only be visible to tasks with the
-CAP_SYS_ADMIN capability. For deciding which names to include in its
-result, listxattr implementations can use the list function, or any
-other suitable mechanism. On filesystems that store the complete xattr
-names as strings, a strncmp check for a "trusted." prefix together
-with capable(CAP_SYS_ADMIN) would do, for example.
+  https://git.kernel.org/cgit/linux/kernel/git/agruen/linux.git/log/?h=work.xattr
 
+The purpose of this series is to remove unnecessary differences between the
+xattr implementations on different filesystems and to simplify things.  With
+the exception of redirectors like fuse, overlayfs, and ecryptfs, all
+filesystems perform some de-multiplexing based on the xattr name, so it makes
+sense to make that the default; filesystems that don't do any de-multiplexing
+can easily use a catch-all xattr handler.
+
+The patch series is structured as follows:
+
+ * The initial patches convert the remaining filesystems over to use xattr
+   handlers for implementing their de-multiplexing.
+
+ * Next, a new IOP_XATTR inode operations flag is introduced: the flag is set
+   when an inode supports xattrs.  On most filesystems, the IOP_XATTR flag is
+   automatically initialized correctly when the inode is allocated based on
+   whether or not the s_xattr field in the inode's superblock is defined.
+   Filesystems that support xattrs on some but not all inodes can clear the
+   IOP_XATTR flag appropriately.
+
+ * The IOP_XATTR flag is then used to get rid of the two remaining places where
+   xattr inode operations other than the generic ones are used: bad inodes and
+   libfs empty directories.
+
+ * After that, we get rid of the remaining direct accesses to xattr inode
+   operations.
+
+ * Finally, we stop calling the xattr inode operations and remove them.
+
+Note that these patches only remove the getxattr, setxattr, and removexattr
+inode operations. The listxattr inode operation does not do any attribute name
+de-multiplexing, and remains unchanged except for checking the new IOP_XATTR
+flag as well now.
+
+Note that this patch series still breaks Lustre.  I'm hoping that the Lustre
+developers will come up with a patch to switch lustre over to use xattr
+handlers.
+
+Thanks,
 Andreas
+
+Andreas Gruenbacher (18):
+  xattr: Remove unnecessary NULL attribute name check
+  jffs2: Remove jffs2_{get,set,remove}xattr macros
+  hfs: Switch to generic xattr handlers
+  kernfs: Switch to generic xattr handlers
+  sockfs: getxattr: Fail with -EOPNOTSUPP for invalid attribute names
+  sockfs: Get rid of getxattr iop
+  ecryptfs: Switch to generic xattr handlers
+  overlayfs: Switch to generic xattr handlers
+  fuse: Switch to generic xattr handlers
+  evm: Turn evm_update_evmxattr into void function
+  vfs: Move xattr_resolve_name to the front of fs/xattr.c
+  vfs: Add IOP_XATTR inode operations flag
+  vfs: Use IOP_XATTR flag for bad-inode handling
+  libfs: Use IOP_XATTR flag for empty directory handling
+  xattr: Add __vfs_{get,set,remove}xattr helpers
+  vfs: Check for the IOP_XATTR flag in listxattr
+  xattr: Stop calling {get,set,remove}xattr inode operations
+  vfs: Remove {get,set,remove}xattr inode operations
+
+ Documentation/filesystems/Locking     |  24 +++-
+ Documentation/filesystems/vfs.txt     |  45 ++++---
+ arch/ia64/kernel/perfmon.c            |   4 +-
+ drivers/gpu/drm/drm_drv.c             |   1 +
+ fs/9p/vfs_inode_dotl.c                |   9 --
+ fs/aio.c                              |   2 +-
+ fs/anon_inodes.c                      |   2 +-
+ fs/bad_inode.c                        |  21 +--
+ fs/block_dev.c                        |   2 +-
+ fs/btrfs/inode.c                      |  12 --
+ fs/btrfs/tests/btrfs-tests.c          |   2 +-
+ fs/cachefiles/bind.c                  |   4 +-
+ fs/cachefiles/namei.c                 |   4 +-
+ fs/ceph/dir.c                         |   3 -
+ fs/ceph/inode.c                       |   6 -
+ fs/cifs/cifsfs.c                      |   9 --
+ fs/ecryptfs/ecryptfs_kernel.h         |   2 +
+ fs/ecryptfs/inode.c                   |  57 +++++---
+ fs/ecryptfs/main.c                    |   1 +
+ fs/ecryptfs/mmap.c                    |  11 +-
+ fs/ext2/file.c                        |   3 -
+ fs/ext2/namei.c                       |   6 -
+ fs/ext2/symlink.c                     |   6 -
+ fs/ext4/file.c                        |   3 -
+ fs/ext4/namei.c                       |   6 -
+ fs/ext4/symlink.c                     |   9 --
+ fs/f2fs/file.c                        |   3 -
+ fs/f2fs/namei.c                       |  12 --
+ fs/fuse/dir.c                         |  40 ++++--
+ fs/fuse/fuse_i.h                      |   2 +
+ fs/fuse/inode.c                       |   1 +
+ fs/gfs2/inode.c                       |   9 --
+ fs/hfs/attr.c                         |  82 ++++++++----
+ fs/hfs/hfs_fs.h                       |   6 +-
+ fs/hfs/inode.c                        |   5 +-
+ fs/hfs/super.c                        |   1 +
+ fs/hfsplus/dir.c                      |   3 -
+ fs/hfsplus/inode.c                    |   3 -
+ fs/inode.c                            |   2 +
+ fs/jffs2/dir.c                        |   3 -
+ fs/jffs2/file.c                       |   3 -
+ fs/jffs2/symlink.c                    |   3 -
+ fs/jffs2/xattr.h                      |   6 -
+ fs/jfs/file.c                         |   3 -
+ fs/jfs/namei.c                        |   3 -
+ fs/jfs/symlink.c                      |   6 -
+ fs/kernfs/dir.c                       |   3 -
+ fs/kernfs/inode.c                     | 153 +++++++++++----------
+ fs/kernfs/kernfs-internal.h           |   6 +-
+ fs/kernfs/mount.c                     |   1 +
+ fs/kernfs/symlink.c                   |   3 -
+ fs/libfs.c                            |  24 +---
+ fs/nfs/nfs3proc.c                     |   6 -
+ fs/nfs/nfs4proc.c                     |   6 -
+ fs/nsfs.c                             |   2 +-
+ fs/ocfs2/file.c                       |   3 -
+ fs/ocfs2/namei.c                      |   3 -
+ fs/ocfs2/symlink.c                    |   3 -
+ fs/orangefs/inode.c                   |   3 -
+ fs/orangefs/namei.c                   |   3 -
+ fs/orangefs/symlink.c                 |   1 -
+ fs/overlayfs/copy_up.c                |   4 +-
+ fs/overlayfs/dir.c                    |   3 -
+ fs/overlayfs/inode.c                  |  46 +++++--
+ fs/overlayfs/overlayfs.h              |   6 +-
+ fs/overlayfs/super.c                  |   5 +-
+ fs/pipe.c                             |   2 +-
+ fs/reiserfs/file.c                    |   3 -
+ fs/reiserfs/namei.c                   |   9 --
+ fs/squashfs/inode.c                   |   1 -
+ fs/squashfs/namei.c                   |   1 -
+ fs/squashfs/symlink.c                 |   1 -
+ fs/squashfs/xattr.h                   |   1 -
+ fs/ubifs/dir.c                        |   3 -
+ fs/ubifs/file.c                       |   6 -
+ fs/xattr.c                            | 245 +++++++++++++++++-----------------
+ fs/xfs/xfs_iops.c                     |  12 --
+ include/linux/fs.h                    |   6 +-
+ include/linux/xattr.h                 |   6 +-
+ mm/shmem.c                            |  15 ---
+ net/socket.c                          |  59 ++++----
+ security/commoncap.c                  |  25 ++--
+ security/integrity/evm/evm.h          |   7 +-
+ security/integrity/evm/evm_crypto.c   |  20 ++-
+ security/integrity/evm/evm_main.c     |   4 +-
+ security/integrity/ima/ima_appraise.c |  21 ++-
+ security/selinux/hooks.c              |  19 +--
+ security/smack/smack_lsm.c            |  12 +-
+ 88 files changed, 529 insertions(+), 683 deletions(-)
+
+-- 
+2.5.5
