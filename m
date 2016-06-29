@@ -1,31 +1,49 @@
-From: Kenneth Tan <gmane@way-of-the-blade.com>
-Subject: Re: Can't list directories with kernel 4.4.14 and ecryptfs
-Date: Mon, 27 Jun 2016 22:46:56 +0000 (UTC)
-Message-ID: <loom.20160628T004414-759@post.gmane.org>
-References: <20160627182738.08737a6d@subnote.jensen.local> <57717C2C.4010708@canonical.com> <0A028742-6B46-49DB-900F-86CE85F320F4@gmx.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [PATCH] eCryptfs: Fix directory open regression in linux-stable
+Date: Tue, 28 Jun 2016 22:39:41 -0500
+Message-ID: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:51985 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbcF0WuI (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Mon, 27 Jun 2016 18:50:08 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gcfe-ecryptfs@m.gmane.org>)
-	id 1bHfLy-00066a-A8
-	for ecryptfs@vger.kernel.org; Tue, 28 Jun 2016 00:50:06 +0200
-Received: from slackbox.way-of-the-blade.com ([192.81.129.220])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Tue, 28 Jun 2016 00:50:06 +0200
-Received: from gmane by slackbox.way-of-the-blade.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <ecryptfs@vger.kernel.org>; Tue, 28 Jun 2016 00:50:06 +0200
+Received: from youngberry.canonical.com ([91.189.89.112]:45986 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbcF2ERI (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 29 Jun 2016 00:17:08 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: ecryptfs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: stable@vger.kernel.org
+Cc: ecryptfs@vger.kernel.org
 
-I'm using BTRFS under, but same environment, when I upgraded to 4.4.14,
-ecryptfs broke with the exact same response. Running Slackware64 (-current tree)
+Cherry-picking mainline commit 2f36db71009304b3f0b95afacd8eba1f9f046b87
+introduces a regression in eCryptfs when mainline commit
+6a480a7842545ec520a91730209ec0bae41694c1 (4.6+) is not present. The
+regression causes all attempts at opening directory files to fail with
+EMEDIUMTYPE when the lower filesystem's file_operations for directory
+files do not implement mmap.
 
+This is a simple fix that allows the check for the lower file's mmap
+implementation to be ignored if the lower file is a directory.
+
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Tested-by: Tyler Hicks <tyhicks@canonical.com> # 4.4.y, 3.18.y
+Cc: <stable@vger.kernel.org> # 4.5-
+---
+ fs/ecryptfs/kthread.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+index e818f5a..b9faeab 100644
+--- a/fs/ecryptfs/kthread.c
++++ b/fs/ecryptfs/kthread.c
+@@ -171,7 +171,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
+ 		goto out;
+ 	}
+ have_file:
+-	if ((*lower_file)->f_op->mmap == NULL) {
++	if ((*lower_file)->f_op->mmap == NULL && !d_is_dir(lower_dentry)) {
+ 		fput(*lower_file);
+ 		*lower_file = NULL;
+ 		rc = -EMEDIUMTYPE;
+-- 
+2.7.4
