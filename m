@@ -1,98 +1,115 @@
-From: Henry Jensen <hjensen@gmx.de>
-Subject: Re: Can't list directories with kernel 4.4.14 and ecryptfs
-Date: Fri, 1 Jul 2016 23:49:05 +0200
-Message-ID: <20160701234905.0e960097@subnote.jensen.local>
-References: <20160627182738.08737a6d@subnote.jensen.local>
-	<57717C2C.4010708@canonical.com>
-	<0A028742-6B46-49DB-900F-86CE85F320F4@gmx.de>
-	<5771AD13.2010408@canonical.com>
-	<57735047.1050706@canonical.com>
-	<20160701221519.229e9e43@subnote.jensen.local>
-	<5776DB70.5060006@canonical.com>
-	<78E8F2EB-8C8C-4ECD-83D2-2E7EF9F6526E@gmx.de>
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: Re: [PATCH] eCryptfs: Fix directory open regression in linux-stable
+Date: Tue, 5 Jul 2016 17:14:20 -0400
+Message-ID: <6fe5b584-62b4-c238-916a-3bd68f0a7f20@suse.com>
+References: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="5BsOoalPXixA6Jpxg1HCph6wlnqlcHvF4"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:60558 "EHLO mout.gmx.net"
+Received: from mx2.suse.de ([195.135.220.15]:35536 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752551AbcGAVtJ (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Fri, 1 Jul 2016 17:49:09 -0400
-In-Reply-To: <78E8F2EB-8C8C-4ECD-83D2-2E7EF9F6526E@gmx.de>
+	id S1755374AbcGEV1v (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Tue, 5 Jul 2016 17:27:51 -0400
+In-Reply-To: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Kenneth Tan <gmane@way-of-the-blade.com>, ecryptfs@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>, stable@vger.kernel.org
+Cc: ecryptfs@vger.kernel.org
 
-Hello,
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--5BsOoalPXixA6Jpxg1HCph6wlnqlcHvF4
+Content-Type: multipart/mixed; boundary="saOI6bdrO1JGaHH2BotI29iLcWABulfLO"
+From: Jeff Mahoney <jeffm@suse.com>
+To: Tyler Hicks <tyhicks@canonical.com>, stable@vger.kernel.org
+Cc: ecryptfs@vger.kernel.org
+Message-ID: <6fe5b584-62b4-c238-916a-3bd68f0a7f20@suse.com>
+Subject: Re: [PATCH] eCryptfs: Fix directory open regression in linux-stable
+References: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
+In-Reply-To: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
 
-I confirmed it - for some reason the patch I used and was distributed
-by Slackware and Manjaro was malformatted (@@ was transformed into
-<at> <at>). I applied the corrected patch and it worked - ecryptfs is
-working normally again, as expected.
+--saOI6bdrO1JGaHH2BotI29iLcWABulfLO
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+On 6/28/16 11:39 PM, Tyler Hicks wrote:
+> Cherry-picking mainline commit 2f36db71009304b3f0b95afacd8eba1f9f046b87=
 
-Henry
-  
+> introduces a regression in eCryptfs when mainline commit
+> 6a480a7842545ec520a91730209ec0bae41694c1 (4.6+) is not present. The
+> regression causes all attempts at opening directory files to fail with
+> EMEDIUMTYPE when the lower filesystem's file_operations for directory
+> files do not implement mmap.
+>=20
+> This is a simple fix that allows the check for the lower file's mmap
+> implementation to be ignored if the lower file is a directory.
+
+I have a different fix that I believe is more correct for this.  I would
+have posted it in response to the original fix if it were ever actually
+posted for public discussion.
+
+Denying open is the wrong place to fix this.  It's too heavy a hammer
+and, as we see here, a bit fragile.
+
+The right fix is to deny the mmap call instead.
+
+-Jeff
+
+> Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+> Tested-by: Tyler Hicks <tyhicks@canonical.com> # 4.4.y, 3.18.y
+> Cc: <stable@vger.kernel.org> # 4.5-
+> ---
+>  fs/ecryptfs/kthread.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+> index e818f5a..b9faeab 100644
+> --- a/fs/ecryptfs/kthread.c
+> +++ b/fs/ecryptfs/kthread.c
+> @@ -171,7 +171,7 @@ int ecryptfs_privileged_open(struct file **lower_fi=
+le,
+>  		goto out;
+>  	}
+>  have_file:
+> -	if ((*lower_file)->f_op->mmap =3D=3D NULL) {
+> +	if ((*lower_file)->f_op->mmap =3D=3D NULL && !d_is_dir(lower_dentry))=
+ {
+>  		fput(*lower_file);
+>  		*lower_file =3D NULL;
+>  		rc =3D -EMEDIUMTYPE;
+>=20
 
 
+--=20
+Jeff Mahoney
+SUSE Labs
 
-On Fri, 01 Jul 2016 23:16:46 +0200
-Henry Jensen <hjensen@gmx.de> wrote:
 
-> Hi Tyler,
-> 
-> hold on, I think I ran into the same issue as the guys from Manjaro, see
-> 
-> https://forum.manjaro.org/t/kenel-4-4-14-lts-has-issues-with-ecryptfs-on-testing-29-june-2016/5001/9
-> 
-> and
-> 
-> https://github.com/manjaro/packages-core/commit/ff5431986233877dba816e77debe0bf1eacf6628
-> 
-> tl;dr - the patch was malformed. Will check again with correct formatted patch.
-> 
-> Regards,
-> 
-> Henry
-> 
-> Am 1. Juli 2016 23:06:56 MESZ, schrieb Tyler Hicks <tyhicks@canonical.com>:
-> >On 07/01/2016 03:15 PM, Henry Jensen wrote:  
-> >> Hello Tyler
-> >> 
-> >> On Tue, 28 Jun 2016 23:36:23 -0500
-> >> Tyler Hicks <tyhicks@canonical.com> wrote:
-> >>   
-> >>>> Thanks. The backported version of the patch needs to be adjusted.  
-> >I'll  
-> >>>> try to get a patch out the stable list tomorrow.    
-> >>>
-> >>> I've sent a fix to the stable list (and cc'ed the ecryptfs list). I
-> >>> tested on 4.4.y and 3.18.y on ext{2,3,4}, btrfs, and xfs. It should  
-> >fix  
-> >>> the regression that you hit.  
-> >> 
-> >> 
-> >> Sorry, the patch did not work for me. I am still getting error "Wrong
-> >> medium type" wwhen accessing directories.
-> >>   
-> >
-> >Hi Henry - Can you please double check that you're running the patched
-> >kernel? I only ask that because I have a pretty high degree of
-> >confidence that the patch fixes the issue due to the amount of testing
-> >that I performed. I'm in the middle of rebuilding the linux-stable
-> >4.4.y
-> >kernel with that patch applied on top to retest. If you could double
-> >check your environment in the meantime, I'd appreciate it.
-> >
-> >If it turns out that you're still hitting the bug, I'll need reproducer
-> >instructions as my tests don't seem to be sufficient. Thank you!
-> >
-> >Tyler
-> >  
-> >> 
-> >> Regards,
-> >> 
-> >> Henry
-> >>   
+--saOI6bdrO1JGaHH2BotI29iLcWABulfLO--
+
+--5BsOoalPXixA6Jpxg1HCph6wlnqlcHvF4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.19 (Darwin)
+Comment: GPGTools - http://gpgtools.org
+
+iQIcBAEBAgAGBQJXfCMsAAoJEB57S2MheeWylxwQALM799LKBZBKbH5BSOf0vm14
+ddabltWLyyW7DDxlhchmtAAUQ+YU1T42OUKspkN93IMTCNYZRdvaG32FtwjY5Kws
+Em1NEp7T4t0cT4KFk1Doyi10rn4G03VRBuZaSPbW65P+Tws1rejvtkNpx2g2yhlJ
+R4rudvSfIhGIVSuzGIaQa6LS+9kllwuvyZRH1ph4wHpL+SlcP2RMx4+exDfTgRkG
+ZXjcNcyM4viEYBf7Jytjjdw/7Iqcc2A/HkmVse8/Lzl7r5LMZ5iV/MSnX8QLJa9P
+jmv565TaLX1Rv+6szeqwvNPPjQpl5pXwh/wfyzo6lkapHhXV/Y6Va4l3hDcIzPnt
+L0DdCluupyhyumnuxixaPPcVcU6LiR5t28cV0jeCKcNlb4P26iaAE66GjpqgTvST
++p+h+4D/lKgsF205Sbz7GW/YjcrfEITx5/c/k+asvgTIHg3WLvHKaEN9Y9aGCOvk
+FhgO5/znB/lcM3K4NWgrxZB2vs22kaG4K0YvkBU588lDr0REkNR+11o0mRiksI3W
+zy09foG375JWGBO5Eo+So8wInka0PHQInh7RgFHt5m4Z1c9X4IQkHWpTFpYLVDz+
+41+HDVnozHcylsreActHO6842mwzlQ1D78CxawwxYqm99J6hNG0vqKcvTmgeOd4Z
+txB1AfH1Qo2RcNLCHRo/
+=9v4z
+-----END PGP SIGNATURE-----
+
+--5BsOoalPXixA6Jpxg1HCph6wlnqlcHvF4--
