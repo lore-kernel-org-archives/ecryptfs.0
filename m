@@ -1,15 +1,9 @@
 From: jeffm@suse.com
-Subject: [PATCH 2/2] ecryptfs: don't allow mmap when the lower fs doesn't support it
-Date: Tue,  5 Jul 2016 17:32:30 -0400
-Message-ID: <1467754350-8995-2-git-send-email-jeffm@suse.com>
-References: <1467754350-8995-1-git-send-email-jeffm@suse.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:36329 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752475AbcGEVno (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-	Tue, 5 Jul 2016 17:43:44 -0400
-In-Reply-To: <1467754350-8995-1-git-send-email-jeffm@suse.com>
-Sender: ecryptfs-owner@vger.kernel.org
+Subject: [PATCH 1/2] Revert "ecryptfs: forbid opening files without mmap handler"
+Date: Tue,  5 Jul 2016 17:32:29 -0400
+Message-ID: <1467754350-8995-1-git-send-email-jeffm@suse.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,48 +13,56 @@ Cc: Jann Horn <jann@thejh.net>, stable@vger.kernel.org
 
 From: Jeff Mahoney <jeffm@suse.com>
 
-There are legitimate reasons to disallow mmap on certain files, notably
-in sysfs or procfs.  We shouldn't emulate mmap support on file systems
-that don't offer support natively.
+This reverts commit 2f36db71009304b3f0b95afacd8eba1f9f046b87.
+
+It fixed a local root exploit but also introduced a dependency on
+the lower file system implementing an mmap operation just to open a file,
+which is a bit of a heavy hammer.  The right fix is to have mmap depend
+on the existence of the mmap handler instead.
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 ---
- fs/ecryptfs/file.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/ecryptfs/kthread.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 7000b96..4aaa656 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -169,6 +169,20 @@ out:
+diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+index e818f5a..866bb18 100644
+--- a/fs/ecryptfs/kthread.c
++++ b/fs/ecryptfs/kthread.c
+@@ -25,7 +25,6 @@
+ #include <linux/slab.h>
+ #include <linux/wait.h>
+ #include <linux/mount.h>
+-#include <linux/file.h>
+ #include "ecryptfs_kernel.h"
+ 
+ struct ecryptfs_open_req {
+@@ -148,7 +147,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
+ 	flags |= IS_RDONLY(d_inode(lower_dentry)) ? O_RDONLY : O_RDWR;
+ 	(*lower_file) = dentry_open(&req.path, flags, cred);
+ 	if (!IS_ERR(*lower_file))
+-		goto have_file;
++		goto out;
+ 	if ((flags & O_ACCMODE) == O_RDONLY) {
+ 		rc = PTR_ERR((*lower_file));
+ 		goto out;
+@@ -166,16 +165,8 @@ int ecryptfs_privileged_open(struct file **lower_file,
+ 	mutex_unlock(&ecryptfs_kthread_ctl.mux);
+ 	wake_up(&ecryptfs_kthread_ctl.wait);
+ 	wait_for_completion(&req.done);
+-	if (IS_ERR(*lower_file)) {
++	if (IS_ERR(*lower_file))
+ 		rc = PTR_ERR(*lower_file);
+-		goto out;
+-	}
+-have_file:
+-	if ((*lower_file)->f_op->mmap == NULL) {
+-		fput(*lower_file);
+-		*lower_file = NULL;
+-		rc = -EMEDIUMTYPE;
+-	}
+ out:
  	return rc;
  }
- 
-+
-+static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct dentry *dentry = ecryptfs_dentry_to_lower(file_dentry(file));
-+	/*
-+	 * Don't allow mmap on top of file systems that don't support it
-+	 * natively.  If FILESYSTEM_MAX_STACK_DEPTH > 2 or ecryptfs
-+	 * allows recursive mounting, this will need to be extended.
-+	 */
-+	if (!d_inode(dentry)->i_fop->mmap)
-+		return -ENODEV;
-+	return generic_file_mmap(file, vma);
-+}
-+
- /**
-  * ecryptfs_open
-  * @inode: inode speciying file to open
-@@ -403,7 +417,7 @@ const struct file_operations ecryptfs_main_fops = {
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = ecryptfs_compat_ioctl,
- #endif
--	.mmap = generic_file_mmap,
-+	.mmap = ecryptfs_mmap,
- 	.open = ecryptfs_open,
- 	.flush = ecryptfs_flush,
- 	.release = ecryptfs_release,
 -- 
 2.7.1
