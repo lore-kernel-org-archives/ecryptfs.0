@@ -1,107 +1,86 @@
-From: Jann Horn <jann@thejh.net>
-Subject: Re: [PATCH 2/2] ecryptfs: don't allow mmap when the lower fs doesn't
- support it
-Date: Tue, 5 Jul 2016 23:57:40 +0200
-Message-ID: <20160705215740.GA14388@pc.thejh.net>
-References: <1467754350-8995-1-git-send-email-jeffm@suse.com>
- <1467754350-8995-2-git-send-email-jeffm@suse.com>
+From: Henry Jensen <hjensen@gmx.de>
+Subject: Re: [PATCH] eCryptfs: Fix directory open regression in linux-stable
+Date: Thu, 7 Jul 2016 16:24:31 +0200
+Message-ID: <20160707162431.6c7edb7e@subnote.jensen.local>
+References: <1467171581-17654-1-git-send-email-tyhicks@canonical.com>
+	<6fe5b584-62b4-c238-916a-3bd68f0a7f20@suse.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1467754350-8995-2-git-send-email-jeffm@suse.com>
-Sender: stable-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.17.21]:58032 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751957AbcGGOZE (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+	Thu, 7 Jul 2016 10:25:04 -0400
+Received: from subnote.jensen.local ([92.50.100.226]) by mail.gmx.com
+ (mrgmx102) with ESMTPSA (Nemesis) id 0MYtId-1aq0Jj0z6B-00VjI4 for
+ <ecryptfs@vger.kernel.org>; Thu, 07 Jul 2016 16:24:56 +0200
+In-Reply-To: <6fe5b584-62b4-c238-916a-3bd68f0a7f20@suse.com>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: jeffm@suse.com
-Cc: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ecryptfs@vger.kernel.org
+
+Hello,
+
+it seems, that none of the suggested patches will be included in
+4.4.15? GKH doesn't mention one in his mail "4.4.15-stable review" on
+the stable list.
+
+Regards,
+
+Henry
 
 
---pf9I7BMVVzbSWLtt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 05, 2016 at 05:32:30PM -0400, jeffm@suse.com wrote:
-> From: Jeff Mahoney <jeffm@suse.com>
->=20
-> There are legitimate reasons to disallow mmap on certain files, notably
-> in sysfs or procfs.  We shouldn't emulate mmap support on file systems
-> that don't offer support natively.
->=20
-> Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-> ---
->  fs/ecryptfs/file.c | 16 +++++++++++++++-
->  1 file changed, 15 insertions(+), 1 deletion(-)
->=20
-> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-> index 7000b96..4aaa656 100644
-> --- a/fs/ecryptfs/file.c
-> +++ b/fs/ecryptfs/file.c
-> @@ -169,6 +169,20 @@ out:
->  	return rc;
->  }
-> =20
-> +
-> +static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct dentry *dentry =3D ecryptfs_dentry_to_lower(file_dentry(file));
-> +	/*
-> +	 * Don't allow mmap on top of file systems that don't support it
-> +	 * natively.  If FILESYSTEM_MAX_STACK_DEPTH > 2 or ecryptfs
-> +	 * allows recursive mounting, this will need to be extended.
+On Tue, 5 Jul 2016 17:14:20 -0400
+Jeff Mahoney <jeffm@suse.com> wrote:
 
-Or if another new stacking filesystem appears whose f_op->mmap just forwards
-to lower_f_op->mmap - but thinking about it, in that scenario, my patch
-would stop working, too.
-
-At this point, I dislike both this patch and my own one because of their
-lack of robustness. Well, at least e54ad7f1ee263ffa5a2de9c609d58dfa27b21cd9
-should be solid. :/
-
-
-> +	 */
-> +	if (!d_inode(dentry)->i_fop->mmap)
-> +		return -ENODEV;
-> +	return generic_file_mmap(file, vma);
-> +}
-> +
->  /**
->   * ecryptfs_open
->   * @inode: inode speciying file to open
-> @@ -403,7 +417,7 @@ const struct file_operations ecryptfs_main_fops =3D {
->  #ifdef CONFIG_COMPAT
->  	.compat_ioctl =3D ecryptfs_compat_ioctl,
->  #endif
-> -	.mmap =3D generic_file_mmap,
-> +	.mmap =3D ecryptfs_mmap,
->  	.open =3D ecryptfs_open,
->  	.flush =3D ecryptfs_flush,
->  	.release =3D ecryptfs_release,
-> --=20
-> 2.7.1
->=20
-
---pf9I7BMVVzbSWLtt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXfC1UAAoJED4KNFJOeCOoZEkQAKtQMWVyjdbqyUKzE4zM0p+C
-FKEg19f/NM5LEQjwDfec4MSIq77zkRdAgQ1BnCmnELCl2XK70wCZtPnca/VoJAA3
-nAOkjQAjE1vx7bFmMhk+ChGKI2/0dJaWL3eL247b2yiQEsLoxkdQmirQbCGv+VMJ
-SFgbLybdmXvLIexO4f2mmKeJqD72xMRvJPIWnLBWH5Gc6Gn1bdyF5uYTch3bgBlU
-zVTvDF+Hgk9+0BPjrYDc2BxGNtltRJhA9y1Wv3NoefuDut+/hU/QPgcLqlcQsYjI
-2XFLsK4zp9v3Z9YF76nV1W28HpPfsmiRNLiAwzAunUAMbUC3fIoGXktYSW/yesgs
-LbrWmgxrj8lsQkGgVzrd//rxPzUCUuya0NZpAeqG/YUWQI06SPSD1CmhMxrwhPof
-LJRJEAlyNirm5GOzxmSdGkM12Rcuj9ExA2i/Lo7KX+6ZuaeS30gE5SF+QF3qvxbQ
-a0P2WvmIq0aHjpyqDYblV4COtUAKv5CGtHvEQa4tmrS/FsN8ei6c4EKk9dineglk
-gP2V8LNqQBUJ2yyE2nsWavhwtQoxmtRueQ2K85F+0ua9ilWsV/+y6/gcH1jj+w+x
-6wang5CC8uvwgFFCw2fYg5/ZO4shV+0AW9+3qq/OTophVvvTCGlv+5D1Izqx0EtX
-CHIUtZCVqAjMJHmbaxpN
-=edfn
------END PGP SIGNATURE-----
-
---pf9I7BMVVzbSWLtt--
+> On 6/28/16 11:39 PM, Tyler Hicks wrote:
+> > Cherry-picking mainline commit 2f36db71009304b3f0b95afacd8eba1f9f046b87
+> > introduces a regression in eCryptfs when mainline commit
+> > 6a480a7842545ec520a91730209ec0bae41694c1 (4.6+) is not present. The
+> > regression causes all attempts at opening directory files to fail with
+> > EMEDIUMTYPE when the lower filesystem's file_operations for directory
+> > files do not implement mmap.
+> > 
+> > This is a simple fix that allows the check for the lower file's mmap
+> > implementation to be ignored if the lower file is a directory.  
+> 
+> I have a different fix that I believe is more correct for this.  I would
+> have posted it in response to the original fix if it were ever actually
+> posted for public discussion.
+> 
+> Denying open is the wrong place to fix this.  It's too heavy a hammer
+> and, as we see here, a bit fragile.
+> 
+> The right fix is to deny the mmap call instead.
+> 
+> -Jeff
+> 
+> > Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+> > Tested-by: Tyler Hicks <tyhicks@canonical.com> # 4.4.y, 3.18.y
+> > Cc: <stable@vger.kernel.org> # 4.5-
+> > ---
+> >  fs/ecryptfs/kthread.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+> > index e818f5a..b9faeab 100644
+> > --- a/fs/ecryptfs/kthread.c
+> > +++ b/fs/ecryptfs/kthread.c
+> > @@ -171,7 +171,7 @@ int ecryptfs_privileged_open(struct file **lower_file,
+> >  		goto out;
+> >  	}
+> >  have_file:
+> > -	if ((*lower_file)->f_op->mmap == NULL) {
+> > +	if ((*lower_file)->f_op->mmap == NULL && !d_is_dir(lower_dentry)) {
+> >  		fput(*lower_file);
+> >  		*lower_file = NULL;
+> >  		rc = -EMEDIUMTYPE;
+> >   
+> 
+> 
+> -- 
+> Jeff Mahoney
+> SUSE Labs
+> 
