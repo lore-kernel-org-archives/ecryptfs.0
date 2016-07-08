@@ -1,42 +1,42 @@
-From: Tyler Hicks <tyhicks@canonical.com>
+From: Jeff Mahoney <jeffm@suse.com>
 Subject: Re: [PATCH 2/2] ecryptfs: don't allow mmap when the lower fs doesn't
  support it
-Date: Thu, 7 Jul 2016 18:22:05 -0500
-Message-ID: <577EE41D.6000900@canonical.com>
+Date: Thu, 7 Jul 2016 20:46:34 -0400
+Message-ID: <06093b3e-1364-715d-4db1-c9b4756ae2bf@suse.com>
 References: <1467754350-8995-1-git-send-email-jeffm@suse.com>
  <1467754350-8995-2-git-send-email-jeffm@suse.com>
- <20160705215740.GA14388@pc.thejh.net>
+ <577EE3A8.4030106@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
+Content-Type: multipart/signed; micalg=pgp-sha1;
  protocol="application/pgp-signature";
- boundary="aEKgWLaxgUx92DRnEDbfr5RiILQRFAjJd"
+ boundary="IMc50O4vXmtUf8ugJWx9nJQvdHdBKqxn8"
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20160705215740.GA14388@pc.thejh.net>
+In-Reply-To: <577EE3A8.4030106@canonical.com>
 Sender: stable-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Jann Horn <jann@thejh.net>, jeffm@suse.com
-Cc: ecryptfs@vger.kernel.org, stable@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Cc: Jann Horn <jann@thejh.net>, stable@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---aEKgWLaxgUx92DRnEDbfr5RiILQRFAjJd
-Content-Type: multipart/mixed; boundary="jslmn5xdbBRbnEeSncjMxnbxaNBkbfiIQ"
-From: Tyler Hicks <tyhicks@canonical.com>
-To: Jann Horn <jann@thejh.net>, jeffm@suse.com
-Cc: ecryptfs@vger.kernel.org, stable@vger.kernel.org
-Message-ID: <577EE41D.6000900@canonical.com>
+--IMc50O4vXmtUf8ugJWx9nJQvdHdBKqxn8
+Content-Type: multipart/mixed; boundary="m65s0MGGjqs866fxDAGV4wJDL7TUUTX3G"
+From: Jeff Mahoney <jeffm@suse.com>
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Cc: Jann Horn <jann@thejh.net>, stable@vger.kernel.org
+Message-ID: <06093b3e-1364-715d-4db1-c9b4756ae2bf@suse.com>
 Subject: Re: [PATCH 2/2] ecryptfs: don't allow mmap when the lower fs doesn't
  support it
 References: <1467754350-8995-1-git-send-email-jeffm@suse.com>
  <1467754350-8995-2-git-send-email-jeffm@suse.com>
- <20160705215740.GA14388@pc.thejh.net>
-In-Reply-To: <20160705215740.GA14388@pc.thejh.net>
+ <577EE3A8.4030106@canonical.com>
+In-Reply-To: <577EE3A8.4030106@canonical.com>
 
---jslmn5xdbBRbnEeSncjMxnbxaNBkbfiIQ
+--m65s0MGGjqs866fxDAGV4wJDL7TUUTX3G
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 07/05/2016 04:57 PM, Jann Horn wrote:
-> On Tue, Jul 05, 2016 at 05:32:30PM -0400, jeffm@suse.com wrote:
+On 7/7/16 7:20 PM, Tyler Hicks wrote:
+> On 07/05/2016 04:32 PM, jeffm@suse.com wrote:
 >> From: Jeff Mahoney <jeffm@suse.com>
 >>
 >> There are legitimate reasons to disallow mmap on certain files, notabl=
@@ -64,33 +64,37 @@ a)
 >> +{
 >> +	struct dentry *dentry =3D ecryptfs_dentry_to_lower(file_dentry(file)=
 );
+>=20
+> This should be:
+>=20
+> 	struct file *lower_file =3D ecryptfs_file_to_lower(file);
+>=20
 >> +	/*
 >> +	 * Don't allow mmap on top of file systems that don't support it
 >> +	 * natively.  If FILESYSTEM_MAX_STACK_DEPTH > 2 or ecryptfs
 >> +	 * allows recursive mounting, this will need to be extended.
->=20
-> Or if another new stacking filesystem appears whose f_op->mmap just for=
-wards
-> to lower_f_op->mmap - but thinking about it, in that scenario, my patch=
-
-> would stop working, too.
->=20
-> At this point, I dislike both this patch and my own one because of thei=
-r
-> lack of robustness. Well, at least e54ad7f1ee263ffa5a2de9c609d58dfa27b2=
-1cd9
-> should be solid. :/
-
-I agree that neither approach provides long term protection from the
-attack but they fix the immediate issue at hand. Therefore, I think we
-need to move forward with what we have now.
-
-Tyler
-
->=20
->=20
 >> +	 */
 >> +	if (!d_inode(dentry)->i_fop->mmap)
+>=20
+> and then:
+>=20
+> 	if (!lower_file->f_op->mmap)
+>=20
+>=20
+> I'll make these simple changes, add stable to cc in the patch tags, and=
+
+> push to Linus.
+
+Oh, whoops. Yeah, that's better.
+
+Thanks,
+
+-Jeff
+
+> Thanks again!
+>=20
+> Tyler
+>=20
 >> +		return -ENODEV;
 >> +	return generic_file_mmap(file, vma);
 >> +}
@@ -108,35 +112,40 @@ Tyler
 >>  	.open =3D ecryptfs_open,
 >>  	.flush =3D ecryptfs_flush,
 >>  	.release =3D ecryptfs_release,
->> --=20
->> 2.7.1
 >>
+>=20
+>=20
 
 
+--=20
+Jeff Mahoney
+SUSE Labs
 
---jslmn5xdbBRbnEeSncjMxnbxaNBkbfiIQ--
 
---aEKgWLaxgUx92DRnEDbfr5RiILQRFAjJd
+--m65s0MGGjqs866fxDAGV4wJDL7TUUTX3G--
+
+--IMc50O4vXmtUf8ugJWx9nJQvdHdBKqxn8
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG/MacGPG2 v2.0.19 (Darwin)
+Comment: GPGTools - http://gpgtools.org
 
-iQIcBAEBCgAGBQJXfuQdAAoJENaSAD2qAscKh4sQAI2advPthC2D0nOVCrYCa8gO
-N1jyFupc3YjrObDh0n2xzruQQh4DgPUp2eIgaHQlsAs/WY77IEXT7M3bRVs6IdCc
-mmUrpoajbT09jrtzVgdF2pkfBiVOJsSD0CHYp3S4i69LGA1NV8RA7pqK8fQI392K
-I59OXqDiuuKd9g+Gs8oKF/pvEsMUqkaDTX+aZRwCGYP0qy3WrdoynBzzEF0rAHg8
-AwcFdnSL9R/N1eEMaYFoId/Fr747fSJ4GUNZK5lhaGek2Ul7wCmIurnboiYIgKqD
-8J2Mi2NM8kEs5PLnkiwfBurqobbNqT9rGRUt9KXQTS1TFYdLaml8zXRUEVmPhnfa
-h/bfkFjEBWJ7iBj/zQlJvZfTBvojsi+zXlXlKEWfopSUiORHywY1fCeWFfYAN5+B
-xNGvrste/Ib9OcIMKGsUlodnGLvbs4V5tbViJdmuusM9HzojFamvFxuJ3lIQWBYb
-oY+Z125NZ6ROlbn0Dc2tulspADDyYDeBvv5FryAbcKbCGFo6NDvq0AuzECMV2r9P
-qMiSIoeeZbN5xojZl+fOYFLLwixeJLi2WEIHw5CU/WyCgd0rAqzTxhnLWX1Oq4Sk
-Rh5oSg7IIjrNvBTMQdGThN8bSL7acwv88SQe74hKpqlkyJSOzOectt0l5JGZq2lE
-AcCVGhZCbyhegTQBrHXQ
-=lMmq
+iQIcBAEBAgAGBQJXfvfuAAoJEB57S2MheeWyhIgQAMaBZsR4QzfxDW9QG3laLbbQ
+yZ47OXUTnHP0MGHJF2zvN+BiWq+lCDngN/HcJf1SxE6Hf70H4rUe+AbZ+53PfFwW
+ZgyAjDWxILmRxjC1KNEWaaSLd9rFtDEncC+QrPcWDmUy+VSWuClFJZ7o4yAyMTn0
+pqKT1AA0xRUs4VzB8dgUZvBCYp5U4r0AdVoEC+WF/GKYQgRlftCYwRBZY64Hu9IN
+aFbSQ8kyJwds4qOWsK3AgDesXOXV/6NtnTxnxe/EuzJ9Syu904XhVEKT9sQvE4Ur
+Cj23TOyhAenUVOFr3ngNo5HuZyp0d1ozsNLq+1FIvGhMUfUSoApRWII5i8iiK0hL
+v31VykGH82y/7oDJYo/2clvXR3M3TZvnvWozmjB+5p8/carVRm58S48FCrMhf9Kb
+DcLz9DaDXt26K7CBS0ejncGnUFAtgy4pHRX8dDb/O9cCWCEAZWnlJ00GeQvdKB7x
+9BulgT4fNJV//AC2Roi45J3YnFlw1IfXoH7+AkJNZBF97VxMWI1bDaxLQeRHX/B8
+c5BHoZuFurBte4JjcaDJio/TQn1OlNvu5bA4YmI7gyGpytBG9JbeWZ/b/J6HdQoL
+QMX3LLF7v701oNG9uyb8amRtClAoFe+2RN/ybl2yuYaosdrzTBGT/XRqdt0yh5u4
+8HBE+BEV+ekdbji71YwS
+=0avc
 -----END PGP SIGNATURE-----
 
---aEKgWLaxgUx92DRnEDbfr5RiILQRFAjJd--
+--IMc50O4vXmtUf8ugJWx9nJQvdHdBKqxn8--
