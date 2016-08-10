@@ -1,42 +1,119 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 2/2] ecryptfs: don't allow mmap when the lower fs doesn't
- support it
-Date: Wed, 3 Aug 2016 05:49:27 +0200
-Message-ID: <20160803034927.GA31125@kroah.com>
-References: <1467754350-8995-1-git-send-email-jeffm@suse.com>
- <1467754350-8995-2-git-send-email-jeffm@suse.com>
- <577EE3A8.4030106@canonical.com>
- <06093b3e-1364-715d-4db1-c9b4756ae2bf@suse.com>
- <20160802145005.3a7ed0f6@pc-198.iww-online.de>
- <2d10394e-b255-92b0-f378-a164cd731b9e@suse.com>
+From: Filin Ilya <ifilin88@yandex.ru>
+Subject: encryptfs-utils porting on SailfishOS
+Date: Wed, 10 Aug 2016 19:12:30 +0300
+Message-ID: <455781470845550@web9g.yandex.ru>
 Mime-Version: 1.0
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2d10394e-b255-92b0-f378-a164cd731b9e@suse.com>
-Sender: stable-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+	boundary="----==--bound.45579.web9g.yandex.ru"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from forward16h.cmail.yandex.net ([87.250.230.158]:35373 "EHLO
+	forward16h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933723AbcHJSSk (ORCPT
+	<rfc822;ecryptfs@vger.kernel.org>); Wed, 10 Aug 2016 14:18:40 -0400
+Received: from mxback3g.mail.yandex.net (mxback3g.mail.yandex.net [77.88.29.164])
+	by forward16h.cmail.yandex.net (Yandex) with ESMTP id C6F9221972
+	for <ecryptfs@vger.kernel.org>; Wed, 10 Aug 2016 19:12:30 +0300 (MSK)
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Mahoney <jeffm@suse.com>
-Cc: Henry Jensen <hjensen@gmx.de>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Jann Horn <jann@thejh.net>, stable@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-On Tue, Aug 02, 2016 at 09:05:04AM -0400, Jeff Mahoney wrote:
-> On 8/2/16 8:50 AM, Henry Jensen wrote:
-> > Hello,
-> > 
-> > is there any new status? We are meanwhile at kernel 4.4.16 LTS and
-> > ecryptfs is still broken there.
-> 
-> The revert and the fix below, plus Tyler's cleanup, landed in 4.7.  Both
-> were tagged for inclusion in -stable but haven't landed there yet.  I'm
-> afraid that's the limit of my tracking of it.
 
-Yes, that's all you need to do.  I'll be queueing these up soon, I have
-200+ stable patches to process at this point in time.
+------==--bound.45579.web9g.yandex.ru
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
 
-Henry, there's nothing preventing you from adding these to your local
-trees if you need them.
+Hi, Thanks for your work. Very useful utils.
 
-thanks,
+Now i porting ecryptfs-utils (version 111 from sources) & keyutils (version 1.5.9 from sources) to SailfishOS.
+While preparing rpm build, i change some files and compilers flags for correct build.
 
-greg k-h
+So this text in attached file, the part of git diff.
+
+My project:
+https://git.merproject.org/ifilin
+
+I hope, this mail is right way to tell about problems in ercyptfs porting. 
+-- 
+С уважением,
+Filin Ilya
+ifilin88@yandex.ru
+
+------==--bound.45579.web9g.yandex.ru
+Content-Disposition: attachment;
+	filename="commit-5f0da97"
+Content-Transfer-Encoding: base64
+Content-Type: text/x-diff;
+	name="commit-5f0da97"
+
+RnJvbSA1ZjBkYTk3YjAwNGNjYWFlZTY2ZDBmNzA4ZjUxY2M5Y2IyNGRmYTE0IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBpZmlsaW4gPGlmaWxpbjg4QHlhbmRleC5ydT4KRGF0ZTogTW9u
+LCA4IEF1ZyAyMDE2IDE1OjQ5OjAwICswMzAwClN1YmplY3Q6IGFkZCZlZGl0IHNwZWNzIGZyb20g
+RmVkb3JhCgpXQVJOISEhCk5lZWQgV25vIGZsYWdzLCBpbiBycG0gYnVpbGQgc3BlY3MgZmlsZXMh
+ISEKCiNvcmlnIGV4cG9ydCBDRkxBR1M9IiRSUE1fT1BUX0ZMQUdTIC1XZXJyb3IgLVd0eXBlLWxp
+bWl0cyAtV25vLXVudXNlZCIKZXhwb3J0IENGTEFHUz0iJFJQTV9PUFRfRkxBR1MgLVdlcnJvciAt
+V3R5cGUtbGltaXRzIC1Xbm8tdW51c2VkIC1Xbm8tcG9pbnRlci1zaWduIC1Xbm8tdW51c2VkLXJl
+c3VsdCIKCgpkaWZmIC0tZ2l0IGEvc3JjL2tleV9tb2QvZWNyeXB0ZnNfa2V5X21vZF9wa2NzMTFf
+aGVscGVyLmMgYi9zcmMva2V5X21vZC9lY3J5cHRmc19rZXlfbW9kX3BrY3MxMV9oZWxwZXIuYwpp
+bmRleCAzOWNhZTBkLi43MTgwYmJjIDEwMDY0NAotLS0gYS9zcmMva2V5X21vZC9lY3J5cHRmc19r
+ZXlfbW9kX3BrY3MxMV9oZWxwZXIuYworKysgYi9zcmMva2V5X21vZC9lY3J5cHRmc19rZXlfbW9k
+X3BrY3MxMV9oZWxwZXIuYwpAQCAtNTEsMTAgKzUxLDExIEBACiAjaW5jbHVkZSAiLi4vaW5jbHVk
+ZS9kZWNpc2lvbl9ncmFwaC5oIgogCiBzdHJ1Y3QgcGtjczExaF9kYXRhIHsKCWNoYXIgKnNlcmlh
+bGl6ZWRfaWQ7CQogCXVuc2lnbmVkIGNoYXIgKmNlcnRpZmljYXRlX2Jsb2I7CiAJc2l6ZV90IGNl
+cnRpZmljYXRlX2Jsb2Jfc2l6ZTsKIAljaGFyICpwYXNzcGhyYXNlOworCQogfTsKIAogc3RydWN0
+IHBrY3MxMWhfc3ViZ3JhcGhfa2V5X2N0eCB7CkBAIC0xMTU3LDExICsxMTU4LDI2IEBAIHN0YXRp
+YyBpbnQgdGZfcGtjczExaF9rZXlfeDUwOWZpbGUoc3RydWN0IGVjcnlwdGZzX2N0eCAqY3R4LCBz
+dHJ1Y3QgcGFyYW1fbm9kZSAqCiAJCQlnb3RvIG91dDsKIAkJfQogCi0JCWlmICgoc3ViZ3JhcGhf
+a2V5X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IGkyZF9YNTA5ICh4
+NTA5LCBOVUxMKSkgPCAwCSkgeworLy8gaWZpbGluIDIwMTYtMDgtMDQgYmVnaW4KKy8vCQlpZiAo
+KHN1YmdyYXBoX2tleV9jdHgtPnBrY3MxMWhfZGF0YS5jZXJ0aWZpY2F0ZV9ibG9iX3NpemUgPSBp
+MmRfWDUwOSAoeDUwOSwgTlVMTCkpIDwgMAkpIHsKKy8vCQkJc3lzbG9nKExPR19FUlIsICJQS0NT
+IzExOiBDYW5ub3QgcmVhZCBkZWNvZGUgY2VydGlmaWNhdGUiKTsKKy8vCQkJcmMgPSAtRUlPOwor
+Ly8JCQlnb3RvIG91dDsKKy8vCQl9CisvLyBpZmlsaW4gMjAxNi0wOC0wNCBvcmlnIGVuZAorCQkK
+KwkJaWYgKChyYyA9IGkyZF9YNTA5ICh4NTA5LCBOVUxMKSkgPCAwCSkgewogCQkJc3lzbG9nKExP
+R19FUlIsICJQS0NTIzExOiBDYW5ub3QgcmVhZCBkZWNvZGUgY2VydGlmaWNhdGUiKTsKIAkJCXJj
+ID0gLUVJTzsKIAkJCWdvdG8gb3V0OwogCQl9CisJCWVsc2UKKwkJeworCQkJc3ViZ3JhcGhfa2V5
+X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IHJjOworCQkJcmMgPSAt
+ZXJybm87CisJCX0KKwkJCisvLyBpZmlsaW4gMjAxNi0wOC0wNCBlbmQKIAogCQlpZiAoCiAJCQko
+c3ViZ3JhcGhfa2V5X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2IgPSAodW5zaWdu
+ZWQgY2hhciAqKW1hbGxvYyAoCkBAIC0xMTc4LDExICsxMTk0LDI0IEBAIHN0YXRpYyBpbnQgdGZf
+cGtjczExaF9rZXlfeDUwOWZpbGUoc3RydWN0IGVjcnlwdGZzX2N0eCAqY3R4LCBzdHJ1Y3QgcGFy
+YW1fbm9kZSAqCiAJCSAqLwogCQlwID0gc3ViZ3JhcGhfa2V5X2N0eC0+cGtjczExaF9kYXRhLmNl
+cnRpZmljYXRlX2Jsb2I7CiAKLQkJaWYgKChzdWJncmFwaF9rZXlfY3R4LT5wa2NzMTFoX2RhdGEu
+Y2VydGlmaWNhdGVfYmxvYl9zaXplID0gaTJkX1g1MDkgKHg1MDksICZwKSkgPCAwKSB7CisvLyBp
+ZmlsaW4gMjAxNi0wOC0wNCBiZWdpbgorLy8JCWlmICgoc3ViZ3JhcGhfa2V5X2N0eC0+cGtjczEx
+aF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IGkyZF9YNTA5ICh4NTA5LCAmcCkpIDwgMCkg
+eworLy8JCQlzeXNsb2coTE9HX0VSUiwgIlBLQ1MjMTE6IENhbm5vdCByZWFkIGRlY29kZSBjZXJ0
+aWZpY2F0ZSIpOworLy8JCQlnb3RvIG91dDsKKy8vCQl9CisvLwl9CisvLyBpZmlsaW4gMjAxNi0w
+OC0wNCBvcmlnIGVuZAorCQlpZiAoKHJjID0gaTJkX1g1MDkgKHg1MDksICZwKSkgPCAwKSB7CiAJ
+CQlzeXNsb2coTE9HX0VSUiwgIlBLQ1MjMTE6IENhbm5vdCByZWFkIGRlY29kZSBjZXJ0aWZpY2F0
+ZSIpOwogCQkJZ290byBvdXQ7CiAJCX0KKwkJZWxzZQorCQl7CisJCQkgc3ViZ3JhcGhfa2V5X2N0
+eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IHJjOworCQkJIHJjID0gLWVy
+cm5vOworCQl9CiAJfQorLy8gaWZpbGluIDIwMTYtMDgtMDQgZW5kCiAKIAlub2RlLT52YWwgPSBO
+VUxMOwogCWlmICgocmMgPSBlY3J5cHRmc19wa2NzMTFoX3Byb2Nlc3Nfa2V5KHN1YmdyYXBoX2tl
+eV9jdHgsIG1udF9wYXJhbXMpKSkgewpkaWZmIC0tZ2l0IGEvc3JjL3V0aWxzL2VjcnlwdGZzX2dl
+bmVyYXRlX3RwbV9rZXkuYyBiL3NyYy91dGlscy9lY3J5cHRmc19nZW5lcmF0ZV90cG1fa2V5LmMK
+aW5kZXggMDAyYWU3MC4uNDZkMjkwZCAxMDA2NDQKLS0tIGEvc3JjL3V0aWxzL2VjcnlwdGZzX2dl
+bmVyYXRlX3RwbV9rZXkuYworKysgYi9zcmMvdXRpbHMvZWNyeXB0ZnNfZ2VuZXJhdGVfdHBtX2tl
+eS5jCkBAIC0xMDgsNyArMTA4LDkgQEAgaW50IG1haW4oaW50IGFyZ2MsIGNoYXIgKiphcmd2KQog
+CQkJCQlmcmVlKHBjcnNTZWxlY3RlZCk7CiAJCQkJCXJldHVybiAtMTsKIAkJCQl9Ci0JCQkJcGNy
+c1NlbGVjdGVkID0gdG1wX3BjcnM7CisJCQkJLy9pZmlsaW4gMjAxNi0wOC0wNCAtIG5leHQgb3Jp
+ZyBsaW5lCisJCQkJLy9wY3JzU2VsZWN0ZWQgPSB0bXBfcGNyczsKKwkJCQlwY3JzU2VsZWN0ZWQg
+PSAoaW50ICopdG1wX3BjcnM7Ly8gc2FmZSBjb3VzZSByZWFsbG9jIHNpemVvZihpbnQpIGluIGxp
+bmUgMTAxCiAJCQkJcGNyc1NlbGVjdGVkW251bVBjcnNTZWxlY3RlZCAtIDFdID0KIAkJCQkJYXRv
+aShvcHRhcmcpOwogCQkJCWJyZWFrOwpkaWZmIC0tZ2l0IGEvc3JjL3V0aWxzL21vdW50LmVjcnlw
+dGZzX3ByaXZhdGUuYyBiL3NyYy91dGlscy9tb3VudC5lY3J5cHRmc19wcml2YXRlLmMKaW5kZXgg
+MWE2M2QxZC4uOTYxNzk0OCAxMDA2NDQKLS0tIGEvc3JjL3V0aWxzL21vdW50LmVjcnlwdGZzX3By
+aXZhdGUuYworKysgYi9zcmMvdXRpbHMvbW91bnQuZWNyeXB0ZnNfcHJpdmF0ZS5jCkBAIC0yMzIs
+NyArMjMyLDggQEAgc3RhdGljIGludCBjaGVja19jd2RfZl90eXBlKCkKIAkgKgogCSAqIFRoaXMg
+d2hpdGVsaXN0IGlzIHRvIHByZXZlbnQgbWFsaWNpb3VzIG1vdW50LmVjcnlwdGZzX3ByaXZhdGUg
+dXNlcnMKIAkgKiBmcm9tIG1vdW50aW5nIG92ZXIgZmlsZXN5c3RlbSB0eXBlcyBzdWNoIGFzIFBS
+T0NfU1VQRVJfTUFHSUMgdG8KLQkgKiBkZWNlaXZlIG90aGVyIHByb2dyYW1zIHdpdGggYSBjcmFm
+dGVkIC9wcm9jL3NlbGYvKi4gU2VlCisJIC8vaWZpbGluIDIwMTYtMDgtMDQgcmVtb3ZlIHN0YXIg
+Y2hhciBhZnRlciBzZWxmLworCSAqIGRlY2VpdmUgb3RoZXIgcHJvZ3JhbXMgd2l0aCBhIGNyYWZ0
+ZWQgL3Byb2Mvc2VsZi8uIFNlZQogCSAqIGh0dHBzOi8vbGF1bmNocGFkLm5ldC9idWdzLzE1MzA1
+NjYgZm9yIG1vcmUgZGV0YWlscy4KIAkgKi8KIAlfX1NXT1JEX1RZUEUgZl90eXBlX3doaXRlbGlz
+dFtdID0gewpAQCAtMjc2LDcgKzI3Nyw3IEBAIHN0YXRpYyBpbnQgY2hlY2tfY3dkX2ZfdHlwZSgp
+CiAKIAlmcHJpbnRmKHN0ZGVyciwKIAkJIlJlZnVzaW5nIHRvIG1vdW50IG92ZXIgYW4gdW5hcHBy
+b3ZlZCBmaWxlc3lzdGVtIHR5cGU6ICUjbHhcbiIsCi0JCWJ1Zi5mX3R5cGUpOworCQkobG9uZyB1
+bnNpZ25lZCBpbnQpYnVmLmZfdHlwZSk7CiAJcmV0dXJuIDE7CiB9CiAK
+------==--bound.45579.web9g.yandex.ru--
