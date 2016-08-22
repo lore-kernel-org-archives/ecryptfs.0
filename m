@@ -1,119 +1,170 @@
-From: Filin Ilya <ifilin88@yandex.ru>
-Subject: encryptfs-utils porting on SailfishOS
-Date: Wed, 10 Aug 2016 19:12:30 +0300
-Message-ID: <455781470845550@web9g.yandex.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----==--bound.45579.web9g.yandex.ru"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from forward16h.cmail.yandex.net ([87.250.230.158]:35373 "EHLO
-	forward16h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933723AbcHJSSk (ORCPT
-	<rfc822;ecryptfs@vger.kernel.org>); Wed, 10 Aug 2016 14:18:40 -0400
-Received: from mxback3g.mail.yandex.net (mxback3g.mail.yandex.net [77.88.29.164])
-	by forward16h.cmail.yandex.net (Yandex) with ESMTP id C6F9221972
-	for <ecryptfs@vger.kernel.org>; Wed, 10 Aug 2016 19:12:30 +0300 (MSK)
-Sender: ecryptfs-owner@vger.kernel.org
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH v4 00/20] Xattr inode operation removal
+Date: Mon, 22 Aug 2016 23:21:48 +0200
+Message-ID: <1471900928-21588-1-git-send-email-agruenba@redhat.com>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+Sender: linux-unionfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge.hallyn@canonical.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
+
+This is version 4 of the xattr inode operation removal patch series. The
+patches are available in git form at:
+
+  https://git.kernel.org/cgit/linux/kernel/git/agruen/linux.git/log/?h=work.xattr
+
+Previous posting: http://www.spinics.net/lists/ecryptfs/msg00791.html
 
 
-------==--bound.45579.web9g.yandex.ru
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="utf-8"
+The purpose of this series is to remove unnecessary differences between the
+xattr implementations on different filesystems and to simplify things.  With
+the exception of redirectors like fuse, overlayfs, and ecryptfs, all
+filesystems perform some de-multiplexing based on the xattr name, so it makes
+sense to make that the default; filesystems that don't do any de-multiplexing
+can easily use a catch-all xattr handler.
 
-Hi, Thanks for your work. Very useful utils.
+The patch series is structured as follows:
 
-Now i porting ecryptfs-utils (version 111 from sources) & keyutils (version 1.5.9 from sources) to SailfishOS.
-While preparing rpm build, i change some files and compilers flags for correct build.
+ * The first four patches fix a few things and convert overlayfs to use xattr
+   handlers; they have been posted to Miklos and linux-unionfs@vger.kernel.org
+   already because they are partially relevant for the 4.8 kernel.
 
-So this text in attached file, the part of git diff.
+ * The following patches convert the remaining filesystems over to use xattr
+   handlers.
 
-My project:
-https://git.merproject.org/ifilin
+ * Next, a new IOP_XATTR inode operations flag is introduced: the flag is set
+   when an inode supports xattrs.  On most filesystems, the IOP_XATTR flag is
+   automatically initialized correctly when the inode is allocated based on
+   whether or not the s_xattr field in the inode's superblock is defined.
+   Filesystems that support xattrs on some but not all inodes can clear the
+   IOP_XATTR flag appropriately.
 
-I hope, this mail is right way to tell about problems in ercyptfs porting. 
--- 
-С уважением,
-Filin Ilya
-ifilin88@yandex.ru
+ * The IOP_XATTR flag is then used to get rid of the two remaining places where
+   xattr inode operations other than the generic ones are used: bad inodes and
+   libfs empty directories.
 
-------==--bound.45579.web9g.yandex.ru
-Content-Disposition: attachment;
-	filename="commit-5f0da97"
-Content-Transfer-Encoding: base64
-Content-Type: text/x-diff;
-	name="commit-5f0da97"
+ * After that, we get rid of the remaining direct accesses to xattr inode
+   operations.
 
-RnJvbSA1ZjBkYTk3YjAwNGNjYWFlZTY2ZDBmNzA4ZjUxY2M5Y2IyNGRmYTE0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBpZmlsaW4gPGlmaWxpbjg4QHlhbmRleC5ydT4KRGF0ZTogTW9u
-LCA4IEF1ZyAyMDE2IDE1OjQ5OjAwICswMzAwClN1YmplY3Q6IGFkZCZlZGl0IHNwZWNzIGZyb20g
-RmVkb3JhCgpXQVJOISEhCk5lZWQgV25vIGZsYWdzLCBpbiBycG0gYnVpbGQgc3BlY3MgZmlsZXMh
-ISEKCiNvcmlnIGV4cG9ydCBDRkxBR1M9IiRSUE1fT1BUX0ZMQUdTIC1XZXJyb3IgLVd0eXBlLWxp
-bWl0cyAtV25vLXVudXNlZCIKZXhwb3J0IENGTEFHUz0iJFJQTV9PUFRfRkxBR1MgLVdlcnJvciAt
-V3R5cGUtbGltaXRzIC1Xbm8tdW51c2VkIC1Xbm8tcG9pbnRlci1zaWduIC1Xbm8tdW51c2VkLXJl
-c3VsdCIKCgpkaWZmIC0tZ2l0IGEvc3JjL2tleV9tb2QvZWNyeXB0ZnNfa2V5X21vZF9wa2NzMTFf
-aGVscGVyLmMgYi9zcmMva2V5X21vZC9lY3J5cHRmc19rZXlfbW9kX3BrY3MxMV9oZWxwZXIuYwpp
-bmRleCAzOWNhZTBkLi43MTgwYmJjIDEwMDY0NAotLS0gYS9zcmMva2V5X21vZC9lY3J5cHRmc19r
-ZXlfbW9kX3BrY3MxMV9oZWxwZXIuYworKysgYi9zcmMva2V5X21vZC9lY3J5cHRmc19rZXlfbW9k
-X3BrY3MxMV9oZWxwZXIuYwpAQCAtNTEsMTAgKzUxLDExIEBACiAjaW5jbHVkZSAiLi4vaW5jbHVk
-ZS9kZWNpc2lvbl9ncmFwaC5oIgogCiBzdHJ1Y3QgcGtjczExaF9kYXRhIHsKCWNoYXIgKnNlcmlh
-bGl6ZWRfaWQ7CQogCXVuc2lnbmVkIGNoYXIgKmNlcnRpZmljYXRlX2Jsb2I7CiAJc2l6ZV90IGNl
-cnRpZmljYXRlX2Jsb2Jfc2l6ZTsKIAljaGFyICpwYXNzcGhyYXNlOworCQogfTsKIAogc3RydWN0
-IHBrY3MxMWhfc3ViZ3JhcGhfa2V5X2N0eCB7CkBAIC0xMTU3LDExICsxMTU4LDI2IEBAIHN0YXRp
-YyBpbnQgdGZfcGtjczExaF9rZXlfeDUwOWZpbGUoc3RydWN0IGVjcnlwdGZzX2N0eCAqY3R4LCBz
-dHJ1Y3QgcGFyYW1fbm9kZSAqCiAJCQlnb3RvIG91dDsKIAkJfQogCi0JCWlmICgoc3ViZ3JhcGhf
-a2V5X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IGkyZF9YNTA5ICh4
-NTA5LCBOVUxMKSkgPCAwCSkgeworLy8gaWZpbGluIDIwMTYtMDgtMDQgYmVnaW4KKy8vCQlpZiAo
-KHN1YmdyYXBoX2tleV9jdHgtPnBrY3MxMWhfZGF0YS5jZXJ0aWZpY2F0ZV9ibG9iX3NpemUgPSBp
-MmRfWDUwOSAoeDUwOSwgTlVMTCkpIDwgMAkpIHsKKy8vCQkJc3lzbG9nKExPR19FUlIsICJQS0NT
-IzExOiBDYW5ub3QgcmVhZCBkZWNvZGUgY2VydGlmaWNhdGUiKTsKKy8vCQkJcmMgPSAtRUlPOwor
-Ly8JCQlnb3RvIG91dDsKKy8vCQl9CisvLyBpZmlsaW4gMjAxNi0wOC0wNCBvcmlnIGVuZAorCQkK
-KwkJaWYgKChyYyA9IGkyZF9YNTA5ICh4NTA5LCBOVUxMKSkgPCAwCSkgewogCQkJc3lzbG9nKExP
-R19FUlIsICJQS0NTIzExOiBDYW5ub3QgcmVhZCBkZWNvZGUgY2VydGlmaWNhdGUiKTsKIAkJCXJj
-ID0gLUVJTzsKIAkJCWdvdG8gb3V0OwogCQl9CisJCWVsc2UKKwkJeworCQkJc3ViZ3JhcGhfa2V5
-X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IHJjOworCQkJcmMgPSAt
-ZXJybm87CisJCX0KKwkJCisvLyBpZmlsaW4gMjAxNi0wOC0wNCBlbmQKIAogCQlpZiAoCiAJCQko
-c3ViZ3JhcGhfa2V5X2N0eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2IgPSAodW5zaWdu
-ZWQgY2hhciAqKW1hbGxvYyAoCkBAIC0xMTc4LDExICsxMTk0LDI0IEBAIHN0YXRpYyBpbnQgdGZf
-cGtjczExaF9rZXlfeDUwOWZpbGUoc3RydWN0IGVjcnlwdGZzX2N0eCAqY3R4LCBzdHJ1Y3QgcGFy
-YW1fbm9kZSAqCiAJCSAqLwogCQlwID0gc3ViZ3JhcGhfa2V5X2N0eC0+cGtjczExaF9kYXRhLmNl
-cnRpZmljYXRlX2Jsb2I7CiAKLQkJaWYgKChzdWJncmFwaF9rZXlfY3R4LT5wa2NzMTFoX2RhdGEu
-Y2VydGlmaWNhdGVfYmxvYl9zaXplID0gaTJkX1g1MDkgKHg1MDksICZwKSkgPCAwKSB7CisvLyBp
-ZmlsaW4gMjAxNi0wOC0wNCBiZWdpbgorLy8JCWlmICgoc3ViZ3JhcGhfa2V5X2N0eC0+cGtjczEx
-aF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IGkyZF9YNTA5ICh4NTA5LCAmcCkpIDwgMCkg
-eworLy8JCQlzeXNsb2coTE9HX0VSUiwgIlBLQ1MjMTE6IENhbm5vdCByZWFkIGRlY29kZSBjZXJ0
-aWZpY2F0ZSIpOworLy8JCQlnb3RvIG91dDsKKy8vCQl9CisvLwl9CisvLyBpZmlsaW4gMjAxNi0w
-OC0wNCBvcmlnIGVuZAorCQlpZiAoKHJjID0gaTJkX1g1MDkgKHg1MDksICZwKSkgPCAwKSB7CiAJ
-CQlzeXNsb2coTE9HX0VSUiwgIlBLQ1MjMTE6IENhbm5vdCByZWFkIGRlY29kZSBjZXJ0aWZpY2F0
-ZSIpOwogCQkJZ290byBvdXQ7CiAJCX0KKwkJZWxzZQorCQl7CisJCQkgc3ViZ3JhcGhfa2V5X2N0
-eC0+cGtjczExaF9kYXRhLmNlcnRpZmljYXRlX2Jsb2Jfc2l6ZSA9IHJjOworCQkJIHJjID0gLWVy
-cm5vOworCQl9CiAJfQorLy8gaWZpbGluIDIwMTYtMDgtMDQgZW5kCiAKIAlub2RlLT52YWwgPSBO
-VUxMOwogCWlmICgocmMgPSBlY3J5cHRmc19wa2NzMTFoX3Byb2Nlc3Nfa2V5KHN1YmdyYXBoX2tl
-eV9jdHgsIG1udF9wYXJhbXMpKSkgewpkaWZmIC0tZ2l0IGEvc3JjL3V0aWxzL2VjcnlwdGZzX2dl
-bmVyYXRlX3RwbV9rZXkuYyBiL3NyYy91dGlscy9lY3J5cHRmc19nZW5lcmF0ZV90cG1fa2V5LmMK
-aW5kZXggMDAyYWU3MC4uNDZkMjkwZCAxMDA2NDQKLS0tIGEvc3JjL3V0aWxzL2VjcnlwdGZzX2dl
-bmVyYXRlX3RwbV9rZXkuYworKysgYi9zcmMvdXRpbHMvZWNyeXB0ZnNfZ2VuZXJhdGVfdHBtX2tl
-eS5jCkBAIC0xMDgsNyArMTA4LDkgQEAgaW50IG1haW4oaW50IGFyZ2MsIGNoYXIgKiphcmd2KQog
-CQkJCQlmcmVlKHBjcnNTZWxlY3RlZCk7CiAJCQkJCXJldHVybiAtMTsKIAkJCQl9Ci0JCQkJcGNy
-c1NlbGVjdGVkID0gdG1wX3BjcnM7CisJCQkJLy9pZmlsaW4gMjAxNi0wOC0wNCAtIG5leHQgb3Jp
-ZyBsaW5lCisJCQkJLy9wY3JzU2VsZWN0ZWQgPSB0bXBfcGNyczsKKwkJCQlwY3JzU2VsZWN0ZWQg
-PSAoaW50ICopdG1wX3BjcnM7Ly8gc2FmZSBjb3VzZSByZWFsbG9jIHNpemVvZihpbnQpIGluIGxp
-bmUgMTAxCiAJCQkJcGNyc1NlbGVjdGVkW251bVBjcnNTZWxlY3RlZCAtIDFdID0KIAkJCQkJYXRv
-aShvcHRhcmcpOwogCQkJCWJyZWFrOwpkaWZmIC0tZ2l0IGEvc3JjL3V0aWxzL21vdW50LmVjcnlw
-dGZzX3ByaXZhdGUuYyBiL3NyYy91dGlscy9tb3VudC5lY3J5cHRmc19wcml2YXRlLmMKaW5kZXgg
-MWE2M2QxZC4uOTYxNzk0OCAxMDA2NDQKLS0tIGEvc3JjL3V0aWxzL21vdW50LmVjcnlwdGZzX3By
-aXZhdGUuYworKysgYi9zcmMvdXRpbHMvbW91bnQuZWNyeXB0ZnNfcHJpdmF0ZS5jCkBAIC0yMzIs
-NyArMjMyLDggQEAgc3RhdGljIGludCBjaGVja19jd2RfZl90eXBlKCkKIAkgKgogCSAqIFRoaXMg
-d2hpdGVsaXN0IGlzIHRvIHByZXZlbnQgbWFsaWNpb3VzIG1vdW50LmVjcnlwdGZzX3ByaXZhdGUg
-dXNlcnMKIAkgKiBmcm9tIG1vdW50aW5nIG92ZXIgZmlsZXN5c3RlbSB0eXBlcyBzdWNoIGFzIFBS
-T0NfU1VQRVJfTUFHSUMgdG8KLQkgKiBkZWNlaXZlIG90aGVyIHByb2dyYW1zIHdpdGggYSBjcmFm
-dGVkIC9wcm9jL3NlbGYvKi4gU2VlCisJIC8vaWZpbGluIDIwMTYtMDgtMDQgcmVtb3ZlIHN0YXIg
-Y2hhciBhZnRlciBzZWxmLworCSAqIGRlY2VpdmUgb3RoZXIgcHJvZ3JhbXMgd2l0aCBhIGNyYWZ0
-ZWQgL3Byb2Mvc2VsZi8uIFNlZQogCSAqIGh0dHBzOi8vbGF1bmNocGFkLm5ldC9idWdzLzE1MzA1
-NjYgZm9yIG1vcmUgZGV0YWlscy4KIAkgKi8KIAlfX1NXT1JEX1RZUEUgZl90eXBlX3doaXRlbGlz
-dFtdID0gewpAQCAtMjc2LDcgKzI3Nyw3IEBAIHN0YXRpYyBpbnQgY2hlY2tfY3dkX2ZfdHlwZSgp
-CiAKIAlmcHJpbnRmKHN0ZGVyciwKIAkJIlJlZnVzaW5nIHRvIG1vdW50IG92ZXIgYW4gdW5hcHBy
-b3ZlZCBmaWxlc3lzdGVtIHR5cGU6ICUjbHhcbiIsCi0JCWJ1Zi5mX3R5cGUpOworCQkobG9uZyB1
-bnNpZ25lZCBpbnQpYnVmLmZfdHlwZSk7CiAJcmV0dXJuIDE7CiB9CiAK
-------==--bound.45579.web9g.yandex.ru--
+ * Finally, we stop calling the xattr inode operations and remove them.
+
+Note that these patches only remove the getxattr, setxattr, and removexattr
+inode operations. The listxattr inode operation does not do any attribute name
+de-multiplexing, and remains unchanged except for checking the new IOP_XATTR
+flag as well now.
+
+
+Thanks,
+Andreas
+
+
+Andreas Gruenbacher (20):
+ovl: Fix OVL_XATTR_PREFIX
+ovl: Get rid of ovl_xattr_noacl_handlers array
+ovl: Switch to generic_removexattr
+ovl: Switch to generic_getxattr
+xattr: Remove unnecessary NULL attribute name check
+jffs2: Remove jffs2_{get,set,remove}xattr macros
+hfs: Switch to generic xattr handlers
+kernfs: Switch to generic xattr handlers
+sockfs: getxattr: Fail with -EOPNOTSUPP for invalid attribute names
+sockfs: Get rid of getxattr iop
+ecryptfs: Switch to generic xattr handlers
+fuse: Switch to generic xattr handlers
+vfs: Move xattr_resolve_name to the front of fs/xattr.c
+vfs: Add IOP_XATTR inode operations flag
+vfs: Use IOP_XATTR flag for bad-inode handling
+libfs: Use IOP_XATTR flag for empty directory handling
+xattr: Add __vfs_{get,set,remove}xattr helpers
+vfs: Check for the IOP_XATTR flag in listxattr
+xattr: Stop calling {get,set,remove}xattr inode operations
+vfs: Remove {get,set,remove}xattr inode operations
+
+Documentation/filesystems/Locking     |  24 +++-
+Documentation/filesystems/vfs.txt     |  45 ++++--
+fs/9p/vfs_inode_dotl.c                |   9 --
+fs/bad_inode.c                        |  21 +--
+fs/btrfs/inode.c                      |  12 --
+fs/cachefiles/bind.c                  |   4 +-
+fs/cachefiles/namei.c                 |   4 +-
+fs/ceph/dir.c                         |   3 -
+fs/ceph/inode.c                       |   6 -
+fs/cifs/cifsfs.c                      |   9 --
+fs/ecryptfs/ecryptfs_kernel.h         |   2 +
+fs/ecryptfs/inode.c                   |  67 ++++++---
+fs/ecryptfs/main.c                    |   1 +
+fs/ecryptfs/mmap.c                    |  13 +-
+fs/ext2/file.c                        |   3 -
+fs/ext2/namei.c                       |   6 -
+fs/ext2/symlink.c                     |   6 -
+fs/ext4/file.c                        |   3 -
+fs/ext4/namei.c                       |   6 -
+fs/ext4/symlink.c                     |   9 --
+fs/f2fs/file.c                        |   3 -
+fs/f2fs/namei.c                       |  12 --
+fs/fuse/dir.c                         |  49 +++++--
+fs/fuse/fuse_i.h                      |   2 +
+fs/fuse/inode.c                       |   1 +
+fs/gfs2/inode.c                       |   9 --
+fs/hfs/attr.c                         |  83 +++++++----
+fs/hfs/hfs_fs.h                       |   6 +-
+fs/hfs/inode.c                        |   5 +-
+fs/hfs/super.c                        |   1 +
+fs/hfsplus/dir.c                      |   3 -
+fs/hfsplus/inode.c                    |   3 -
+fs/inode.c                            |   2 +
+fs/jffs2/dir.c                        |   3 -
+fs/jffs2/file.c                       |   3 -
+fs/jffs2/symlink.c                    |   3 -
+fs/jffs2/xattr.h                      |   6 -
+fs/jfs/file.c                         |   3 -
+fs/jfs/namei.c                        |   3 -
+fs/jfs/symlink.c                      |   6 -
+fs/kernfs/dir.c                       |   3 -
+fs/kernfs/inode.c                     | 155 +++++++++++----------
+fs/kernfs/kernfs-internal.h           |   7 +-
+fs/kernfs/mount.c                     |   1 +
+fs/kernfs/symlink.c                   |   3 -
+fs/libfs.c                            |  29 +---
+fs/nfs/nfs3proc.c                     |   6 -
+fs/nfs/nfs4proc.c                     |   6 -
+fs/ocfs2/file.c                       |   3 -
+fs/ocfs2/namei.c                      |   3 -
+fs/ocfs2/symlink.c                    |   3 -
+fs/orangefs/inode.c                   |   3 -
+fs/orangefs/namei.c                   |   3 -
+fs/orangefs/symlink.c                 |   1 -
+fs/orangefs/xattr.c                   |   3 +
+fs/overlayfs/copy_up.c                |   4 +-
+fs/overlayfs/dir.c                    |   3 -
+fs/overlayfs/inode.c                  |  88 +++---------
+fs/overlayfs/overlayfs.h              |  12 +-
+fs/overlayfs/super.c                  |  69 ++++++----
+fs/reiserfs/file.c                    |   3 -
+fs/reiserfs/namei.c                   |   9 --
+fs/squashfs/inode.c                   |   1 -
+fs/squashfs/namei.c                   |   1 -
+fs/squashfs/symlink.c                 |   1 -
+fs/squashfs/xattr.c                   |  19 ++-
+fs/squashfs/xattr.h                   |   1 -
+fs/ubifs/dir.c                        |   3 -
+fs/ubifs/file.c                       |   6 -
+fs/xattr.c                            | 250 ++++++++++++++++------------------
+fs/xfs/xfs_iops.c                     |  15 --
+include/linux/fs.h                    |  23 ++--
+include/linux/xattr.h                 |   7 +-
+mm/shmem.c                            |  15 --
+net/socket.c                          |  70 +++++-----
+security/commoncap.c                  |  25 ++--
+security/integrity/evm/evm_crypto.c   |   7 +-
+security/integrity/evm/evm_main.c     |   4 +-
+security/integrity/ima/ima_appraise.c |  21 ++-
+security/selinux/hooks.c              |  19 +--
+security/smack/smack_lsm.c            |  12 +-
+81 files changed, 602 insertions(+), 774 deletions(-)
+
+-- 
+2.7.4
