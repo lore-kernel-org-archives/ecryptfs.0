@@ -1,81 +1,68 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH] ecryptfs: remove private bin2hex implementation
-Date: Wed, 21 Sep 2016 01:17:24 +0200
-Message-ID: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ecryptfs:  add missing \n to end of various error messages
+Date: Tue, 27 Sep 2016 05:18:02 -0700
+Message-ID: <20160927121802.30574-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:35139 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754782AbcITXRv (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 20 Sep 2016 19:17:51 -0400
-Received: by mail-wm0-f47.google.com with SMTP id l132so236413366wmf.0
-        for <ecryptfs@vger.kernel.org>; Tue, 20 Sep 2016 16:17:46 -0700 (PDT)
+Received: from youngberry.canonical.com ([91.189.89.112]:34944 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933534AbcI0MSJ (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 27 Sep 2016 08:18:09 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
 
-Calling sprintf in a loop is not very efficient, and in any case, we
-already have an implementation of bin-to-hex conversion in lib/ which
-we might as well use.
+From: Colin Ian King <colin.king@canonical.com>
 
-Note that ecryptfs_to_hex used to nul-terminate the destination (and
-the kernel doc was wrong about the required output size), while
-bin2hex doesn't. [All but one user of ecryptfs_to_hex explicitly
-nul-terminates the result anyway.]
+Trival fix, some error messages are missing a \n, so add it.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- fs/ecryptfs/crypto.c          | 15 ---------------
- fs/ecryptfs/ecryptfs_kernel.h |  8 +++++++-
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ fs/ecryptfs/keystore.c | 2 +-
+ fs/ecryptfs/main.c     | 2 +-
+ fs/ecryptfs/miscdev.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index e5e29f8c920b..7acd57da4f14 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -42,21 +42,6 @@
- #define ENCRYPT		1
- 
- /**
-- * ecryptfs_to_hex
-- * @dst: Buffer to take hex character representation of contents of
-- *       src; must be at least of size (src_size * 2)
-- * @src: Buffer to be converted to a hex string representation
-- * @src_size: number of bytes to convert
-- */
--void ecryptfs_to_hex(char *dst, char *src, size_t src_size)
--{
--	int x;
--
--	for (x = 0; x < src_size; x++)
--		sprintf(&dst[x * 2], "%.2x", (unsigned char)src[x]);
--}
--
--/**
-  * ecryptfs_from_hex
-  * @dst: Buffer to take the bytes from src hex; must be at least of
-  *       size (src_size / 2)
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 4ba1547bb9ad..548caac3a907 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -51,7 +51,13 @@
- #define ECRYPTFS_XATTR_NAME "user.ecryptfs"
- 
- void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok);
--extern void ecryptfs_to_hex(char *dst, char *src, size_t src_size);
-+static inline void
-+ecryptfs_to_hex(char *dst, char *src, size_t src_size)
-+{
-+	char *end = bin2hex(dst, src, src_size);
-+	*end = '\0';
-+}
-+
- extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
- 
- struct ecryptfs_key_record {
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 3cf1546..11d39ab 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1326,7 +1326,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
+ 	if ((*new_auth_tok)->session_key.encrypted_key_size
+ 	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
+ 		printk(KERN_WARNING "Tag 1 packet contains key larger "
+-		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
++		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES\n");
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 6120044..3c41b35 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -426,7 +426,7 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
+ 		mount_crypt_stat->global_default_cipher_key_size);
+ 	if (!cipher_code) {
+ 		ecryptfs_printk(KERN_ERR,
+-				"eCryptfs doesn't support cipher: %s",
++				"eCryptfs doesn't support cipher: %s\n",
+ 				mount_crypt_stat->global_default_cipher_name);
+ 		rc = -EINVAL;
+ 		goto out;
+diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
+index e4141f2..595e684 100644
+--- a/fs/ecryptfs/miscdev.c
++++ b/fs/ecryptfs/miscdev.c
+@@ -383,7 +383,7 @@ ecryptfs_miscdev_write(struct file *file, const char __user *buf,
+ 		goto memdup;
+ 	} else if (count < MIN_MSG_PKT_SIZE || count > MAX_MSG_PKT_SIZE) {
+ 		printk(KERN_WARNING "%s: Acceptable packet size range is "
+-		       "[%d-%zu], but amount of data written is [%zu].",
++		       "[%d-%zu], but amount of data written is [%zu].\n",
+ 		       __func__, MIN_MSG_PKT_SIZE, MAX_MSG_PKT_SIZE, count);
+ 		return -EINVAL;
+ 	}
 -- 
-2.1.4
+2.9.3
