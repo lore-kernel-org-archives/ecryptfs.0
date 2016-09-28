@@ -1,68 +1,44 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ecryptfs:  add missing \n to end of various error messages
-Date: Tue, 27 Sep 2016 05:18:02 -0700
-Message-ID: <20160927121802.30574-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH v5 01/17] xattr: Remove unnecessary NULL attribute name check
+Date: Wed, 28 Sep 2016 16:57:47 +0200
+Message-ID: <1475074683-26971-2-git-send-email-agruenba@redhat.com>
+References: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:34944 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933534AbcI0MSJ (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 27 Sep 2016 08:18:09 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:49142 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932904AbcI1O6Q (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Wed, 28 Sep 2016 10:58:16 -0400
+In-Reply-To: <1475074683-26971-1-git-send-email-agruenba@redhat.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-From: Colin Ian King <colin.king@canonical.com>
+When NULL is passed to one of the xattr system calls as the attribute
+name, copying that name from user space already fails with -EFAULT;
+xattr_resolve_name is never called with a NULL attribute name.
 
-Trival fix, some error messages are missing a \n, so add it.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
- fs/ecryptfs/keystore.c | 2 +-
- fs/ecryptfs/main.c     | 2 +-
- fs/ecryptfs/miscdev.c  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ fs/xattr.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 3cf1546..11d39ab 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1326,7 +1326,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 	if ((*new_auth_tok)->session_key.encrypted_key_size
- 	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
- 		printk(KERN_WARNING "Tag 1 packet contains key larger "
--		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
-+		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 6120044..3c41b35 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -426,7 +426,7 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
- 		mount_crypt_stat->global_default_cipher_key_size);
- 	if (!cipher_code) {
- 		ecryptfs_printk(KERN_ERR,
--				"eCryptfs doesn't support cipher: %s",
-+				"eCryptfs doesn't support cipher: %s\n",
- 				mount_crypt_stat->global_default_cipher_name);
- 		rc = -EINVAL;
- 		goto out;
-diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
-index e4141f2..595e684 100644
---- a/fs/ecryptfs/miscdev.c
-+++ b/fs/ecryptfs/miscdev.c
-@@ -383,7 +383,7 @@ ecryptfs_miscdev_write(struct file *file, const char __user *buf,
- 		goto memdup;
- 	} else if (count < MIN_MSG_PKT_SIZE || count > MAX_MSG_PKT_SIZE) {
- 		printk(KERN_WARNING "%s: Acceptable packet size range is "
--		       "[%d-%zu], but amount of data written is [%zu].",
-+		       "[%d-%zu], but amount of data written is [%zu].\n",
- 		       __func__, MIN_MSG_PKT_SIZE, MAX_MSG_PKT_SIZE, count);
- 		return -EINVAL;
- 	}
+diff --git a/fs/xattr.c b/fs/xattr.c
+index c243905..1f72c92 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -675,9 +675,6 @@ xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
+ {
+ 	const struct xattr_handler *handler;
+ 
+-	if (!*name)
+-		return ERR_PTR(-EINVAL);
+-
+ 	for_each_xattr_handler(handlers, handler) {
+ 		const char *n;
+ 
 -- 
-2.9.3
+2.7.4
