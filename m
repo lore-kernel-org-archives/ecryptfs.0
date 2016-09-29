@@ -1,69 +1,44 @@
-From: liushuoran <liushuoran@huawei.com>
-Subject: Observed a ecryptFS crash
-Date: Thu, 29 Sep 2016 12:29:39 +0000
-Message-ID: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH v6 01/16] xattr: Remove unnecessary NULL attribute name check
+Date: Thu, 29 Sep 2016 17:48:30 +0200
+Message-ID: <1475164125-28635-2-git-send-email-agruenba@redhat.com>
+References: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:44553 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755085AbcI2MaB (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 29 Sep 2016 08:30:01 -0400
-Content-Language: zh-CN
+Received: from mx1.redhat.com ([209.132.183.28]:43740 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755085AbcI2Ps6 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Thu, 29 Sep 2016 11:48:58 -0400
+In-Reply-To: <1475164125-28635-1-git-send-email-agruenba@redhat.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="windows-1252"
-To: "tyhicks@canonical.com" <tyhicks@canonical.com>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yaodongdong <yaodongdong@huawei.com>, Wangbintian <bintian.wang@huawei.com>, yingjindong <yingjindong@huawei.com>, Xiakaixu <xiakaixu@huawei.com>, Yezongbo <yezongbo@huawei.com>, "likan (A)" <likan82@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, linux-fsdevel@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, David Howells <dhowells@redhat.com>, Serge Hallyn <serge@hallyn.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, linux-ima-devel@lists.sourceforge.net, Paul Moore <paul@paul-moore.com>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, Casey Schaufler <casey@schaufler-ca.com>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>
 
-SGkgVHloaWNrcywNCg0KV2Ugb2JzZXJ2ZWQgYSBlY3J5cHRGUyBjcmFzaCBvY2Nhc2lvbmFsbHkg
-aW4gTGludXgga2VybmVsIDQuMS4xOC4gVGhlIGNhbGwgdHJhY2UgaXMgYXR0YWNoZWQgYmVsb3cu
-IElzIGl0IGEga25vd24gaXNzdWXvvJ8gTG9vayBmb3J3YXJkIHRvIGhlYXJpbmcgZnJvbSB5b3Uu
-IFRoYW5rcyBpbiBhZHZhbmNlIQ0KDQpbMTkzMTQuNTI5NDc5c11bcGlkOjI2OTQsY3B1MyxHQUNf
-RXhlY3V0b3JbMF1dQ2FsbCB0cmFjZToNClsxOTMxNC41Mjk1MTBzXVtwaWQ6MjY5NCxjcHUzLEdB
-Q19FeGVjdXRvclswXV1bPGZmZmZmZmMwMDAwZjM4OTg+XSBkb19yYXdfc3Bpbl9sb2NrKzB4MjAv
-MHgyMDANClsxOTMxNC41Mjk1MTBzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVjdXRvclswXV1bPGZm
-ZmZmZmMwMDEwMzFmYjA+XSBfcmF3X3NwaW5fbG9jaysweDI4LzB4MzQNClsxOTMxNC41Mjk1NDFz
-XVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVjdXRvclswXV1bPGZmZmZmZmMwMDAzOTA4ZTA+XSBzZWxp
-bnV4X2lub2RlX2ZyZWVfc2VjdXJpdHkrMHgzYy8weDk0DQpbMTkzMTQuNTI5NTQxc11bcGlkOjI2
-OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMzg2YjA0Pl0gc2VjdXJpdHlfaW5v
-ZGVfZnJlZSsweDJjLzB4MzgNClsxOTMxNC41Mjk1NDFzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVj
-dXRvclswXV1bPGZmZmZmZmMwMDAxZmZmODg+XSBfX2Rlc3Ryb3lfaW5vZGUrMHgyYy8weDE4MA0K
-WzE5MzE0LjUyOTU3MXNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZmYzAw
-MDIwMTY2MD5dIGRlc3Ryb3lfaW5vZGUrMHgzMC8weGEwDQpbMTkzMTQuNTI5NTcxc11bcGlkOjI2
-OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMjAxN2Q4Pl0gZXZpY3QrMHgxMDgv
-MHgxYzANClsxOTMxNC41Mjk1NzFzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVjdXRvclswXV1bPGZm
-ZmZmZmMwMDAyMDI1ODg+XSBpcHV0KzB4MTg0LzB4MjU4DQpbMTkzMTQuNTI5NjAyc11bcGlkOjI2
-OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMmYyN2QwPl0gZWNyeXB0ZnNfZXZp
-Y3RfaW5vZGUrMHgzMC8weDNjDQpbMTkzMTQuNTI5NjAyc11bcGlkOjI2OTQsY3B1MyxHQUNfRXhl
-Y3V0b3JbMF1dWzxmZmZmZmZjMDAwMjAxNzdjPl0gZXZpY3QrMHhhYy8weDFjMA0KWzE5MzE0LjUy
-OTYwMnNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZmYzAwMDIwMThkND5d
-IGRpc3Bvc2VfbGlzdCsweDQ0LzB4NWMNClsxOTMxNC41Mjk2MzJzXVtwaWQ6MjY5NCxjcHUzLEdB
-Q19FeGVjdXRvclswXV1bPGZmZmZmZmMwMDAyMDJkMjg+XSBldmljdF9pbm9kZXMrMHhjYy8weDEy
-Yw0KWzE5MzE0LjUyOTYzMnNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZm
-YzAwMDFlNWQwND5dIGdlbmVyaWNfc2h1dGRvd25fc3VwZXIrMHg1OC8weGU0DQpbMTkzMTQuNTI5
-NjMyc11bcGlkOjI2OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMWU3MTY0Pl0g
-a2lsbF9hbm9uX3N1cGVyKzB4MzAvMHg3NA0KWzE5MzE0LjUyOTY2M3NdW3BpZDoyNjk0LGNwdTMs
-R0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZmYzAwMDJmMTZhND5dIGVjcnlwdGZzX2tpbGxfYmxvY2tf
-c3VwZXIrMHgyNC8weDU0DQpbMTkzMTQuNTI5NjYzc11bcGlkOjI2OTQsY3B1MyxHQUNfRXhlY3V0
-b3JbMF1dWzxmZmZmZmZjMDAwMWU2NjkwPl0gZGVhY3RpdmF0ZV9sb2NrZWRfc3VwZXIrMHg2MC8w
-eDhjDQpbMTkzMTQuNTI5NjYzc11bcGlkOjI2OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZm
-ZmZjMDAwMWU2NzU0Pl0gZGVhY3RpdmF0ZV9zdXBlcisweDk4LzB4YTQNClsxOTMxNC41Mjk2OTNz
-XVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVjdXRvclswXV1bPGZmZmZmZmMwMDAyMDZkNTQ+XSBjbGVh
-bnVwX21udCsweDUwLzB4ZDANClsxOTMxNC41Mjk2OTNzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVj
-dXRvclswXV1bPGZmZmZmZmMwMDAyMDZlNDg+XSBfX2NsZWFudXBfbW50KzB4MjAvMHgyYw0KWzE5
-MzE0LjUyOTY5M3NdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZmYzAwMDBj
-MWJhYz5dIHRhc2tfd29ya19ydW4rMHhiYy8weGY4DQpbMTkzMTQuNTI5NzI0c11bcGlkOjI2OTQs
-Y3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMGEzZTk4Pl0gZG9fZXhpdCsweDJkNC8w
-eGExNA0KWzE5MzE0LjUyOTcyNHNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZm
-ZmZmYzAwMDBhNTZhOD5dIGRvX2dyb3VwX2V4aXQrMHg2MC8weGY4DQpbMTkzMTQuNTI5NzI0c11b
-cGlkOjI2OTQsY3B1MyxHQUNfRXhlY3V0b3JbMF1dWzxmZmZmZmZjMDAwMGIyNmFjPl0gZ2V0X3Np
-Z25hbCsweDI4NC8weDU5OA0KWzE5MzE0LjUyOTc1NHNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1
-dG9yWzBdXVs8ZmZmZmZmYzAwMDA4OTUwYz5dIGRvX3NpZ25hbCsweDE3MC8weDViOA0KWzE5MzE0
-LjUyOTc1NHNdW3BpZDoyNjk0LGNwdTMsR0FDX0V4ZWN1dG9yWzBdXVs8ZmZmZmZmYzAwMDA4OWJl
-MD5dIGRvX25vdGlmeV9yZXN1bWUrMHg3MC8weDc4DQpbMTkzMTQuNTI5Nzg1c11bcGlkOjI2OTQs
-Y3B1MyxHQUNfRXhlY3V0b3JbMF1dQ29kZTogYWEwMDAzZjMgYWExZTAzZTAgOTdmZTc3MTggNTI4
-OWQ1YTAgKGI5NDAwNjYxKSANClsxOTMxNC41Mjk5MDdzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVj
-dXRvclswXV0tLS1bIGVuZCB0cmFjZSAzODJlNGI2MjY0YjAzNWI1IF0tLS0NClsxOTMxNC41Mjk5
-MDdzXVtwaWQ6MjY5NCxjcHUzLEdBQ19FeGVjdXRvclswXV1LZXJuZWwgcGFuaWMgLSBub3Qgc3lu
-Y2luZzogRmF0YWwgZXhjZXB0aW9uDQoNClJlZ2FyZHMsDQpTaHVvcmFuDQo=
+When NULL is passed to one of the xattr system calls as the attribute
+name, copying that name from user space already fails with -EFAULT;
+xattr_resolve_name is never called with a NULL attribute name.
+
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+---
+ fs/xattr.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/fs/xattr.c b/fs/xattr.c
+index c243905..1f72c92 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -675,9 +675,6 @@ xattr_resolve_name(const struct xattr_handler **handlers, const char **name)
+ {
+ 	const struct xattr_handler *handler;
+ 
+-	if (!*name)
+-		return ERR_PTR(-EINVAL);
+-
+ 	for_each_xattr_handler(handlers, handler) {
+ 		const char *n;
+ 
+-- 
+2.7.4
