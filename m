@@ -1,122 +1,132 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] ecryptfs: add missing \n to end of various error messages
-Date: Mon, 10 Oct 2016 15:05:20 -0500
-Message-ID: <9b417d5b-10ea-3562-bba3-36f182ceacd8@canonical.com>
-References: <20160927121802.30574-1-colin.king@canonical.com>
+Subject: Re: [PATCH] ecryptfs: remove private bin2hex implementation
+Date: Mon, 10 Oct 2016 15:08:46 -0500
+Message-ID: <b24afe53-3a45-fe24-f446-bfbd9b9d7639@canonical.com>
+References: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37169 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752001AbcJJUF1 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 10 Oct 2016 16:05:27 -0400
-In-Reply-To: <20160927121802.30574-1-colin.king@canonical.com>
-Sender: ecryptfs-owner@vger.kernel.org
+ boundary="9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11
-Content-Type: multipart/mixed; boundary="HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN";
+--9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9
+Content-Type: multipart/mixed; boundary="OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp";
  protected-headers="v1"
 From: Tyler Hicks <tyhicks@canonical.com>
-To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
-Message-ID: <9b417d5b-10ea-3562-bba3-36f182ceacd8@canonical.com>
-Subject: Re: [PATCH] ecryptfs: add missing \n to end of various error messages
-References: <20160927121802.30574-1-colin.king@canonical.com>
-In-Reply-To: <20160927121802.30574-1-colin.king@canonical.com>
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <b24afe53-3a45-fe24-f446-bfbd9b9d7639@canonical.com>
+Subject: Re: [PATCH] ecryptfs: remove private bin2hex implementation
+References: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
+In-Reply-To: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
 
---HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN
-Content-Type: text/plain; charset=utf-8
+--OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-On 09/27/2016 07:18 AM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On 09/20/2016 06:17 PM, Rasmus Villemoes wrote:
+> Calling sprintf in a loop is not very efficient, and in any case, we
+> already have an implementation of bin-to-hex conversion in lib/ which
+> we might as well use.
 >=20
-> Trival fix, some error messages are missing a \n, so add it.
+> Note that ecryptfs_to_hex used to nul-terminate the destination (and
+> the kernel doc was wrong about the required output size), while
+> bin2hex doesn't. [All but one user of ecryptfs_to_hex explicitly
+> nul-terminates the result anyway.]
 >=20
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-This looks good to me. I'll take it from here. Thanks!
+ecryptfs_kernel.h needs to include <linux/kernel.h> for the declaration
+of bin2hex() (it didn't cause a problem because other included header
+files, such as <linux/namei.h> pulled in <linux/kernel.h>). I've made
+that change and will push the patch to the eCryptfs next branch. Thank yo=
+u!
 
 Tyler
 
 > ---
->  fs/ecryptfs/keystore.c | 2 +-
->  fs/ecryptfs/main.c     | 2 +-
->  fs/ecryptfs/miscdev.c  | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
+>  fs/ecryptfs/crypto.c          | 15 ---------------
+>  fs/ecryptfs/ecryptfs_kernel.h |  8 +++++++-
+>  2 files changed, 7 insertions(+), 16 deletions(-)
 >=20
-> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-> index 3cf1546..11d39ab 100644
-> --- a/fs/ecryptfs/keystore.c
-> +++ b/fs/ecryptfs/keystore.c
-> @@ -1326,7 +1326,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *cr=
-ypt_stat,
->  	if ((*new_auth_tok)->session_key.encrypted_key_size
->  	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
->  		printk(KERN_WARNING "Tag 1 packet contains key larger "
-> -		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
-> +		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES\n");
->  		rc =3D -EINVAL;
->  		goto out;
->  	}
-> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-> index 6120044..3c41b35 100644
-> --- a/fs/ecryptfs/main.c
-> +++ b/fs/ecryptfs/main.c
-> @@ -426,7 +426,7 @@ static int ecryptfs_parse_options(struct ecryptfs_s=
-b_info *sbi, char *options,
->  		mount_crypt_stat->global_default_cipher_key_size);
->  	if (!cipher_code) {
->  		ecryptfs_printk(KERN_ERR,
-> -				"eCryptfs doesn't support cipher: %s",
-> +				"eCryptfs doesn't support cipher: %s\n",
->  				mount_crypt_stat->global_default_cipher_name);
->  		rc =3D -EINVAL;
->  		goto out;
-> diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
-> index e4141f2..595e684 100644
-> --- a/fs/ecryptfs/miscdev.c
-> +++ b/fs/ecryptfs/miscdev.c
-> @@ -383,7 +383,7 @@ ecryptfs_miscdev_write(struct file *file, const cha=
-r __user *buf,
->  		goto memdup;
->  	} else if (count < MIN_MSG_PKT_SIZE || count > MAX_MSG_PKT_SIZE) {
->  		printk(KERN_WARNING "%s: Acceptable packet size range is "
-> -		       "[%d-%zu], but amount of data written is [%zu].",
-> +		       "[%d-%zu], but amount of data written is [%zu].\n",
->  		       __func__, MIN_MSG_PKT_SIZE, MAX_MSG_PKT_SIZE, count);
->  		return -EINVAL;
->  	}
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index e5e29f8c920b..7acd57da4f14 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -42,21 +42,6 @@
+>  #define ENCRYPT		1
+> =20
+>  /**
+> - * ecryptfs_to_hex
+> - * @dst: Buffer to take hex character representation of contents of
+> - *       src; must be at least of size (src_size * 2)
+> - * @src: Buffer to be converted to a hex string representation
+> - * @src_size: number of bytes to convert
+> - */
+> -void ecryptfs_to_hex(char *dst, char *src, size_t src_size)
+> -{
+> -	int x;
+> -
+> -	for (x =3D 0; x < src_size; x++)
+> -		sprintf(&dst[x * 2], "%.2x", (unsigned char)src[x]);
+> -}
+> -
+> -/**
+>   * ecryptfs_from_hex
+>   * @dst: Buffer to take the bytes from src hex; must be at least of
+>   *       size (src_size / 2)
+> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kerne=
+l.h
+> index 4ba1547bb9ad..548caac3a907 100644
+> --- a/fs/ecryptfs/ecryptfs_kernel.h
+> +++ b/fs/ecryptfs/ecryptfs_kernel.h
+> @@ -51,7 +51,13 @@
+>  #define ECRYPTFS_XATTR_NAME "user.ecryptfs"
+> =20
+>  void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok);
+> -extern void ecryptfs_to_hex(char *dst, char *src, size_t src_size);
+> +static inline void
+> +ecryptfs_to_hex(char *dst, char *src, size_t src_size)
+> +{
+> +	char *end =3D bin2hex(dst, src, src_size);
+> +	*end =3D '\0';
+> +}
+> +
+>  extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
+> =20
+>  struct ecryptfs_key_record {
 >=20
 
 
 
---HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN--
+--OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp--
 
---I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11
+--9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCgAGBQJX+/SAAAoJENaSAD2qAscKpnAQAL1lKoji/fSfBaWZYRYu4wxk
-6mzA+xepXninsrb7VE4U0/9zgEVU/dBWsgzVEct1bKReo+NJ0006WONbQrheW64Y
-kbu+NPoXY2XZQPhXy0X1qYxhoDCmdzwt2jPqTVD4Tf0sfmI/8cS4lkCAXdyENZQ1
-1H0hxtUtgNOagyjYG9iFCFpfQ5G9zoxGjRagM0VLB4aKlO24SolmmdU+9s0CH5FT
-ECRVv02kI2yee3CQbvh7V+aqNsfvqtOQgfyNFRiaRhVzlMwr5lYfQOeA3YNwJi/C
-+ny33TTDU3LlQy4u56AwkPCeTtEUB0OXI0ETcZ3OYXigf+D4kMOuwdDS3qtDGlH+
-2WBRe5SsXBK0ua+ZrL+/VK+ltmZJ/rhWWO5f0crXQ/wo6qQfvdNvZesZDi4h2Y3b
-4xYC7o4D51z04esKWo3AkDwSINZrkImd9JcrjxKja0d8SLTAzM+ulbvGDEfw+NL/
-ANzo0Oj/SSxiK/bjOvGn5un4WknlTMQSe/J/BDlrjDWQay2pM0MjSOaTUj3DBEjT
-/Bq1tKJ+9a6JfadrMuWVoyoWr55/OXahZunPgy++tookdOnVXkDo4VCRflEWDgJ1
-3YBrqYSC/yBC8T2M6s0wXLvFDL3ERI/418bXiCh6TM3EMI3IGXyZ9/W/ORFssAWT
-kpPKAeMic/LDLDc5qUHv
-=fWy/
+iQIcBAEBCgAGBQJX+/VOAAoJENaSAD2qAscKju0P/iaYPkMW13zHCMtzGs7n4cpD
+c+3n8gRztTguSOsfFuAoypsN1C+l7yqyw/ZGXyNOmVhQvP7tbHT6envpGxcIRSAf
+cSGQPET+Mc6CK0ahFvqw+hxhoyudwaAzU9VBPoPEpNzpe/3RGu3ySWhBMj35P0ZP
+25vaf9af2idAG/7kDH7cePBcGPgD7G4Cssgym3t2aq8lHSZxq32KuRAlzTF9EIaV
+so5TZB7DCLGnYHKAy4ThfAUL3+l2T4uvS8wVBssFmtgHokpxHx7NYIyM1PD52YND
+UG3A4Gy57PrROECKUcuURHARGCwBJLnVQivKpOJ4F20IR8LOzqlud49U+9+008uc
+MaYEv9RQ64a5D78rtsyqrL2qYI/8gaM+yJrPM4WrbYnfzhU3uMur3IKxZW2W9iux
+SA5Vn9A99uepi2R/f2xKAAk8y4rprRYbkicGYIcWP4Iff1pABZaZosXnZFIexzrq
+PrmRauSdpDTRkRKMJVRY4Ipzx99MCwmmZJ9IFnmGm7XZnm4sWNqEVuT73qPsNnVp
+FSslftvA2C6zI5/d2uH5avveHh5QKNd/GIQTYiLej2/szW4gWTTKS/+ievbfaiTf
+wAnR85NbnepVNhldh+LbW0oFv0rJhWbr2ZCf7EIEFGn6gG8i0vn/F0bSOlEU/KdY
+uxOG3JUrTSUhh3nDVrDE
+=do8A
 -----END PGP SIGNATURE-----
 
---I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11--
+--9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9--
