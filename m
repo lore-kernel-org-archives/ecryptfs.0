@@ -1,85 +1,122 @@
-From: xiakaixu <xiakaixu@huawei.com>
-Subject: Re: Observed a ecryptFS crash
-Date: Sun, 9 Oct 2016 15:12:29 +0800
-Message-ID: <57F9EDDD.2000203@huawei.com>
-References: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: Re: [PATCH] ecryptfs: add missing \n to end of various error messages
+Date: Mon, 10 Oct 2016 15:05:20 -0500
+Message-ID: <9b417d5b-10ea-3562-bba3-36f182ceacd8@canonical.com>
+References: <20160927121802.30574-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
-Sender: linux-crypto-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:37169 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752001AbcJJUF1 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 10 Oct 2016 16:05:27 -0400
+In-Reply-To: <20160927121802.30574-1-colin.king@canonical.com>
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="windows-1252"; format="flowed"
-To: "tyhicks@canonical.com" <tyhicks@canonical.com>
-Cc: liushuoran <liushuoran@huawei.com>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yaodongdong <yaodongdong@huawei.com>, Wangbintian <bintian.wang@huawei.com>, yingjindong <yingjindong@huawei.com>, Yezongbo <yezongbo@huawei.com>, "likan (A)" <likan82@huawei.com>
+To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
 
-ping...
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11
+Content-Type: multipart/mixed; boundary="HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN";
+ protected-headers="v1"
+From: Tyler Hicks <tyhicks@canonical.com>
+To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
+Message-ID: <9b417d5b-10ea-3562-bba3-36f182ceacd8@canonical.com>
+Subject: Re: [PATCH] ecryptfs: add missing \n to end of various error messages
+References: <20160927121802.30574-1-colin.king@canonical.com>
+In-Reply-To: <20160927121802.30574-1-colin.king@canonical.com>
+
+--HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+On 09/27/2016 07:18 AM, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>=20
+> Trival fix, some error messages are missing a \n, so add it.
+>=20
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+This looks good to me. I'll take it from here. Thanks!
+
+Tyler
+
+> ---
+>  fs/ecryptfs/keystore.c | 2 +-
+>  fs/ecryptfs/main.c     | 2 +-
+>  fs/ecryptfs/miscdev.c  | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 3cf1546..11d39ab 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -1326,7 +1326,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *cr=
+ypt_stat,
+>  	if ((*new_auth_tok)->session_key.encrypted_key_size
+>  	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
+>  		printk(KERN_WARNING "Tag 1 packet contains key larger "
+> -		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
+> +		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES\n");
+>  		rc =3D -EINVAL;
+>  		goto out;
+>  	}
+> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+> index 6120044..3c41b35 100644
+> --- a/fs/ecryptfs/main.c
+> +++ b/fs/ecryptfs/main.c
+> @@ -426,7 +426,7 @@ static int ecryptfs_parse_options(struct ecryptfs_s=
+b_info *sbi, char *options,
+>  		mount_crypt_stat->global_default_cipher_key_size);
+>  	if (!cipher_code) {
+>  		ecryptfs_printk(KERN_ERR,
+> -				"eCryptfs doesn't support cipher: %s",
+> +				"eCryptfs doesn't support cipher: %s\n",
+>  				mount_crypt_stat->global_default_cipher_name);
+>  		rc =3D -EINVAL;
+>  		goto out;
+> diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
+> index e4141f2..595e684 100644
+> --- a/fs/ecryptfs/miscdev.c
+> +++ b/fs/ecryptfs/miscdev.c
+> @@ -383,7 +383,7 @@ ecryptfs_miscdev_write(struct file *file, const cha=
+r __user *buf,
+>  		goto memdup;
+>  	} else if (count < MIN_MSG_PKT_SIZE || count > MAX_MSG_PKT_SIZE) {
+>  		printk(KERN_WARNING "%s: Acceptable packet size range is "
+> -		       "[%d-%zu], but amount of data written is [%zu].",
+> +		       "[%d-%zu], but amount of data written is [%zu].\n",
+>  		       __func__, MIN_MSG_PKT_SIZE, MAX_MSG_PKT_SIZE, count);
+>  		return -EINVAL;
+>  	}
+>=20
 
 
-> Hi Tyhicks,
->
-> We observed a ecryptFS crash occasionally in Linux kernel 4.1.18. The cal=
-l trace is attached below. Is it a known issue=EF=BC=9F Look forward to hea=
-ring from you. Thanks in advance!
->
-> [19314.529479s][pid:2694,cpu3,GAC_Executor[0]]Call trace:
-> [19314.529510s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000f3898>] do_raw=
-_spin_lock+0x20/0x200
-> [19314.529510s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc001031fb0>] _raw_s=
-pin_lock+0x28/0x34
-> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0003908e0>] selinu=
-x_inode_free_security+0x3c/0x94
-> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000386b04>] securi=
-ty_inode_free+0x2c/0x38
-> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001fff88>] __dest=
-roy_inode+0x2c/0x180
-> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000201660>] destro=
-y_inode+0x30/0xa0
-> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002017d8>] evict+=
-0x108/0x1c0
-> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000202588>] iput+0=
-x184/0x258
-> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002f27d0>] ecrypt=
-fs_evict_inode+0x30/0x3c
-> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc00020177c>] evict+=
-0xac/0x1c0
-> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002018d4>] dispos=
-e_list+0x44/0x5c
-> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000202d28>] evict_=
-inodes+0xcc/0x12c
-> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e5d04>] generi=
-c_shutdown_super+0x58/0xe4
-> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e7164>] kill_a=
-non_super+0x30/0x74
-> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002f16a4>] ecrypt=
-fs_kill_block_super+0x24/0x54
-> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e6690>] deacti=
-vate_locked_super+0x60/0x8c
-> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e6754>] deacti=
-vate_super+0x98/0xa4
-> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000206d54>] cleanu=
-p_mnt+0x50/0xd0
-> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000206e48>] __clea=
-nup_mnt+0x20/0x2c
-> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000c1bac>] task_w=
-ork_run+0xbc/0xf8
-> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000a3e98>] do_exi=
-t+0x2d4/0xa14
-> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000a56a8>] do_gro=
-up_exit+0x60/0xf8
-> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000b26ac>] get_si=
-gnal+0x284/0x598
-> [19314.529754s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc00008950c>] do_sig=
-nal+0x170/0x5b8
-> [19314.529754s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000089be0>] do_not=
-ify_resume+0x70/0x78
-> [19314.529785s][pid:2694,cpu3,GAC_Executor[0]]Code: aa0003f3 aa1e03e0 97f=
-e7718 5289d5a0 (b9400661)
-> [19314.529907s][pid:2694,cpu3,GAC_Executor[0]]---[ end trace 382e4b6264b0=
-35b5 ]---
-> [19314.529907s][pid:2694,cpu3,GAC_Executor[0]]Kernel panic - not syncing:=
- Fatal exception
->
-> Regards,
-> Shuoran
->
+
+--HDiTirGU20jApqnoaHmR5LhRUFiQ9fPwN--
+
+--I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCgAGBQJX+/SAAAoJENaSAD2qAscKpnAQAL1lKoji/fSfBaWZYRYu4wxk
+6mzA+xepXninsrb7VE4U0/9zgEVU/dBWsgzVEct1bKReo+NJ0006WONbQrheW64Y
+kbu+NPoXY2XZQPhXy0X1qYxhoDCmdzwt2jPqTVD4Tf0sfmI/8cS4lkCAXdyENZQ1
+1H0hxtUtgNOagyjYG9iFCFpfQ5G9zoxGjRagM0VLB4aKlO24SolmmdU+9s0CH5FT
+ECRVv02kI2yee3CQbvh7V+aqNsfvqtOQgfyNFRiaRhVzlMwr5lYfQOeA3YNwJi/C
++ny33TTDU3LlQy4u56AwkPCeTtEUB0OXI0ETcZ3OYXigf+D4kMOuwdDS3qtDGlH+
+2WBRe5SsXBK0ua+ZrL+/VK+ltmZJ/rhWWO5f0crXQ/wo6qQfvdNvZesZDi4h2Y3b
+4xYC7o4D51z04esKWo3AkDwSINZrkImd9JcrjxKja0d8SLTAzM+ulbvGDEfw+NL/
+ANzo0Oj/SSxiK/bjOvGn5un4WknlTMQSe/J/BDlrjDWQay2pM0MjSOaTUj3DBEjT
+/Bq1tKJ+9a6JfadrMuWVoyoWr55/OXahZunPgy++tookdOnVXkDo4VCRflEWDgJ1
+3YBrqYSC/yBC8T2M6s0wXLvFDL3ERI/418bXiCh6TM3EMI3IGXyZ9/W/ORFssAWT
+kpPKAeMic/LDLDc5qUHv
+=fWy/
+-----END PGP SIGNATURE-----
+
+--I47jvaMUtt2HtUEjkXDeeNNAcLqxlaA11--
