@@ -1,132 +1,142 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] ecryptfs: remove private bin2hex implementation
-Date: Mon, 10 Oct 2016 15:08:46 -0500
-Message-ID: <b24afe53-3a45-fe24-f446-bfbd9b9d7639@canonical.com>
-References: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
+Subject: Re: Observed a ecryptFS crash
+Date: Mon, 10 Oct 2016 16:57:16 -0500
+Message-ID: <7d199752-3257-944c-e306-81ded499b131@canonical.com>
+References: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
+ boundary="uRFL1I8ak2US6uAq3uCun2MAiG8304buL"
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
+Sender: linux-crypto-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: liushuoran <liushuoran@huawei.com>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Yaodongdong <yaodongdong@huawei.com>, Wangbintian <bintian.wang@huawei.com>, yingjindong <yingjindong@huawei.com>, Xiakaixu <xiakaixu@huawei.com>, Yezongbo <yezongbo@huawei.com>, "likan (A)" <likan82@huawei.com>
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9
-Content-Type: multipart/mixed; boundary="OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp";
+--uRFL1I8ak2US6uAq3uCun2MAiG8304buL
+Content-Type: multipart/mixed; boundary="W6pnXDKfeW8GPE0xUSAJRQLVLMrQ1ttKP";
  protected-headers="v1"
 From: Tyler Hicks <tyhicks@canonical.com>
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-ID: <b24afe53-3a45-fe24-f446-bfbd9b9d7639@canonical.com>
-Subject: Re: [PATCH] ecryptfs: remove private bin2hex implementation
-References: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
-In-Reply-To: <1474413444-19974-1-git-send-email-linux@rasmusvillemoes.dk>
+To: liushuoran <liushuoran@huawei.com>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>,
+ "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ Yaodongdong <yaodongdong@huawei.com>, Wangbintian <bintian.wang@huawei.com>,
+ yingjindong <yingjindong@huawei.com>, Xiakaixu <xiakaixu@huawei.com>,
+ Yezongbo <yezongbo@huawei.com>, "likan (A)" <likan82@huawei.com>
+Message-ID: <7d199752-3257-944c-e306-81ded499b131@canonical.com>
+Subject: Re: Observed a ecryptFS crash
+References: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
+In-Reply-To: <00B10D30F2BAA743B48953A4D86C96D54CB653@SZXEMI506-MBS.china.huawei.com>
 
---OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp
-Content-Type: text/plain; charset=windows-1252
+--W6pnXDKfeW8GPE0xUSAJRQLVLMrQ1ttKP
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-On 09/20/2016 06:17 PM, Rasmus Villemoes wrote:
-> Calling sprintf in a loop is not very efficient, and in any case, we
-> already have an implementation of bin-to-hex conversion in lib/ which
-> we might as well use.
+On 09/29/2016 07:29 AM, liushuoran wrote:
+> Hi Tyhicks,
 >=20
-> Note that ecryptfs_to_hex used to nul-terminate the destination (and
-> the kernel doc was wrong about the required output size), while
-> bin2hex doesn't. [All but one user of ecryptfs_to_hex explicitly
-> nul-terminates the result anyway.]
->=20
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> We observed a ecryptFS crash occasionally in Linux kernel 4.1.18. The c=
+all trace is attached below. Is it a known issue=EF=BC=9F Look forward to=
+ hearing from you. Thanks in advance!
 
-ecryptfs_kernel.h needs to include <linux/kernel.h> for the declaration
-of bin2hex() (it didn't cause a problem because other included header
-files, such as <linux/namei.h> pulled in <linux/kernel.h>). I've made
-that change and will push the patch to the eCryptfs next branch. Thank yo=
-u!
+It isn't known to me but I'm rarely testing eCryptfs with SELinux these
+days. I don't recall any bug reports with a similar call trace, either.
+
+You left out some potentially useful information below the "--[ cut here
+]--" line and above the "Call trace:" line.
 
 Tyler
 
-> ---
->  fs/ecryptfs/crypto.c          | 15 ---------------
->  fs/ecryptfs/ecryptfs_kernel.h |  8 +++++++-
->  2 files changed, 7 insertions(+), 16 deletions(-)
 >=20
-> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> index e5e29f8c920b..7acd57da4f14 100644
-> --- a/fs/ecryptfs/crypto.c
-> +++ b/fs/ecryptfs/crypto.c
-> @@ -42,21 +42,6 @@
->  #define ENCRYPT		1
-> =20
->  /**
-> - * ecryptfs_to_hex
-> - * @dst: Buffer to take hex character representation of contents of
-> - *       src; must be at least of size (src_size * 2)
-> - * @src: Buffer to be converted to a hex string representation
-> - * @src_size: number of bytes to convert
-> - */
-> -void ecryptfs_to_hex(char *dst, char *src, size_t src_size)
-> -{
-> -	int x;
-> -
-> -	for (x =3D 0; x < src_size; x++)
-> -		sprintf(&dst[x * 2], "%.2x", (unsigned char)src[x]);
-> -}
-> -
-> -/**
->   * ecryptfs_from_hex
->   * @dst: Buffer to take the bytes from src hex; must be at least of
->   *       size (src_size / 2)
-> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kerne=
-l.h
-> index 4ba1547bb9ad..548caac3a907 100644
-> --- a/fs/ecryptfs/ecryptfs_kernel.h
-> +++ b/fs/ecryptfs/ecryptfs_kernel.h
-> @@ -51,7 +51,13 @@
->  #define ECRYPTFS_XATTR_NAME "user.ecryptfs"
-> =20
->  void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok);
-> -extern void ecryptfs_to_hex(char *dst, char *src, size_t src_size);
-> +static inline void
-> +ecryptfs_to_hex(char *dst, char *src, size_t src_size)
-> +{
-> +	char *end =3D bin2hex(dst, src, src_size);
-> +	*end =3D '\0';
-> +}
-> +
->  extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
-> =20
->  struct ecryptfs_key_record {
+> [19314.529479s][pid:2694,cpu3,GAC_Executor[0]]Call trace:
+> [19314.529510s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000f3898>] do_r=
+aw_spin_lock+0x20/0x200
+> [19314.529510s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc001031fb0>] _raw=
+_spin_lock+0x28/0x34
+> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0003908e0>] seli=
+nux_inode_free_security+0x3c/0x94
+> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000386b04>] secu=
+rity_inode_free+0x2c/0x38
+> [19314.529541s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001fff88>] __de=
+stroy_inode+0x2c/0x180
+> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000201660>] dest=
+roy_inode+0x30/0xa0
+> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002017d8>] evic=
+t+0x108/0x1c0
+> [19314.529571s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000202588>] iput=
++0x184/0x258
+> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002f27d0>] ecry=
+ptfs_evict_inode+0x30/0x3c
+> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc00020177c>] evic=
+t+0xac/0x1c0
+> [19314.529602s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002018d4>] disp=
+ose_list+0x44/0x5c
+> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000202d28>] evic=
+t_inodes+0xcc/0x12c
+> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e5d04>] gene=
+ric_shutdown_super+0x58/0xe4
+> [19314.529632s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e7164>] kill=
+_anon_super+0x30/0x74
+> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0002f16a4>] ecry=
+ptfs_kill_block_super+0x24/0x54
+> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e6690>] deac=
+tivate_locked_super+0x60/0x8c
+> [19314.529663s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0001e6754>] deac=
+tivate_super+0x98/0xa4
+> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000206d54>] clea=
+nup_mnt+0x50/0xd0
+> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000206e48>] __cl=
+eanup_mnt+0x20/0x2c
+> [19314.529693s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000c1bac>] task=
+_work_run+0xbc/0xf8
+> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000a3e98>] do_e=
+xit+0x2d4/0xa14
+> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000a56a8>] do_g=
+roup_exit+0x60/0xf8
+> [19314.529724s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc0000b26ac>] get_=
+signal+0x284/0x598
+> [19314.529754s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc00008950c>] do_s=
+ignal+0x170/0x5b8
+> [19314.529754s][pid:2694,cpu3,GAC_Executor[0]][<ffffffc000089be0>] do_n=
+otify_resume+0x70/0x78
+> [19314.529785s][pid:2694,cpu3,GAC_Executor[0]]Code: aa0003f3 aa1e03e0 9=
+7fe7718 5289d5a0 (b9400661)=20
+> [19314.529907s][pid:2694,cpu3,GAC_Executor[0]]---[ end trace 382e4b6264=
+b035b5 ]---
+> [19314.529907s][pid:2694,cpu3,GAC_Executor[0]]Kernel panic - not syncin=
+g: Fatal exception
+>=20
+> Regards,
+> Shuoran
 >=20
 
 
 
---OEeNnMLeqrEmFBaRC21fbUc7nna3XoQpp--
+--W6pnXDKfeW8GPE0xUSAJRQLVLMrQ1ttKP--
 
---9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9
+--uRFL1I8ak2US6uAq3uCun2MAiG8304buL
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCgAGBQJX+/VOAAoJENaSAD2qAscKju0P/iaYPkMW13zHCMtzGs7n4cpD
-c+3n8gRztTguSOsfFuAoypsN1C+l7yqyw/ZGXyNOmVhQvP7tbHT6envpGxcIRSAf
-cSGQPET+Mc6CK0ahFvqw+hxhoyudwaAzU9VBPoPEpNzpe/3RGu3ySWhBMj35P0ZP
-25vaf9af2idAG/7kDH7cePBcGPgD7G4Cssgym3t2aq8lHSZxq32KuRAlzTF9EIaV
-so5TZB7DCLGnYHKAy4ThfAUL3+l2T4uvS8wVBssFmtgHokpxHx7NYIyM1PD52YND
-UG3A4Gy57PrROECKUcuURHARGCwBJLnVQivKpOJ4F20IR8LOzqlud49U+9+008uc
-MaYEv9RQ64a5D78rtsyqrL2qYI/8gaM+yJrPM4WrbYnfzhU3uMur3IKxZW2W9iux
-SA5Vn9A99uepi2R/f2xKAAk8y4rprRYbkicGYIcWP4Iff1pABZaZosXnZFIexzrq
-PrmRauSdpDTRkRKMJVRY4Ipzx99MCwmmZJ9IFnmGm7XZnm4sWNqEVuT73qPsNnVp
-FSslftvA2C6zI5/d2uH5avveHh5QKNd/GIQTYiLej2/szW4gWTTKS/+ievbfaiTf
-wAnR85NbnepVNhldh+LbW0oFv0rJhWbr2ZCf7EIEFGn6gG8i0vn/F0bSOlEU/KdY
-uxOG3JUrTSUhh3nDVrDE
-=do8A
+iQIcBAEBCgAGBQJX/A68AAoJENaSAD2qAscKcrUP/1kzSZ8Ey8exl0kuPfDTDfZ1
+oX3N+h86/AnQBTg/PyRbJpw0wGw96YeMDf/iP/is0BfWT4B6HWCZmOkXIs6LsH7d
+nCMZnG+0nzgDcjLreAok/GhcRyXje8yxFhwFIHZax+PfLeUJczls/FAE8FzEKNNp
+lxvIb6/9+B6n1xynjZqlGX9yJzcfdZAq7MbySQWP9aTjwkc4cJX+T7Dexe9zRCFB
+mU2bcu4UjVqYh7VjeEVFpSgaYHl/i2imrKbCBCy0iKDzFrp+Amr3eexXpUYl1pMt
+DpiMIiVQQzwM6FDm62r/rk+D6FCY8gxqkzKWV0v8drIy0vH6JCXEoXKF80MQ5KYv
+QFcuTpwuI+mCh5RIQ+6mWnb5LgXTfcRU0anCZAnU+Z05xL4cVC0NxuiIumN3FyG4
+vhSFN+Sza3Hf4XemPcx+p2MyUwfImLUzWvcpK319B1lFNjnf3UFCpT3GQgikcli0
+pNEkvUuHkF0toPaPXEpdskaWIRtSa4HE4YOhrVDbFzMebw/Qb4EepwjnnPlMyYO8
+foMp06GYh2g1P/COWtyxdM8V0nxzQHuf7JEkb68DaJt+7ePp7PieQeHModEc1nWr
+/o3eO9ZOEq9hFBo7kIVSaf6j8vduvtPgpNZu/nhoJzsu0YN8HXdsrAPER1m2wumH
+YqMi/xq0FBskbl0Xyuqw
+=He57
 -----END PGP SIGNATURE-----
 
---9Pc5MrL8g6TS0HVtpj7WcT7V9s0A0oMU9--
+--uRFL1I8ak2US6uAq3uCun2MAiG8304buL--
