@@ -1,126 +1,176 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH 11/24] ecryptfs: Convert to separately allocated bdi
-Date: Fri, 3 Feb 2017 17:54:14 -0600
-Message-ID: <d8c88f4c-855f-b348-081e-6254092c235e@canonical.com>
+From: "Dilger, Andreas" <andreas.dilger-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 04/24] fs: Provide infrastructure for
+ dynamic	BDIs in filesystems
+Date: Wed, 8 Feb 2017 00:38:17 +0000
+Message-ID: <C01BF300-AD67-4A3E-810F-AAB2EEB90B97@intel.com>
 References: <20170202173422.3240-1-jack@suse.cz>
- <20170202173422.3240-12-jack@suse.cz>
+	<20170202173422.3240-5-jack@suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="oeoHCUv7juUN7Fge42SrJS3BUeN7tHoJd"
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45753 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753038AbdBCXyZ (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 3 Feb 2017 18:54:25 -0500
-In-Reply-To: <20170202173422.3240-12-jack@suse.cz>
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
-To: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, ecryptfs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+In-Reply-To: <20170202173422.3240-5-jack-AlSwsSmVLrQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <12E5AAE438FFD045A134C624E0411E7E-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://lists.lustre.org/options.cgi/lustre-devel-lustre.org>, 
+	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.lustre.org/pipermail/lustre-devel-lustre.org/>
+List-Post: <mailto:lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+List-Help: <mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.lustre.org/listinfo.cgi/lustre-devel-lustre.org>, 
+	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=subscribe>
+Errors-To: lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
+Sender: "lustre-devel" <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+To: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org" <codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org" <osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Petr Vandrovec <petr-vPk2MGR0e28uaRcfnNAh7A@public.gmane.org>, "linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-btrfs-fy+rA21nqHI@public.gmane.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---oeoHCUv7juUN7Fge42SrJS3BUeN7tHoJd
-Content-Type: multipart/mixed; boundary="4vGQcH84Im0bbLe3IHdQe1lbvFaxAa7iQ";
- protected-headers="v1"
-From: Tyler Hicks <tyhicks@canonical.com>
-To: Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org,
- ecryptfs@vger.kernel.org
-Message-ID: <d8c88f4c-855f-b348-081e-6254092c235e@canonical.com>
-Subject: Re: [PATCH 11/24] ecryptfs: Convert to separately allocated bdi
-References: <20170202173422.3240-1-jack@suse.cz>
- <20170202173422.3240-12-jack@suse.cz>
-In-Reply-To: <20170202173422.3240-12-jack@suse.cz>
-
---4vGQcH84Im0bbLe3IHdQe1lbvFaxAa7iQ
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 02/02/2017 11:34 AM, Jan Kara wrote:
-> Allocate struct backing_dev_info separately instead of embedding it
-> inside the superblock. This unifies handling of bdi among users.
->=20
-> CC: Tyler Hicks <tyhicks@canonical.com>
-
-Looks fine to me.
-
-Acked-by: Tyler Hicks <tyhicks@canonical.com>
-
-> CC: ecryptfs@vger.kernel.org
-> Signed-off-by: Jan Kara <jack@suse.cz>
+On Feb 2, 2017, at 10:34, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org> wrote:
+> 
+> Provide helper functions for setting up dynamically allocated
+> backing_dev_info structures for filesystems and cleaning them up on
+> superblock destruction.
+> 
+> CC: linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> CC: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: Petr Vandrovec <petr-vPk2MGR0e28uaRcfnNAh7A@public.gmane.org>
+> CC: linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> CC: osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org
+> CC: codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org
+> CC: linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> CC: ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> CC: v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> CC: lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
+> Signed-off-by: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
 > ---
->  fs/ecryptfs/ecryptfs_kernel.h | 1 -
->  fs/ecryptfs/main.c            | 4 +---
->  2 files changed, 1 insertion(+), 4 deletions(-)
->=20
-> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kerne=
-l.h
-> index 599a29237cfe..e93444a4c4b1 100644
-> --- a/fs/ecryptfs/ecryptfs_kernel.h
-> +++ b/fs/ecryptfs/ecryptfs_kernel.h
-> @@ -349,7 +349,6 @@ struct ecryptfs_mount_crypt_stat {
->  struct ecryptfs_sb_info {
->  	struct super_block *wsi_sb;
->  	struct ecryptfs_mount_crypt_stat mount_crypt_stat;
-> -	struct backing_dev_info bdi;
->  };
-> =20
->  /* file private data. */
-> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-> index 151872dcc1f4..9014479d0160 100644
-> --- a/fs/ecryptfs/main.c
-> +++ b/fs/ecryptfs/main.c
-> @@ -519,12 +519,11 @@ static struct dentry *ecryptfs_mount(struct file_=
-system_type *fs_type, int flags
->  		goto out;
->  	}
-> =20
-> -	rc =3D bdi_setup_and_register(&sbi->bdi, "ecryptfs");
-> +	rc =3D super_setup_bdi(s);
->  	if (rc)
->  		goto out1;
-> =20
->  	ecryptfs_set_superblock_private(s, sbi);
-> -	s->s_bdi =3D &sbi->bdi;
-> =20
->  	/* ->kill_sb() will take care of sbi after that point */
->  	sbi =3D NULL;
-> @@ -633,7 +632,6 @@ static void ecryptfs_kill_block_super(struct super_=
-block *sb)
->  	if (!sb_info)
->  		return;
->  	ecryptfs_destroy_mount_crypt_stat(&sb_info->mount_crypt_stat);
-> -	bdi_destroy(&sb_info->bdi);
->  	kmem_cache_free(ecryptfs_sb_info_cache, sb_info);
->  }
-> =20
->=20
+> fs/super.c                       | 49 ++++++++++++++++++++++++++++++++++++++++
+> include/linux/backing-dev-defs.h |  2 +-
+> include/linux/fs.h               |  6 +++++
+> 3 files changed, 56 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/super.c b/fs/super.c
+> index ea662b0e5e78..31dc4c6450ef 100644
+> --- a/fs/super.c
+> +++ b/fs/super.c
+> @@ -446,6 +446,11 @@ void generic_shutdown_super(struct super_block *sb)
+> 	hlist_del_init(&sb->s_instances);
+> 	spin_unlock(&sb_lock);
+> 	up_write(&sb->s_umount);
+> +	if (sb->s_iflags & SB_I_DYNBDI) {
+> +		bdi_put(sb->s_bdi);
+> +		sb->s_bdi = &noop_backing_dev_info;
+> +		sb->s_iflags &= ~SB_I_DYNBDI;
+> +	}
+> }
+> 
+> EXPORT_SYMBOL(generic_shutdown_super);
+> @@ -1249,6 +1254,50 @@ mount_fs(struct file_system_type *type, int flags, const char *name, void *data)
+> }
+> 
+> /*
+> + * Setup private BDI for given superblock. I gets automatically cleaned up
 
+(typo) s/I/It/
 
+Looks fine otherwise.
 
---4vGQcH84Im0bbLe3IHdQe1lbvFaxAa7iQ--
+> + * in generic_shutdown_super().
+> + */
+> +int super_setup_bdi_name(struct super_block *sb, char *fmt, ...)
+> +{
+> +	struct backing_dev_info *bdi;
+> +	int err;
+> +	va_list args;
+> +
+> +	bdi = bdi_alloc(GFP_KERNEL);
+> +	if (!bdi)
+> +		return -ENOMEM;
+> +
+> +	bdi->name = sb->s_type->name;
+> +
+> +	va_start(args, fmt);
+> +	err = bdi_register_va(bdi, NULL, fmt, args);
+> +	va_end(args);
+> +	if (err) {
+> +		bdi_put(bdi);
+> +		return err;
+> +	}
+> +	WARN_ON(sb->s_bdi != &noop_backing_dev_info);
+> +	sb->s_bdi = bdi;
+> +	sb->s_iflags |= SB_I_DYNBDI;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(super_setup_bdi_name);
+> +
+> +/*
+> + * Setup private BDI for given superblock. I gets automatically cleaned up
+> + * in generic_shutdown_super().
+> + */
+> +int super_setup_bdi(struct super_block *sb)
+> +{
+> +	static atomic_long_t bdi_seq = ATOMIC_LONG_INIT(0);
+> +
+> +	return super_setup_bdi_name(sb, "%.28s-%ld", sb->s_type->name,
+> +				    atomic_long_inc_return(&bdi_seq));
+> +}
+> +EXPORT_SYMBOL(super_setup_bdi);
+> +
+> +/*
+>  * This is an internal function, please use sb_end_{write,pagefault,intwrite}
+>  * instead.
+>  */
+> diff --git a/include/linux/backing-dev-defs.h b/include/linux/backing-dev-defs.h
+> index 2ecafc8a2d06..70080b4217f4 100644
+> --- a/include/linux/backing-dev-defs.h
+> +++ b/include/linux/backing-dev-defs.h
+> @@ -143,7 +143,7 @@ struct backing_dev_info {
+> 	congested_fn *congested_fn; /* Function pointer if device is md/dm */
+> 	void *congested_data;	/* Pointer to aux data for congested func */
+> 
+> -	char *name;
+> +	const char *name;
+> 
+> 	struct kref refcnt;	/* Reference counter for the structure */
+> 	unsigned int registered:1;	/* Is bdi registered? */
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index c930cbc19342..8ed8b6d1bc54 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1267,6 +1267,9 @@ struct mm_struct;
+> /* sb->s_iflags to limit user namespace mounts */
+> #define SB_I_USERNS_VISIBLE		0x00000010 /* fstype already mounted */
+> 
+> +/* Temporary flag until all filesystems are converted to dynamic bdis */
+> +#define SB_I_DYNBDI	0x00000100
+> +
+> /* Possible states of 'frozen' field */
+> enum {
+> 	SB_UNFROZEN = 0,		/* FS is unfrozen */
+> @@ -2103,6 +2106,9 @@ extern int vfs_ustat(dev_t, struct kstatfs *);
+> extern int freeze_super(struct super_block *super);
+> extern int thaw_super(struct super_block *super);
+> extern bool our_mnt(struct vfsmount *mnt);
+> +extern __printf(2, 3)
+> +int super_setup_bdi_name(struct super_block *sb, char *fmt, ...);
+> +extern int super_setup_bdi(struct super_block *sb);
+> 
+> extern int current_umask(void);
+> 
+> -- 
+> 2.10.2
+> 
+> _______________________________________________
+> lustre-devel mailing list
+> lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
+> http://lists.lustre.org/listinfo.cgi/lustre-devel-lustre.org
 
---oeoHCUv7juUN7Fge42SrJS3BUeN7tHoJd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCgAGBQJYlRgmAAoJENaSAD2qAscKeNgQALCop0TqbKMV8gmvUtB4Fh6E
-rxT/ANfrSchmxo7ZZghbVhaPU3GWZCd0EJCB02AZZC6Z29M7qvbFAvzGlLowTua6
-VoyKhoGSvHxfawaDA5mIKThfYUOe5qoWzbAeXJVjImd+W0LdvIwh88uDgjzogq3A
-jebKQBao2+r17gqJ+dc5arFjNQWIHobMoZiew9LIthq153gCjhwG8l5MSf05tWFs
-jQfrIgnQ9OxVj/znE64FTOq0EyshaYeb+OSzvCS8LaAKOVTif47mkTCaR4BTKWVC
-4IYnYYXxLr2pC8RbC/szDhc7CjL057fdHfTuwLcXlF7lenTdH3xpPjp1gUni3vqL
-O0Pykr5WyENFKxsgoH3Pywgfq9WXd8faHNI5WrgvxiMdkPlS9R36GqLjfh7vEHI/
-BlZi9tbQhGIgmlF1YZj+VezNfWReDgRrdGrLzIgMZvXzPgtZsv3TMBe4Adg5ccYq
-6Ef4m34rGudu5UQYVbjKchH4tSJeZJ59Xi+5DY7vIzw0IiXUpXfnU5YgDdS0Y8GT
-YbEH51mPhmRzsH76b65Ga+9acaP5Khtn2aEK3h0YWqOUV19Te+/qWJgi78+aJFod
-6fRbeIgHp8emBJEU7+P+gXMfSxqsp6L8xAy/0ndjtbpAlB875aNYmJh0wx02IdpL
-NDCFvl15q9tLy8PTTWOo
-=bqRh
------END PGP SIGNATURE-----
-
---oeoHCUv7juUN7Fge42SrJS3BUeN7tHoJd--
+Cheers, Andreas
+--
+Andreas Dilger
+Lustre Principal Architect
+Intel Corporation
