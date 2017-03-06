@@ -1,43 +1,41 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH 04/24] fs: Provide infrastructure for
- dynamic	BDIs in filesystems
-Date: Thu, 9 Feb 2017 13:12:12 +0100
-Message-ID: <20170209121212.GD16825@quack2.suse.cz>
-References: <20170202173422.3240-1-jack@suse.cz>
-	<20170202173422.3240-5-jack@suse.cz>
-	<C01BF300-AD67-4A3E-810F-AAB2EEB90B97@intel.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][RESEND] ecryptfs: fix spelling mistake: "cadidate" -> "candidate"
+Date: Mon,  6 Mar 2017 19:32:13 +0000
+Message-ID: <20170306193213.6826-1-colin.king@canonical.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:45010 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753731AbdCFVB0 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 6 Mar 2017 16:01:26 -0500
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C01BF300-AD67-4A3E-810F-AAB2EEB90B97-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.lustre.org/options.cgi/lustre-devel-lustre.org>, 
-	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.lustre.org/pipermail/lustre-devel-lustre.org/>
-List-Post: <mailto:lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
-List-Help: <mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.lustre.org/listinfo.cgi/lustre-devel-lustre.org>, 
-	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=subscribe>
-Errors-To: lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
-Sender: "lustre-devel" <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
-To: "Dilger, Andreas" <andreas.dilger-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org" <codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org" <osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org>, "linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Petr Vandrovec <petr-vPk2MGR0e28uaRcfnNAh7A@public.gmane.org>, "linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-afs-IAPFreCvJWM7uuMidbF8XcXa4x6EXUF0@public.gmane.org>
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-> > @@ -1249,6 +1254,50 @@ mount_fs(struct file_system_type *type, int flags, const char *name, void *data)
-> > }
-> > 
-> > /*
-> > + * Setup private BDI for given superblock. I gets automatically cleaned up
-> 
-> (typo) s/I/It/
-> 
-> Looks fine otherwise.
+From: Colin Ian King <colin.king@canonical.com>
 
-Thanks, fixed.
+trivial fix to spelling mistake in ecryptfs_printk message
 
-								Honza
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ fs/ecryptfs/keystore.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 11d39ab..4bd9099 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1890,7 +1890,7 @@ int ecryptfs_parse_packet_set(struct ecryptfs_crypt_stat *crypt_stat,
+ 		candidate_auth_tok = &auth_tok_list_item->auth_tok;
+ 		if (unlikely(ecryptfs_verbosity > 0)) {
+ 			ecryptfs_printk(KERN_DEBUG,
+-					"Considering cadidate auth tok:\n");
++					"Considering candidate auth tok:\n");
+ 			ecryptfs_dump_auth_tok(candidate_auth_tok);
+ 		}
+ 		rc = ecryptfs_get_auth_tok_sig(&candidate_auth_tok_sig,
 -- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+2.10.2
