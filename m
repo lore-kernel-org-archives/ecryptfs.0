@@ -1,41 +1,49 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][RESEND] ecryptfs: fix spelling mistake: "cadidate" -> "candidate"
-Date: Mon,  6 Mar 2017 19:32:13 +0000
-Message-ID: <20170306193213.6826-1-colin.king@canonical.com>
+From: Wanli Xing <wlxing1996@gmail.com>
+Subject: About hmac verification in eCryptfs
+Date: Sun, 19 Mar 2017 21:53:59 +0800
+Message-ID: <CAG5w+xJ1XdYGtvtzPs3bc5JqHbi596XEUOEnsBeR3CLF69GcpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45010 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753731AbdCFVB0 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 6 Mar 2017 16:01:26 -0500
+Received: from mail-ot0-f178.google.com ([74.125.82.178]:34805 "EHLO
+        mail-ot0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751369AbdCSNyB (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 19 Mar 2017 09:54:01 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, linux-kernel@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi everyone,
+    I'm a junior student from China and this is the first time to
+write such email. Thank you everyone. Any advice are welcome !
+    I have implemented hmac verification in eCryptfs based on the
+Linux-kernel 3.3.8. I referred to Michael Halcrow's hmac patch(based
+on 2.6.24 kernel).
+    This is how I did to eCryptfs hmac calculation:
+    1. I calculated every 128 extent and I get hmac value which will
+be stored in second-hmac-extent. Every extent can save 128 hmac value.
+So if we calculated 128*128 extent, then we got a second-hmac-extent
+full of hmac value.
+    2. Also, the same calculation goes with second-hmac-extent: we
+will calculated 128 second-hmac-extent and save the value in another
+extent called first-hmac-extent.
+    3. We calculated all the first-hmac-extent and stored in the
+metadata(header). The disk layout of this format is: ext4-metadata,
+ecryptfs-metadata(including root hmac), 1st and 2nd hmac extent and
+the real data.
+    This is how I did to eCryptfs hmac verification:
+    1. Every time I open a file, it will verify the hmac value as I
+talked before (It consumes too much time, I think). But there are
+still 2 exceptions which are copying a file to the directory mounted
+already and delete all the data in an existing file that is stored in
+the directory already.
+    2. If we close the file, all the 1st and 2nd hmac extents will be
+flushed into the disk. The root hmac value will be stored in header
+only if we call ecryptfs_writepage() function, which means every time
+I write one page, I will update the root hmac.
 
-trivial fix to spelling mistake in ecryptfs_printk message
+So...do you all have any suggestions or comments. Thank you all.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- fs/ecryptfs/keystore.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 11d39ab..4bd9099 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1890,7 +1890,7 @@ int ecryptfs_parse_packet_set(struct ecryptfs_crypt_stat *crypt_stat,
- 		candidate_auth_tok = &auth_tok_list_item->auth_tok;
- 		if (unlikely(ecryptfs_verbosity > 0)) {
- 			ecryptfs_printk(KERN_DEBUG,
--					"Considering cadidate auth tok:\n");
-+					"Considering candidate auth tok:\n");
- 			ecryptfs_dump_auth_tok(candidate_auth_tok);
- 		}
- 		rc = ecryptfs_get_auth_tok_sig(&candidate_auth_tok_sig,
--- 
-2.10.2
+Cheers,
+Jason Xing
