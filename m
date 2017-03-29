@@ -1,49 +1,46 @@
-From: Wanli Xing <wlxing1996@gmail.com>
-Subject: About hmac verification in eCryptfs
-Date: Sun, 19 Mar 2017 21:53:59 +0800
-Message-ID: <CAG5w+xJ1XdYGtvtzPs3bc5JqHbi596XEUOEnsBeR3CLF69GcpQ@mail.gmail.com>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: [PATCH 0/25 v2] fs: Convert all embedded bdis into
+	separate ones
+Date: Wed, 29 Mar 2017 12:55:58 +0200
+Message-ID: <20170329105623.18241-1-jack@suse.cz>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ot0-f178.google.com ([74.125.82.178]:34805 "EHLO
-        mail-ot0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751369AbdCSNyB (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sun, 19 Mar 2017 09:54:01 -0400
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>, linux-kernel@vger.kernel.org
+Return-path: <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://lists.lustre.org/options.cgi/lustre-devel-lustre.org>, 
+	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.lustre.org/pipermail/lustre-devel-lustre.org/>
+List-Post: <mailto:lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+List-Help: <mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.lustre.org/listinfo.cgi/lustre-devel-lustre.org>, 
+	<mailto:lustre-devel-request-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org?subject=subscribe>
+Errors-To: lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
+Sender: "lustre-devel" <lustre-devel-bounces-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org>
+To: linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nilfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, osd-dev-yNzVSZO3znNg9hUCZPvPmw@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Petr Vandrovec <petr-vPk2MGR0e28uaRcfnNAh7A@public.gmane.org>, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lustre-devel-aLEFhgZF4x6X6Mz3xDxJMA@public.gmane.org
 
-Hi everyone,
-    I'm a junior student from China and this is the first time to
-write such email. Thank you everyone. Any advice are welcome !
-    I have implemented hmac verification in eCryptfs based on the
-Linux-kernel 3.3.8. I referred to Michael Halcrow's hmac patch(based
-on 2.6.24 kernel).
-    This is how I did to eCryptfs hmac calculation:
-    1. I calculated every 128 extent and I get hmac value which will
-be stored in second-hmac-extent. Every extent can save 128 hmac value.
-So if we calculated 128*128 extent, then we got a second-hmac-extent
-full of hmac value.
-    2. Also, the same calculation goes with second-hmac-extent: we
-will calculated 128 second-hmac-extent and save the value in another
-extent called first-hmac-extent.
-    3. We calculated all the first-hmac-extent and stored in the
-metadata(header). The disk layout of this format is: ext4-metadata,
-ecryptfs-metadata(including root hmac), 1st and 2nd hmac extent and
-the real data.
-    This is how I did to eCryptfs hmac verification:
-    1. Every time I open a file, it will verify the hmac value as I
-talked before (It consumes too much time, I think). But there are
-still 2 exceptions which are copying a file to the directory mounted
-already and delete all the data in an existing file that is stored in
-the directory already.
-    2. If we close the file, all the 1st and 2nd hmac extents will be
-flushed into the disk. The root hmac value will be stored in header
-only if we call ecryptfs_writepage() function, which means every time
-I write one page, I will update the root hmac.
+Hello,
 
-So...do you all have any suggestions or comments. Thank you all.
+this is the second revision of the patch series which converts all embedded
+occurences of struct backing_dev_info to use standalone dynamically allocated
+structures. This makes bdi handling unified across all bdi users and generally
+removes some boilerplate code from filesystems setting up their own bdi. It
+also allows us to remove some code from generic bdi implementation.
 
-Cheers,
-Jason Xing
+The patches were only compile-tested for most filesystems (I've tested
+mounting only for NFS & btrfs) so fs maintainers please have a look whether
+the changes look sound to you.
+
+This series is based on top of bdi fixes that were merged into linux-block
+git tree into for-next branch. I have pushed out the result as a branch to
+
+git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git bdi
+
+Changes since v1:
+* Added some acks
+* Added further FUSE cleanup patch
+* Added removal of unused argument to bdi_register()
+* Fixed up some compilation failures spotted by 0-day testing
+
+								Honza
