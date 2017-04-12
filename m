@@ -1,156 +1,68 @@
 From: Jan Kara <jack@suse.cz>
-Subject: [PATCH 04/25] fs: Provide infrastructure for
-	dynamic BDIs in filesystems
-Date: Wed, 12 Apr 2017 12:24:28 +0200
-Message-ID: <20170412102449.16901-5-jack@suse.cz>
+Subject: [PATCH 11/25] ecryptfs: Convert to separately allocated bdi
+Date: Wed, 12 Apr 2017 12:24:35 +0200
+Message-ID: <20170412102449.16901-12-jack@suse.cz>
 References: <20170412102449.16901-1-jack@suse.cz>
-Return-path: <cluster-devel-bounces@redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <20170412102449.16901-1-jack@suse.cz>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jens Axboe <axboe@kernel.dk>
-Cc: codalist@TELEMANN.coda.cs.cmu.edu, cluster-devel@redhat.com, linux-nfs@vger.kernel.org, linux-nilfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-cifs@vger.kernel.org, ecryptfs@vger.kernel.org, linux-block@vger.kernel.org, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-fsdevel@vger.kernel.org, v9fs-developer@lists.sourceforge.net, ceph-devel@vger.kernel.org, Petr Vandrovec <petr@vandrovec.name>, linux-afs@lists.infradead.org, linux-btrfs@vger.kernel.org, lustre-devel@lists.lustre.org
+Cc: linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
 
-Provide helper functions for setting up dynamically allocated
-backing_dev_info structures for filesystems and cleaning them up on
-superblock destruction.
+Allocate struct backing_dev_info separately instead of embedding it
+inside the superblock. This unifies handling of bdi among users.
 
-CC: linux-mtd@lists.infradead.org
-CC: linux-nfs@vger.kernel.org
-CC: Petr Vandrovec <petr@vandrovec.name>
-CC: linux-nilfs@vger.kernel.org
-CC: cluster-devel@redhat.com
-CC: osd-dev@open-osd.org
-CC: codalist@coda.cs.cmu.edu
-CC: linux-afs@lists.infradead.org
+CC: Tyler Hicks <tyhicks@canonical.com>
 CC: ecryptfs@vger.kernel.org
-CC: linux-cifs@vger.kernel.org
-CC: ceph-devel@vger.kernel.org
-CC: linux-btrfs@vger.kernel.org
-CC: v9fs-developer@lists.sourceforge.net
-CC: lustre-devel@lists.lustre.org
+Acked-by: Tyler Hicks <tyhicks@canonical.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Jan Kara <jack@suse.cz>
 ---
- fs/super.c                       | 49 ++++++++++++++++++++++++++++++++++++++++
- include/linux/backing-dev-defs.h |  2 +-
- include/linux/fs.h               |  6 +++++
- 3 files changed, 56 insertions(+), 1 deletion(-)
+ fs/ecryptfs/ecryptfs_kernel.h | 1 -
+ fs/ecryptfs/main.c            | 4 +---
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/fs/super.c b/fs/super.c
-index b8b6a086c03b..0f51a437c269 100644
---- a/fs/super.c
-+++ b/fs/super.c
-@@ -446,6 +446,11 @@ void generic_shutdown_super(struct super_block *sb)
- 	hlist_del_init(&sb->s_instances);
- 	spin_unlock(&sb_lock);
- 	up_write(&sb->s_umount);
-+	if (sb->s_iflags & SB_I_DYNBDI) {
-+		bdi_put(sb->s_bdi);
-+		sb->s_bdi = &noop_backing_dev_info;
-+		sb->s_iflags &= ~SB_I_DYNBDI;
-+	}
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 95c1c8d34539..9c351bf757b2 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -349,7 +349,6 @@ struct ecryptfs_mount_crypt_stat {
+ struct ecryptfs_sb_info {
+ 	struct super_block *wsi_sb;
+ 	struct ecryptfs_mount_crypt_stat mount_crypt_stat;
+-	struct backing_dev_info bdi;
+ };
+ 
+ /* file private data. */
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 151872dcc1f4..9014479d0160 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -519,12 +519,11 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 		goto out;
+ 	}
+ 
+-	rc = bdi_setup_and_register(&sbi->bdi, "ecryptfs");
++	rc = super_setup_bdi(s);
+ 	if (rc)
+ 		goto out1;
+ 
+ 	ecryptfs_set_superblock_private(s, sbi);
+-	s->s_bdi = &sbi->bdi;
+ 
+ 	/* ->kill_sb() will take care of sbi after that point */
+ 	sbi = NULL;
+@@ -633,7 +632,6 @@ static void ecryptfs_kill_block_super(struct super_block *sb)
+ 	if (!sb_info)
+ 		return;
+ 	ecryptfs_destroy_mount_crypt_stat(&sb_info->mount_crypt_stat);
+-	bdi_destroy(&sb_info->bdi);
+ 	kmem_cache_free(ecryptfs_sb_info_cache, sb_info);
  }
- 
- EXPORT_SYMBOL(generic_shutdown_super);
-@@ -1256,6 +1261,50 @@ mount_fs(struct file_system_type *type, int flags, const char *name, void *data)
- }
- 
- /*
-+ * Setup private BDI for given superblock. It gets automatically cleaned up
-+ * in generic_shutdown_super().
-+ */
-+int super_setup_bdi_name(struct super_block *sb, char *fmt, ...)
-+{
-+	struct backing_dev_info *bdi;
-+	int err;
-+	va_list args;
-+
-+	bdi = bdi_alloc(GFP_KERNEL);
-+	if (!bdi)
-+		return -ENOMEM;
-+
-+	bdi->name = sb->s_type->name;
-+
-+	va_start(args, fmt);
-+	err = bdi_register_va(bdi, NULL, fmt, args);
-+	va_end(args);
-+	if (err) {
-+		bdi_put(bdi);
-+		return err;
-+	}
-+	WARN_ON(sb->s_bdi != &noop_backing_dev_info);
-+	sb->s_bdi = bdi;
-+	sb->s_iflags |= SB_I_DYNBDI;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(super_setup_bdi_name);
-+
-+/*
-+ * Setup private BDI for given superblock. I gets automatically cleaned up
-+ * in generic_shutdown_super().
-+ */
-+int super_setup_bdi(struct super_block *sb)
-+{
-+	static atomic_long_t bdi_seq = ATOMIC_LONG_INIT(0);
-+
-+	return super_setup_bdi_name(sb, "%.28s-%ld", sb->s_type->name,
-+				    atomic_long_inc_return(&bdi_seq));
-+}
-+EXPORT_SYMBOL(super_setup_bdi);
-+
-+/*
-  * This is an internal function, please use sb_end_{write,pagefault,intwrite}
-  * instead.
-  */
-diff --git a/include/linux/backing-dev-defs.h b/include/linux/backing-dev-defs.h
-index e66d4722db8e..866c433e7d32 100644
---- a/include/linux/backing-dev-defs.h
-+++ b/include/linux/backing-dev-defs.h
-@@ -146,7 +146,7 @@ struct backing_dev_info {
- 	congested_fn *congested_fn; /* Function pointer if device is md/dm */
- 	void *congested_data;	/* Pointer to aux data for congested func */
- 
--	char *name;
-+	const char *name;
- 
- 	struct kref refcnt;	/* Reference counter for the structure */
- 	unsigned int capabilities; /* Device capabilities */
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 7251f7bb45e8..98cf14ea78c0 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1272,6 +1272,9 @@ struct mm_struct;
- /* sb->s_iflags to limit user namespace mounts */
- #define SB_I_USERNS_VISIBLE		0x00000010 /* fstype already mounted */
- 
-+/* Temporary flag until all filesystems are converted to dynamic bdis */
-+#define SB_I_DYNBDI	0x00000100
-+
- /* Possible states of 'frozen' field */
- enum {
- 	SB_UNFROZEN = 0,		/* FS is unfrozen */
-@@ -2121,6 +2124,9 @@ extern int vfs_ustat(dev_t, struct kstatfs *);
- extern int freeze_super(struct super_block *super);
- extern int thaw_super(struct super_block *super);
- extern bool our_mnt(struct vfsmount *mnt);
-+extern __printf(2, 3)
-+int super_setup_bdi_name(struct super_block *sb, char *fmt, ...);
-+extern int super_setup_bdi(struct super_block *sb);
- 
- extern int current_umask(void);
  
 -- 
 2.12.0
