@@ -1,24 +1,53 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 11/25] ecryptfs: Convert to separately allocated bdi
-Date: Wed, 12 Apr 2017 01:11:57 -0700
-Message-ID: <20170412081156.GK9830@infradead.org>
-References: <20170329105623.18241-1-jack@suse.cz>
- <20170329105623.18241-12-jack@suse.cz>
-Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:42898 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752246AbdDLIL5 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 12 Apr 2017 04:11:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20170329105623.18241-12-jack@suse.cz>
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
+From: Jan Kara <jack@suse.cz>
+Subject: [PATCH 0/25 v3] fs: Convert all embedded bdis into
+	separate ones
+Date: Wed, 12 Apr 2017 12:24:24 +0200
+Message-ID: <20170412102449.16901-1-jack@suse.cz>
+Return-path: <cluster-devel-bounces@redhat.com>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/cluster-devel>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Sender: cluster-devel-bounces@redhat.com
+Errors-To: cluster-devel-bounces@redhat.com
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: codalist@TELEMANN.coda.cs.cmu.edu, cluster-devel@redhat.com, linux-nfs@vger.kernel.org, linux-nilfs@vger.kernel.org, Jan Kara <jack@suse.cz>, linux-cifs@vger.kernel.org, ecryptfs@vger.kernel.org, linux-block@vger.kernel.org, linux-mtd@lists.infradead.org, osd-dev@open-osd.org, linux-fsdevel@vger.kernel.org, v9fs-developer@lists.sourceforge.net, ceph-devel@vger.kernel.org, Petr Vandrovec <petr@vandrovec.name>, linux-afs@lists.infradead.org, linux-btrfs@vger.kernel.org, lustre-devel@lists.lustre.org
 
-Looks fine,
+Hello,
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+this is the third revision of the patch series which converts all embedded
+occurences of struct backing_dev_info to use standalone dynamically allocated
+structures. This makes bdi handling unified across all bdi users and generally
+removes some boilerplate code from filesystems setting up their own bdi. It
+also allows us to remove some code from generic bdi implementation.
+
+The patches were only compile-tested for most filesystems (I've tested
+mounting only for NFS & btrfs) so fs maintainers please have a look whether
+the changes look sound to you.
+
+This series is based on top of bdi fixes that were merged into linux-block
+git tree into for-next branch. I have pushed out the result as a branch to
+
+git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git bdi
+
+Since all patches got reviewed by Christoph, can you please pick them up Jens?
+Thanks!
+
+Changes since v2:
+* Added Reviewed-by tags from Christoph
+
+Changes since v1:
+* Added some acks
+* Added further FUSE cleanup patch
+* Added removal of unused argument to bdi_register()
+* Fixed up some compilation failures spotted by 0-day testing
+
+								Honza
+
