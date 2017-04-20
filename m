@@ -1,141 +1,42 @@
-From: Andrey Pronin <apronin@chromium.org>
-Subject: [PATCH] CHROMIUM: ecryptfs: sync before truncating lower inode
-Date: Tue, 18 Apr 2017 16:36:49 -0700
-Message-ID: <20170418233649.78805-1-apronin@chromium.org>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:33413 "EHLO
-        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758191AbdDRXgw (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 18 Apr 2017 19:36:52 -0400
-Received: by mail-pf0-f182.google.com with SMTP id a188so3583462pfa.0
-        for <ecryptfs@vger.kernel.org>; Tue, 18 Apr 2017 16:36:51 -0700 (PDT)
-Sender: ecryptfs-owner@vger.kernel.org
+From: Jens Axboe <axboe@kernel.dk>
+Subject: Re: [PATCH 0/25 v3] fs: Convert all embedded bdis into separate ones
+Date: Thu, 20 Apr 2017 12:11:16 -0600
+Message-ID: <20170420181115.GA22378@kernel.dk>
+References: <20170412102449.16901-1-jack@suse.cz>
+Mime-Version: 1.0
+Return-path: <linux-block-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170412102449.16901-1-jack@suse.cz>
+Sender: linux-block-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, gwendal@chromium.org, dtor@chromium.org, Andrey Pronin <apronin@chromium.org>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org, Petr Vandrovec <petr@vandrovec.name>, linux-nilfs@vger.kernel.org, cluster-devel@redhat.com, osd-dev@open-osd.org, codalist@coda.cs.cmu.edu, linux-afs@lists.infradead.org, ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, v9fs-developer@lists.sourceforge.net, lustre-devel@lists.lustre.org
 
-If the updated ecryptfs header data is not written to disk before
-the lower file is truncated, a crash may leave the filesystem
-in the state when the lower file truncation is journaled, while
-the changes to the ecryptfs header are lost (if the underlying
-filesystem is ext4 in data=ordered mode, for example). As a result,
-upon remounting and repairing the file may have a pre-truncation
-length and garbage data after the post-truncation end.
+On Wed, Apr 12 2017, Jan Kara wrote:
+> Hello,
+> 
+> this is the third revision of the patch series which converts all embedded
+> occurences of struct backing_dev_info to use standalone dynamically allocated
+> structures. This makes bdi handling unified across all bdi users and generally
+> removes some boilerplate code from filesystems setting up their own bdi. It
+> also allows us to remove some code from generic bdi implementation.
+> 
+> The patches were only compile-tested for most filesystems (I've tested
+> mounting only for NFS & btrfs) so fs maintainers please have a look whether
+> the changes look sound to you.
+> 
+> This series is based on top of bdi fixes that were merged into linux-block
+> git tree into for-next branch. I have pushed out the result as a branch to
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/jack/linux-fs.git bdi
+> 
+> Since all patches got reviewed by Christoph, can you please pick them up Jens?
+> Thanks!
 
-To reproduce, make a snapshot of the underlying ext4 filesystem
-mounted with data=ordered while asynchronously truncating to zero a
-group of files in ecryptfs mounted on top. Mount ecryptfs for the
-snapshot and check the contents of the group of files that was
-being truncated. The following script reproduces it in almost 100%
-of runs:
+Yep, picked up for 4.12. Thanks Jan!
 
-cd /tmp
-mkdir -p ./loop
-dd if=/dev/zero of=./file.img bs=1M count=10
-PW=secret
-
-LOOPDEV=`losetup --find --show ./file.img`
-mkfs -t ext4 $LOOPDEV
-mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
- $LOOPDEV ./loop
-mkdir -p ./loop/vault ./loop/mount
-mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
- ./loop/vault ./loop/mount
-for i in `seq 1 100`; do echo $i > ./loop/mount/test.$i; done
-sync
-for i in `seq 100 -1 1`; do truncate -s 0 ./loop/mount/test.$i; done &
-sleep 0.1; sync; cp ./file.img ./file.snap; sleep 1
-umount ./loop/mount
-umount ./loop
-losetup -d $LOOPDEV
-
-LOOPDEV=`losetup --find --show ./file.snap`
-mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
- $LOOPDEV ./loop
-mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
- ./loop/vault ./loop/mount
-for i in `seq 1 100`; do
-  if [ `stat -c %s ./loop/mount/test.$i` != 0 ] &&
-     [ `cat ./loop/mount/test.$i` != $i ]; then
-       echo -n "!!! garbage at $i: ";  cat ./loop/mount/test.$i; echo
-  fi
-done
-umount ./loop/mount
-umount ./loop
-losetup -d $LOOPDEV
-
-Signed-off-by: Andrey Pronin <apronin@chromium.org>
----
- fs/ecryptfs/ecryptfs_kernel.h |  1 +
- fs/ecryptfs/inode.c           |  6 ++++++
- fs/ecryptfs/read_write.c      | 22 ++++++++++++++++++++++
- 3 files changed, 29 insertions(+)
-
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index f622a733f7ad..567698421270 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -689,6 +689,7 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
-+int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync);
- struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index);
- int ecryptfs_parse_packet_length(unsigned char *data, size_t *size,
- 				 size_t *length_size);
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 5eab400e2590..e7eb8ea154d2 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -827,6 +827,12 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
- 			       "rc = [%d]\n", rc);
- 			goto out;
- 		}
-+		rc = ecryptfs_fsync_lower(inode, 0);
-+		if (rc) {
-+			printk(KERN_WARNING "Problem with ecryptfs_fsync_lower,"
-+			       "continue without syncing; "
-+			       "rc = [%d]\n", rc);
-+		}
- 		/* We are reducing the size of the ecryptfs file, and need to
- 		 * know if we need to reduce the size of the lower file. */
- 		lower_size_before_truncate =
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 09fe622274e4..ba2dd6263875 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -271,3 +271,25 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 	flush_dcache_page(page_for_ecryptfs);
- 	return rc;
- }
-+
-+/**
-+ * ecryptfs_fsync_lower
-+ * @ecryptfs_inode: The eCryptfs inode
-+ * @datasync: Only perform a fdatasync operation
-+ *
-+ * Write back data and metadata for the lower file to disk.  If @datasync is
-+ * set only metadata needed to access modified file data is written.
-+ *
-+ * Returns 0 on success; less than zero on error
-+ */
-+int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync)
-+{
-+	struct file *lower_file;
-+
-+	lower_file = ecryptfs_inode_to_private(ecryptfs_inode)->lower_file;
-+	if (!lower_file)
-+		return -EIO;
-+	if (!lower_file->f_op->fsync)
-+		return 0;
-+	return vfs_fsync(lower_file, datasync);
-+}
 -- 
-2.12.2.816.g2cccc81164-goog
+Jens Axboe
+
