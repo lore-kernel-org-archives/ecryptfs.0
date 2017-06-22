@@ -1,147 +1,79 @@
-From: Andrey Pronin <apronin@chromium.org>
-Subject: [PATCH v2] ecryptfs: sync before truncating lower inode
-Date: Wed, 26 Apr 2017 11:02:15 -0700
-Message-ID: <20170426180215.42572-1-apronin@chromium.org>
-References: <20170418233649.78805-1-apronin@chromium.org>
+From: Jason Xing <kerneljasonxing@gmail.com>
+Subject: [PATCH] ecryptfs: Fix stat command displays wrong file size in xattr region
+Date: Thu, 22 Jun 2017 15:21:15 +0800
+Message-ID: <1498116075-2195-1-git-send-email-kerneljasonxing@gmail.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:36559 "EHLO
-        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932616AbdDZSCS (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 26 Apr 2017 14:02:18 -0400
-Received: by mail-pf0-f178.google.com with SMTP id 194so3575812pfv.3
-        for <ecryptfs@vger.kernel.org>; Wed, 26 Apr 2017 11:02:18 -0700 (PDT)
-In-Reply-To: <20170418233649.78805-1-apronin@chromium.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33328 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751143AbdFVHX1 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 22 Jun 2017 03:23:27 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, gwendal@chromium.org, dtor@chromium.org, Andrey Pronin <apronin@chromium.org>
+To: ecryptfs@vger.kernel.org
+Cc: tyhicks@canonical.com, linux-kernel@vger.kernel.org, Jason Xing <kerneljasonxing@gmail.com>
 
-If the updated ecryptfs header data is not written to disk before
-the lower file is truncated, a crash may leave the filesystem
-in the state when the lower file truncation is journaled, while
-the changes to the ecryptfs header are lost (if the underlying
-filesystem is ext4 in data=ordered mode, for example). As a result,
-upon remounting and repairing the file may have a pre-truncation
-length and garbage data after the post-truncation end.
+When doing ecryptfs_read_and_validate_xattr_region(), eCryptfs
+reads only 16 bytes from xattr region. However, the lower filesystem
+like ext4 always compares 16 with the size of ecryptfs xattr region
+which is 81 bytes, and then it will return ERANGE (-34) and do not
+read that region.
 
-To reproduce, make a snapshot of the underlying ext4 filesystem
-mounted with data=ordered while asynchronously truncating to zero a
-group of files in ecryptfs mounted on top. Mount ecryptfs for the
-snapshot and check the contents of the group of files that was
-being truncated. The following script reproduces it in almost 100%
-of runs:
-
-cd /tmp
-mkdir -p ./loop
-dd if=/dev/zero of=./file.img bs=1M count=10
-PW=secret
-
-LOOPDEV=`losetup --find --show ./file.img`
-mkfs -t ext4 $LOOPDEV
-mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
- $LOOPDEV ./loop
-mkdir -p ./loop/vault ./loop/mount
-mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
- ./loop/vault ./loop/mount
-for i in `seq 1 100`; do echo $i > ./loop/mount/test.$i; done
-sync
-for i in `seq 100 -1 1`; do truncate -s 0 ./loop/mount/test.$i; done &
-sleep 0.1; sync; cp ./file.img ./file.snap; sleep 1
-umount ./loop/mount
-umount ./loop
-losetup -d $LOOPDEV
-
-LOOPDEV=`losetup --find --show ./file.snap`
-mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
- $LOOPDEV ./loop
-mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
- ./loop/vault ./loop/mount
-for i in `seq 1 100`; do
-  if [ `stat -c %s ./loop/mount/test.$i` != 0 ] &&
-     [ `cat ./loop/mount/test.$i` != $i ]; then
-       echo -n "!!! garbage at $i: ";  cat ./loop/mount/test.$i; echo
-  fi
-done
-umount ./loop/mount
-umount ./loop
-losetup -d $LOOPDEV
-
-Signed-off-by: Andrey Pronin <apronin@chromium.org>
+Signed-off-by: Jason Xing <kerneljasonxing@gmail.com>
 ---
+ fs/ecryptfs/crypto.c | 33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-Changes since v1:
- - Switched to datasync=1 for ecryptfs_fsync_lower() in truncate_upper()
-
- fs/ecryptfs/ecryptfs_kernel.h |  1 +
- fs/ecryptfs/inode.c           |  6 ++++++
- fs/ecryptfs/read_write.c      | 22 ++++++++++++++++++++++
- 3 files changed, 29 insertions(+)
-
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index f622a733f7ad..567698421270 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -689,6 +689,7 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
-+int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync);
- struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index);
- int ecryptfs_parse_packet_length(unsigned char *data, size_t *size,
- 				 size_t *length_size);
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 5eab400e2590..a96988ba6928 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -827,6 +827,12 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
- 			       "rc = [%d]\n", rc);
- 			goto out;
- 		}
-+		rc = ecryptfs_fsync_lower(inode, 1);
-+		if (rc) {
-+			printk(KERN_WARNING "Problem with ecryptfs_fsync_lower,"
-+			       "continue without syncing; "
-+			       "rc = [%d]\n", rc);
-+		}
- 		/* We are reducing the size of the ecryptfs file, and need to
- 		 * know if we need to reduce the size of the lower file. */
- 		lower_size_before_truncate =
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 09fe622274e4..ba2dd6263875 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -271,3 +271,25 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 	flush_dcache_page(page_for_ecryptfs);
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index e5e29f8..895140f 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -1389,19 +1389,36 @@ int ecryptfs_read_xattr_region(char *page_virt, struct inode *ecryptfs_inode)
+ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+ 					    struct inode *inode)
+ {
+-	u8 file_size[ECRYPTFS_SIZE_AND_MARKER_BYTES];
+-	u8 *marker = file_size + ECRYPTFS_FILE_SIZE_BYTES;
++	char *page_virt;
+ 	int rc;
+ 
++	page_virt = kmem_cache_alloc(ecryptfs_header_cache, GFP_USER);
++	if (!page_virt) {
++		rc = -ENOMEM;
++		printk(KERN_ERR "%s: Unable to allocate page_virt\n",
++		       __func__);
++		goto out;
++	}
+ 	rc = ecryptfs_getxattr_lower(ecryptfs_dentry_to_lower(dentry),
+ 				     ecryptfs_inode_to_lower(inode),
+-				     ECRYPTFS_XATTR_NAME, file_size,
+-				     ECRYPTFS_SIZE_AND_MARKER_BYTES);
+-	if (rc < ECRYPTFS_SIZE_AND_MARKER_BYTES)
+-		return rc >= 0 ? -EINVAL : rc;
+-	rc = ecryptfs_validate_marker(marker);
++				     ECRYPTFS_XATTR_NAME, page_virt,
++				     ECRYPTFS_DEFAULT_EXTENT_SIZE);
++	if (rc < 0) {
++		if (unlikely(ecryptfs_verbosity > 0))
++			printk(KERN_INFO "Error attempting to read the [%s] "
++			       "xattr from the lower file; return value = "
++			       "[%d]\n", ECRYPTFS_XATTR_NAME, rc);
++		rc = -EINVAL;
++		goto out;
++	}
++	rc = ecryptfs_validate_marker(page_virt + ECRYPTFS_FILE_SIZE_BYTES);
+ 	if (!rc)
+-		ecryptfs_i_size_init(file_size, inode);
++		ecryptfs_i_size_init(page_virt, inode);
++out:
++	if (page_virt) {
++		memset(page_virt, 0, PAGE_SIZE);
++		kmem_cache_free(ecryptfs_header_cache, page_virt);
++	}
  	return rc;
  }
-+
-+/**
-+ * ecryptfs_fsync_lower
-+ * @ecryptfs_inode: The eCryptfs inode
-+ * @datasync: Only perform a fdatasync operation
-+ *
-+ * Write back data and metadata for the lower file to disk.  If @datasync is
-+ * set only metadata needed to access modified file data is written.
-+ *
-+ * Returns 0 on success; less than zero on error
-+ */
-+int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync)
-+{
-+	struct file *lower_file;
-+
-+	lower_file = ecryptfs_inode_to_private(ecryptfs_inode)->lower_file;
-+	if (!lower_file)
-+		return -EIO;
-+	if (!lower_file->f_op->fsync)
-+		return 0;
-+	return vfs_fsync(lower_file, datasync);
-+}
+ 
 -- 
-2.13.0.rc0.306.g87b477812d-goog
+2.7.4
