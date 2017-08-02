@@ -1,46 +1,43 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] eCryptfs: constify attribute_group structures.
-Date: Fri, 30 Jun 2017 15:03:23 +0530
-Message-ID: <eea99b6294d950736f63fd6d88ab129435233bd5.1498814950.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+From: Jeff Layton <jlayton@kernel.org>
+Subject: [PATCH] ecryptfs: convert to file_write_and_wait in ->fsync
+Date: Wed,  2 Aug 2017 12:29:24 -0400
+Message-ID: <20170802162924.31956-1-jlayton@kernel.org>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:44174 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751948AbdHBQ31 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Wed, 2 Aug 2017 12:29:27 -0400
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com, viro@zeniv.linux.org.uk
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tyler Hicks <tyhicks@canonical.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-attribute_groups are not supposed to change at runtime. All functions
-working with attribute_groups provided by <linux/sysfs.h> work with const
-attribute_group. So mark the non-const structs as const.
+From: Jeff Layton <jlayton@redhat.com>
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-   6122	    636	     24	   6782	   1a7e	fs/ecryptfs/main.o
+This change is mainly for documentation/completeness, as ecryptfs never
+calls mapping_set_error, and so will never return a previous writeback
+error.
 
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-   6186	    604	     24	   6814	   1a9e	fs/ecryptfs/main.o
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
 ---
- fs/ecryptfs/main.c | 2 +-
+ fs/ecryptfs/file.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 9014479..eea4c0f 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -782,7 +782,7 @@ static ssize_t version_show(struct kobject *kobj,
- 	NULL,
- };
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index ca4e83750214..c74ed3ca3372 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -328,7 +328,7 @@ ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ {
+ 	int rc;
  
--static struct attribute_group attr_group = {
-+static const struct attribute_group attr_group = {
- 	.attrs = attributes,
- };
+-	rc = filemap_write_and_wait(file->f_mapping);
++	rc = file_write_and_wait(file);
+ 	if (rc)
+ 		return rc;
  
 -- 
-1.9.1
-
+2.13.3
