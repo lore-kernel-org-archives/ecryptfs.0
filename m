@@ -1,43 +1,40 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: [PATCH] ecryptfs: convert to file_write_and_wait in ->fsync
-Date: Wed,  2 Aug 2017 12:29:24 -0400
-Message-ID: <20170802162924.31956-1-jlayton@kernel.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 0/3] eCryptfs: Adjustments for several function
+ implementations
+Date: Sat, 19 Aug 2017 18:54:14 +0200
+Message-ID: <56e0a575-2a9e-120f-6a22-96d9fa4b151e@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:44174 "EHLO mail.kernel.org"
+Received: from mout.web.de ([212.227.15.3]:64320 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751948AbdHBQ31 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Wed, 2 Aug 2017 12:29:27 -0400
+        id S1751672AbdHSQyR (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Sat, 19 Aug 2017 12:54:17 -0400
+Content-Language: en-GB
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 
-From: Jeff Layton <jlayton@redhat.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 19 Aug 2017 18:15:14 +0200
 
-This change is mainly for documentation/completeness, as ecryptfs never
-calls mapping_set_error, and so will never return a previous writeback
-error.
+Some update suggestions were taken into account
+from static source code analysis.
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
----
- fs/ecryptfs/file.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Markus Elfring (3):
+  Delete 21 error messages for a failed memory allocation
+  Return an error code only as a constant in ecryptfs_add_global_auth_tok()
+  Adjust four checks for null pointers
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index ca4e83750214..c74ed3ca3372 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -328,7 +328,7 @@ ecryptfs_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- {
- 	int rc;
- 
--	rc = filemap_write_and_wait(file->f_mapping);
-+	rc = file_write_and_wait(file);
- 	if (rc)
- 		return rc;
- 
+ fs/ecryptfs/crypto.c    | 22 +++-------------------
+ fs/ecryptfs/inode.c     |  3 ---
+ fs/ecryptfs/keystore.c  | 46 +++++++++++-----------------------------------
+ fs/ecryptfs/messaging.c |  6 ------
+ fs/ecryptfs/miscdev.c   |  6 +-----
+ fs/ecryptfs/mmap.c      |  2 --
+ 6 files changed, 15 insertions(+), 70 deletions(-)
+
 -- 
-2.13.3
+2.14.0
