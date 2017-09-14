@@ -1,51 +1,38 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] eCryptfs: use after free in ecryptfs_release_messaging()
-Date: Tue, 22 Aug 2017 23:41:28 +0300
-Message-ID: <20170822204128.7xhtrlpvueucbisl@mwanda>
+From: Paul van der Vlis <paul@vandervlis.nl>
+Subject: Re-use SSD
+Date: Thu, 14 Sep 2017 14:32:03 +0200
+Message-ID: <opdsrr$7vn$1@blaine.gmane.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:51986 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752664AbdHVUly (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 22 Aug 2017 16:41:54 -0400
-Content-Disposition: inline
+Received: from [195.159.176.226] ([195.159.176.226]:36529 "EHLO
+        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1751484AbdINMfP (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 14 Sep 2017 08:35:15 -0400
+Received: from list by blaine.gmane.org with local (Exim 4.84_2)
+        (envelope-from <gcfe-ecryptfs@m.gmane.org>)
+        id 1dsTMI-0006Ew-7h
+        for ecryptfs@vger.kernel.org; Thu, 14 Sep 2017 14:35:06 +0200
+Content-Language: nl
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <tyhicks@canonical.com>, Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: ecryptfs@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-We're freeing the list iterator so we should be using the _safe()
-version of hlist_for_each_entry().
+Hello,
 
-Fixes: 88b4a07e6610 ("[PATCH] eCryptfs: Public key transport mechanism")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-It's also possible that I misunderstood this code.  Please review with
-caution.
+I have bought many laptops with privacy-sensitive data on /home in
+ecryptfs on the SSD. And I have promised to carefull remove the data
+before re-using.
 
-diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
-index 286f10b0363b..4f457d5c4933 100644
---- a/fs/ecryptfs/messaging.c
-+++ b/fs/ecryptfs/messaging.c
-@@ -442,15 +442,16 @@ void ecryptfs_release_messaging(void)
- 	}
- 	if (ecryptfs_daemon_hash) {
- 		struct ecryptfs_daemon *daemon;
-+		struct hlist_node *n;
- 		int i;
- 
- 		mutex_lock(&ecryptfs_daemon_hash_mux);
- 		for (i = 0; i < (1 << ecryptfs_hash_bits); i++) {
- 			int rc;
- 
--			hlist_for_each_entry(daemon,
--					     &ecryptfs_daemon_hash[i],
--					     euid_chain) {
-+			hlist_for_each_entry_safe(daemon, n,
-+						  &ecryptfs_daemon_hash[i],
-+						  euid_chain) {
- 				rc = ecryptfs_exorcise_daemon(daemon);
- 				if (rc)
- 					printk(KERN_ERR "%s: Error whilst "
+What would you advice to do? Is it possible to overwrite the master key
+for example? Or is it a good idea to change the passphrase in a very
+long one?
+
+With regards,
+Paul van der Vlis
+
+
+-- 
+Paul van der Vlis Linux systeembeheer Groningen
+https://www.vandervlis.nl/
