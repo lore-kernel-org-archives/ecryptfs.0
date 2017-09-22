@@ -1,48 +1,64 @@
-From: Martin Steigerwald <martin@lichtvoll.de>
+From: Paul van der Vlis <paul@vandervlis.nl>
 Subject: Re: Re-use SSD
-Date: Thu, 14 Sep 2017 15:38:51 +0200
-Message-ID: <8806651.xcqe0g8Jeu@merkaba>
+Date: Fri, 22 Sep 2017 12:43:42 +0200
+Message-ID: <oq2pgm$jkv$1@blaine.gmane.org>
 References: <opdsrr$7vn$1@blaine.gmane.org> <1882558.NIKn6SUjoV@merkaba>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mondschein.lichtvoll.de ([194.150.191.11]:35495 "EHLO
-        mail.lichtvoll.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751420AbdINNiw (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 14 Sep 2017 09:38:52 -0400
+Received: from [195.159.176.226] ([195.159.176.226]:37920 "EHLO
+        blaine.gmane.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1751903AbdIVKny (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 22 Sep 2017 06:43:54 -0400
+Received: from list by blaine.gmane.org with local (Exim 4.84_2)
+        (envelope-from <gcfe-ecryptfs@m.gmane.org>)
+        id 1dvLQt-0005jw-8J
+        for ecryptfs@vger.kernel.org; Fri, 22 Sep 2017 12:43:43 +0200
 In-Reply-To: <1882558.NIKn6SUjoV@merkaba>
+Content-Language: nl
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset="utf-8"
 To: ecryptfs@vger.kernel.org
-Cc: Paul van der Vlis <paul@vandervlis.nl>
 
-Martin Steigerwald - 14.09.17, 15:21:
+Op 14-09-17 om 15:21 schreef Martin Steigerwald:
+> Hello Paul.
+> 
+> Paul van der Vlis - 14.09.17, 14:32:
+>> I have bought many laptops with privacy-sensitive data on /home in
+>> ecryptfs on the SSD. And I have promised to carefull remove the data
+>> before re-using.
+>>
+>> What would you advice to do? Is it possible to overwrite the master key
+>> for example? Or is it a good idea to change the passphrase in a very
+>> long one?
+> 
+> Technically you can´t really overwrite it. SSDs use Copy on Write.
+> 
+> Also I think the passphrase in Ecryptfs just encrypts a key used to encrypt 
+> the data… not the data itself.
+> 
+> 
 > Generic hint for securely erasing SSDs.
->=20
+> 
 > https://ata.wiki.kernel.org/index.php/ATA_Secure_Erase
->=20
-> You rely on the SSD firmware tough. But I am not aware of another way to =
 
-> securely delete data of an SSD other than ATA Secure Erase. However ATA
-> Secure  Erase only is really safe for SSDs that use encryption like Intel
-> SSD 320 (and many newer SSDs) as the SSD will overwrite the encryption
-> keys. Many SSDs use encryption by default, without change using some
+This is what I am doing now. The SSD's I've tried are normally freezed,
+but after awaking from suspend-to-ram not anymore.
 
-Hmmm, thinking about this: I am not sure about this.
+It looks complex, but it's fast and doable. But indeed not nice to rely
+on the firmware of the SSD...
 
-Secure Erase should also safely, securely delete the device on drives that =
-do=20
-not use encryptions, but it would take much longer as the individual sector=
-s=20
-need to be wiped. With a drive with encryption by firmware, the firmware wi=
-ll=20
-just delete the key. With the Intel SSD 320 this took=E2=80=A6 hmm a few se=
-conds,=20
-definately less than a minute.
+What I would like are stupid-SSD's without a controller, where the
+filesystem does everything. Or a SSD with open source controller firmware.
 
-It of course always wipes the complete device.
+With regards,
+Paul
 
-Thanks,
---=20
-Martin
+
+
+
+
+-- 
+Paul van der Vlis Linux systeembeheer Groningen
+https://www.vandervlis.nl/
