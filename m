@@ -1,52 +1,55 @@
 From: Eric Biggers <ebiggers3@gmail.com>
-Subject: [PATCH 0/7] Fix dereferencing payload of revoked keys
-Date: Thu, 28 Sep 2017 14:25:55 -0700
-Message-ID: <20170928212602.41744-1-ebiggers3@gmail.com>
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:47400 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751339AbdI1V3q (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Sep 2017 17:29:46 -0400
-Sender: ecryptfs-owner@vger.kernel.org
+Subject: [PATCH 2/7] FS-Cache: fix dereference of NULL user_key_payload
+Date: Thu, 28 Sep 2017 14:25:57 -0700
+Message-ID: <20170928212602.41744-3-ebiggers3@gmail.com>
+References: <20170928212602.41744-1-ebiggers3@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170928212602.41744-1-ebiggers3@gmail.com>
+Sender: stable-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: keyrings@vger.kernel.org
-Cc: David Howells <dhowells@redhat.com>, Michael Halcrow <mhalcrow@google.com>, linux-cachefs@redhat.com, ecryptfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-security-module@vger.kernel.org, Eric Biggers <ebiggers@google.com>
+Cc: David Howells <dhowells@redhat.com>, Michael Halcrow <mhalcrow@google.com>, linux-cachefs@redhat.com, ecryptfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-security-module@vger.kernel.org, Eric Biggers <ebiggers@google.com>, stable@vger.kernel.org
 
 From: Eric Biggers <ebiggers@google.com>
 
-This series fixes the various users of the keyrings service that access
-a "user" or "logon" key's payload without first checking whether the
-payload pointer is NULL, or calling key_validate() while holding the key
-semaphore.  Without one of these two checks, a NULL pointer dereference
-will occur if the key has been revoked concurrently.  Usually this is
-pretty easy to reproduce (in most of the cases even as an unprivileged
-user), although it may be unlikely to happen by accident.
+When the file /proc/fs/fscache/objects (available with
+CONFIG_FSCACHE_OBJECT_LIST=y) is opened, we request a user key with
+description "fscache:objlist", then access its payload.  However, a
+revoked key has a NULL payload, and we failed to check for this.
+request_key() *does* skip revoked keys, but there is still a window
+where the key can be revoked before we access its payload.
 
-Patch 6 also fixes the lack of key length validation in ecryptfs.
+Fix it by checking for a NULL payload, treating it like a key which was
+already revoked at the time it was requested.
 
-These fixes probably will need to be split up between a few different
-maintainers, but initially I'm sending the full series so that people
-can see the full context of the fixes.
+Fixes: 4fbf4291aa15 ("FS-Cache: Allow the current state of all objects to be dumped")
+Cc: <stable@vger.kernel.org>    [v2.6.32+]
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+ fs/fscache/object-list.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Eric Biggers (7):
-  KEYS: encrypted: fix dereference of NULL user_key_payload
-  FS-Cache: fix dereference of NULL user_key_payload
-  lib/digsig: fix dereference of NULL user_key_payload
-  fscrypt: fix dereference of NULL user_key_payload
-  ecryptfs: fix dereference of NULL user_key_payload
-  ecryptfs: fix out-of-bounds read of key payload
-  ecryptfs: move key payload accessor functions into keystore.c
-
- fs/crypto/keyinfo.c                      |  5 +++
- fs/ecryptfs/ecryptfs_kernel.h            | 44 -------------------
- fs/ecryptfs/keystore.c                   | 73 +++++++++++++++++++++++++++++++-
- fs/fscache/object-list.c                 |  7 +++
- lib/digsig.c                             |  6 +++
- security/keys/encrypted-keys/encrypted.c |  7 +++
- 6 files changed, 97 insertions(+), 45 deletions(-)
-
+diff --git a/fs/fscache/object-list.c b/fs/fscache/object-list.c
+index b5ab06fabc60..0438d4cd91ef 100644
+--- a/fs/fscache/object-list.c
++++ b/fs/fscache/object-list.c
+@@ -331,6 +331,13 @@ static void fscache_objlist_config(struct fscache_objlist_data *data)
+ 	rcu_read_lock();
+ 
+ 	confkey = user_key_payload_rcu(key);
++	if (!confkey) {
++		/* key was revoked */
++		rcu_read_unlock();
++		key_put(key);
++		goto no_config;
++	}
++
+ 	buf = confkey->data;
+ 
+ 	for (len = confkey->datalen - 1; len >= 0; len--) {
 -- 
 2.14.2.822.g60be5d43e6-goog
+
