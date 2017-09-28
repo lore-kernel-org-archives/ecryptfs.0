@@ -1,70 +1,52 @@
-From: Martin Steigerwald <martin@lichtvoll.de>
-Subject: Re: Re-use SSD
-Date: Fri, 22 Sep 2017 13:27:37 +0200
-Message-ID: <3513783.r4zieL0AEN@merkaba>
-References: <opdsrr$7vn$1@blaine.gmane.org> <1882558.NIKn6SUjoV@merkaba> <oq2pgm$jkv$1@blaine.gmane.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: [PATCH 0/7] Fix dereferencing payload of revoked keys
+Date: Thu, 28 Sep 2017 14:25:55 -0700
+Message-ID: <20170928212602.41744-1-ebiggers3@gmail.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mondschein.lichtvoll.de ([194.150.191.11]:56783 "EHLO
-        mail.lichtvoll.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751931AbdIVL1j (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 22 Sep 2017 07:27:39 -0400
-In-Reply-To: <oq2pgm$jkv$1@blaine.gmane.org>
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:47400 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751339AbdI1V3q (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Sep 2017 17:29:46 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Paul van der Vlis <paul@vandervlis.nl>
-Cc: ecryptfs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: keyrings@vger.kernel.org
+Cc: David Howells <dhowells@redhat.com>, Michael Halcrow <mhalcrow@google.com>, linux-cachefs@redhat.com, ecryptfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-security-module@vger.kernel.org, Eric Biggers <ebiggers@google.com>
 
-Paul van der Vlis - 22.09.17, 12:43:
-> Op 14-09-17 om 15:21 schreef Martin Steigerwald:
-> > Hello Paul.
-> > 
-> > Paul van der Vlis - 14.09.17, 14:32:
-> >> I have bought many laptops with privacy-sensitive data on /home in
-> >> ecryptfs on the SSD. And I have promised to carefull remove the data
-> >> before re-using.
-> >> 
-> >> What would you advice to do? Is it possible to overwrite the master key
-> >> for example? Or is it a good idea to change the passphrase in a very
-> >> long one?
-> > 
-> > Technically you can´t really overwrite it. SSDs use Copy on Write.
-> > 
-> > Also I think the passphrase in Ecryptfs just encrypts a key used to
-> > encrypt
-> > the data… not the data itself.
-> > 
-> > 
-> > Generic hint for securely erasing SSDs.
-> > 
-> > https://ata.wiki.kernel.org/index.php/ATA_Secure_Erase
-> 
-> This is what I am doing now. The SSD's I've tried are normally freezed,
-> but after awaking from suspend-to-ram not anymore.
-> 
-> It looks complex, but it's fast and doable. But indeed not nice to rely
-> on the firmware of the SSD...
-> 
-> What I would like are stupid-SSD's without a controller, where the
-> filesystem does everything. Or a SSD with open source controller firmware.
+From: Eric Biggers <ebiggers@google.com>
 
-Yep.
+This series fixes the various users of the keyrings service that access
+a "user" or "logon" key's payload without first checking whether the
+payload pointer is NULL, or calling key_validate() while holding the key
+semaphore.  Without one of these two checks, a NULL pointer dereference
+will occur if the key has been revoked concurrently.  Usually this is
+pretty easy to reproduce (in most of the cases even as an unprivileged
+user), although it may be unlikely to happen by accident.
 
-Open Channel SSDs. But well, I never seen anything like that for laptops or 
-other kind of consumer hardware.
+Patch 6 also fixes the lack of key length validation in ecryptfs.
 
-Then add to it Coreboot or even Libreboot.
+These fixes probably will need to be split up between a few different
+maintainers, but initially I'm sending the full series so that people
+can see the full context of the fixes.
 
-This ThinkPad T520 still has Intel Crapware^W Management Engine on it. I 
-disabled it in the firmware settings… but… I know it can be removed meanwhile… 
-but as it is not my laptop, I just update the BIOS/UEFI firmware once in a 
-while. But there are rarely any new updates. So I bet that TCP/IP stack in IME 
-has a ton of unfixed security issues by now.
+Eric Biggers (7):
+  KEYS: encrypted: fix dereference of NULL user_key_payload
+  FS-Cache: fix dereference of NULL user_key_payload
+  lib/digsig: fix dereference of NULL user_key_payload
+  fscrypt: fix dereference of NULL user_key_payload
+  ecryptfs: fix dereference of NULL user_key_payload
+  ecryptfs: fix out-of-bounds read of key payload
+  ecryptfs: move key payload accessor functions into keystore.c
 
-Free hardware… thats the next revolution!
+ fs/crypto/keyinfo.c                      |  5 +++
+ fs/ecryptfs/ecryptfs_kernel.h            | 44 -------------------
+ fs/ecryptfs/keystore.c                   | 73 +++++++++++++++++++++++++++++++-
+ fs/fscache/object-list.c                 |  7 +++
+ lib/digsig.c                             |  6 +++
+ security/keys/encrypted-keys/encrypted.c |  7 +++
+ 6 files changed, 97 insertions(+), 45 deletions(-)
 
-Thanks,
 -- 
-Martin
+2.14.2.822.g60be5d43e6-goog
