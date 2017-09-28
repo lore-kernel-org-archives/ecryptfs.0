@@ -1,13 +1,13 @@
 From: Eric Biggers <ebiggers3@gmail.com>
-Subject: [PATCH 3/7] lib/digsig: fix dereference of NULL user_key_payload
-Date: Thu, 28 Sep 2017 14:25:58 -0700
-Message-ID: <20170928212602.41744-4-ebiggers3@gmail.com>
+Subject: [PATCH 5/7] ecryptfs: fix dereference of NULL user_key_payload
+Date: Thu, 28 Sep 2017 14:26:00 -0700
+Message-ID: <20170928212602.41744-6-ebiggers3@gmail.com>
 References: <20170928212602.41744-1-ebiggers3@gmail.com>
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33279 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751495AbdI1V3t (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Sep 2017 17:29:49 -0400
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:38077 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751702AbdI1V3v (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Sep 2017 17:29:51 -0400
 In-Reply-To: <20170928212602.41744-1-ebiggers3@gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
@@ -19,37 +19,101 @@ Cc: David Howells <dhowells@redhat.com>, Michael Halcrow <mhalcrow@google.com>, 
 
 From: Eric Biggers <ebiggers@google.com>
 
-digsig_verify() requests a user key, then accesses its payload.
-However, a revoked key has a NULL payload, and we failed to check for
-this.  request_key() *does* skip revoked keys, but there is still a
-window where the key can be revoked before we acquire its semaphore.
+In eCryptfs, we failed to verify that the authentication token keys are
+not revoked before dereferencing their payloads, which is problematic
+because the payload of a revoked key is NULL.  request_key() *does* skip
+revoked keys, but there is still a window where the key can be revoked
+before we acquire the key semaphore.
 
-Fix it by checking for a NULL payload, treating it like a key which was
-already revoked at the time it was requested.
+Fix it by updating ecryptfs_get_key_payload_data() to return
+-EKEYREVOKED if the key payload is NULL.  For completeness we check this
+for "encrypted" keys as well as "user" keys, although encrypted keys
+cannot be revoked currently.
 
-Fixes: 051dbb918c7f ("crypto: digital signature verification support")
-Cc: <stable@vger.kernel.org>    [v3.3+]
+Alternatively we could use key_validate(), but since we'll also need to
+fix ecryptfs_get_key_payload_data() to validate the payload length, it
+seems appropriate to just check the payload pointer.
+
+Fixes: 237fead61998 ("[PATCH] ecryptfs: fs/Makefile and fs/Kconfig")
+Cc: <stable@vger.kernel.org>    [v2.6.19+]
 Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- lib/digsig.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ecryptfs/ecryptfs_kernel.h | 24 +++++++++++++++++-------
+ fs/ecryptfs/keystore.c        |  9 ++++++++-
+ 2 files changed, 25 insertions(+), 8 deletions(-)
 
-diff --git a/lib/digsig.c b/lib/digsig.c
-index 03d7c63837ae..6ba6fcd92dd1 100644
---- a/lib/digsig.c
-+++ b/lib/digsig.c
-@@ -87,6 +87,12 @@ static int digsig_verify_rsa(struct key *key,
- 	down_read(&key->sem);
- 	ukp = user_key_payload_locked(key);
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 9c351bf757b2..3fbc0ff79699 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -84,11 +84,16 @@ struct ecryptfs_page_crypt_context {
+ static inline struct ecryptfs_auth_tok *
+ ecryptfs_get_encrypted_key_payload_data(struct key *key)
+ {
+-	if (key->type == &key_type_encrypted)
+-		return (struct ecryptfs_auth_tok *)
+-			(&((struct encrypted_key_payload *)key->payload.data[0])->payload_data);
+-	else
++	struct encrypted_key_payload *payload;
++
++	if (key->type != &key_type_encrypted)
+ 		return NULL;
++
++	payload = key->payload.data[0];
++	if (!payload)
++		return ERR_PTR(-EKEYREVOKED);
++
++	return (struct ecryptfs_auth_tok *)payload->payload_data;
+ }
  
-+	if (!ukp) {
-+		/* key was revoked before we acquired its semaphore */
-+		err = -EKEYREVOKED;
-+		goto err1;
+ static inline struct key *ecryptfs_get_encrypted_key(char *sig)
+@@ -114,12 +119,17 @@ static inline struct ecryptfs_auth_tok *
+ ecryptfs_get_key_payload_data(struct key *key)
+ {
+ 	struct ecryptfs_auth_tok *auth_tok;
++	struct user_key_payload *ukp;
+ 
+ 	auth_tok = ecryptfs_get_encrypted_key_payload_data(key);
+-	if (!auth_tok)
+-		return (struct ecryptfs_auth_tok *)user_key_payload_locked(key)->data;
+-	else
++	if (auth_tok)
+ 		return auth_tok;
++
++	ukp = user_key_payload_locked(key);
++	if (!ukp)
++		return ERR_PTR(-EKEYREVOKED);
++
++	return (struct ecryptfs_auth_tok *)ukp->data;
+ }
+ 
+ #define ECRYPTFS_MAX_KEYSET_SIZE 1024
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 3cf1546dca82..fa218cd64f74 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -459,7 +459,8 @@ static int ecryptfs_verify_version(u16 version)
+  * @auth_tok_key: key containing the authentication token
+  * @auth_tok: authentication token
+  *
+- * Returns zero on valid auth tok; -EINVAL otherwise
++ * Returns zero on valid auth tok; -EINVAL if the payload is invalid; or
++ * -EKEYREVOKED if the key was revoked before we acquired its semaphore.
+  */
+ static int
+ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
+@@ -468,6 +469,12 @@ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
+ 	int rc = 0;
+ 
+ 	(*auth_tok) = ecryptfs_get_key_payload_data(auth_tok_key);
++	if (IS_ERR(*auth_tok)) {
++		rc = PTR_ERR(*auth_tok);
++		*auth_tok = NULL;
++		goto out;
 +	}
 +
- 	if (ukp->datalen < sizeof(*pkh))
- 		goto err1;
- 
+ 	if (ecryptfs_verify_version((*auth_tok)->version)) {
+ 		printk(KERN_ERR "Data structure version mismatch. Userspace "
+ 		       "tools must match eCryptfs kernel module with major "
 -- 
 2.14.2.822.g60be5d43e6-goog
