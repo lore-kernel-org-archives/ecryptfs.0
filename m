@@ -1,38 +1,123 @@
-From: "J. Bruce Fields" <bfields@fieldses.org>
-Subject: Re: [PATCH 00/18] use ARRAY_SIZE macro
-Date: Thu, 5 Oct 2017 13:57:15 -0400
-Message-ID: <20171005175715.GA19093@fieldses.org>
-References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
- <20171001220131.GA11812@eros>
- <20171001205220.10b78086@blatinox-laptop.localdomain>
- <20171002053554.GA28743@kroah.com>
- <20171002192224.GD1903@fieldses.org>
- <20171002213312.3f904290@blatinox-laptop.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171002213312.3f904290@blatinox-laptop.localdomain>
-Sender: netdev-owner@vger.kernel.org
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: [PATCH v2 1/3] ecryptfs: fix dereference of NULL user_key_payload
+Date: Mon,  9 Oct 2017 12:51:27 -0700
+Message-ID: <20171009195129.68610-1-ebiggers3@gmail.com>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:37258 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754373AbdJITwm (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 9 Oct 2017 15:52:42 -0400
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: =?utf-8?B?SsOpcsOpbXk=?= Lefaure <jeremy.lefaure@lse.epita.fr>
-Cc: Greg KH <greg@kroah.com>, "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org, nouveau@lists.freedesktop.org, dri-devel@lists.freedesktop.org, dm-devel@redhat.com, brcm80211-dev-list@cypress.com, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-acpi@vger.kernel.org, linux-video@atrey.karlin.mff.cuni.cz, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gvt-dev@lists.freedesktop.org, devel@acpica.org, brcm80211-dev-list.pdl@broadcom.com, netdev@vger.kernel.org, linux-usb@v
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: ecryptfs@vger.kernel.org, Tyler Hicks <tyhicks@canonical.com>
+Cc: keyrings@vger.kernel.org, linux-security-module@vger.kernel.org, Eric Biggers <ebiggers@google.com>, stable@vger.kernel.org, Michael Halcrow <mhalcrow@google.com>
 
-On Mon, Oct 02, 2017 at 09:33:12PM -0400, Jérémy Lefaure wrote:
-> On Mon, 2 Oct 2017 15:22:24 -0400
-> bfields@fieldses.org (J. Bruce Fields) wrote:
-> 
-> > Mainly I'd just like to know which you're asking for.  Do you want me to
-> > apply this, or to ACK it so someone else can?  If it's sent as a series
-> > I tend to assume the latter.
-> > 
-> > But in this case I'm assuming it's the former, so I'll pick up the nfsd
-> > one....
-> Could you to apply the NFSD patch ("nfsd: use ARRAY_SIZE") with the
-> Reviewed-by: Jeff Layton <jlayton@redhat.com>) tag please ?
-> 
-> This patch is an individual patch and it should not have been sent in a
-> series (sorry about that).
+From: Eric Biggers <ebiggers@google.com>
 
-Applying for 4.15, thanks.--b.
+In eCryptfs, we failed to verify that the authentication token keys are
+not revoked before dereferencing their payloads, which is problematic
+because the payload of a revoked key is NULL.  request_key() *does* skip
+revoked keys, but there is still a window where the key can be revoked
+before we acquire the key semaphore.
+
+Fix it by updating ecryptfs_get_key_payload_data() to return
+-EKEYREVOKED if the key payload is NULL.  For completeness we check this
+for "encrypted" keys as well as "user" keys, although encrypted keys
+cannot be revoked currently.
+
+Alternatively we could use key_validate(), but since we'll also need to
+fix ecryptfs_get_key_payload_data() to validate the payload length, it
+seems appropriate to just check the payload pointer.
+
+Fixes: 237fead61998 ("[PATCH] ecryptfs: fs/Makefile and fs/Kconfig")
+Reviewed-by: James Morris <james.l.morris@oracle.com>
+Cc: <stable@vger.kernel.org>    [v2.6.19+]
+Cc: Michael Halcrow <mhalcrow@google.com>
+Signed-off-by: Eric Biggers <ebiggers@google.com>
+---
+
+Changed since v1: added Reviewed-by and resent in series with just the
+ecryptfs patches.  Can this please be taken through the ecryptfs tree?
+
+ fs/ecryptfs/ecryptfs_kernel.h | 24 +++++++++++++++++-------
+ fs/ecryptfs/keystore.c        |  9 ++++++++-
+ 2 files changed, 25 insertions(+), 8 deletions(-)
+
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 9c351bf757b2..3fbc0ff79699 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -84,11 +84,16 @@ struct ecryptfs_page_crypt_context {
+ static inline struct ecryptfs_auth_tok *
+ ecryptfs_get_encrypted_key_payload_data(struct key *key)
+ {
+-	if (key->type == &key_type_encrypted)
+-		return (struct ecryptfs_auth_tok *)
+-			(&((struct encrypted_key_payload *)key->payload.data[0])->payload_data);
+-	else
++	struct encrypted_key_payload *payload;
++
++	if (key->type != &key_type_encrypted)
+ 		return NULL;
++
++	payload = key->payload.data[0];
++	if (!payload)
++		return ERR_PTR(-EKEYREVOKED);
++
++	return (struct ecryptfs_auth_tok *)payload->payload_data;
+ }
+ 
+ static inline struct key *ecryptfs_get_encrypted_key(char *sig)
+@@ -114,12 +119,17 @@ static inline struct ecryptfs_auth_tok *
+ ecryptfs_get_key_payload_data(struct key *key)
+ {
+ 	struct ecryptfs_auth_tok *auth_tok;
++	struct user_key_payload *ukp;
+ 
+ 	auth_tok = ecryptfs_get_encrypted_key_payload_data(key);
+-	if (!auth_tok)
+-		return (struct ecryptfs_auth_tok *)user_key_payload_locked(key)->data;
+-	else
++	if (auth_tok)
+ 		return auth_tok;
++
++	ukp = user_key_payload_locked(key);
++	if (!ukp)
++		return ERR_PTR(-EKEYREVOKED);
++
++	return (struct ecryptfs_auth_tok *)ukp->data;
+ }
+ 
+ #define ECRYPTFS_MAX_KEYSET_SIZE 1024
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 3cf1546dca82..fa218cd64f74 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -459,7 +459,8 @@ static int ecryptfs_verify_version(u16 version)
+  * @auth_tok_key: key containing the authentication token
+  * @auth_tok: authentication token
+  *
+- * Returns zero on valid auth tok; -EINVAL otherwise
++ * Returns zero on valid auth tok; -EINVAL if the payload is invalid; or
++ * -EKEYREVOKED if the key was revoked before we acquired its semaphore.
+  */
+ static int
+ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
+@@ -468,6 +469,12 @@ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
+ 	int rc = 0;
+ 
+ 	(*auth_tok) = ecryptfs_get_key_payload_data(auth_tok_key);
++	if (IS_ERR(*auth_tok)) {
++		rc = PTR_ERR(*auth_tok);
++		*auth_tok = NULL;
++		goto out;
++	}
++
+ 	if (ecryptfs_verify_version((*auth_tok)->version)) {
+ 		printk(KERN_ERR "Data structure version mismatch. Userspace "
+ 		       "tools must match eCryptfs kernel module with major "
+-- 
+2.14.2.920.gcf0c67979c-goog
