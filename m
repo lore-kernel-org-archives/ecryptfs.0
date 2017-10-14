@@ -1,92 +1,126 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH 0/3] eCryptfs: Adjustments for several function
- implementations
-Date: Fri, 13 Oct 2017 21:29:42 -0400
-Message-ID: <66a69c57-4dff-bed7-75e8-2ebb92f20909@canonical.com>
-References: <56e0a575-2a9e-120f-6a22-96d9fa4b151e@users.sourceforge.net>
+Subject: Re: [PATCH 08/18] ecryptfs: use ARRAY_SIZE
+Date: Fri, 13 Oct 2017 21:31:40 -0400
+Message-ID: <3c5e2bb7-7c16-87cb-899f-8c9c322ce5da@canonical.com>
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <20171001193101.8898-9-jeremy.lefaure@lse.epita.fr>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="Ov4WWWjSgSW6mm1b0lKD8BP50r4agkujA"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <56e0a575-2a9e-120f-6a22-96d9fa4b151e@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
+ boundary="9k395uSrvgeGEJTESlhDJDm0RIqcljEB3"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171001193101.8898-9-jeremy.lefaure@lse.epita.fr>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>, ecryptfs@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---Ov4WWWjSgSW6mm1b0lKD8BP50r4agkujA
-Content-Type: multipart/mixed; boundary="UBcVc1NFnnhKc91KDtf49M2bfwBP31rSg";
+--9k395uSrvgeGEJTESlhDJDm0RIqcljEB3
+Content-Type: multipart/mixed; boundary="9cba0v77ddawdJXVH3RJ7mvoLN0Ud9dQn";
  protected-headers="v1"
 From: Tyler Hicks <tyhicks@canonical.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
- ecryptfs@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
-Message-ID: <66a69c57-4dff-bed7-75e8-2ebb92f20909@canonical.com>
-Subject: Re: [PATCH 0/3] eCryptfs: Adjustments for several function
- implementations
-References: <56e0a575-2a9e-120f-6a22-96d9fa4b151e@users.sourceforge.net>
-In-Reply-To: <56e0a575-2a9e-120f-6a22-96d9fa4b151e@users.sourceforge.net>
+To: =?UTF-8?Q?J=c3=a9r=c3=a9my_Lefaure?= <jeremy.lefaure@lse.epita.fr>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Message-ID: <3c5e2bb7-7c16-87cb-899f-8c9c322ce5da@canonical.com>
+Subject: Re: [PATCH 08/18] ecryptfs: use ARRAY_SIZE
+References: <20171001193101.8898-1-jeremy.lefaure@lse.epita.fr>
+ <20171001193101.8898-9-jeremy.lefaure@lse.epita.fr>
+In-Reply-To: <20171001193101.8898-9-jeremy.lefaure@lse.epita.fr>
 
---UBcVc1NFnnhKc91KDtf49M2bfwBP31rSg
+--9cba0v77ddawdJXVH3RJ7mvoLN0Ud9dQn
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 08/19/2017 12:54 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 19 Aug 2017 18:15:14 +0200
+On 10/01/2017 03:30 PM, J=C3=A9r=C3=A9my Lefaure wrote:
+> Using the ARRAY_SIZE macro improves the readability of the code.
 >=20
-> Some update suggestions were taken into account
-> from static source code analysis.
+> Found with Coccinelle with the following semantic patch:
+> @r depends on (org || report)@
+> type T;
+> T[] E;
+> position p;
+> @@
+> (
+>  (sizeof(E)@p /sizeof(*E))
+> |
+>  (sizeof(E)@p /sizeof(E[...]))
+> |
+>  (sizeof(E)@p /sizeof(T))
+> )
 >=20
-> Markus Elfring (3):
->   Delete 21 error messages for a failed memory allocation
->   Return an error code only as a constant in ecryptfs_add_global_auth_t=
-ok()
->   Adjust four checks for null pointers
+> Signed-off-by: J=C3=A9r=C3=A9my Lefaure <jeremy.lefaure@lse.epita.fr>
 
-Hello! I'm sorry for just now getting to these patches. All three look
-fine to me. I'll get them into 4.15.
+Hey J=C3=A9r=C3=A9my - Thanks for the nice cleanup. I'll get it into 4.15=
+=2E
 
 Tyler
 
+> ---
+>  fs/ecryptfs/crypto.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
 >=20
->  fs/ecryptfs/crypto.c    | 22 +++-------------------
->  fs/ecryptfs/inode.c     |  3 ---
->  fs/ecryptfs/keystore.c  | 46 +++++++++++------------------------------=
------
->  fs/ecryptfs/messaging.c |  6 ------
->  fs/ecryptfs/miscdev.c   |  6 +-----
->  fs/ecryptfs/mmap.c      |  2 --
->  6 files changed, 15 insertions(+), 70 deletions(-)
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index 7acd57da4f14..2e78e851788e 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -36,6 +36,7 @@
+>  #include <linux/scatterlist.h>
+>  #include <linux/slab.h>
+>  #include <asm/unaligned.h>
+> +#include <linux/kernel.h>
+>  #include "ecryptfs_kernel.h"
+> =20
+>  #define DECRYPT		0
+> @@ -884,8 +885,7 @@ static int ecryptfs_process_flags(struct ecryptfs_c=
+rypt_stat *crypt_stat,
+>  	u32 flags;
+> =20
+>  	flags =3D get_unaligned_be32(page_virt);
+> -	for (i =3D 0; i < ((sizeof(ecryptfs_flag_map)
+> -			  / sizeof(struct ecryptfs_flag_map_elem))); i++)
+> +	for (i =3D 0; i < ARRAY_SIZE(ecryptfs_flag_map); i++)
+>  		if (flags & ecryptfs_flag_map[i].file_flag) {
+>  			crypt_stat->flags |=3D ecryptfs_flag_map[i].local_flag;
+>  		} else
+> @@ -922,8 +922,7 @@ void ecryptfs_write_crypt_stat_flags(char *page_vir=
+t,
+>  	u32 flags =3D 0;
+>  	int i;
+> =20
+> -	for (i =3D 0; i < ((sizeof(ecryptfs_flag_map)
+> -			  / sizeof(struct ecryptfs_flag_map_elem))); i++)
+> +	for (i =3D 0; i < ARRAY_SIZE(ecryptfs_flag_map); i++)
+>  		if (crypt_stat->flags & ecryptfs_flag_map[i].local_flag)
+>  			flags |=3D ecryptfs_flag_map[i].file_flag;
+>  	/* Version is in top 8 bits of the 32-bit flag vector */
 >=20
 
 
 
---UBcVc1NFnnhKc91KDtf49M2bfwBP31rSg--
+--9cba0v77ddawdJXVH3RJ7mvoLN0Ud9dQn--
 
---Ov4WWWjSgSW6mm1b0lKD8BP50r4agkujA
+--9k395uSrvgeGEJTESlhDJDm0RIqcljEB3
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCgAGBQJZ4WiGAAoJENaSAD2qAscKq1cP/2uPMyQ+2FoI84hohQlNHu5b
-IObzjYhzOPu5NQDMaJi7l652bo27RhbAiMDHc6/uJBBItNt5Tdn1VCsee6XwP8Ur
-uN/wZjn7K+FXFrj1HKVQPqdYcXVoG3x7srrrZ1caKJaOIKLBo0aZ1WhnOR7QpeRc
-2+hCpW3rxnuuqEuYZyXC3KCGjuuaAoUoTQa3WNWBjgBNxJFjM8vBZUEDRdxVYB0m
-0KyYNjZ0ybIQaJQ0zL16pHufF6+m7c3XfB26znYldXzy9jJkny37u8IaBxAlVOF/
-qgliWI2lkKKUWxfBu+TjYLoLGsmfO7J9uwEosS3fJtEBYP0xdaOVp3VHxIOVNmQf
-LyE0iwwUJd0tNe7eKdxIn7hNVONtZhG+j6XsesoNF+/yTYYdmfe4+flr1SSSsB/u
-QsPaMLK0T3muBe3+Vg5Qz52h2+o16RS/x8xDiqFlc49ch9CyqkmTqApSsZpOZh3E
-PBdplqKQIsSB/D6VwpQbTBVu/iKj2CKGPXFJo4SnkSLvtfSGIaS+JbNVT5mjta8W
-kZranCXCCq15wHMqYckt0a+sYGLw46d7omhiMxh44nSUxQ2u8xz9j91IGPJDJKD8
-25JuOmXZzztPTne0BqjGUadoTQJsihkz0p/mIqKFjPkdsoghP70ks9hGT+26LZ3S
-1/FqjCMQkJhfWYkjYuzA
-=/yJ7
+iQIcBAEBCgAGBQJZ4Wj8AAoJENaSAD2qAscKtnUP/j9ZvKUQbdSihpbSQeW2wUrI
+AtH+HBUKKlDpdQU/JoPBWndbuWgXBOoaPhDqiryNPlnq3/zlONh5aAfS8ayNXZdS
+4bsw53XEdPUuSadsK/hcEUFQ24eZA/d3NGOcDedyToXbR8Q6RmRFRPZ4ygNMhFzi
+H48HSpjKfuImXOziXotbORxUHZNb5128w0T979OT39JSIEPC85vf2PLbDCPbdMmC
+W3nAiLHHdDT4BTSU4hPoEnPX56o4wbRMgi4IG8bG5EN6EkbzJgk95kL13hHw9gld
+Da3Nih9PRFpdaIZYJv7QpDcWy+p+CdjGlb1N9cdpSEqpKDTJJni6JQqNbBi+a2pT
+ugLawB+iXUo2AeWiHZBxPVEk7QAXg3zDF6U0Eyy7SdhEXJ9cu9TlexEO3cTcZxI0
+BATHu9q2eWxYPKzO7udYKM66i/UjZj7jvfBlpab29jeE2LsowU4pfRWgmIYZRIP8
+IEu0yUpii65zZTG/Y9MKVdXjf+9KsIPVeuKzgIXS1ZO1SS9ivosTrQvsK1JRaGQ7
+fT6EaoSm7dmZ42b3g512aeCCdsJlizZgDIJnNPbQv1ajFBhh+MNtxUA34fUWfFvD
+MQ4ZrvPbUrMD1i5mafoAJ2tvuIOuo0yUyQFhW7MqXEUP6mD+uyGkQ9HkOYC/uu2i
+ABTFmuwKTR+BOFHkHmUd
+=0ZF0
 -----END PGP SIGNATURE-----
 
---Ov4WWWjSgSW6mm1b0lKD8BP50r4agkujA--
+--9k395uSrvgeGEJTESlhDJDm0RIqcljEB3--
