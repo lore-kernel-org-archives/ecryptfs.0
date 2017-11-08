@@ -1,107 +1,162 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] ecryptfs: remove unnecessary i_version bump
-Date: Thu, 2 Nov 2017 17:43:48 -0500
-Message-ID: <5394f39a-2ae4-0e42-d2a0-bac52fc12352@canonical.com>
-References: <20171030150131.2587-1-jlayton@kernel.org>
- <1509375810.5412.22.camel@poochiereds.net>
+Subject: Re: [PATCH] ecryptfs: Fix stat command displays wrong file size in
+ xattr region
+Date: Tue, 7 Nov 2017 18:22:08 -0600
+Message-ID: <ef57ab68-f081-e762-7321-4dd7c3b33c33@canonical.com>
+References: <1498116075-2195-1-git-send-email-kerneljasonxing@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
  protocol="application/pgp-signature";
- boundary="xkRSxWeGKOnk0uVbSObrpTXcDXvmb3VCM"
+ boundary="C5qdTpGPae3OXCeXGMRDM8sDPR9TXXRwb"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:44361 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:49706 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934438AbdKBWny (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 2 Nov 2017 18:43:54 -0400
-In-Reply-To: <1509375810.5412.22.camel@poochiereds.net>
+        with ESMTP id S1752190AbdKHAWP (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 7 Nov 2017 19:22:15 -0500
+In-Reply-To: <1498116075-2195-1-git-send-email-kerneljasonxing@gmail.com>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Jeff Layton <jlayton@poochiereds.net>
-Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jason Xing <kerneljasonxing@gmail.com>, ecryptfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---xkRSxWeGKOnk0uVbSObrpTXcDXvmb3VCM
-Content-Type: multipart/mixed; boundary="KSWb9rxomfVpcOaAFpSRN5Lj75fauARnA";
+--C5qdTpGPae3OXCeXGMRDM8sDPR9TXXRwb
+Content-Type: multipart/mixed; boundary="JXrDXnke9lqKPKbDC35T8BwQdsiMAi9Nf";
  protected-headers="v1"
 From: Tyler Hicks <tyhicks@canonical.com>
-To: Jeff Layton <jlayton@poochiereds.net>
-Cc: ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Message-ID: <5394f39a-2ae4-0e42-d2a0-bac52fc12352@canonical.com>
-Subject: Re: [PATCH] ecryptfs: remove unnecessary i_version bump
-References: <20171030150131.2587-1-jlayton@kernel.org>
- <1509375810.5412.22.camel@poochiereds.net>
-In-Reply-To: <1509375810.5412.22.camel@poochiereds.net>
+To: Jason Xing <kerneljasonxing@gmail.com>, ecryptfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Message-ID: <ef57ab68-f081-e762-7321-4dd7c3b33c33@canonical.com>
+Subject: Re: [PATCH] ecryptfs: Fix stat command displays wrong file size in
+ xattr region
+References: <1498116075-2195-1-git-send-email-kerneljasonxing@gmail.com>
+In-Reply-To: <1498116075-2195-1-git-send-email-kerneljasonxing@gmail.com>
 
---KSWb9rxomfVpcOaAFpSRN5Lj75fauARnA
+--JXrDXnke9lqKPKbDC35T8BwQdsiMAi9Nf
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 10/30/2017 10:03 AM, Jeff Layton wrote:
-> On Mon, 2017-10-30 at 11:01 -0400, Jeff Layton wrote:
->> From: Jeff Layton <jlayton@redhat.com>
->>
->> There is no need to bump the i_version counter here, as ecryptfs does
->> not set the MS_I_VERSION flag, and doesn't use it internally. It also
->=20
-> My apologies, I've been sitting on this patch for a while now. That
-> should be changed to the SB_I_VERSION flag. Tyler, do you mind fixing
-> that up before merge, or would you like me to resend?
+Hi Jason! My apologies for not getting to this review earlier. I haven't
+had much time to spend on eCryptfs lately.
 
-That's no problem. Thanks for the patch! It looks good to me and I'll
-take it through my tree.
+Thanks for this bug fix! This patch looks mostly good but I have a
+suggestion and question below.
+
+On 06/22/2017 02:21 AM, Jason Xing wrote:
+> When doing ecryptfs_read_and_validate_xattr_region(), eCryptfs
+> reads only 16 bytes from xattr region. However, the lower filesystem
+> like ext4 always compares 16 with the size of ecryptfs xattr region
+> which is 81 bytes, and then it will return ERANGE (-34) and do not
+> read that region.
+>=20
+> Signed-off-by: Jason Xing <kerneljasonxing@gmail.com>
+> ---
+>  fs/ecryptfs/crypto.c | 33 +++++++++++++++++++++++++--------
+>  1 file changed, 25 insertions(+), 8 deletions(-)
+>=20
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index e5e29f8..895140f 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -1389,19 +1389,36 @@ int ecryptfs_read_xattr_region(char *page_virt,=
+ struct inode *ecryptfs_inode)
+>  int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+>  					    struct inode *inode)
+>  {
+> -	u8 file_size[ECRYPTFS_SIZE_AND_MARKER_BYTES];
+> -	u8 *marker =3D file_size + ECRYPTFS_FILE_SIZE_BYTES;
+> +	char *page_virt;
+>  	int rc;
+> =20
+> +	page_virt =3D kmem_cache_alloc(ecryptfs_header_cache, GFP_USER);
+> +	if (!page_virt) {
+> +		rc =3D -ENOMEM;
+> +		printk(KERN_ERR "%s: Unable to allocate page_virt\n",
+> +		       __func__);
+> +		goto out;
+> +	}
+>  	rc =3D ecryptfs_getxattr_lower(ecryptfs_dentry_to_lower(dentry),
+>  				     ecryptfs_inode_to_lower(inode),
+> -				     ECRYPTFS_XATTR_NAME, file_size,
+> -				     ECRYPTFS_SIZE_AND_MARKER_BYTES);
+> -	if (rc < ECRYPTFS_SIZE_AND_MARKER_BYTES)
+> -		return rc >=3D 0 ? -EINVAL : rc;
+> -	rc =3D ecryptfs_validate_marker(marker);
+> +				     ECRYPTFS_XATTR_NAME, page_virt,
+> +				     ECRYPTFS_DEFAULT_EXTENT_SIZE);
+
+I worry that the ecryptfs_header_cache size and
+ECRYPTFS_DEFAULT_EXTENT_SIZE aren't tied together in any way. What do
+you think about using ecryptfs_header_cache->size instead of
+ECRYPTFS_DEFAULT_EXTENT_SIZE here?
+
+I think you probably copied this call to ecryptfs_getxattr_lower() from
+elsewhere in fs/ecryptfs/* so I wouldn't expect you to have use
+ecryptfs_header_cache->size but maybe we should correct it before making
+the same mistake twice.
+
+> +	if (rc < 0) {
+> +		if (unlikely(ecryptfs_verbosity > 0))
+> +			printk(KERN_INFO "Error attempting to read the [%s] "
+> +			       "xattr from the lower file; return value =3D "
+> +			       "[%d]\n", ECRYPTFS_XATTR_NAME, rc);
+> +		rc =3D -EINVAL;
+
+Why not pass rc up from ecryptfs_getxattr_lower() instead of masking its
+error with -EINVAL?
+
+> +		goto out;
+> +	}
+
+Lets make sure that rc is greater than or equal to
+ECRYPTFS_FILE_SIZE_AND_MARKER_BYTES before proceeding.
+
+> +	rc =3D ecryptfs_validate_marker(page_virt + ECRYPTFS_FILE_SIZE_BYTES)=
+;
+>  	if (!rc)
+> -		ecryptfs_i_size_init(file_size, inode);
+> +		ecryptfs_i_size_init(page_virt, inode);
+> +out:
+> +	if (page_virt) {
+> +		memset(page_virt, 0, PAGE_SIZE);
+
+I don't feel like a memset() is needed here since the header metadata is
+not considered to be secret in itself. All secrets are encrypted.
 
 Tyler
 
->=20
->> only bumps it when the inode is instantiated, which doesn't make much
->> sense.
->>
->> Signed-off-by: Jeff Layton <jlayton@redhat.com>
->> ---
->>  fs/ecryptfs/inode.c | 1 -
->>  1 file changed, 1 deletion(-)
->>
->> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
->> index efc2db42d175..b59b083379ea 100644
->> --- a/fs/ecryptfs/inode.c
->> +++ b/fs/ecryptfs/inode.c
->> @@ -64,7 +64,6 @@ static int ecryptfs_inode_set(struct inode *inode, v=
-oid *opaque)
->>  	/* i_size will be overwritten for encrypted regular files */
->>  	fsstack_copy_inode_size(inode, lower_inode);
->>  	inode->i_ino =3D lower_inode->i_ino;
->> -	inode->i_version++;
->>  	inode->i_mapping->a_ops =3D &ecryptfs_aops;
->> =20
->>  	if (S_ISLNK(inode->i_mode))
+> +		kmem_cache_free(ecryptfs_header_cache, page_virt);
+> +	}
+>  	return rc;
+>  }
+> =20
 >=20
 
 
 
---KSWb9rxomfVpcOaAFpSRN5Lj75fauARnA--
+--JXrDXnke9lqKPKbDC35T8BwQdsiMAi9Nf--
 
---xkRSxWeGKOnk0uVbSObrpTXcDXvmb3VCM
+--C5qdTpGPae3OXCeXGMRDM8sDPR9TXXRwb
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBCgAGBQJZ+5+kAAoJENaSAD2qAscK0F4P/277+r+KO8ne3Adi0gzs/GQS
-YNgCXibz7G5NjmIsVSLzqOZ9fFhsIHU070SfqAVsEVn/zzKPzruo+3/RD62y6T+D
-Gy1jieVhyOOMwKVsb+XAsuz5So0FDIvHQR94UyDl2OPFOFkGCn0VZLNNc3pNcG0a
-cQwTsmXLSMNXn4XI1cddqTb7PnIi/mYCGrOQQheeE+o/Tf9INvl/QVoHoVj78LkG
-Z7M+2z7OmLSAttmH+J51bm5O6LVZdjhNmhzpXP7eYNSDIVmOVglm0owUcdSVFZDU
-azMpTqu0QvCL6/3tU95TTDUlGQyIE2rvED/s8wmROxxn0BGlgLK+33tflwtd5wco
-EJt131dZBvH6iyAQWUZG+K2FEtm7IZi7mO1tyzk+Isr8bbg5t21b1ruJEgAWS/CO
-fvGcu9hO1YSlS8oPuJ3JofH5+bZXSoS2saCk5R7bPMwL5pOmlq3NQ6+R7sUudTfl
-OpMi+Y7J8rNR51kxVa+0U9utTZW+8swxxL1cL6sF5jbNqLmIrcgA3H5gu1O9WIlu
-piIWM3AQXVckMrNbEIY4Nbfefm6Y5qOmMCBV3syCuIleGDUDZcLP2rdDTjcDhZe9
-rJ/pUhUDenDxeCpEcsyxvrW0p9reTeH0Ylz25GbejNjmZ9FY+hkI4fyJwL7QYZkl
-Jilz5mJncxyzqKWVMbI5
-=ymLQ
+iQIcBAEBCgAGBQJaAk4wAAoJENaSAD2qAscKphcP/A25kwaxE0mGmNRzyeU+Se6Z
+z9EKhzF1Bez6u3yDHIKqWXm8oMUqyd/9Dfp8b3R2oeIHtwlEYqWx4NP99yWRP2wp
+VkwQTxbXhD3/KCYrjjNSI6016h9x4V6RVhH0v4La5HTOexHYVIe74OpJqeBMIYQ+
++kZEht0wy8gKKW6EEZndjBgkG3ZKr0WAaLw9pV2yUesSfK8/a9wJ6EKZu7LLXsHA
+hhxcSJ1dD4jUcVhwk2NNeXJxMn0gMPWFHBqzU6+GBIQAPw4uKgzW/xH3oR52xH3V
+JYA9fjn8so+MmFM/csDRLI+XoAvTSQIZadQ7e+bkMQXBF5G1k/ouNnahlUtI64zM
+fTpx/OxiUKznZeujHASbafB5jeOvBaopzIaaFu5uy18KK4tJ9Nj5PddmnKNtBCLO
+/CFRtM+w8g8QqIn06C0XbrzkTMEv+flu7I/xm1uWHSMJpuXhNwzTUjuG9ApHqdaL
+NsMcQk/M4l0DmG9NmvL5gm/GEg/gxA5TApEbMXgQI6u4+lXG4V/owYOb+v6C/GiO
+9fxa6+ABODt4XV2CBLurgPKQWs3tg5RnKGctf4FIOObxt5OOSEYYsGk0GVL2CJmN
+uE2CF50o1AUOcxEFbNRjWHlHngLxa1PtZsx1E+LQPSPIzzmNXkhxmhouVkwk5Scm
++wm5t6rI9RApldqrWYQ8
+=E3mB
 -----END PGP SIGNATURE-----
 
---xkRSxWeGKOnk0uVbSObrpTXcDXvmb3VCM--
+--C5qdTpGPae3OXCeXGMRDM8sDPR9TXXRwb--
