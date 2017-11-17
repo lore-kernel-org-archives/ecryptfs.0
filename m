@@ -1,157 +1,101 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2] ecryptfs: sync before truncating lower inode
-Date: Wed, 15 Nov 2017 16:58:03 -0800
-Message-ID: <CAKdAkRTvfsAnGujX43=Z=_ihZFQsRycy7mXHwLxTfQj1-w=-bg@mail.gmail.com>
-References: <20170418233649.78805-1-apronin@chromium.org> <20170426180215.42572-1-apronin@chromium.org>
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 4.15-rc1
+Date: Fri, 17 Nov 2017 21:27:04 +0000
+Message-ID: <20171117212244.GA1244@sec>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-ua0-f182.google.com ([209.85.217.182]:47782 "EHLO
-        mail-ua0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758343AbdKPA6F (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 15 Nov 2017 19:58:05 -0500
-In-Reply-To: <20170426180215.42572-1-apronin@chromium.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:51353 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762466AbdKQV1J (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 17 Nov 2017 16:27:09 -0500
+Content-Disposition: inline
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrey Pronin <apronin@chromium.org>
-Cc: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Gwendal Grignou <gwendal@chromium.org>, Dmitry Torokhov <dtor@chromium.org>
-
-On Wed, Apr 26, 2017 at 11:02 AM, Andrey Pronin <apronin@chromium.org> wrote:
-> If the updated ecryptfs header data is not written to disk before
-> the lower file is truncated, a crash may leave the filesystem
-> in the state when the lower file truncation is journaled, while
-> the changes to the ecryptfs header are lost (if the underlying
-> filesystem is ext4 in data=ordered mode, for example). As a result,
-> upon remounting and repairing the file may have a pre-truncation
-> length and garbage data after the post-truncation end.
->
-> To reproduce, make a snapshot of the underlying ext4 filesystem
-> mounted with data=ordered while asynchronously truncating to zero a
-> group of files in ecryptfs mounted on top. Mount ecryptfs for the
-> snapshot and check the contents of the group of files that was
-> being truncated. The following script reproduces it in almost 100%
-> of runs:
->
-> cd /tmp
-> mkdir -p ./loop
-> dd if=/dev/zero of=./file.img bs=1M count=10
-> PW=secret
->
-> LOOPDEV=`losetup --find --show ./file.img`
-> mkfs -t ext4 $LOOPDEV
-> mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
->  $LOOPDEV ./loop
-> mkdir -p ./loop/vault ./loop/mount
-> mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-> ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-> ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
->  ./loop/vault ./loop/mount
-> for i in `seq 1 100`; do echo $i > ./loop/mount/test.$i; done
-> sync
-> for i in `seq 100 -1 1`; do truncate -s 0 ./loop/mount/test.$i; done &
-> sleep 0.1; sync; cp ./file.img ./file.snap; sleep 1
-> umount ./loop/mount
-> umount ./loop
-> losetup -d $LOOPDEV
->
-> LOOPDEV=`losetup --find --show ./file.snap`
-> mount -t ext4 -o rw,nodev,relatime,seclabel,commit=600,data=ordered\
->  $LOOPDEV ./loop
-> mount -t ecryptfs -o rw,relatime,seclabel,ecryptfs_cipher=aes,\
-> ecryptfs_key_bytes=16,ecryptfs_unlink_sigs,ecryptfs_passthrough=no,\
-> ecryptfs_enable_filename_crypto=no,passphrase_passwd="$PW",no_sig_cache\
->  ./loop/vault ./loop/mount
-> for i in `seq 1 100`; do
->   if [ `stat -c %s ./loop/mount/test.$i` != 0 ] &&
->      [ `cat ./loop/mount/test.$i` != $i ]; then
->        echo -n "!!! garbage at $i: ";  cat ./loop/mount/test.$i; echo
->   fi
-> done
-> umount ./loop/mount
-> umount ./loop
-> losetup -d $LOOPDEV
->
-> Signed-off-by: Andrey Pronin <apronin@chromium.org>
-> ---
->
-> Changes since v1:
->  - Switched to datasync=1 for ecryptfs_fsync_lower() in truncate_upper()\
-
-It looks like this patch got lost... Can we get it in?
-
-Thanks!
-
->
->  fs/ecryptfs/ecryptfs_kernel.h |  1 +
->  fs/ecryptfs/inode.c           |  6 ++++++
->  fs/ecryptfs/read_write.c      | 22 ++++++++++++++++++++++
->  3 files changed, 29 insertions(+)
->
-> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-> index f622a733f7ad..567698421270 100644
-> --- a/fs/ecryptfs/ecryptfs_kernel.h
-> +++ b/fs/ecryptfs/ecryptfs_kernel.h
-> @@ -689,6 +689,7 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
->                                      pgoff_t page_index,
->                                      size_t offset_in_page, size_t size,
->                                      struct inode *ecryptfs_inode);
-> +int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync);
->  struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index);
->  int ecryptfs_parse_packet_length(unsigned char *data, size_t *size,
->                                  size_t *length_size);
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index 5eab400e2590..a96988ba6928 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -827,6 +827,12 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
->                                "rc = [%d]\n", rc);
->                         goto out;
->                 }
-> +               rc = ecryptfs_fsync_lower(inode, 1);
-> +               if (rc) {
-> +                       printk(KERN_WARNING "Problem with ecryptfs_fsync_lower,"
-> +                              "continue without syncing; "
-> +                              "rc = [%d]\n", rc);
-> +               }
->                 /* We are reducing the size of the ecryptfs file, and need to
->                  * know if we need to reduce the size of the lower file. */
->                 lower_size_before_truncate =
-> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-> index 09fe622274e4..ba2dd6263875 100644
-> --- a/fs/ecryptfs/read_write.c
-> +++ b/fs/ecryptfs/read_write.c
-> @@ -271,3 +271,25 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
->         flush_dcache_page(page_for_ecryptfs);
->         return rc;
->  }
-> +
-> +/**
-> + * ecryptfs_fsync_lower
-> + * @ecryptfs_inode: The eCryptfs inode
-> + * @datasync: Only perform a fdatasync operation
-> + *
-> + * Write back data and metadata for the lower file to disk.  If @datasync is
-> + * set only metadata needed to access modified file data is written.
-> + *
-> + * Returns 0 on success; less than zero on error
-> + */
-> +int ecryptfs_fsync_lower(struct inode *ecryptfs_inode, int datasync)
-> +{
-> +       struct file *lower_file;
-> +
-> +       lower_file = ecryptfs_inode_to_private(ecryptfs_inode)->lower_file;
-> +       if (!lower_file)
-> +               return -EIO;
-> +       if (!lower_file->f_op->fsync)
-> +               return 0;
-> +       return vfs_fsync(lower_file, datasync);
-> +}
-> --
-> 2.13.0.rc0.306.g87b477812d-goog
->
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
+--iFRdW5/EC4oqxDHL
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Dmitry
+Hi Linus,
+
+The following changes since commit 0b07194bb55ed836c2cc7c22e866b87a14681984:
+
+  Linux 4.14-rc7 (2017-10-29 13:58:38 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/e=
+cryptfs-4.15-rc1-fixes
+
+for you to fetch changes up to 4670269faba728683f7250319a65390946c028e3:
+
+  eCryptfs: constify attribute_group structures. (2017-11-08 17:38:14 +0000)
+
+----------------------------------------------------------------
+* Miscellaneous code cleanups and refactoring
+* Fix a possible use after free bug when unloading the module
+
+----------------------------------------------------------------
+Arvind Yadav (1):
+      eCryptfs: constify attribute_group structures.
+
+Colin Ian King (1):
+      ecryptfs: add missing \n to end of various error messages
+
+Dan Carpenter (1):
+      eCryptfs: use after free in ecryptfs_release_messaging()
+
+Jeff Layton (1):
+      ecryptfs: remove unnecessary i_version bump
+
+J=E9r=E9my Lefaure (1):
+      ecryptfs: use ARRAY_SIZE
+
+Markus Elfring (3):
+      ecryptfs: Delete 21 error messages for a failed memory allocation
+      ecryptfs: Return an error code only as a constant in ecryptfs_add_glo=
+bal_auth_tok()
+      ecryptfs: Adjust four checks for null pointers
+
+Rasmus Villemoes (1):
+      ecryptfs: remove private bin2hex implementation
+
+ fs/ecryptfs/crypto.c          | 44 ++++++---------------------------------
+ fs/ecryptfs/ecryptfs_kernel.h |  9 +++++++-
+ fs/ecryptfs/inode.c           |  4 ----
+ fs/ecryptfs/keystore.c        | 48 +++++++++++----------------------------=
+----
+ fs/ecryptfs/main.c            |  4 ++--
+ fs/ecryptfs/messaging.c       | 13 ++++--------
+ fs/ecryptfs/miscdev.c         |  8 ++------
+ fs/ecryptfs/mmap.c            |  2 --
+ 8 files changed, 34 insertions(+), 98 deletions(-)
+
+--iFRdW5/EC4oqxDHL
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJaD1QlAAoJENaSAD2qAscKcn0P+QHE+u3anKjIXzmycMD64tLT
+OrJ80yUh8ejz1IdRVpz/8p/Oc4i9SBfWuejUflcED3Y3maFMJjEYMF4mD1Yh47XI
+uFwal7bA3xLifcmejNl6xwaKUJhAuTmqrIBW3b0victmrnDpRx3b80RR54TL5UY/
++0gPdYkC/mnK9jKdc6TRSTrRarqgC+L16Y8fVOVkKkVIMECcpoe7yam611dPO7k0
+nBpkq0haxr4es0/BY6OTEwrdQHD8NkNsBMvGjUvdoGiP9Nps6X9e3NvnQ5wHakIX
+cysIevHRead/48p0iShLRRCeeNFqL4eDIPNJLArxitIvNH/6VmdpHZReRN6sj5Yb
+ovnDsvnA8M5x5dnol7Ibt5cE+OlSE24WxDEINSh9c7Z79a9Os2wO4gazKk+iCBl1
+93MUv2uPHPiXVylRMLGcraF33DpJXYF/mFRdYhDG5QNwxWiM1h34BDUVxVGxeRjW
+xVXY6zEoKtllbw6Ks/QSquIb1wg7ZX1pL54Jhh1nwNfHsLCcZjYURe5cjYzrbfIu
+ZcqU2y3zXaENBw/uRkLEkKfgMd1Vcc99nUUQCrh1CoI5pvkI1uIHbZwWTkewwmaG
+qK4daoaZ45vWWZNsRQX2mPbTh85NwezfcHfTRdsEsJMCDoyXHcevDh/1JYlMm+ZT
+Y+mwUiyvTmrfPOGCRE8g
+=R1m1
+-----END PGP SIGNATURE-----
+
+--iFRdW5/EC4oqxDHL--
