@@ -1,91 +1,76 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] ecryptfs: fix spelling mistake: "cadidate" -> "candidate"
-Date: Wed, 28 Mar 2018 20:46:13 -0500
-Message-ID: <ad0e32a8-e07d-4e9d-8042-b3920b4a40c7@canonical.com>
-References: <20180302090708.25729-1-colin.king@canonical.com>
+Subject: [GIT PULL] eCryptfs fixes for 4.17-rc2
+Date: Thu, 19 Apr 2018 16:10:29 +0000
+Message-ID: <20180419160750.GA16628@sec>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="gTuYeQdrMhs9w1OkPRtfbAAkmHDhMrjBE"
+        protocol="application/pgp-signature"; boundary="0eh6TmSyL6TZE2Uz"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180302090708.25729-1-colin.king@canonical.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gTuYeQdrMhs9w1OkPRtfbAAkmHDhMrjBE
-Content-Type: multipart/mixed; boundary="o6GL6HIyPbUuG0ZuiXt4InQk9boJ8kIZs";
- protected-headers="v1"
-From: Tyler Hicks <tyhicks@canonical.com>
-To: Colin King <colin.king@canonical.com>, ecryptfs@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Message-ID: <ad0e32a8-e07d-4e9d-8042-b3920b4a40c7@canonical.com>
-Subject: Re: [PATCH] ecryptfs: fix spelling mistake: "cadidate" -> "candidate"
-References: <20180302090708.25729-1-colin.king@canonical.com>
-In-Reply-To: <20180302090708.25729-1-colin.king@canonical.com>
-
---o6GL6HIyPbUuG0ZuiXt4InQk9boJ8kIZs
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
-
-On 03/02/2018 03:07 AM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->=20
-> Trivial fix to spelling mistake in debug message text.
->=20
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-
-Looks good to me. Thanks!
-
-Tyler
-
-> ---
->  fs/ecryptfs/keystore.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-> index c89a58cfc991..e74fe84d0886 100644
-> --- a/fs/ecryptfs/keystore.c
-> +++ b/fs/ecryptfs/keystore.c
-> @@ -1880,7 +1880,7 @@ int ecryptfs_parse_packet_set(struct ecryptfs_cry=
-pt_stat *crypt_stat,
->  		candidate_auth_tok =3D &auth_tok_list_item->auth_tok;
->  		if (unlikely(ecryptfs_verbosity > 0)) {
->  			ecryptfs_printk(KERN_DEBUG,
-> -					"Considering cadidate auth tok:\n");
-> +					"Considering candidate auth tok:\n");
->  			ecryptfs_dump_auth_tok(candidate_auth_tok);
->  		}
->  		rc =3D ecryptfs_get_auth_tok_sig(&candidate_auth_tok_sig,
->=20
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
 
+--0eh6TmSyL6TZE2Uz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---o6GL6HIyPbUuG0ZuiXt4InQk9boJ8kIZs--
+Hi Linus,
 
---gTuYeQdrMhs9w1OkPRtfbAAkmHDhMrjBE
+The following changes since commit 3215b9d57a2c75c4305a3956ca303d7004485200:
+
+  Merge tag 'clk-fixes-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux (2018-03-20 17:44:27 -0700)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-4.17-rc2-fixes
+
+for you to fetch changes up to e86281e700cca8a773f9a572fa406adf2784ba5c:
+
+  eCryptfs: don't pass up plaintext names when using filename encryption (2018-04-16 18:51:22 +0000)
+
+----------------------------------------------------------------
+Minor cleanups and a bug fix to completely ignore unencrypted filenames
+in the lower filesystem when filename encryption is enabled at the
+eCryptfs layer.
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      ecryptfs: fix spelling mistake: "cadidate" -> "candidate"
+
+Guenter Roeck (1):
+      ecryptfs: lookup: Don't check if mount_crypt_stat is NULL
+
+Tyler Hicks (1):
+      eCryptfs: don't pass up plaintext names when using filename encryption
+
+ fs/ecryptfs/crypto.c   | 41 ++++++++++++++++++++++++++++-------------
+ fs/ecryptfs/file.c     | 21 ++++++++++++++++-----
+ fs/ecryptfs/inode.c    |  3 +--
+ fs/ecryptfs/keystore.c |  2 +-
+ 4 files changed, 46 insertions(+), 21 deletions(-)
+
+--0eh6TmSyL6TZE2Uz
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAEBCgAdFiEEPgU+cN5AsTrekT5+1pIAPaoCxwoFAlq8RWUACgkQ1pIAPaoC
-xwp3zQ//SBJKNpt480oSsUkg5h/BlqiZgf2jT67eNisdA7e0KS37//7ir+Ed1XjT
-yatYwHThDWydOABLnseIIYTiveXDHAVILpqaAL39j6DDvqM8plO8lVk3Diby0fWJ
-bebqaFk8gAVrRWrMxQUCBg7d8Xi1RjD5JMNFeQzEzF+b/MTl+uud1Oq08mRGAPcS
-36USF3iF9V1KwbWS/7AIok2k8HnrsMVpQ7mgvSDRhfvE9z4yfPB2xv0NZS9Q4N96
-Yn5ChX3clyJAnqYLAoFwVKnrJMd+8rcSsuHLNpj57BagvHMagz7+kQV/cM6XAjoH
-FsFBoXkycpTEpt+fHqpmMb3TOXuzIYqO5xpvSzIPbAQgaKXc3nfHY3thCrjWQxoC
-9r9ODgxq2dE8wuP8PH8Cq7GS9dBv5+7Gom07VqzleQ0XCvDgd7Mgv2FIQv3hJqUj
-lmOp69ausRhvuWBjxNiSb2qe1qUoXtoHAhs9qtgdwlKmI0RG8jcSjRunwfUj4cx1
-A+rNgRLDixw+Tmz1NJrNhuN5S9mY5IGNqgMdPedunnylAQ7c3TtsZZyywZNVygy1
-2Kb2GGjtArq3hPsSlI9xRIqT3EcyJBaXphauVBHdS+uwJysw2h5/BiDkMxJxlHyF
-LRzVNSFAHo1iZ9ZsWHAbiP6avvwlo+9oU3zm32Qt+61tFDrcnu8=
-=7LXN
+iQIcBAEBCgAGBQJa2L9pAAoJENaSAD2qAscKDFYP/R1LQEn6HG8SpedTnYLLBp6O
+8ieCBd8LPTRXHJnchR0q3lkeZsPGoPXIQpTsQdpqECs7lzvIOw8Mm6bAPiVhMLYp
+MZtnnsfuPuOA7r1G1p503ksiCtin2Y8TVT9EDzZE+Hv92zIivUlQYZYp9tzrqTpu
+xd6oYU06AI7DIshVT6fpchd6hHl0J+8d1EhH62ssHqEUK2ZPSbft92cJ+uZHHqgP
+UXJDxnyzvAT/wQdbg/86ZDH6+QlMgZ4Gps/YLGV3j/hGr0h2BE7RZQ7pR6u2Q+u3
+H9A587K4uQTRsSSwqyJ5qhMlGPSxt7qsBeq6blx0l74/hNZqRjGfFOdKbYBqhGs3
+vwI611C70y0FHXyxDp1OL5GjKgGjo3Zu/DETf2PLFvNkqDKPYe8pj2IMUboAE1f0
+Cj9rqHg+jzDnGuk1LgMb6KPDkIr/S4Yye6OY96h2mQ4Runz3hxpwG1fHldBGx1Kn
+aDfWFN7c5ADcLxY+f4spHCqRcO9t8YKVudovze0bbwmYO4dH+oBJoyHLfLK08VWy
+t9PNDmC4vFaBko0Yxvb1RR7afD2BSC7JKaeyvfXfxVwHPiD3dxGRDSX0TSUN96SO
+vjEJafZkDzDHNliH7aUj+X9FRSbMCEHbZWU+QnOWbPsRRcUjaqlF84wreJC8yVaY
+K3wFCq0kXTCp6uIy0D21
+=C90c
 -----END PGP SIGNATURE-----
 
---gTuYeQdrMhs9w1OkPRtfbAAkmHDhMrjBE--
+--0eh6TmSyL6TZE2Uz--
