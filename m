@@ -1,41 +1,41 @@
 From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH -next] ecryptfs: remove unnessesary null check in ecryptfs_keyring_auth_tok_for_sig
-Date: Mon, 27 May 2019 21:28:14 +0800
-Message-ID: <20190527132814.19600-1-yuehaibing@huawei.com>
+Subject: [PATCH -next] ecryptfs: Make ecryptfs_xattr_handler static
+Date: Fri, 14 Jun 2019 23:51:17 +0800
+Message-ID: <20190614155117.28988-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tyhicks@canonical.com, viro@zeniv.linux.org.uk
+To: tyhicks@canonical.com, viro@zeniv.linux.org.uk, agruenba@redhat.com
 Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 
-request_key and ecryptfs_get_encrypted_key never
-return a NULL pointer, so no need do a null check.
+Fix sparse warning:
 
+fs/ecryptfs/inode.c:1138:28: warning:
+ symbol 'ecryptfs_xattr_handler' was not declared. Should it be static?
+
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- fs/ecryptfs/keystore.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ecryptfs/inode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 95662fd46b1d..a1afb162b9d2 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1626,9 +1626,9 @@ int ecryptfs_keyring_auth_tok_for_sig(struct key **auth_tok_key,
- 	int rc = 0;
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 1e994d7..18426f4 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -1121,7 +1121,7 @@ static int ecryptfs_xattr_set(const struct xattr_handler *handler,
+ 	}
+ }
  
- 	(*auth_tok_key) = request_key(&key_type_user, sig, NULL);
--	if (!(*auth_tok_key) || IS_ERR(*auth_tok_key)) {
-+	if (IS_ERR(*auth_tok_key)) {
- 		(*auth_tok_key) = ecryptfs_get_encrypted_key(sig);
--		if (!(*auth_tok_key) || IS_ERR(*auth_tok_key)) {
-+		if (IS_ERR(*auth_tok_key)) {
- 			printk(KERN_ERR "Could not find key with description: [%s]\n",
- 			      sig);
- 			rc = process_request_key_err(PTR_ERR(*auth_tok_key));
+-const struct xattr_handler ecryptfs_xattr_handler = {
++static const struct xattr_handler ecryptfs_xattr_handler = {
+ 	.prefix = "",  /* match anything */
+ 	.get = ecryptfs_xattr_get,
+ 	.set = ecryptfs_xattr_set,
 -- 
-2.17.1
+2.7.4
 
 
