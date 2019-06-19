@@ -1,52 +1,67 @@
 From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH -next] ecryptfs: remove unnessesary null check in
- ecryptfs_keyring_auth_tok_for_sig
-Date: Wed, 19 Jun 2019 01:34:06 -0500
-Message-ID: <20190619063405.GB22021@lindsey>
-References: <20190527132814.19600-1-yuehaibing@huawei.com>
+Subject: Re: [PATCH] ecryptfs: use print_hex_dump_bytes for hexdump
+Date: Wed, 19 Jun 2019 01:35:56 -0500
+Message-ID: <20190619063555.GC22021@lindsey>
+References: <20190517104515.10371-1-s.hauer@pengutronix.de>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190527132814.19600-1-yuehaibing@huawei.com>
+In-Reply-To: <20190517104515.10371-1-s.hauer@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pengutronix.de
 
-On 2019-05-27 21:28:14, YueHaibing wrote:
-> request_key and ecryptfs_get_encrypted_key never
-> return a NULL pointer, so no need do a null check.
+On 2019-05-17 12:45:15, Sascha Hauer wrote:
+> The Kernel has nice hexdump facilities, use them rather a homebrew
+> hexdump function.
 > 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-This change looks good to me. I've pushed it to the eCryptfs next
+Thanks! This is much nicer. I've pushed the commit to the eCryptfs next
 branch.
 
 Tyler
 
 > ---
->  fs/ecryptfs/keystore.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  fs/ecryptfs/debug.c | 22 +++-------------------
+>  1 file changed, 3 insertions(+), 19 deletions(-)
 > 
-> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-> index 95662fd46b1d..a1afb162b9d2 100644
-> --- a/fs/ecryptfs/keystore.c
-> +++ b/fs/ecryptfs/keystore.c
-> @@ -1626,9 +1626,9 @@ int ecryptfs_keyring_auth_tok_for_sig(struct key **auth_tok_key,
->  	int rc = 0;
+> diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
+> index 3d2bdf546ec6..ee9d8ac4a809 100644
+> --- a/fs/ecryptfs/debug.c
+> +++ b/fs/ecryptfs/debug.c
+> @@ -97,25 +97,9 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
+>   */
+>  void ecryptfs_dump_hex(char *data, int bytes)
+>  {
+> -	int i = 0;
+> -	int add_newline = 1;
+> -
+>  	if (ecryptfs_verbosity < 1)
+>  		return;
+> -	if (bytes != 0) {
+> -		printk(KERN_DEBUG "0x%.2x.", (unsigned char)data[i]);
+> -		i++;
+> -	}
+> -	while (i < bytes) {
+> -		printk("0x%.2x.", (unsigned char)data[i]);
+> -		i++;
+> -		if (i % 16 == 0) {
+> -			printk("\n");
+> -			add_newline = 0;
+> -		} else
+> -			add_newline = 1;
+> -	}
+> -	if (add_newline)
+> -		printk("\n");
+> -}
 >  
->  	(*auth_tok_key) = request_key(&key_type_user, sig, NULL);
-> -	if (!(*auth_tok_key) || IS_ERR(*auth_tok_key)) {
-> +	if (IS_ERR(*auth_tok_key)) {
->  		(*auth_tok_key) = ecryptfs_get_encrypted_key(sig);
-> -		if (!(*auth_tok_key) || IS_ERR(*auth_tok_key)) {
-> +		if (IS_ERR(*auth_tok_key)) {
->  			printk(KERN_ERR "Could not find key with description: [%s]\n",
->  			      sig);
->  			rc = process_request_key_err(PTR_ERR(*auth_tok_key));
+> +	print_hex_dump(KERN_DEBUG, "ecryptfs: ", DUMP_PREFIX_OFFSET, 16, 1,
+> +		       data, bytes, false);
+> +}
 > -- 
-> 2.17.1
-> 
+> 2.20.1
 > 
