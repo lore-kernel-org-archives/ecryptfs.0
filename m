@@ -1,67 +1,69 @@
-From: Tyler Hicks <tyhicks@canonical.com>
-Subject: Re: [PATCH] ecryptfs: use print_hex_dump_bytes for hexdump
-Date: Wed, 19 Jun 2019 01:35:56 -0500
-Message-ID: <20190619063555.GC22021@lindsey>
-References: <20190517104515.10371-1-s.hauer@pengutronix.de>
+From: Hariprasad Kelam <hariprasad.kelam@gmail.com>
+Subject: [PATCH] fs: ecryptfs: crypto: Change return type of
+ ecryptfs_process_flags
+Date: Tue, 2 Jul 2019 23:17:24 +0530
+Message-ID: <20190702174723.GA4600@hari-Inspiron-1545>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190517104515.10371-1-s.hauer@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, kernel@pengutronix.de
+To: Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2019-05-17 12:45:15, Sascha Hauer wrote:
-> The Kernel has nice hexdump facilities, use them rather a homebrew
-> hexdump function.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Change return type of ecryptfs_process_flags from int to void. As it
+never fails.
 
-Thanks! This is much nicer. I've pushed the commit to the eCryptfs next
-branch.
+fixes below issue reported by coccicheck
 
-Tyler
+s/ecryptfs/crypto.c:870:5-7: Unneeded variable: "rc". Return "0" on line
+883
 
-> ---
->  fs/ecryptfs/debug.c | 22 +++-------------------
->  1 file changed, 3 insertions(+), 19 deletions(-)
-> 
-> diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
-> index 3d2bdf546ec6..ee9d8ac4a809 100644
-> --- a/fs/ecryptfs/debug.c
-> +++ b/fs/ecryptfs/debug.c
-> @@ -97,25 +97,9 @@ void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok)
->   */
->  void ecryptfs_dump_hex(char *data, int bytes)
->  {
-> -	int i = 0;
-> -	int add_newline = 1;
-> -
->  	if (ecryptfs_verbosity < 1)
->  		return;
-> -	if (bytes != 0) {
-> -		printk(KERN_DEBUG "0x%.2x.", (unsigned char)data[i]);
-> -		i++;
-> -	}
-> -	while (i < bytes) {
-> -		printk("0x%.2x.", (unsigned char)data[i]);
-> -		i++;
-> -		if (i % 16 == 0) {
-> -			printk("\n");
-> -			add_newline = 0;
-> -		} else
-> -			add_newline = 1;
-> -	}
-> -	if (add_newline)
-> -		printk("\n");
-> -}
->  
-> +	print_hex_dump(KERN_DEBUG, "ecryptfs: ", DUMP_PREFIX_OFFSET, 16, 1,
-> +		       data, bytes, false);
-> +}
-> -- 
-> 2.20.1
-> 
+Signed-off-by: Hariprasad Kelam <hariprasad.kelam@gmail.com>
+---
+ fs/ecryptfs/crypto.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 509a767..55a633e 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -864,10 +864,9 @@ static struct ecryptfs_flag_map_elem ecryptfs_flag_map[] = {
+  *
+  * Returns zero on success; non-zero if the flag set is invalid
+  */
+-static int ecryptfs_process_flags(struct ecryptfs_crypt_stat *crypt_stat,
++static void ecryptfs_process_flags(struct ecryptfs_crypt_stat *crypt_stat,
+ 				  char *page_virt, int *bytes_read)
+ {
+-	int rc = 0;
+ 	int i;
+ 	u32 flags;
+ 
+@@ -880,7 +879,6 @@ static int ecryptfs_process_flags(struct ecryptfs_crypt_stat *crypt_stat,
+ 	/* Version is in top 8 bits of the 32-bit flag vector */
+ 	crypt_stat->file_version = ((flags >> 24) & 0xFF);
+ 	(*bytes_read) = 4;
+-	return rc;
+ }
+ 
+ /**
+@@ -1306,12 +1304,9 @@ static int ecryptfs_read_headers_virt(char *page_virt,
+ 	if (!(crypt_stat->flags & ECRYPTFS_I_SIZE_INITIALIZED))
+ 		ecryptfs_i_size_init(page_virt, d_inode(ecryptfs_dentry));
+ 	offset += MAGIC_ECRYPTFS_MARKER_SIZE_BYTES;
+-	rc = ecryptfs_process_flags(crypt_stat, (page_virt + offset),
++	ecryptfs_process_flags(crypt_stat, (page_virt + offset),
+ 				    &bytes_read);
+-	if (rc) {
+-		ecryptfs_printk(KERN_WARNING, "Error processing flags\n");
+-		goto out;
+-	}
++
+ 	if (crypt_stat->file_version > ECRYPTFS_SUPPORTED_FILE_VERSION) {
+ 		ecryptfs_printk(KERN_WARNING, "File version is [%d]; only "
+ 				"file version [%d] is supported by this "
+-- 
+2.7.4
+
