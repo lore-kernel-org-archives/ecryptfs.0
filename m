@@ -1,7 +1,7 @@
 From: Wenwen Wang <wenwen@cs.uga.edu>
 Subject: [PATCH] ecryptfs: fix a memory leak bug
-Date: Tue, 20 Aug 2019 00:16:40 -0500
-Message-ID: <1566278200-9368-1-git-send-email-wenwen@cs.uga.edu>
+Date: Tue, 20 Aug 2019 00:33:54 -0500
+Message-ID: <1566279234-9634-1-git-send-email-wenwen@cs.uga.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
@@ -11,29 +11,28 @@ Content-Transfer-Encoding: 7bit
 To: Wenwen Wang <wenwen@cs.uga.edu>
 Cc: Tyler Hicks <tyhicks@canonical.com>, "open list:ECRYPT FILE SYSTEM" <ecryptfs@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-In parse_tag_1_packet(), if tag 1 packet contains a key larger than
-ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES, no cleanup is executed, leading to a
-memory leak on the allocated 'auth_tok_list_item'. To fix this issue, go to
-the label 'out_free' to perform the cleanup work.
+In ecryptfs_init_messaging(), if the allocation for 'ecryptfs_msg_ctx_arr'
+fails, the previously allocated 'ecryptfs_daemon_hash' is not deallocated,
+leading to a memory leak bug. To fix this issue, free
+'ecryptfs_daemon_hash' before returning the error.
 
 Signed-off-by: Wenwen Wang <wenwen@cs.uga.edu>
 ---
- fs/ecryptfs/keystore.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/messaging.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 216fbe6..4dc0963 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -1304,7 +1304,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
- 		printk(KERN_WARNING "Tag 1 packet contains key larger "
- 		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES\n");
- 		rc = -EINVAL;
--		goto out;
-+		goto out_free;
+diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
+index d668e60..c05ca39 100644
+--- a/fs/ecryptfs/messaging.c
++++ b/fs/ecryptfs/messaging.c
+@@ -379,6 +379,7 @@ int __init ecryptfs_init_messaging(void)
+ 					* ecryptfs_message_buf_len),
+ 				       GFP_KERNEL);
+ 	if (!ecryptfs_msg_ctx_arr) {
++		kfree(ecryptfs_daemon_hash);
+ 		rc = -ENOMEM;
+ 		goto out;
  	}
- 	memcpy((*new_auth_tok)->session_key.encrypted_key,
- 	       &data[(*packet_size)], (body_size - (ECRYPTFS_SIG_SIZE + 2)));
 -- 
 2.7.4
 
