@@ -1,121 +1,169 @@
 From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: Re: [PATCH] fs: introduce is_dot_dotdot helper for
- cleanup
-Date: Tue, 3 Dec 2019 16:33:47 +0800
-Message-ID: <f242be33-f55b-e914-ffc4-f79e74b3e13b@loongson.cn>
-References: <1575281413-6753-1-git-send-email-yangtiezhu@loongson.cn>
- <20191202200302.GN20752@bombadil.infradead.org>
- <357ad021-a58c-ad46-42bd-d5012126276f@loongson.cn>
- <20191203023954.GB7323@magnolia>
-Mime-Version: 1.0
+Subject: [PATCH v2] fs: introduce is_dot_dotdot helper for cleanup
+Date: Tue,  3 Dec 2019 20:56:50 +0800
+Message-ID: <1575377810-3574-1-git-send-email-yangtiezhu@loongson.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20191203023954.GB7323@magnolia>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>, 
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
-List-Post: <mailto:linux-f2fs-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-f2fs-devel>, 
- <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: linux-f2fs-devel-bounces@lists.sourceforge.net
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: ecryptfs@vger.kernel.org, "Theodore Y. Ts'o" <tytso@mit.edu>, linux-kernel@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Tyler Hicks <tyhicks@canonical.com>, Eric Biggers <ebiggers@kernel.org>, linux-fscrypt@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jaegeuk Kim <jaegeuk@kernel.org>, linux-f2fs-devel@lists.sourceforge.net
+To: Alexander Viro <viro@zeniv.linux.org.uk>, "Theodore Y. Ts'o" <tytso@mit.edu>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <yuchao0@huawei.com>, Eric Biggers <ebiggers@kernel.org>, Tyler Hicks <tyhicks@canonical.com>
+Cc: linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-On 12/03/2019 10:39 AM, Darrick J. Wong wrote:
-> On Tue, Dec 03, 2019 at 10:07:41AM +0800, Tiezhu Yang wrote:
->> On 12/03/2019 04:03 AM, Matthew Wilcox wrote:
->>> On Mon, Dec 02, 2019 at 06:10:13PM +0800, Tiezhu Yang wrote:
->>>> There exists many similar and duplicate codes to check "." and "..",
->>>> so introduce is_dot_dotdot helper to make the code more clean.
->>> The idea is good.  The implementation is, I'm afraid, badly chosen.
->>> Did you benchmark this change at all?  In general, you should prefer the
->>> core kernel implementation to that of some less-interesting filesystems.
->>> I measured the performance with the attached test program on my laptop
->>> (Core-i7 Kaby Lake):
->>>
->>> qstr . time_1 0.020531 time_2 0.005786
->>> qstr .. time_1 0.017892 time_2 0.008798
->>> qstr a time_1 0.017633 time_2 0.003634
->>> qstr matthew time_1 0.011820 time_2 0.003605
->>> qstr .a time_1 0.017909 time_2 0.008710
->>> qstr , time_1 0.017631 time_2 0.003619
->>>
->>> The results are quite stable:
->>>
->>> qstr . time_1 0.021137 time_2 0.005780
->>> qstr .. time_1 0.017964 time_2 0.008675
->>> qstr a time_1 0.017899 time_2 0.003654
->>> qstr matthew time_1 0.011821 time_2 0.003620
->>> qstr .a time_1 0.017889 time_2 0.008662
->>> qstr , time_1 0.017764 time_2 0.003613
->>>
->>> Feel free to suggest some different strings we could use for testing.
->>> These seemed like interesting strings to test with.  It's always possible
->>> I've messed up something with this benchmark that causes it to not
->>> accurately represent the performance of each algorithm, so please check
->>> that too.
->> [Sorry to resend this email because the mail list server
->> was denied due to it is not plain text.]
->>
->> Hi Matthew,
->>
->> Thanks for your reply and suggestion. I measured the
->> performance with the test program, the following
->> implementation is better for various of test cases:
->>
->> bool is_dot_dotdot(const struct qstr *str)
->> {
->>          if (unlikely(str->name[0] == '.')) {
->>                  if (str->len < 2 || (str->len == 2 && str->name[1] == '.'))
->>                          return true;
->>          }
->>
->>          return false;
->> }
->>
->> I will send a v2 patch used with this implementation.
-> Can you make it a static inline since it's such a short function?
+There exists many similar and duplicate codes to check "." and "..",
+so introduce is_dot_dotdot helper to make the code more clean.
 
-Thanks for your suggestion, I will make it static inline and
-move it to include/linux/fs.h in the v2 patch.
+Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+---
 
-Thanks,
+v2:
+  - use the better performance implementation of is_dot_dotdot
+  - make it static inline and move it to include/linux/fs.h
 
-Tiezhu Yang
+ fs/crypto/fname.c    | 15 ++-------------
+ fs/ecryptfs/crypto.c | 13 ++-----------
+ fs/f2fs/f2fs.h       | 11 -----------
+ fs/namei.c           |  6 ++----
+ include/linux/fs.h   | 10 ++++++++++
+ 5 files changed, 16 insertions(+), 39 deletions(-)
 
->
-> --D
->
->> Thanks,
->>
->> Tiezhu Yang
->>
->>>> +bool is_dot_dotdot(const struct qstr *str)
->>>> +{
->>>> +	if (str->len == 1 && str->name[0] == '.')
->>>> +		return true;
->>>> +
->>>> +	if (str->len == 2 && str->name[0] == '.' && str->name[1] == '.')
->>>> +		return true;
->>>> +
->>>> +	return false;
->>>> +}
->>>> +EXPORT_SYMBOL(is_dot_dotdot);
->>>> diff --git a/fs/namei.c b/fs/namei.c
->>>> index 2dda552..7730a3b 100644
->>>> --- a/fs/namei.c
->>>> +++ b/fs/namei.c
->>>> @@ -2458,10 +2458,8 @@ static int lookup_one_len_common(const char *name, struct dentry *base,
->>>>    	if (!len)
->>>>    		return -EACCES;
->>>> -	if (unlikely(name[0] == '.')) {
->>>> -		if (len < 2 || (len == 2 && name[1] == '.'))
->>>> -			return -EACCES;
->>>> -	}
->>>> +	if (unlikely(is_dot_dotdot(this)))
->>>> +		return -EACCES;
->>>>    	while (len--) {
->>>>    		unsigned int c = *(const unsigned char *)name++;
+diff --git a/fs/crypto/fname.c b/fs/crypto/fname.c
+index 3da3707..36be864 100644
+--- a/fs/crypto/fname.c
++++ b/fs/crypto/fname.c
+@@ -15,17 +15,6 @@
+ #include <crypto/skcipher.h>
+ #include "fscrypt_private.h"
+ 
+-static inline bool fscrypt_is_dot_dotdot(const struct qstr *str)
+-{
+-	if (str->len == 1 && str->name[0] == '.')
+-		return true;
+-
+-	if (str->len == 2 && str->name[0] == '.' && str->name[1] == '.')
+-		return true;
+-
+-	return false;
+-}
+-
+ /**
+  * fname_encrypt() - encrypt a filename
+  *
+@@ -255,7 +244,7 @@ int fscrypt_fname_disk_to_usr(struct inode *inode,
+ 	const struct qstr qname = FSTR_TO_QSTR(iname);
+ 	struct fscrypt_digested_name digested_name;
+ 
+-	if (fscrypt_is_dot_dotdot(&qname)) {
++	if (is_dot_dotdot(&qname)) {
+ 		oname->name[0] = '.';
+ 		oname->name[iname->len - 1] = '.';
+ 		oname->len = iname->len;
+@@ -323,7 +312,7 @@ int fscrypt_setup_filename(struct inode *dir, const struct qstr *iname,
+ 	memset(fname, 0, sizeof(struct fscrypt_name));
+ 	fname->usr_fname = iname;
+ 
+-	if (!IS_ENCRYPTED(dir) || fscrypt_is_dot_dotdot(iname)) {
++	if (!IS_ENCRYPTED(dir) || is_dot_dotdot(iname)) {
+ 		fname->disk_name.name = (unsigned char *)iname->name;
+ 		fname->disk_name.len = iname->len;
+ 		return 0;
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index f91db24..6f4db74 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -1991,16 +1991,6 @@ int ecryptfs_encrypt_and_encode_filename(
+ 	return rc;
+ }
+ 
+-static bool is_dot_dotdot(const char *name, size_t name_size)
+-{
+-	if (name_size == 1 && name[0] == '.')
+-		return true;
+-	else if (name_size == 2 && name[0] == '.' && name[1] == '.')
+-		return true;
+-
+-	return false;
+-}
+-
+ /**
+  * ecryptfs_decode_and_decrypt_filename - converts the encoded cipher text name to decoded plaintext
+  * @plaintext_name: The plaintext name
+@@ -2020,6 +2010,7 @@ int ecryptfs_decode_and_decrypt_filename(char **plaintext_name,
+ {
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
+ 		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
++	const struct qstr file_name = {.name = name, .len = name_size};
+ 	char *decoded_name;
+ 	size_t decoded_name_size;
+ 	size_t packet_size;
+@@ -2027,7 +2018,7 @@ int ecryptfs_decode_and_decrypt_filename(char **plaintext_name,
+ 
+ 	if ((mount_crypt_stat->flags & ECRYPTFS_GLOBAL_ENCRYPT_FILENAMES) &&
+ 	    !(mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)) {
+-		if (is_dot_dotdot(name, name_size)) {
++		if (is_dot_dotdot(&file_name)) {
+ 			rc = ecryptfs_copy_filename(plaintext_name,
+ 						    plaintext_name_size,
+ 						    name, name_size);
+diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
+index 5a888a0..3d5e684 100644
+--- a/fs/f2fs/f2fs.h
++++ b/fs/f2fs/f2fs.h
+@@ -2767,17 +2767,6 @@ static inline bool f2fs_cp_error(struct f2fs_sb_info *sbi)
+ 	return is_set_ckpt_flags(sbi, CP_ERROR_FLAG);
+ }
+ 
+-static inline bool is_dot_dotdot(const struct qstr *str)
+-{
+-	if (str->len == 1 && str->name[0] == '.')
+-		return true;
+-
+-	if (str->len == 2 && str->name[0] == '.' && str->name[1] == '.')
+-		return true;
+-
+-	return false;
+-}
+-
+ static inline bool f2fs_may_extent_tree(struct inode *inode)
+ {
+ 	struct f2fs_sb_info *sbi = F2FS_I_SB(inode);
+diff --git a/fs/namei.c b/fs/namei.c
+index 2dda552..babe7e8 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2458,10 +2458,8 @@ static int lookup_one_len_common(const char *name, struct dentry *base,
+ 	if (!len)
+ 		return -EACCES;
+ 
+-	if (unlikely(name[0] == '.')) {
+-		if (len < 2 || (len == 2 && name[1] == '.'))
+-			return -EACCES;
+-	}
++	if (is_dot_dotdot(this))
++		return -EACCES;
+ 
+ 	while (len--) {
+ 		unsigned int c = *(const unsigned char *)name++;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 98e0349..78a2932 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -3627,4 +3627,14 @@ static inline int inode_drain_writes(struct inode *inode)
+ 	return filemap_write_and_wait(inode->i_mapping);
+ }
+ 
++static inline bool is_dot_dotdot(const struct qstr *str)
++{
++	if (unlikely(str->name[0] == '.')) {
++		if (str->len < 2 || (str->len == 2 && str->name[1] == '.'))
++			return true;
++	}
++
++	return false;
++}
++
+ #endif /* _LINUX_FS_H */
+-- 
+2.1.0
+
