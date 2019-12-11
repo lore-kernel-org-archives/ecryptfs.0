@@ -1,60 +1,87 @@
-From: Eric Biggers <ebiggers@kernel.org>
+From: Tiezhu Yang <yangtiezhu@loongson.cn>
 Subject: Re: [PATCH v5] fs: introduce is_dot_or_dotdot helper for cleanup
-Date: Tue, 10 Dec 2019 18:48:58 -0800
-Message-ID: <20191211024858.GB732@sol.localdomain>
+Date: Wed, 11 Dec 2019 11:59:40 +0800
+Message-ID: <febbd7eb-5e53-6e7c-582d-5b224e441e37@loongson.cn>
 References: <1576030801-8609-1-git-send-email-yangtiezhu@loongson.cn>
+ <20191211024858.GB732@sol.localdomain>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1576030801-8609-1-git-send-email-yangtiezhu@loongson.cn>
+In-Reply-To: <20191211024858.GB732@sol.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tiezhu Yang <yangtiezhu@loongson.cn>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Eric Biggers <ebiggers@kernel.org>, Matthew Wilcox <willy@infradead.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>, "Theodore Y. Ts'o" <tytso@mit.edu>, Jaegeuk Kim <jaegeuk@kernel.org>, Chao Yu <yuchao0@huawei.com>, Tyler Hicks <tyhicks@canonical.com>, linux-fsdevel@vger.kernel.org, ecryptfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-On Wed, Dec 11, 2019 at 10:20:01AM +0800, Tiezhu Yang wrote:
-> diff --git a/include/linux/namei.h b/include/linux/namei.h
-> index 7fe7b87..0fd9315 100644
-> --- a/include/linux/namei.h
-> +++ b/include/linux/namei.h
-> @@ -92,4 +92,14 @@ retry_estale(const long error, const unsigned int flags)
->  	return error == -ESTALE && !(flags & LOOKUP_REVAL);
->  }
->  
-> +static inline bool is_dot_or_dotdot(const unsigned char *name, size_t len)
-> +{
-> +	if (unlikely(name[0] == '.')) {
-> +		if (len == 1 || (len == 2 && name[1] == '.'))
-> +			return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
->  #endif /* _LINUX_NAMEI_H */
+On 12/11/2019 10:48 AM, Eric Biggers wrote:
+> On Wed, Dec 11, 2019 at 10:20:01AM +0800, Tiezhu Yang wrote:
+>> diff --git a/include/linux/namei.h b/include/linux/namei.h
+>> index 7fe7b87..0fd9315 100644
+>> --- a/include/linux/namei.h
+>> +++ b/include/linux/namei.h
+>> @@ -92,4 +92,14 @@ retry_estale(const long error, const unsigned int flags)
+>>   	return error == -ESTALE && !(flags & LOOKUP_REVAL);
+>>   }
+>>   
+>> +static inline bool is_dot_or_dotdot(const unsigned char *name, size_t len)
+>> +{
+>> +	if (unlikely(name[0] == '.')) {
+>> +		if (len == 1 || (len == 2 && name[1] == '.'))
+>> +			return true;
+>> +	}
+>> +
+>> +	return false;
+>> +}
+>> +
+>>   #endif /* _LINUX_NAMEI_H */
+> I had suggested adding a len >= 1 check to handle the empty name case correctly.
+> What I had in mind was
+>
+> static inline bool is_dot_or_dotdot(const unsigned char *name, size_t len)
+> {
+> 	if (len >= 1 && unlikely(name[0] == '.')) {
+> 		if (len < 2 || (len == 2 && name[1] == '.'))
+> 			return true;
+> 	}
+>
+> 	return false;
+> }
+>
+> As is, you're proposing that it always dereference the first byte even when
+> len=0, which seems like a bad idea for a shared helper function.  Did you check
+> whether it's okay for all the existing callers?  fscrypt_fname_disk_to_usr() is
+> called from 6 places, did you check all of them?
+>
+> How about keeping the existing optimized code for the hot path in fs/namei.c
+> (i.e. not using the helper function), while having the helper function do the
+> extra check to handle len=0 correctly?
 
-I had suggested adding a len >= 1 check to handle the empty name case correctly.
-What I had in mind was
+Hi Eric,
+
+Thank you for reminding me.  How about using the following helper for
+all callers?
 
 static inline bool is_dot_or_dotdot(const unsigned char *name, size_t len)
 {
-	if (len >= 1 && unlikely(name[0] == '.')) {
-		if (len < 2 || (len == 2 && name[1] == '.'))
-			return true;
-	}
+         if (len == 1 && name[0] == '.')
+                 return true;
 
-	return false;
+         if (len == 2 && name[0] == '.' && name[1] == '.')
+                 return true;
+
+         return false;
 }
 
-As is, you're proposing that it always dereference the first byte even when
-len=0, which seems like a bad idea for a shared helper function.  Did you check
-whether it's okay for all the existing callers?  fscrypt_fname_disk_to_usr() is
-called from 6 places, did you check all of them?
+Hi Matthew,
 
-How about keeping the existing optimized code for the hot path in fs/namei.c
-(i.e. not using the helper function), while having the helper function do the
-extra check to handle len=0 correctly?
+How do you think? I think the performance influence is very small
+due to is_dot_or_dotdot() is a such short static inline function.
 
-- Eric
+Thanks,
+
+Tiezhu Yang
+
+>
+> - Eric
+
