@@ -1,42 +1,28 @@
-From: Aditya Pakki <pakki001@umn.edu>
-Subject: [PATCH] ecryptfs: replace BUG_ON with error handling code
-Date: Sun, 15 Dec 2019 11:24:04 -0600
-Message-ID: <20191215172404.28204-1-pakki001@umn.edu>
+From: Markus Elfring <Markus.Elfring@web.de>
+Subject: Re: [PATCH] ecryptfs: replace BUG_ON with error handling code
+Date: Sun, 15 Dec 2019 22:20:29 +0100
+Message-ID: <098249a9-cf0b-720d-766b-1acdeb78fe22@web.de>
+References: <20191215172404.28204-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20191215172404.28204-1-pakki001@umn.edu>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: pakki001@umn.edu
-Cc: kjlu@umn.edu, Tyler Hicks <tyhicks@canonical.com>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+To: Aditya Pakki <pakki001@umn.edu>, ecryptfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Kangjie Lu <kjlu@umn.edu>, Tyler Hicks <tyhicks@canonical.com>
 
-In crypt_scatterlist, if the crypt_stat argument is not set up
-correctly, we avoid crashing, by returning the error upstream.
-This patch performs the fix.
+> In crypt_scatterlist, if the crypt_stat argument is not set up
+> correctly, we avoid crashing, by returning the error upstream.
 
-Signed-off-by: Aditya Pakki <pakki001@umn.edu>
----
- fs/ecryptfs/crypto.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Can an other change description be more helpful here?
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index f91db24bbf3b..a064b408d841 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -311,8 +311,10 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- 	struct extent_crypt_result ecr;
- 	int rc = 0;
- 
--	BUG_ON(!crypt_stat || !crypt_stat->tfm
--	       || !(crypt_stat->flags & ECRYPTFS_STRUCT_INITIALIZED));
-+	if (!crypt_stat || !crypt_stat->tfm
-+	       || !(crypt_stat->flags & ECRYPTFS_STRUCT_INITIALIZED))
-+		return -EINVAL;
-+
- 	if (unlikely(ecryptfs_verbosity > 0)) {
- 		ecryptfs_printk(KERN_DEBUG, "Key size [%zd]; key:\n",
- 				crypt_stat->key_size);
--- 
-2.20.1
 
+> This patch performs the fix.
+
+Please replace this sentence by the tag =E2=80=9CFixes=E2=80=9D.
+
+Regards,
+Markus
