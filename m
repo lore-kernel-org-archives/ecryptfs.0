@@ -1,173 +1,140 @@
 From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: [PATCH 00/44] Manually convert filesystem FS documents to ReST
-Date: Mon, 17 Feb 2020 17:11:46 +0100
-Message-ID: <cover.1581955849.git.mchehab+huawei@kernel.org>
+Subject: [PATCH 13/44] docs: filesystems: convert ecryptfs.txt to ReST
+Date: Mon, 17 Feb 2020 17:11:59 +0100
+Message-ID: <6e13841ebd00c8d988027115c75c58821bb41a0c.1581955849.git.mchehab+huawei@kernel.org>
+References: <cover.1581955849.git.mchehab+huawei@kernel.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <cover.1581955849.git.mchehab+huawei@kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org
 To: Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Martin Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Bob Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Joseph Qi <joseph.qi@linux.alibaba.com>, linux-mtd@lists.infradead.org, Tyler Hicks <code@tyhicks.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, Naohiro Aota <naohiro.aota@wdc.com>, Christoph Hellwig <hch@infradead.org>, linux-nilfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Richard Weinberger <richard@nod.at>, Mark Fasheh <mark@fasheh.com>, Chris Mason <clm@fb.com>, Ryusuke Konishi <konishi.ryusuke@gmail.com>, cluster-devel@redhat.com, v9fs-developer@lists.sourc
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Jonathan Corbet <corbet@lwn.net>, linux-fsdevel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org
 
-There are lots of plain text documents under Documentation/filesystems.
+- Add a SPDX header;
+- Add a document title;
+- use :field: markup;
+- Some whitespace fixes and new line breaks;
+- Mark literal blocks as such;
+- Add table markups;
+- Add it to filesystems/index.rst.
 
-Manually convert several of those to ReST and add them to the index file.
-
-Mauro Carvalho Chehab (44):
-  docs: filesystems: convert 9p.txt to ReST
-  docs: filesystems: convert adfs.txt to ReST
-  docs: filesystems: convert affs.txt to ReST
-  docs: filesystems: convert afs.txt to ReST
-  docs: filesystems: convert autofs-mount-control.txt to ReST
-  docs: filesystems: convert befs.txt to ReST
-  docs: filesystems: convert bfs.txt to ReST
-  docs: filesystems: convert btrfs.txt to ReST
-  docs: filesystems: convert ceph.txt to ReST
-  docs: filesystems: convert cramfs.txt to ReST
-  docs: filesystems: convert debugfs.txt to ReST
-  docs: filesystems: convert dlmfs.txt to ReST
-  docs: filesystems: convert ecryptfs.txt to ReST
-  docs: filesystems: convert efivarfs.txt to ReST
-  docs: filesystems: convert erofs.txt to ReST
-  docs: filesystems: convert ext2.txt to ReST
-  docs: filesystems: convert ext3.txt to ReST
-  docs: filesystems: convert f2fs.txt to ReST
-  docs: filesystems: convert gfs2.txt to ReST
-  docs: filesystems: convert gfs2-uevents.txt to ReST
-  docs: filesystems: convert hfsplus.txt to ReST
-  docs: filesystems: convert hfs.txt to ReST
-  docs: filesystems: convert hpfs.txt to ReST
-  docs: filesystems: convert inotify.txt to ReST
-  docs: filesystems: convert isofs.txt to ReST
-  docs: filesystems: convert nilfs2.txt to ReST
-  docs: filesystems: convert ntfs.txt to ReST
-  docs: filesystems: convert ocfs2-online-filecheck.txt to ReST
-  docs: filesystems: convert ocfs2.txt to ReST
-  docs: filesystems: convert omfs.txt to ReST
-  docs: filesystems: convert orangefs.txt to ReST
-  docs: filesystems: convert proc.txt to ReST
-  docs: filesystems: convert qnx6.txt to ReST
-  docs: filesystems: convert ramfs-rootfs-initramfs.txt to ReST
-  docs: filesystems: convert relay.txt to ReST
-  docs: filesystems: convert romfs.txt to ReST
-  docs: filesystems: convert squashfs.txt to ReST
-  docs: filesystems: convert sysfs.txt to ReST
-  docs: filesystems: convert sysv-fs.txt to ReST
-  docs: filesystems: convert tmpfs.txt to ReST
-  docs: filesystems: convert ubifs-authentication.rst.txt to ReST
-  docs: filesystems: convert ubifs.txt to ReST
-  docs: filesystems: convert udf.txt to ReST
-  docs: filesystems: convert zonefs.txt to ReST
-
- Documentation/filesystems/{9p.txt => 9p.rst}  |  114 +-
- .../filesystems/{adfs.txt => adfs.rst}        |   29 +-
- .../filesystems/{affs.txt => affs.rst}        |   62 +-
- .../filesystems/{afs.txt => afs.rst}          |   73 +-
- ...t-control.txt => autofs-mount-control.rst} |  102 +-
- .../filesystems/{befs.txt => befs.rst}        |   59 +-
- .../filesystems/{bfs.txt => bfs.rst}          |   37 +-
- .../filesystems/{btrfs.txt => btrfs.rst}      |    3 +
- .../filesystems/{ceph.txt => ceph.rst}        |   26 +-
- .../filesystems/{cramfs.txt => cramfs.rst}    |   19 +-
- .../filesystems/{debugfs.txt => debugfs.rst}  |   54 +-
- .../filesystems/{dlmfs.txt => dlmfs.rst}      |   28 +-
- .../{ecryptfs.txt => ecryptfs.rst}            |   44 +-
- .../{efivarfs.txt => efivarfs.rst}            |    5 +-
- .../filesystems/{erofs.txt => erofs.rst}      |  175 +-
- .../filesystems/{ext2.txt => ext2.rst}        |   41 +-
- .../filesystems/{ext3.txt => ext3.rst}        |    2 +
- .../filesystems/{f2fs.txt => f2fs.rst}        |  252 +--
- .../{gfs2-uevents.txt => gfs2-uevents.rst}    |   20 +-
- .../filesystems/{gfs2.txt => gfs2.rst}        |   20 +-
- .../filesystems/{hfs.txt => hfs.rst}          |   23 +-
- .../filesystems/{hfsplus.txt => hfsplus.rst}  |    2 +
- .../filesystems/{hpfs.txt => hpfs.rst}        |  239 ++-
- Documentation/filesystems/index.rst           |   46 +-
- .../filesystems/{inotify.txt => inotify.rst}  |   33 +-
- Documentation/filesystems/isofs.rst           |   64 +
- Documentation/filesystems/isofs.txt           |   48 -
- .../filesystems/{nilfs2.txt => nilfs2.rst}    |   40 +-
- .../filesystems/{ntfs.txt => ntfs.rst}        |  143 +-
- ...lecheck.txt => ocfs2-online-filecheck.rst} |   45 +-
- .../filesystems/{ocfs2.txt => ocfs2.rst}      |   31 +-
- Documentation/filesystems/omfs.rst            |  112 ++
- Documentation/filesystems/omfs.txt            |  106 --
- .../{orangefs.txt => orangefs.rst}            |  187 +-
- .../filesystems/{proc.txt => proc.rst}        | 1498 +++++++++--------
- .../filesystems/{qnx6.txt => qnx6.rst}        |   22 +
- ...itramfs.txt => ramfs-rootfs-initramfs.rst} |   54 +-
- .../filesystems/{relay.txt => relay.rst}      |  129 +-
- .../filesystems/{romfs.txt => romfs.rst}      |   42 +-
- .../{squashfs.txt => squashfs.rst}            |   60 +-
- .../filesystems/{sysfs.txt => sysfs.rst}      |  324 ++--
- .../filesystems/{sysv-fs.txt => sysv-fs.rst}  |  155 +-
- .../filesystems/{tmpfs.txt => tmpfs.rst}      |   44 +-
- .../filesystems/ubifs-authentication.rst      |   10 +-
- .../filesystems/{ubifs.txt => ubifs.rst}      |   25 +-
- .../filesystems/{udf.txt => udf.rst}          |   21 +-
- .../filesystems/{zonefs.txt => zonefs.rst}    |  106 +-
- 47 files changed, 2739 insertions(+), 2035 deletions(-)
- rename Documentation/filesystems/{9p.txt => 9p.rst} (63%)
- rename Documentation/filesystems/{adfs.txt => adfs.rst} (85%)
- rename Documentation/filesystems/{affs.txt => affs.rst} (86%)
- rename Documentation/filesystems/{afs.txt => afs.rst} (90%)
- rename Documentation/filesystems/{autofs-mount-control.txt => autofs-mount-control.rst} (89%)
- rename Documentation/filesystems/{befs.txt => befs.rst} (83%)
- rename Documentation/filesystems/{bfs.txt => bfs.rst} (71%)
- rename Documentation/filesystems/{btrfs.txt => btrfs.rst} (96%)
- rename Documentation/filesystems/{ceph.txt => ceph.rst} (91%)
- rename Documentation/filesystems/{cramfs.txt => cramfs.rst} (88%)
- rename Documentation/filesystems/{debugfs.txt => debugfs.rst} (91%)
- rename Documentation/filesystems/{dlmfs.txt => dlmfs.rst} (86%)
+Signed-off-by: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+---
+ .../{ecryptfs.txt => ecryptfs.rst}            | 44 ++++++++++++-------
+ Documentation/filesystems/index.rst           |  1 +
+ 2 files changed, 28 insertions(+), 17 deletions(-)
  rename Documentation/filesystems/{ecryptfs.txt => ecryptfs.rst} (70%)
- rename Documentation/filesystems/{efivarfs.txt => efivarfs.rst} (85%)
- rename Documentation/filesystems/{erofs.txt => erofs.rst} (54%)
- rename Documentation/filesystems/{ext2.txt => ext2.rst} (91%)
- rename Documentation/filesystems/{ext3.txt => ext3.rst} (88%)
- rename Documentation/filesystems/{f2fs.txt => f2fs.rst} (84%)
- rename Documentation/filesystems/{gfs2-uevents.txt => gfs2-uevents.rst} (94%)
- rename Documentation/filesystems/{gfs2.txt => gfs2.rst} (76%)
- rename Documentation/filesystems/{hfs.txt => hfs.rst} (80%)
- rename Documentation/filesystems/{hfsplus.txt => hfsplus.rst} (95%)
- rename Documentation/filesystems/{hpfs.txt => hpfs.rst} (66%)
- rename Documentation/filesystems/{inotify.txt => inotify.rst} (83%)
- create mode 100644 Documentation/filesystems/isofs.rst
- delete mode 100644 Documentation/filesystems/isofs.txt
- rename Documentation/filesystems/{nilfs2.txt => nilfs2.rst} (89%)
- rename Documentation/filesystems/{ntfs.txt => ntfs.rst} (85%)
- rename Documentation/filesystems/{ocfs2-online-filecheck.txt => ocfs2-online-filecheck.rst} (77%)
- rename Documentation/filesystems/{ocfs2.txt => ocfs2.rst} (88%)
- create mode 100644 Documentation/filesystems/omfs.rst
- delete mode 100644 Documentation/filesystems/omfs.txt
- rename Documentation/filesystems/{orangefs.txt => orangefs.rst} (83%)
- rename Documentation/filesystems/{proc.txt => proc.rst} (65%)
- rename Documentation/filesystems/{qnx6.txt => qnx6.rst} (98%)
- rename Documentation/filesystems/{ramfs-rootfs-initramfs.txt => ramfs-rootfs-initramfs.rst} (91%)
- rename Documentation/filesystems/{relay.txt => relay.rst} (91%)
- rename Documentation/filesystems/{romfs.txt => romfs.rst} (86%)
- rename Documentation/filesystems/{squashfs.txt => squashfs.rst} (91%)
- rename Documentation/filesystems/{sysfs.txt => sysfs.rst} (56%)
- rename Documentation/filesystems/{sysv-fs.txt => sysv-fs.rst} (73%)
- rename Documentation/filesystems/{tmpfs.txt => tmpfs.rst} (86%)
- rename Documentation/filesystems/{ubifs.txt => ubifs.rst} (91%)
- rename Documentation/filesystems/{udf.txt => udf.rst} (83%)
- rename Documentation/filesystems/{zonefs.txt => zonefs.rst} (90%)
 
+diff --git a/Documentation/filesystems/ecryptfs.txt b/Documentation/filesystems/ecryptfs.rst
+similarity index 70%
+rename from Documentation/filesystems/ecryptfs.txt
+rename to Documentation/filesystems/ecryptfs.rst
+index 01d8a08351ac..7236172300ef 100644
+--- a/Documentation/filesystems/ecryptfs.txt
++++ b/Documentation/filesystems/ecryptfs.rst
+@@ -1,14 +1,18 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++======================================================
+ eCryptfs: A stacked cryptographic filesystem for Linux
++======================================================
+ 
+ eCryptfs is free software. Please see the file COPYING for details.
+ For documentation, please see the files in the doc/ subdirectory.  For
+ building and installation instructions please see the INSTALL file.
+ 
+-Maintainer: Phillip Hellewell
+-Lead developer: Michael A. Halcrow <mhalcrow@us.ibm.com>
+-Developers: Michael C. Thompson
+-            Kent Yoder
+-Web Site: http://ecryptfs.sf.net
++:Maintainer: Phillip Hellewell
++:Lead developer: Michael A. Halcrow <mhalcrow@us.ibm.com>
++:Developers: Michael C. Thompson
++             Kent Yoder
++:Web Site: http://ecryptfs.sf.net
+ 
+ This software is currently undergoing development. Make sure to
+ maintain a backup copy of any data you write into eCryptfs.
+@@ -19,13 +23,15 @@ SourceForge site:
+ http://sourceforge.net/projects/ecryptfs/
+ 
+ Userspace requirements include:
+- - David Howells' userspace keyring headers and libraries (version
+-   1.0 or higher), obtainable from
+-   http://people.redhat.com/~dhowells/keyutils/
+- - Libgcrypt
+ 
++- David Howells' userspace keyring headers and libraries (version
++  1.0 or higher), obtainable from
++  http://people.redhat.com/~dhowells/keyutils/
++- Libgcrypt
+ 
+-NOTES
++
++Notes
++=====
+ 
+ In the beta/experimental releases of eCryptfs, when you upgrade
+ eCryptfs, you should copy the files to an unencrypted location and
+@@ -33,20 +39,21 @@ then copy the files back into the new eCryptfs mount to migrate the
+ files.
+ 
+ 
+-MOUNT-WIDE PASSPHRASE
++Mount-wide Passphrase
++=====================
+ 
+ Create a new directory into which eCryptfs will write its encrypted
+ files (i.e., /root/crypt).  Then, create the mount point directory
+-(i.e., /mnt/crypt).  Now it's time to mount eCryptfs:
++(i.e., /mnt/crypt).  Now it's time to mount eCryptfs::
+ 
+-mount -t ecryptfs /root/crypt /mnt/crypt
++    mount -t ecryptfs /root/crypt /mnt/crypt
+ 
+ You should be prompted for a passphrase and a salt (the salt may be
+ blank).
+ 
+-Try writing a new file:
++Try writing a new file::
+ 
+-echo "Hello, World" > /mnt/crypt/hello.txt
++    echo "Hello, World" > /mnt/crypt/hello.txt
+ 
+ The operation will complete.  Notice that there is a new file in
+ /root/crypt that is at least 12288 bytes in size (depending on your
+@@ -59,10 +66,13 @@ keyctl clear @u
+ Then umount /mnt/crypt and mount again per the instructions given
+ above.
+ 
+-cat /mnt/crypt/hello.txt
++::
+ 
++    cat /mnt/crypt/hello.txt
+ 
+-NOTES
++
++Notes
++=====
+ 
+ eCryptfs version 0.1 should only be mounted on (1) empty directories
+ or (2) directories containing files only created by eCryptfs. If you
+diff --git a/Documentation/filesystems/index.rst b/Documentation/filesystems/index.rst
+index c6885c7ef781..d6d69f1c9287 100644
+--- a/Documentation/filesystems/index.rst
++++ b/Documentation/filesystems/index.rst
+@@ -59,6 +59,7 @@ Documentation for filesystem implementations.
+    cramfs
+    debugfs
+    dlmfs
++   ecryptfs
+    fuse
+    overlayfs
+    virtiofs
 -- 
 2.24.1
 
-
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
