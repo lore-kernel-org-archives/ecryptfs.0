@@ -1,36 +1,31 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH 00/44] Manually convert filesystem FS documents to ReST
-Date: Mon, 17 Feb 2020 20:01:46 -0800
-Message-ID: <20200218040146.GM7778@bombadil.infradead.org>
-References: <cover.1581955849.git.mchehab+huawei@kernel.org>
-Mime-Version: 1.0
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] eCryptfs fixes for 5.6-rc3
+Date: Tue, 18 Feb 2020 05:40:20 +0000
+Message-ID: <158200442005.24167.3412622613576452077.pr-tracker-bot@kernel.org>
+References: <20200217205343.GA280196@elm>
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:43854 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725909AbgBRFkU (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Tue, 18 Feb 2020 00:40:20 -0500
+In-Reply-To: <20200217205343.GA280196@elm>
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1581955849.git.mchehab+huawei@kernel.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org
-To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Martin Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Bob Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Ilya Dryomov <idryomov@gmail.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, Naohiro Aota <naohiro.aota@wdc.com>, Christoph Hellwig <hch@infradead.org>, linux-nilfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Tyler Hicks <code@tyhicks.com>, cluster-devel@redhat.com, v9fs-developer@lists.sourceforge.net, Gao Xiang <xiang@kernel.org>, linux-ext4@vger.kernel.org, Salah
+To: Tyler Hicks <code@tyhicks.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-On Mon, Feb 17, 2020 at 05:11:46PM +0100, Mauro Carvalho Chehab wrote:
-> There are lots of plain text documents under Documentation/filesystems.
-> 
-> Manually convert several of those to ReST and add them to the index file.
+The pull request you sent on Mon, 17 Feb 2020 14:53:43 -0600:
 
-I think at least 90% of this material needs to be in admin-guide.  Should
-we create Documentation/admin-guide/filesystems/ and move most of these
-files there?
+> https://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-5.6-rc3-fixes
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/b1da3acc781ce445445d959b41064d209a27bc2d
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
