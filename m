@@ -1,54 +1,36 @@
-From: Tyler Hicks <code@tyhicks.com>
-Subject: [GIT PULL] eCryptfs fixes for 5.6-rc3
-Date: Mon, 17 Feb 2020 14:53:43 -0600
-Message-ID: <20200217205343.GA280196@elm>
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH 00/44] Manually convert filesystem FS documents to ReST
+Date: Mon, 17 Feb 2020 20:01:46 -0800
+Message-ID: <20200218040146.GM7778@bombadil.infradead.org>
+References: <cover.1581955849.git.mchehab+huawei@kernel.org>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1581955849.git.mchehab+huawei@kernel.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org
+To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Martin Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Bob Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Ilya Dryomov <idryomov@gmail.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, Naohiro Aota <naohiro.aota@wdc.com>, Christoph Hellwig <hch@infradead.org>, linux-nilfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Tyler Hicks <code@tyhicks.com>, cluster-devel@redhat.com, v9fs-developer@lists.sourceforge.net, Gao Xiang <xiang@kernel.org>, linux-ext4@vger.kernel.org, Salah
 
-Hi Linus,
+On Mon, Feb 17, 2020 at 05:11:46PM +0100, Mauro Carvalho Chehab wrote:
+> There are lots of plain text documents under Documentation/filesystems.
+> 
+> Manually convert several of those to ReST and add them to the index file.
 
-The following changes since commit 5f97cbe22b7616ead7ae267c29cad73bc1444811:
+I think at least 90% of this material needs to be in admin-guide.  Should
+we create Documentation/admin-guide/filesystems/ and move most of these
+files there?
 
-  Merge tag 'clk-fixes-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux (2019-08-19 16:28:25 -0700)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-5.6-rc3-fixes
-
-for you to fetch changes up to 2c2a7552dd6465e8fde6bc9cccf8d66ed1c1eb72:
-
-  ecryptfs: replace BUG_ON with error handling code (2020-02-14 20:07:46 +0000)
-
-----------------------------------------------------------------
-eCryptfs fixes for 5.6-rc3
-- Downgrade the eCryptfs maintenance status to "Odd Fixes"
-- Change my email address
-- Fix a couple memory leaks in error paths
-- Stability improvement to avoid a needless BUG_ON()
-
-----------------------------------------------------------------
-Aditya Pakki (1):
-      ecryptfs: replace BUG_ON with error handling code
-
-Tyler Hicks (2):
-      MAINTAINERS: eCryptfs: Update maintainer address and downgrade status
-      eCryptfs: Replace deactivated email address
-
-Wenwen Wang (2):
-      ecryptfs: fix a memory leak bug in parse_tag_1_packet()
-      ecryptfs: fix a memory leak bug in ecryptfs_init_messaging()
-
- MAINTAINERS                   | 4 ++--
- fs/ecryptfs/crypto.c          | 6 ++++--
- fs/ecryptfs/ecryptfs_kernel.h | 2 +-
- fs/ecryptfs/keystore.c        | 2 +-
- fs/ecryptfs/main.c            | 2 +-
- fs/ecryptfs/messaging.c       | 3 ++-
- 6 files changed, 11 insertions(+), 8 deletions(-)
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
