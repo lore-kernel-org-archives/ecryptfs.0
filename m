@@ -1,48 +1,43 @@
-From: Brian Kubisiak <brian.kubisiak@gmail.com>
-Subject: Re: [PATCH] ecryptfs: add mount option for specifying cipher driver.
-Date: Tue, 18 Feb 2020 17:42:18 -0800
-Message-ID: <20200219014218.GA17588@neutron>
-References: <20200210153907.GA348@brian-desktop>
- <20200216010731.GA260140@elm>
+From: Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH 00/44] Manually convert filesystem FS
+	documents to ReST
+Date: Wed, 19 Feb 2020 02:32:34 -0700
+Message-ID: <20200219023234.7b704acb@lwn.net>
+References: <cover.1581955849.git.mchehab+huawei@kernel.org>
+	<20200218040146.GM7778@bombadil.infradead.org>
+	<20200218110406.098fdc09@kernel.org>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pg1-f195.google.com ([209.85.215.195]:38090 "EHLO
-        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726567AbgBSBmX (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 18 Feb 2020 20:42:23 -0500
-Received: by mail-pg1-f195.google.com with SMTP id d6so11872678pgn.5
-        for <ecryptfs@vger.kernel.org>; Tue, 18 Feb 2020 17:42:22 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20200216010731.GA260140@elm>
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <cluster-devel-bounces@redhat.com>
+In-Reply-To: <20200218110406.098fdc09@kernel.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/cluster-devel>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Sender: cluster-devel-bounces@redhat.com
+Errors-To: cluster-devel-bounces@redhat.com
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Dominique, Ilya Dryomov <idryomov@gmail.com>, linux-afs@lists.infradead.org, Jan Kara <jack@suse.com>, Mike Marshall <hubcap@omnibond.com>, Aota <naohiro.aota@wdc.com>, cluster-devel@redhat.com, linux-nilfs@vger.kernel.org, Sage Weil <sage@redhat.com>, Richard Weinberger <richard@nod.at>, Matthew Wilcox <willy@infradead.org>, Tyler Hicks <code@tyhicks.com>, Naohiro, v9fs-developer@lists.sourceforge.net, Gao Xiang <xiang@kernel.org>, linux-ext4@vger.kernel.org, Salah Triki <salah.triki@gmail.com>, Alexey Dobriyan <adobriyan@gmail.com>
 
-Hi Tyler,
+On Tue, 18 Feb 2020 11:04:06 +0100
+Mauro Carvalho Chehab <mchehab+huawei@kernel.org> wrote:
 
-> Can you elaborate some on the use case you have?
+> Then, do a second pass at files outside the new directories (like
+> admin-guide), in order to better organize things, eventually splitting
+> some files into kAPI, uAPI and/or admin-guide.
 
-On many modern embedded SoCs, there are multiple implementations of the same
-crypto algorithm---usually a CPU-based implementation using ISA extensions and a
-"security engine" implementation that implements crypto primitives on dedicated
-silicon. There are a few tradeoffs involved (performance, CPU overhead,
-resistance to side-channels attacks, etc), so it is not always clear which
-implementation is best.
-
-An SoC that I've been working on has both the CPU implementation and the
-security engine implementation of the cbc(aes) algorithm at the same priority,
-so the one picked to perform the encryption for a given ecryptfs mount is
-somewhat random. My intention with this patch is to be able to select which
-implementation gets used for the mount using the ecryptfs_cipher_driver option
-instead of having the kernel pick.
-
-The fact that this would also effectively override the ecryptfs_cipher option is
-an unintended side effect, since the crypto_alloc_skcipher() function will take
-either the algorithm name or the driver name. Maybe there is a better way to do
-this?
+I'm looking forward to this phase!  Yes it is harder, and it often
+requires selling the idea to skeptical maintainers.  But that is how,
+IMO, we get from where we're at now to something closer to a set of
+coherent kernel docs.
 
 Thanks,
-Brian
+
+jon
+
+
