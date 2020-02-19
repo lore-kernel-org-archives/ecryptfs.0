@@ -1,56 +1,76 @@
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: Re: [PATCH 00/44] Manually convert filesystem FS documents to ReST
-Date: Wed, 19 Feb 2020 16:11:13 +0100
-Message-ID: <20200219161113.41add6e4@kernel.org>
-References: <cover.1581955849.git.mchehab+huawei@kernel.org>
- <20200218040146.GM7778@bombadil.infradead.org>
- <20200218110406.098fdc09@kernel.org>
- <20200219023234.7b704acb@lwn.net>
+From: Tyler Hicks <code@tyhicks.com>
+Subject: Re: [PATCH] ecryptfs: add mount option for specifying cipher driver.
+Date: Wed, 19 Feb 2020 10:30:50 -0600
+Message-ID: <20200219163050.GA354535@elm>
+References: <20200210153907.GA348@brian-desktop>
+ <20200216010731.GA260140@elm>
+ <20200219014218.GA17588@neutron>
 Mime-Version: 1.0
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-oi1-f194.google.com ([209.85.167.194]:40993 "EHLO
+        mail-oi1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726652AbgBSQbE (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Wed, 19 Feb 2020 11:31:04 -0500
+Received: by mail-oi1-f194.google.com with SMTP id i1so24352010oie.8
+        for <ecryptfs@vger.kernel.org>; Wed, 19 Feb 2020 08:31:03 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20200219014218.GA17588@neutron>
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org>
-In-Reply-To: <20200219023234.7b704acb@lwn.net>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Martin Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Bob Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Ilya Dryomov <idryomov@gmail.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, Naohiro Aota <naohiro.aota@wdc.com>, Christoph Hellwig <hch@infradead.org>, linux-nilfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Richard Weinberger <richard@nod.at>, Matthew Wilcox <willy@infradead.org>, Tyler Hicks <code@tyhicks.com>, cluster-devel@redhat.com, v9fs-developer@lists.sourceforge.net, Gao Xiang <xiang@kernel.org>, linux-ext4@vger.kernel.org, Salah
+To: Brian Kubisiak <brian.kubisiak@gmail.com>
+Cc: ecryptfs@vger.kernel.org
 
-Em Wed, 19 Feb 2020 02:32:34 -0700
-Jonathan Corbet <corbet@lwn.net> escreveu:
-
-> On Tue, 18 Feb 2020 11:04:06 +0100
-> Mauro Carvalho Chehab <mchehab+huawei@kernel.org> wrote:
+On 2020-02-18 17:42:18, Brian Kubisiak wrote:
+> Hi Tyler,
 > 
-> > Then, do a second pass at files outside the new directories (like
-> > admin-guide), in order to better organize things, eventually splitting
-> > some files into kAPI, uAPI and/or admin-guide.  
+> > Can you elaborate some on the use case you have?
 > 
-> I'm looking forward to this phase!  Yes it is harder, and it often
-> requires selling the idea to skeptical maintainers.  But that is how,
-> IMO, we get from where we're at now to something closer to a set of
-> coherent kernel docs.
+> On many modern embedded SoCs, there are multiple implementations of the same
+> crypto algorithm---usually a CPU-based implementation using ISA extensions and a
+> "security engine" implementation that implements crypto primitives on dedicated
+> silicon. There are a few tradeoffs involved (performance, CPU overhead,
+> resistance to side-channels attacks, etc), so it is not always clear which
+> implementation is best.
+> 
+> An SoC that I've been working on has both the CPU implementation and the
+> security engine implementation of the cbc(aes) algorithm at the same priority,
+> so the one picked to perform the encryption for a given ecryptfs mount is
+> somewhat random.
 
-Yeah, fully agreed that this is an important step.
+Have you looked into the possibility of increasing the priority of the
+implementation that you prefer on your SoC?
 
-I'm even more anxious for a third phase: filling the gaps. I'm pretty sure
-that several important parts of the Kernel aren't properly represented
-at Documentation.
+If that's not feasible, have you considered blacklisting the module
+providing the implementation that you don't prefer?
 
-Yet, before start writing new things, we should first organizing what we
-already have, making them well-organized.
+> My intention with this patch is to be able to select which
+> implementation gets used for the mount using the
+> ecryptfs_cipher_driver option instead of having the kernel pick.
 
-Cheers,
-Mauro
+I don't think allowing users to specify a cipher driver is a good idea.
+eCryptfs has always assumed that the crypto subsystem knows best about
+the ideal implementation of "cbc(aes)" and I believe that this is how
+the crypto subsystem expects eCryptfs to make use of their API.
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+In addition to the design objection above, I'm worried about users
+shooting themselves in the foot with this mount option. For example,
+"ecryptfs_cipher_driver=ecb_aes_aesni" and
+"ecryptfs_cipher_driver=xts_aes_aesni" are accepted. eCryptfs is only
+implemented to operated in a (modified) CBC mode and letting users force
+their way into using anything else is dangerous/insecure.
+
+Lets see if we can address your problem in the crypto subsystem (or with
+the module blacklist) rather than creating this amount of flexibility in
+eCryptfs.
+
+Tyler
+
+> The fact that this would also effectively override the ecryptfs_cipher option is
+> an unintended side effect, since the crypto_alloc_skcipher() function will take
+> either the algorithm name or the driver name. Maybe there is a better way to do
+> this?
+> 
+> Thanks,
+> Brian
