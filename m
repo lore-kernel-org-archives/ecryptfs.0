@@ -1,90 +1,48 @@
-From: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Subject: Re: [PATCH 00/44] Manually convert filesystem FS documents to ReST
-Date: Tue, 18 Feb 2020 11:04:06 +0100
-Message-ID: <20200218110406.098fdc09@kernel.org>
-References: <cover.1581955849.git.mchehab+huawei@kernel.org>
- <20200218040146.GM7778@bombadil.infradead.org>
+From: Brian Kubisiak <brian.kubisiak@gmail.com>
+Subject: Re: [PATCH] ecryptfs: add mount option for specifying cipher driver.
+Date: Tue, 18 Feb 2020 17:42:18 -0800
+Message-ID: <20200219014218.GA17588@neutron>
+References: <20200210153907.GA348@brian-desktop>
+ <20200216010731.GA260140@elm>
 Mime-Version: 1.0
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from mail-pg1-f195.google.com ([209.85.215.195]:38090 "EHLO
+        mail-pg1-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726567AbgBSBmX (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 18 Feb 2020 20:42:23 -0500
+Received: by mail-pg1-f195.google.com with SMTP id d6so11872678pgn.5
+        for <ecryptfs@vger.kernel.org>; Tue, 18 Feb 2020 17:42:22 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20200216010731.GA260140@elm>
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org>
-In-Reply-To: <20200218040146.GM7778@bombadil.infradead.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-mtd" <linux-mtd-bounces@lists.infradead.org>
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=m.gmane-mx.org@lists.infradead.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Martin Brandenburg <martin@omnibond.com>, Jan Kara <jack@suse.cz>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, Dominique Martinet <asmadeus@codewreck.org>, Amir Goldstein <amir73il@gmail.com>, Bob Copeland <me@bobcopeland.com>, David Howells <dhowells@redhat.com>, Chris Mason <clm@fb.com>, linux-mtd@lists.infradead.org, Ilya Dryomov <idryomov@gmail.com>, linux-afs@lists.infradead.org, Mike Marshall <hubcap@omnibond.com>, Naohiro Aota <naohiro.aota@wdc.com>, Christoph Hellwig <hch@infradead.org>, linux-nilfs@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Sage Weil <sage@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Tyler Hicks <code@tyhicks.com>, cluster-devel@redhat.com, v9fs-developer@lists.sourceforge.net, Gao Xiang <xiang@kernel.org>, linux-ext4@vger.kernel.org, Salah
+To: Tyler Hicks <code@tyhicks.com>
+Cc: ecryptfs@vger.kernel.org
 
-Em Mon, 17 Feb 2020 20:01:46 -0800
-Matthew Wilcox <willy@infradead.org> escreveu:
+Hi Tyler,
 
-> On Mon, Feb 17, 2020 at 05:11:46PM +0100, Mauro Carvalho Chehab wrote:
-> > There are lots of plain text documents under Documentation/filesystems.
-> > 
-> > Manually convert several of those to ReST and add them to the index file.  
-> 
-> I think at least 90% of this material needs to be in admin-guide.  Should
-> we create Documentation/admin-guide/filesystems/ and move most of these
-> files there?
+> Can you elaborate some on the use case you have?
 
-It makes sense to me. Yet, there are some of those files that contains
-both user-facing and kernel-facing docs at the same place. 
+On many modern embedded SoCs, there are multiple implementations of the same
+crypto algorithm---usually a CPU-based implementation using ISA extensions and a
+"security engine" implementation that implements crypto primitives on dedicated
+silicon. There are a few tradeoffs involved (performance, CPU overhead,
+resistance to side-channels attacks, etc), so it is not always clear which
+implementation is best.
 
-Btw, I found the same pattern on *several* other subsystems: when
-someone is documenting some feature, it tends to document both kAPI,
-uAPI and admin.
+An SoC that I've been working on has both the CPU implementation and the
+security engine implementation of the cbc(aes) algorithm at the same priority,
+so the one picked to perform the encryption for a given ecryptfs mount is
+somewhat random. My intention with this patch is to be able to select which
+implementation gets used for the mount using the ecryptfs_cipher_driver option
+instead of having the kernel pick.
 
-Right now, what we did so far on most places were to keep the stuff 
-together, as splitting them could sometimes be painful.
+The fact that this would also effectively override the ecryptfs_cipher option is
+an unintended side effect, since the crypto_alloc_skcipher() function will take
+either the algorithm name or the driver name. Maybe there is a better way to do
+this?
 
-As we are too close to finish the ReST conversion[1], I would prefer to
-first finish it. 
-
-Then, do a second pass at files outside the new directories (like
-admin-guide), in order to better organize things, eventually splitting
-some files into kAPI, uAPI and/or admin-guide.
-
-[1] Looking at next-20200217, after my last doc patches applied on this tree:
-
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=all_docs_merged
-
-excluding (most) false positives, we have now only ~50 text files left to
-convert:
-
-$ dirname $(find Documentation/ -type f|grep -vE '\.(rst|svg|dot|py|awk|sh|pl|gitignore|S|yaml|c|inf|vim|modes)'|grep -vE '(Makefile|Kconfig|LICENSE|COPYING-logo|ChangeLog|CREDITS)'|grep -v devicetree/bindings|grep -vE 'Documentation/(ABI|features|output|SubmittingPatches|CodingStyle|logo.gif|dontdiff|sphinx/requirements.txt|admin-guide/kdump/gdbmacros.txt|admin-guide/aoe/udev.txt|EDID/hex|netlabel/draft-ietf-cipso-ipsecurity-01.txt|firmware_class/hotplug-script|target/target-export-device|networking/mac80211-auth-assoc-deauth.txt|sparc/oradax/dax-hv-api.txt)'|grep -v translations)|sort|uniq -c|sort -n
-$ echo -n "Total: "
-$ dirname $(find Documentation/ -type f|grep -vE '\.(rst|svg|dot|py|awk|sh|pl|gitignore|S|yaml|c|inf|vim|modes)'|grep -vE '(Makefile|Kconfig|LICENSE|COPYING-logo|ChangeLog|CREDITS)'|grep -v devicetree/bindings|grep -vE 'Documentation/(ABI|features|output|SubmittingPatches|CodingStyle|logo.gif|dontdiff|sphinx/requirements.txt|admin-guide/kdump/gdbmacros.txt|admin-guide/aoe/udev.txt|EDID/hex|netlabel/draft-ietf-cipso-ipsecurity-01.txt|firmware_class/hotplug-script|target/target-export-device|networking/mac80211-auth-assoc-deauth.txt|sparc/oradax/dax-hv-api.txt)'|grep -v translations)|wc -l
-
-      1 Documentation/filesystems/cifs
-      1 Documentation/filesystems/configfs
-      1 Documentation/scsi
-      1 Documentation/virt/kvm/devices
-      2 Documentation/admin-guide
-      3 Documentation
-      6 Documentation/devicetree
-      6 Documentation/filesystems/caching
-      8 Documentation/RCU
-     21 Documentation/filesystems
-Total: 50
-
-Once we get this series merged, I'm planning to prepare and submit a second
-series doing the conversion for the other ~20 filesystem files.
-
-Btw, if you want to look how things will become after my patch series,
-I'm keeping a html build after all my patch series at:
-
-	https://www.infradead.org/~mchehab/kernel_docs/
-
-Cheers,
-Mauro
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Thanks,
+Brian
