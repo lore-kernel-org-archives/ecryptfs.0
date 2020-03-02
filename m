@@ -1,66 +1,93 @@
-From: Brian Kubisiak <brian.kubisiak@gmail.com>
-Subject: Re: [PATCH] ecryptfs: add mount option for specifying cipher driver.
-Date: Thu, 20 Feb 2020 10:44:53 -0800
-Message-ID: <20200220184453.GA15849@brian-desktop>
-References: <20200210153907.GA348@brian-desktop>
- <20200216010731.GA260140@elm>
- <20200219014218.GA17588@neutron>
- <20200219163050.GA354535@elm>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH 4.4, 4.9, 4.14] ecryptfs: Fix up bad backport of fe2e082f5da5b4a0a92ae32978f81507ef37ec66
+Date: Mon,  2 Mar 2020 13:39:13 -0700
+Message-ID: <20200302203912.27370-1-natechancellor@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail-pl1-f194.google.com ([209.85.214.194]:40611 "EHLO
-        mail-pl1-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726959AbgBTSo5 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 20 Feb 2020 13:44:57 -0500
-Received: by mail-pl1-f194.google.com with SMTP id y1so1892247plp.7
-        for <ecryptfs@vger.kernel.org>; Thu, 20 Feb 2020 10:44:56 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20200219163050.GA354535@elm>
+Received: from mail-ot1-f68.google.com ([209.85.210.68]:42975 "EHLO
+        mail-ot1-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726561AbgCBUjy (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 2 Mar 2020 15:39:54 -0500
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sasha Levin <sashal@kernel.org>
+Cc: stable@vger.kernel.org, ecryptfs@vger.kernel.org, Wenwen Wang <wenwen@cs.uga.edu>, Tyler Hicks <tyhicks@canonical.com>, Nathan Chancellor <natechancellor@gmail.com>
 
-> Have you looked into the possibility of increasing the priority of the
-> implementation that you prefer on your SoC?
+When doing the 4.9 merge into certain Android trees, I noticed a warning
+from Android's deprecated GCC 4.9.4, which causes a build failure in
+those trees due to basically -Werror:
 
-Yes, this should definitely be done, but I don't think it solves
-the underlying issue. There are tradeoffs involved between the
-security engine and the CPU implementation, and determining which
-is "best" is dependent on what it is being used for. So I could
-set the priority based on what I want for eCryptfs, but this also
-affects every other consumer of the crypto API.
+fs/ecryptfs/keystore.c: In function 'ecryptfs_parse_packet_set':
+fs/ecryptfs/keystore.c:1357:2: warning: 'auth_tok_list_item' may be used
+uninitialized in this function [-Wmaybe-uninitialized]
+  memset(auth_tok_list_item, 0,
+  ^
+fs/ecryptfs/keystore.c:1260:38: note: 'auth_tok_list_item' was declared
+here
+  struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
+                                      ^
 
-> I don't think allowing users to specify a cipher driver is a good idea.
-> eCryptfs has always assumed that the crypto subsystem knows best about
-> the ideal implementation of "cbc(aes)" and I believe that this is how
-> the crypto subsystem expects eCryptfs to make use of their API.
+GCC 9.2.0 was not able to pick up this warning when I tested it.
 
-I don't think this is true though. The crypto subsystem aims to
-provide a sane default (ie whichever is the higher priority), but
-allows overriding this choice if it would pick incorrectly. Since
-it is making the choice with incomplete information (the crypto
-subsystem can't know what you are using it for, so it doesn't
-know which implementation is best), it makes sense that it could
-be overridden from userspace. For example, the AF_ALG interface
-to the crypto subsystem passes 'salg_name' directly from
-userspace to allow this if needed.
+Turns out that Clang warns as well when -Wuninitialized is used, which
+is not the case in older stable trees at the moment (but shows value in
+potentially backporting the various warning fixes currently in upstream
+to get more coverage).
 
-I'd like to have this same flexibility in eCryptfs so I can
-change which crypto implementation is used without affecting
-other parts of the system.
+fs/ecryptfs/keystore.c:1284:6: warning: variable 'auth_tok_list_item' is
+used uninitialized whenever 'if' condition is true
+[-Wsometimes-uninitialized]
+        if (data[(*packet_size)++] != ECRYPTFS_TAG_1_PACKET_TYPE) {
+            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fs/ecryptfs/keystore.c:1360:4: note: uninitialized use occurs here
+                        auth_tok_list_item);
+                        ^~~~~~~~~~~~~~~~~~
+fs/ecryptfs/keystore.c:1284:2: note: remove the 'if' if its condition is
+always false
+        if (data[(*packet_size)++] != ECRYPTFS_TAG_1_PACKET_TYPE) {
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fs/ecryptfs/keystore.c:1260:56: note: initialize the variable
+'auth_tok_list_item' to silence this warning
+        struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
+                                                              ^
+                                                               = NULL
+1 warning generated.
 
-> In addition to the design objection above, I'm worried about users
-> shooting themselves in the foot with this mount option. For example,
-> "ecryptfs_cipher_driver=ecb_aes_aesni" and
-> "ecryptfs_cipher_driver=xts_aes_aesni" are accepted. eCryptfs is only
-> implemented to operated in a (modified) CBC mode and letting users force
-> their way into using anything else is dangerous/insecure.
+Somehow, commit fe2e082f5da5 ("ecryptfs: fix a memory leak bug in
+parse_tag_1_packet()") upstream was not applied in the correct if block
+in 4.4.215, 4.9.215, and 4.14.172, which will indeed lead to use of
+uninitialized memory. Fix it up by undoing the bad backport in those
+trees then reapplying the patch in the proper location.
 
-I should probably also be checking that the requested driver
-provides the correct algorithm, but haven't looked too closely
-into that.
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ fs/ecryptfs/keystore.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Brian
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 3f3ec50bf773..b134315fb69d 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1285,7 +1285,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
+ 		printk(KERN_ERR "Enter w/ first byte != 0x%.2x\n",
+ 		       ECRYPTFS_TAG_1_PACKET_TYPE);
+ 		rc = -EINVAL;
+-		goto out_free;
++		goto out;
+ 	}
+ 	/* Released: wipe_auth_tok_list called in ecryptfs_parse_packet_set or
+ 	 * at end of function upon failure */
+@@ -1335,7 +1335,7 @@ parse_tag_1_packet(struct ecryptfs_crypt_stat *crypt_stat,
+ 		printk(KERN_WARNING "Tag 1 packet contains key larger "
+ 		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
+ 		rc = -EINVAL;
+-		goto out;
++		goto out_free;
+ 	}
+ 	memcpy((*new_auth_tok)->session_key.encrypted_key,
+ 	       &data[(*packet_size)], (body_size - (ECRYPTFS_SIG_SIZE + 2)));
+-- 
+2.25.1
+
