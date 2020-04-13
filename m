@@ -1,146 +1,167 @@
-From: Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 0/2] mm, treewide: Rename kzfree() to kfree_sensitive()
-Date: Mon, 13 Apr 2020 17:15:48 -0400
-Message-ID: <20200413211550.8307-1-longman@redhat.com>
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
+From: Waiman Long <longman@redhat.com>
+Subject: [PATCH 2/2] crypto: Remove unnecessary memzero_explicit()
+Date: Mon, 13 Apr 2020 17:15:50 -0400
+Message-ID: <20200413211550.8307-3-longman@redhat.com>
+References: <20200413211550.8307-1-longman@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, "Serge E. Hallyn" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org, linux-ppp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wireguard-/J5FBtcyxH5ZwnvJuMANYw@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-fscrypt-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kasan-
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+In-Reply-To: <20200413211550.8307-1-longman@redhat.com>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>, 
+ <mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>, 
+ <mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+Sender: "Virtualization" <virtualization-bounces@lists.linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, Linus Torvalds <torvalds@linux-foundation.org>, Joe Perches <joe@perches.com>, Matthew Wilcox <willy@infradead.org>, David Rientjes <rientjes@google.com>
+Cc: samba-technical@lists.samba.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-sctp@vger.kernel.org, target-devel@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, x86@kernel.org, kasan-dev@googlegroups.com, cocci@systeme.lip6.fr, linux-wpan@vger.kernel.org, intel-wired-lan@lists.osuosl.org, Waiman Long <longman@redhat.com>, linux-crypto@vger.kernel.org, linux-pm@vger.kernel.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-amlogic@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-security-module@vger.kernel.org, keyri
 
-This patchset makes a global rename of the kzfree() to kfree_sensitive()
-to highlight the fact buffer clearing is only needed if the data objects
-contain sensitive information like encrpytion key. The fact that kzfree()
-uses memset() to do the clearing isn't totally safe either as compiler
-may compile out the clearing in their optimizer. Instead, the new
-kfree_sensitive() uses memzero_explicit() which won't get compiled out.
+Since kfree_sensitive() will do an implicit memzero_explicit(), there
+is no need to call memzero_explicit() before it. Eliminate those
+memzero_explicit() and simplify the call sites.
 
-Waiman Long (2):
-  mm, treewide: Rename kzfree() to kfree_sensitive()
-  crypto: Remove unnecessary memzero_explicit()
+Signed-off-by: Waiman Long <longman@redhat.com>
+---
+ .../crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c  | 15 +++------------
+ .../crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c  | 16 +++-------------
+ drivers/crypto/amlogic/amlogic-gxl-cipher.c      | 10 ++--------
+ drivers/crypto/inside-secure/safexcel_hash.c     |  3 +--
+ 4 files changed, 9 insertions(+), 35 deletions(-)
 
- arch/s390/crypto/prng.c                       |  4 +--
- arch/x86/power/hibernate.c                    |  2 +-
- crypto/adiantum.c                             |  2 +-
- crypto/ahash.c                                |  4 +--
- crypto/api.c                                  |  2 +-
- crypto/asymmetric_keys/verify_pefile.c        |  4 +--
- crypto/deflate.c                              |  2 +-
- crypto/drbg.c                                 | 10 +++---
- crypto/ecc.c                                  |  8 ++---
- crypto/ecdh.c                                 |  2 +-
- crypto/gcm.c                                  |  2 +-
- crypto/gf128mul.c                             |  4 +--
- crypto/jitterentropy-kcapi.c                  |  2 +-
- crypto/rng.c                                  |  2 +-
- crypto/rsa-pkcs1pad.c                         |  6 ++--
- crypto/seqiv.c                                |  2 +-
- crypto/shash.c                                |  2 +-
- crypto/skcipher.c                             |  2 +-
- crypto/testmgr.c                              |  6 ++--
- crypto/zstd.c                                 |  2 +-
- .../allwinner/sun8i-ce/sun8i-ce-cipher.c      | 17 +++-------
- .../allwinner/sun8i-ss/sun8i-ss-cipher.c      | 18 +++-------
- drivers/crypto/amlogic/amlogic-gxl-cipher.c   | 14 +++-----
- drivers/crypto/atmel-ecc.c                    |  2 +-
- drivers/crypto/caam/caampkc.c                 | 28 +++++++--------
- drivers/crypto/cavium/cpt/cptvf_main.c        |  6 ++--
- drivers/crypto/cavium/cpt/cptvf_reqmanager.c  | 12 +++----
- drivers/crypto/cavium/nitrox/nitrox_lib.c     |  4 +--
- drivers/crypto/cavium/zip/zip_crypto.c        |  6 ++--
- drivers/crypto/ccp/ccp-crypto-rsa.c           |  6 ++--
- drivers/crypto/ccree/cc_aead.c                |  4 +--
- drivers/crypto/ccree/cc_buffer_mgr.c          |  4 +--
- drivers/crypto/ccree/cc_cipher.c              |  6 ++--
- drivers/crypto/ccree/cc_hash.c                |  8 ++---
- drivers/crypto/ccree/cc_request_mgr.c         |  2 +-
- drivers/crypto/inside-secure/safexcel_hash.c  |  3 +-
- drivers/crypto/marvell/cesa/hash.c            |  2 +-
- .../crypto/marvell/octeontx/otx_cptvf_main.c  |  6 ++--
- .../marvell/octeontx/otx_cptvf_reqmgr.h       |  2 +-
- drivers/crypto/mediatek/mtk-aes.c             |  2 +-
- drivers/crypto/nx/nx.c                        |  4 +--
- drivers/crypto/virtio/virtio_crypto_algs.c    | 12 +++----
- drivers/crypto/virtio/virtio_crypto_core.c    |  2 +-
- drivers/md/dm-crypt.c                         | 34 +++++++++----------
- drivers/md/dm-integrity.c                     |  6 ++--
- drivers/misc/ibmvmc.c                         |  6 ++--
- .../hisilicon/hns3/hns3pf/hclge_mbx.c         |  2 +-
- .../net/ethernet/intel/ixgbe/ixgbe_ipsec.c    |  6 ++--
- drivers/net/ppp/ppp_mppe.c                    |  6 ++--
- drivers/net/wireguard/noise.c                 |  4 +--
- drivers/net/wireguard/peer.c                  |  2 +-
- drivers/net/wireless/intel/iwlwifi/pcie/rx.c  |  2 +-
- .../net/wireless/intel/iwlwifi/pcie/tx-gen2.c |  6 ++--
- drivers/net/wireless/intel/iwlwifi/pcie/tx.c  |  6 ++--
- drivers/net/wireless/intersil/orinoco/wext.c  |  4 +--
- drivers/s390/crypto/ap_bus.h                  |  4 +--
- drivers/staging/ks7010/ks_hostif.c            |  2 +-
- drivers/staging/rtl8723bs/core/rtw_security.c |  2 +-
- drivers/staging/wlan-ng/p80211netdev.c        |  2 +-
- drivers/target/iscsi/iscsi_target_auth.c      |  2 +-
- fs/btrfs/ioctl.c                              |  2 +-
- fs/cifs/cifsencrypt.c                         |  2 +-
- fs/cifs/connect.c                             | 10 +++---
- fs/cifs/dfs_cache.c                           |  2 +-
- fs/cifs/misc.c                                |  8 ++---
- fs/crypto/keyring.c                           |  6 ++--
- fs/crypto/keysetup_v1.c                       |  4 +--
- fs/ecryptfs/keystore.c                        |  4 +--
- fs/ecryptfs/messaging.c                       |  2 +-
- include/crypto/aead.h                         |  2 +-
- include/crypto/akcipher.h                     |  2 +-
- include/crypto/gf128mul.h                     |  2 +-
- include/crypto/hash.h                         |  2 +-
- include/crypto/internal/acompress.h           |  2 +-
- include/crypto/kpp.h                          |  2 +-
- include/crypto/skcipher.h                     |  2 +-
- include/linux/slab.h                          |  2 +-
- lib/mpi/mpiutil.c                             |  6 ++--
- lib/test_kasan.c                              |  6 ++--
- mm/slab_common.c                              | 10 +++---
- net/atm/mpoa_caches.c                         |  4 +--
- net/bluetooth/ecdh_helper.c                   |  6 ++--
- net/bluetooth/smp.c                           | 24 ++++++-------
- net/core/sock.c                               |  2 +-
- net/ipv4/tcp_fastopen.c                       |  2 +-
- net/mac80211/aead_api.c                       |  4 +--
- net/mac80211/aes_gmac.c                       |  2 +-
- net/mac80211/key.c                            |  2 +-
- net/mac802154/llsec.c                         | 20 +++++------
- net/sctp/auth.c                               |  2 +-
- net/sctp/socket.c                             |  2 +-
- net/sunrpc/auth_gss/gss_krb5_crypto.c         |  4 +--
- net/sunrpc/auth_gss/gss_krb5_keys.c           |  6 ++--
- net/sunrpc/auth_gss/gss_krb5_mech.c           |  2 +-
- net/tipc/crypto.c                             | 10 +++---
- net/wireless/core.c                           |  2 +-
- net/wireless/ibss.c                           |  4 +--
- net/wireless/lib80211_crypt_tkip.c            |  2 +-
- net/wireless/lib80211_crypt_wep.c             |  2 +-
- net/wireless/nl80211.c                        | 24 ++++++-------
- net/wireless/sme.c                            |  6 ++--
- net/wireless/util.c                           |  2 +-
- net/wireless/wext-sme.c                       |  2 +-
- scripts/coccinelle/free/devm_free.cocci       |  4 +--
- scripts/coccinelle/free/ifnullfree.cocci      |  4 +--
- scripts/coccinelle/free/kfree.cocci           |  6 ++--
- scripts/coccinelle/free/kfreeaddr.cocci       |  2 +-
- security/apparmor/domain.c                    |  4 +--
- security/apparmor/include/file.h              |  2 +-
- security/apparmor/policy.c                    | 24 ++++++-------
- security/apparmor/policy_ns.c                 |  6 ++--
- security/apparmor/policy_unpack.c             | 14 ++++----
- security/keys/big_key.c                       |  6 ++--
- security/keys/dh.c                            | 14 ++++----
- security/keys/encrypted-keys/encrypted.c      | 14 ++++----
- security/keys/trusted-keys/trusted_tpm1.c     | 34 +++++++++----------
- security/keys/user_defined.c                  |  6 ++--
- 117 files changed, 332 insertions(+), 358 deletions(-)
-
+diff --git a/drivers/crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c b/drivers/crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c
+index aa4e8fdc2b32..46c10c7ca6d0 100644
+--- a/drivers/crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c
++++ b/drivers/crypto/allwinner/sun8i-ce/sun8i-ce-cipher.c
+@@ -366,10 +366,7 @@ void sun8i_ce_cipher_exit(struct crypto_tfm *tfm)
+ {
+ 	struct sun8i_cipher_tfm_ctx *op = crypto_tfm_ctx(tfm);
+ 
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	crypto_free_sync_skcipher(op->fallback_tfm);
+ 	pm_runtime_put_sync_suspend(op->ce->dev);
+ }
+@@ -391,10 +388,7 @@ int sun8i_ce_aes_setkey(struct crypto_skcipher *tfm, const u8 *key,
+ 		dev_dbg(ce->dev, "ERROR: Invalid keylen %u\n", keylen);
+ 		return -EINVAL;
+ 	}
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	op->keylen = keylen;
+ 	op->key = kmemdup(key, keylen, GFP_KERNEL | GFP_DMA);
+ 	if (!op->key)
+@@ -416,10 +410,7 @@ int sun8i_ce_des3_setkey(struct crypto_skcipher *tfm, const u8 *key,
+ 	if (err)
+ 		return err;
+ 
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	free_sensitive(op->key, op->keylen);
+ 	op->keylen = keylen;
+ 	op->key = kmemdup(key, keylen, GFP_KERNEL | GFP_DMA);
+ 	if (!op->key)
+diff --git a/drivers/crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c b/drivers/crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c
+index 5246ef4f5430..7e09a923cbaf 100644
+--- a/drivers/crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c
++++ b/drivers/crypto/allwinner/sun8i-ss/sun8i-ss-cipher.c
+@@ -249,7 +249,6 @@ static int sun8i_ss_cipher(struct skcipher_request *areq)
+ 			offset = areq->cryptlen - ivsize;
+ 			if (rctx->op_dir & SS_DECRYPTION) {
+ 				memcpy(areq->iv, backup_iv, ivsize);
+-				memzero_explicit(backup_iv, ivsize);
+ 				kfree_sensitive(backup_iv);
+ 			} else {
+ 				scatterwalk_map_and_copy(areq->iv, areq->dst, offset,
+@@ -367,10 +366,7 @@ void sun8i_ss_cipher_exit(struct crypto_tfm *tfm)
+ {
+ 	struct sun8i_cipher_tfm_ctx *op = crypto_tfm_ctx(tfm);
+ 
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	crypto_free_sync_skcipher(op->fallback_tfm);
+ 	pm_runtime_put_sync(op->ss->dev);
+ }
+@@ -392,10 +388,7 @@ int sun8i_ss_aes_setkey(struct crypto_skcipher *tfm, const u8 *key,
+ 		dev_dbg(ss->dev, "ERROR: Invalid keylen %u\n", keylen);
+ 		return -EINVAL;
+ 	}
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	op->keylen = keylen;
+ 	op->key = kmemdup(key, keylen, GFP_KERNEL | GFP_DMA);
+ 	if (!op->key)
+@@ -418,10 +411,7 @@ int sun8i_ss_des3_setkey(struct crypto_skcipher *tfm, const u8 *key,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	op->keylen = keylen;
+ 	op->key = kmemdup(key, keylen, GFP_KERNEL | GFP_DMA);
+ 	if (!op->key)
+diff --git a/drivers/crypto/amlogic/amlogic-gxl-cipher.c b/drivers/crypto/amlogic/amlogic-gxl-cipher.c
+index fd1269900d67..f424397fbba4 100644
+--- a/drivers/crypto/amlogic/amlogic-gxl-cipher.c
++++ b/drivers/crypto/amlogic/amlogic-gxl-cipher.c
+@@ -341,10 +341,7 @@ void meson_cipher_exit(struct crypto_tfm *tfm)
+ {
+ 	struct meson_cipher_tfm_ctx *op = crypto_tfm_ctx(tfm);
+ 
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key)
+ 	crypto_free_sync_skcipher(op->fallback_tfm);
+ }
+ 
+@@ -368,10 +365,7 @@ int meson_aes_setkey(struct crypto_skcipher *tfm, const u8 *key,
+ 		dev_dbg(mc->dev, "ERROR: Invalid keylen %u\n", keylen);
+ 		return -EINVAL;
+ 	}
+-	if (op->key) {
+-		memzero_explicit(op->key, op->keylen);
+-		kfree(op->key);
+-	}
++	kfree_sensitive(op->key);
+ 	op->keylen = keylen;
+ 	op->key = kmemdup(key, keylen, GFP_KERNEL | GFP_DMA);
+ 	if (!op->key)
+diff --git a/drivers/crypto/inside-secure/safexcel_hash.c b/drivers/crypto/inside-secure/safexcel_hash.c
+index 43962bc709c6..4a2d162914de 100644
+--- a/drivers/crypto/inside-secure/safexcel_hash.c
++++ b/drivers/crypto/inside-secure/safexcel_hash.c
+@@ -1081,8 +1081,7 @@ static int safexcel_hmac_init_pad(struct ahash_request *areq,
+ 		}
+ 
+ 		/* Avoid leaking */
+-		memzero_explicit(keydup, keylen);
+-		kfree(keydup);
++		kfree_sensitive(keydup);
+ 
+ 		if (ret)
+ 			return ret;
 -- 
 2.18.1
-
