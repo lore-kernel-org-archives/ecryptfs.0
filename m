@@ -1,74 +1,204 @@
-From: Waiman Long <longman@redhat.com>
-Subject: Re: [PATCH v2 2/2] crypto: Remove unnecessary memzero_explicit()
-Date: Tue, 14 Apr 2020 12:24:36 -0400
-Message-ID: <e194a51f-a5e5-a557-c008-b08cac558572@redhat.com>
-References: <20200413211550.8307-1-longman@redhat.com>
- <20200413222846.24240-1-longman@redhat.com>
- <eca85e0b-0af3-c43a-31e4-bd5c3f519798@c-s.fr>
+From: Mauro Carvalho Chehab <mchehab+huawei-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v2 00/33] Documentation fixes for Kernel 5.8
+Date: Tue, 14 Apr 2020 18:48:26 +0200
+Message-ID: <cover.1586881715.git.mchehab+huawei@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-In-Reply-To: <eca85e0b-0af3-c43a-31e4-bd5c3f519798@c-s.fr>
-Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>, 
- <mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>, 
- <mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-Sender: "Virtualization" <virtualization-bounces@lists.linux-foundation.org>
-To: Christophe Leroy <christophe.leroy@c-s.fr>, Andrew Morton <akpm@linux-foundation.org>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, Linus Torvalds <torvalds@linux-foundation.org>, Joe Perches <joe@perches.com>, Matthew Wilcox <willy@infradead.org>, David Rientjes <rientjes@google.com>
-Cc: samba-technical@lists.samba.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-sctp@vger.kernel.org, target-devel@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, x86@kernel.org, kasan-dev@googlegroups.com, cocci@systeme.lip6.fr, linux-wpan@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-crypto@vger.kernel.org, linux-pm@vger.kernel.org, ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-fscrypt@vger.kernel.org, linux-mediatek@lists.infradead.org, linux-amlogic@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-cifs@vger.kernel.org, netdev@vger.kernel.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-security-module@vger.kernel.org, keyrings@vger.kernel.org, tipc-discussio
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/freedreno>
+List-Post: <mailto:freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Freedreno" <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Linux Doc Mailing List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kvmarm-FPEHb7Xf0XXUo1n7N8X6UoWGPAHP3yOg@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Geert Uytterhoeven <geert+renesas-gXvu3+zWzMSzQB+pC5nmwQ@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Mauro Carvalho Chehab <mchehab+huawei-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kishon Vijay Abraham I <kishon-l0cyMroinI0@public.gmane.org>, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Matthias Kaehlcke <mka-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Sandeep Maheswaram <sanm-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-ppc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Boyd <swboyd-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Maxime Ripard <maxime-R63rPqgGiG5yDzI6CaY1VQ@public.gmane.org>, l
 
-T24gNC8xNC8yMCAyOjA4IEFNLCBDaHJpc3RvcGhlIExlcm95IHdyb3RlOgo+Cj4KPiBMZSAxNC8w
-NC8yMDIwIMOgIDAwOjI4LCBXYWltYW4gTG9uZyBhIMOpY3JpdMKgOgo+PiBTaW5jZSBrZnJlZV9z
-ZW5zaXRpdmUoKSB3aWxsIGRvIGFuIGltcGxpY2l0IG1lbXplcm9fZXhwbGljaXQoKSwgdGhlcmUK
-Pj4gaXMgbm8gbmVlZCB0byBjYWxsIG1lbXplcm9fZXhwbGljaXQoKSBiZWZvcmUgaXQuIEVsaW1p
-bmF0ZSB0aG9zZQo+PiBtZW16ZXJvX2V4cGxpY2l0KCkgYW5kIHNpbXBsaWZ5IHRoZSBjYWxsIHNp
-dGVzLiBGb3IgYmV0dGVyIGNvcnJlY3RuZXNzLAo+PiB0aGUgc2V0dGluZyBvZiBrZXlsZW4gaXMg
-YWxzbyBtb3ZlZCBkb3duIGFmdGVyIHRoZSBrZXkgcG9pbnRlciBjaGVjay4KPj4KPj4gU2lnbmVk
-LW9mZi1ieTogV2FpbWFuIExvbmcgPGxvbmdtYW5AcmVkaGF0LmNvbT4KPj4gLS0tCj4+IMKgIC4u
-Li9hbGx3aW5uZXIvc3VuOGktY2Uvc3VuOGktY2UtY2lwaGVyLmPCoMKgwqDCoMKgIHwgMTkgKysr
-KystLS0tLS0tLS0tLS0tCj4+IMKgIC4uLi9hbGx3aW5uZXIvc3VuOGktc3Mvc3VuOGktc3MtY2lw
-aGVyLmPCoMKgwqDCoMKgIHwgMjAgKysrKystLS0tLS0tLS0tLS0tLQo+PiDCoCBkcml2ZXJzL2Ny
-eXB0by9hbWxvZ2ljL2FtbG9naWMtZ3hsLWNpcGhlci5jwqDCoCB8IDEyICsrKy0tLS0tLS0tCj4+
-IMKgIGRyaXZlcnMvY3J5cHRvL2luc2lkZS1zZWN1cmUvc2FmZXhjZWxfaGFzaC5jwqAgfMKgIDMg
-Ky0tCj4+IMKgIDQgZmlsZXMgY2hhbmdlZCwgMTQgaW5zZXJ0aW9ucygrKSwgNDAgZGVsZXRpb25z
-KC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2NyeXB0by9hbGx3aW5uZXIvc3VuOGktY2Uv
-c3VuOGktY2UtY2lwaGVyLmMKPj4gYi9kcml2ZXJzL2NyeXB0by9hbGx3aW5uZXIvc3VuOGktY2Uv
-c3VuOGktY2UtY2lwaGVyLmMKPj4gaW5kZXggYWE0ZThmZGMyYjMyLi44MzU4ZmFjOTg3MTkgMTAw
-NjQ0Cj4+IC0tLSBhL2RyaXZlcnMvY3J5cHRvL2FsbHdpbm5lci9zdW44aS1jZS9zdW44aS1jZS1j
-aXBoZXIuYwo+PiArKysgYi9kcml2ZXJzL2NyeXB0by9hbGx3aW5uZXIvc3VuOGktY2Uvc3VuOGkt
-Y2UtY2lwaGVyLmMKPj4gQEAgLTM2NiwxMCArMzY2LDcgQEAgdm9pZCBzdW44aV9jZV9jaXBoZXJf
-ZXhpdChzdHJ1Y3QgY3J5cHRvX3RmbSAqdGZtKQo+PiDCoCB7Cj4+IMKgwqDCoMKgwqAgc3RydWN0
-IHN1bjhpX2NpcGhlcl90Zm1fY3R4ICpvcCA9IGNyeXB0b190Zm1fY3R4KHRmbSk7Cj4+IMKgIC3C
-oMKgwqAgaWYgKG9wLT5rZXkpIHsKPj4gLcKgwqDCoMKgwqDCoMKgIG1lbXplcm9fZXhwbGljaXQo
-b3AtPmtleSwgb3AtPmtleWxlbik7Cj4+IC3CoMKgwqDCoMKgwqDCoCBrZnJlZShvcC0+a2V5KTsK
-Pj4gLcKgwqDCoCB9Cj4+ICvCoMKgwqAga2ZyZWVfc2Vuc2l0aXZlKG9wLT5rZXkpOwo+PiDCoMKg
-wqDCoMKgIGNyeXB0b19mcmVlX3N5bmNfc2tjaXBoZXIob3AtPmZhbGxiYWNrX3RmbSk7Cj4+IMKg
-wqDCoMKgwqAgcG1fcnVudGltZV9wdXRfc3luY19zdXNwZW5kKG9wLT5jZS0+ZGV2KTsKPj4gwqAg
-fQo+PiBAQCAtMzkxLDE0ICszODgsMTEgQEAgaW50IHN1bjhpX2NlX2Flc19zZXRrZXkoc3RydWN0
-IGNyeXB0b19za2NpcGhlcgo+PiAqdGZtLCBjb25zdCB1OCAqa2V5LAo+PiDCoMKgwqDCoMKgwqDC
-oMKgwqAgZGV2X2RiZyhjZS0+ZGV2LCAiRVJST1I6IEludmFsaWQga2V5bGVuICV1XG4iLCBrZXls
-ZW4pOwo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7Cj4+IMKgwqDCoMKgwqAg
-fQo+PiAtwqDCoMKgIGlmIChvcC0+a2V5KSB7Cj4+IC3CoMKgwqDCoMKgwqDCoCBtZW16ZXJvX2V4
-cGxpY2l0KG9wLT5rZXksIG9wLT5rZXlsZW4pOwo+PiAtwqDCoMKgwqDCoMKgwqAga2ZyZWUob3At
-PmtleSk7Cj4+IC3CoMKgwqAgfQo+PiAtwqDCoMKgIG9wLT5rZXlsZW4gPSBrZXlsZW47Cj4+ICvC
-oMKgwqAga2ZyZWVfc2Vuc2l0aXZlKG9wLT5rZXkpOwo+PiDCoMKgwqDCoMKgIG9wLT5rZXkgPSBr
-bWVtZHVwKGtleSwga2V5bGVuLCBHRlBfS0VSTkVMIHwgR0ZQX0RNQSk7Cj4+IMKgwqDCoMKgwqAg
-aWYgKCFvcC0+a2V5KQo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FTk9NRU07Cj4+ICvC
-oMKgwqAgb3AtPmtleWxlbiA9IGtleWxlbjsKPgo+IERvZXMgaXQgbWF0dGVyIGF0IGFsbCB0byBl
-bnN1cmUgb3AtPmtleWxlbiBpcyBub3Qgc2V0IHdoZW4gb2YtPmtleSBpcwo+IE5VTEwgPyBJJ20g
-bm90IHN1cmUuCj4KPiBCdXQgaWYgaXQgZG9lcywgdGhlbiBvcC0+a2V5bGVuIHNob3VsZCBiZSBz
-ZXQgdG8gMCB3aGVuIGZyZWVpbmcgb3AtPmtleS4gCgpNeSB0aGlua2luZyBpcyB0aGF0IGlmIG1l
-bW9yeSBhbGxvY2F0aW9uIGZhaWxzLCB3ZSBqdXN0IGRvbid0IHRvdWNoCmFueXRoaW5nIGFuZCBy
-ZXR1cm4gYW4gZXJyb3IgY29kZS4gSSB3aWxsIG5vdCBleHBsaWNpdGx5IHNldCBrZXlsZW4gdG8g
-MAppbiB0aGlzIGNhc2UgdW5sZXNzIGl0IGlzIHNwZWNpZmllZCBpbiB0aGUgQVBJIGRvY3VtZW50
-YXRpb24uCgpDaGVlcnMsCkxvbmdtYW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fClZpcnR1YWxpemF0aW9uIG1haWxpbmcgbGlzdApWaXJ0dWFsaXphdGlv
-bkBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlv
-bi5vcmcvbWFpbG1hbi9saXN0aW5mby92aXJ0dWFsaXphdGlvbg==
+Patches 1 to 5 contain changes to the documentation toolset:
+
+- The first 3 patches help to reduce a lot the number of reported
+  kernel-doc issues, by making the tool more smart.
+
+- Patches 4 and 5 are meant to partially address the PDF
+  build, with now requires Sphinx version 2.4 or upper.
+
+The remaining patches fix broken references detected by
+this tool:
+
+        ./scripts/documentation-file-ref-check
+
+and address other random errors due to tags being mis-interpreted
+or mis-used.
+
+They are independent each other, but some may depend on
+the kernel-doc improvements.
+
+PS.: Due to the large number of C/C, I opted to keep a smaller
+set of C/C at this first e-mail (only e-mails with "L:" tag from
+MAINTAINERS file).
+
+Jon,
+
+Those patches should apply cleanly at docs-next, once you
+pull from v5.7-rc1.
+
+
+-
+
+v2:
+
+- patches re-ordered;
+- added reviewed/acked-by tags;
+- rebased on the top of docs-next + v5.7-rc1.
+
+
+Mauro Carvalho Chehab (33):
+  scripts: kernel-doc: proper handle @foo->bar()
+  scripts: kernel-doc: accept negation like !@var
+  scripts: kernel-doc: accept blank lines on parameter description
+  docs: update recommended Sphinx version to 2.4.4
+  docs: LaTeX/PDF: drop list of documents
+  MAINTAINERS: dt: update display/allwinner file entry
+  MAINTAINERS: dt: fix pointers for ARM Integrator, Versatile and
+    RealView
+  docs: dt: fix broken reference to phy-cadence-torrent.yaml
+  docs: fix broken references to text files
+  docs: fix broken references for ReST files that moved around
+  docs: filesystems: fix renamed references
+  docs: amu: supress some Sphinx warnings
+  docs: arm64: booting.rst: get rid of some warnings
+  docs: pci: boot-interrupts.rst: improve html output
+  docs: ras: get rid of some warnings
+  docs: ras: don't need to repeat twice the same thing
+  docs: infiniband: verbs.c: fix some documentation warnings
+  docs: spi: spi.h: fix a doc building warning
+  docs: drivers: fix some warnings at base/platform.c when building docs
+  docs: mm: userfaultfd.rst: use ``foo`` for literals
+  docs: mm: userfaultfd.rst: use a cross-reference for a section
+  docs: vm: index.rst: add an orphan doc to the building system
+  docs: dt: qcom,dwc3.txt: fix cross-reference for a converted file
+  docs: dt: fix a broken reference for a file converted to json
+  docs: powerpc: cxl.rst: mark two section titles as such
+  docs: i2c: rename i2c.svg to i2c_bus.svg
+  docs: Makefile: place final pdf docs on a separate dir
+  docs: dt: rockchip,dwc3.txt: fix a pointer to a renamed file
+  ata: libata-core: fix a doc warning
+  firewire: firewire-cdev.hL get rid of a docs warning
+  fs: inode.c: get rid of docs warnings
+  futex: get rid of a kernel-docs build warning
+  lib: bitmap.c: get rid of some doc warnings
+
+ Documentation/ABI/stable/sysfs-devices-node   |   2 +-
+ Documentation/ABI/testing/procfs-smaps_rollup |   2 +-
+ Documentation/Makefile                        |   6 +-
+ Documentation/PCI/boot-interrupts.rst         |  34 +--
+ Documentation/admin-guide/cpu-load.rst        |   2 +-
+ Documentation/admin-guide/mm/userfaultfd.rst  | 209 +++++++++---------
+ Documentation/admin-guide/nfs/nfsroot.rst     |   2 +-
+ Documentation/admin-guide/ras.rst             |  18 +-
+ Documentation/arm64/amu.rst                   |   5 +
+ Documentation/arm64/booting.rst               |  36 +--
+ Documentation/conf.py                         |  38 ----
+ .../bindings/net/qualcomm-bluetooth.txt       |   2 +-
+ .../bindings/phy/ti,phy-j721e-wiz.yaml        |   2 +-
+ .../devicetree/bindings/usb/qcom,dwc3.txt     |   4 +-
+ .../devicetree/bindings/usb/rockchip,dwc3.txt |   2 +-
+ .../doc-guide/maintainer-profile.rst          |   2 +-
+ .../driver-api/driver-model/device.rst        |   4 +-
+ .../driver-api/driver-model/overview.rst      |   2 +-
+ Documentation/filesystems/dax.txt             |   2 +-
+ Documentation/filesystems/dnotify.txt         |   2 +-
+ .../filesystems/ramfs-rootfs-initramfs.rst    |   2 +-
+ Documentation/filesystems/sysfs.rst           |   2 +-
+ Documentation/i2c/{i2c.svg => i2c_bus.svg}    |   2 +-
+ Documentation/i2c/summary.rst                 |   2 +-
+ Documentation/memory-barriers.txt             |   2 +-
+ Documentation/powerpc/cxl.rst                 |   2 +
+ .../powerpc/firmware-assisted-dump.rst        |   2 +-
+ Documentation/process/adding-syscalls.rst     |   2 +-
+ Documentation/process/submit-checklist.rst    |   2 +-
+ Documentation/sphinx/requirements.txt         |   2 +-
+ .../it_IT/process/adding-syscalls.rst         |   2 +-
+ .../it_IT/process/submit-checklist.rst        |   2 +-
+ .../translations/ko_KR/memory-barriers.txt    |   2 +-
+ .../translations/zh_CN/filesystems/sysfs.txt  |   8 +-
+ .../zh_CN/process/submit-checklist.rst        |   2 +-
+ Documentation/virt/kvm/arm/pvtime.rst         |   2 +-
+ Documentation/virt/kvm/devices/vcpu.rst       |   2 +-
+ Documentation/virt/kvm/hypercalls.rst         |   4 +-
+ Documentation/virt/kvm/mmu.rst                |   2 +-
+ Documentation/virt/kvm/review-checklist.rst   |   2 +-
+ Documentation/vm/index.rst                    |   1 +
+ MAINTAINERS                                   |   7 +-
+ arch/powerpc/include/uapi/asm/kvm_para.h      |   2 +-
+ arch/x86/kvm/mmu/mmu.c                        |   2 +-
+ drivers/ata/libata-core.c                     |   2 +-
+ drivers/base/core.c                           |   2 +-
+ drivers/base/platform.c                       |   6 +-
+ .../allwinner/sun8i-ce/sun8i-ce-cipher.c      |   2 +-
+ .../crypto/allwinner/sun8i-ce/sun8i-ce-core.c |   2 +-
+ .../allwinner/sun8i-ss/sun8i-ss-cipher.c      |   2 +-
+ .../crypto/allwinner/sun8i-ss/sun8i-ss-core.c |   2 +-
+ drivers/gpu/drm/Kconfig                       |   2 +-
+ drivers/gpu/drm/drm_ioctl.c                   |   2 +-
+ drivers/gpu/drm/msm/disp/dpu1/dpu_kms.h       |   2 +-
+ drivers/hwtracing/coresight/Kconfig           |   2 +-
+ drivers/infiniband/core/verbs.c               |   7 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c         |   2 +-
+ fs/Kconfig                                    |   2 +-
+ fs/Kconfig.binfmt                             |   2 +-
+ fs/adfs/Kconfig                               |   2 +-
+ fs/affs/Kconfig                               |   2 +-
+ fs/afs/Kconfig                                |   6 +-
+ fs/bfs/Kconfig                                |   2 +-
+ fs/cramfs/Kconfig                             |   2 +-
+ fs/ecryptfs/Kconfig                           |   2 +-
+ fs/fat/Kconfig                                |   8 +-
+ fs/fuse/Kconfig                               |   2 +-
+ fs/fuse/dev.c                                 |   2 +-
+ fs/hfs/Kconfig                                |   2 +-
+ fs/hpfs/Kconfig                               |   2 +-
+ fs/inode.c                                    |   6 +-
+ fs/isofs/Kconfig                              |   2 +-
+ fs/namespace.c                                |   2 +-
+ fs/notify/inotify/Kconfig                     |   2 +-
+ fs/ntfs/Kconfig                               |   2 +-
+ fs/ocfs2/Kconfig                              |   2 +-
+ fs/overlayfs/Kconfig                          |   6 +-
+ fs/proc/Kconfig                               |   4 +-
+ fs/romfs/Kconfig                              |   2 +-
+ fs/sysfs/dir.c                                |   2 +-
+ fs/sysfs/file.c                               |   2 +-
+ fs/sysfs/mount.c                              |   2 +-
+ fs/sysfs/symlink.c                            |   2 +-
+ fs/sysv/Kconfig                               |   2 +-
+ fs/udf/Kconfig                                |   2 +-
+ include/linux/kobject.h                       |   2 +-
+ include/linux/kobject_ns.h                    |   2 +-
+ include/linux/mm.h                            |   4 +-
+ include/linux/relay.h                         |   2 +-
+ include/linux/spi/spi.h                       |   1 +
+ include/linux/sysfs.h                         |   2 +-
+ include/uapi/linux/ethtool_netlink.h          |   2 +-
+ include/uapi/linux/firewire-cdev.h            |   2 +-
+ include/uapi/linux/kvm.h                      |   4 +-
+ include/uapi/rdma/rdma_user_ioctl_cmds.h      |   2 +-
+ kernel/futex.c                                |   3 +
+ kernel/relay.c                                |   2 +-
+ lib/bitmap.c                                  |  27 +--
+ lib/kobject.c                                 |   4 +-
+ mm/gup.c                                      |  12 +-
+ scripts/kernel-doc                            |  41 ++--
+ tools/include/uapi/linux/kvm.h                |   4 +-
+ virt/kvm/arm/vgic/vgic-mmio-v3.c              |   2 +-
+ virt/kvm/arm/vgic/vgic.h                      |   4 +-
+ 104 files changed, 343 insertions(+), 326 deletions(-)
+ rename Documentation/i2c/{i2c.svg => i2c_bus.svg} (99%)
+
+-- 
+2.25.2
