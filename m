@@ -1,56 +1,214 @@
-From: Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>
-Subject: Re: [PATCH 1/2] mm, treewide: Rename kzfree() to kfree_sensitive()
-Date: Wed, 15 Apr 2020 01:01:06 -0400
-Message-ID: <20200415050106.GA154671@cmpxchg.org>
-References: <20200413211550.8307-1-longman@redhat.com>
- <20200413211550.8307-2-longman@redhat.com>
+From: Mauro Carvalho Chehab <mchehab+huawei-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 00/34] fs: convert remaining docs to ReST file
+ format
+Date: Wed, 15 Apr 2020 16:32:13 +0200
+Message-ID: <cover.1586960617.git.mchehab+huawei@kernel.org>
 Mime-Version: 1.0
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20200413211550.8307-2-longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, "Serge E. Hallyn" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, netdev@vg
+Return-path: <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/freedreno>
+List-Post: <mailto:freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/freedreno>,
+ <mailto:freedreno-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Freedreno" <freedreno-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Linux Doc Mailing List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: freedreno-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Mauro Carvalho Chehab <mchehab+huawei-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-unionfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-cachefs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, codalist-/uMB558Y47wP4a1z8dhFYw@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ocfs2-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 
-On Mon, Apr 13, 2020 at 05:15:49PM -0400, Waiman Long wrote:
-> As said by Linus:
-> 
->   A symmetric naming is only helpful if it implies symmetries in use.
->   Otherwise it's actively misleading.
+This patch series convert the remaining files under Documentation/filesystems
+to the ReST file format. It is based on linux-next (next-20200414).
 
-As the btrfs example proves - people can be tempted by this false
-symmetry to pair kzalloc with kzfree, which isn't what we wanted.
+PS.: I opted to add mainly ML from the output of get_maintainers.pl to the c/c
+list of patch 00/34, because  otherwise the number of c/c would be too many,
+with would very likely cause ML servers to reject it.
 
->   In "kzalloc()", the z is meaningful and an important part of what the
->   caller wants.
-> 
->   In "kzfree()", the z is actively detrimental, because maybe in the
->   future we really _might_ want to use that "memfill(0xdeadbeef)" or
->   something. The "zero" part of the interface isn't even _relevant_.
-> 
-> The main reason that kzfree() exists is to clear sensitive information
-> that should not be leaked to other future users of the same memory
-> objects.
-> 
-> Rename kzfree() to kfree_sensitive() to follow the example of the
-> recently added kvfree_sensitive() and make the intention of the API
-> more explicit. In addition, memzero_explicit() is used to clear the
-> memory to make sure that it won't get optimized away by the compiler.
-> 
-> The renaming is done by using the command sequence:
-> 
->   git grep -w --name-only kzfree |\
->   xargs sed -i 's/\bkzfree\b/kfree_sensitive/'
-> 
-> followed by some editing of the kfree_sensitive() kerneldoc and the
-> use of memzero_explicit() instead of memset().
-> 
-> Suggested-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-> Signed-off-by: Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+The results of those changes (together with other changes from my pending
+doc patches) are available at:
 
-Looks good to me. Thanks for fixing this very old mistake.
+   https://www.infradead.org/~mchehab/kernel_docs/filesystems/index.html
 
-Acked-by: Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>
+Mauro Carvalho Chehab (34):
+  docs: filesystems: fix references for doc files there
+  docs: filesystems: convert caching/object.txt to ReST
+  docs: filesystems: convert caching/fscache.txt to ReST format
+  docs: filesystems: caching/netfs-api.txt: convert it to ReST
+  docs: filesystems: caching/operations.txt: convert it to ReST
+  docs: filesystems: caching/cachefiles.txt: convert to ReST
+  docs: filesystems: caching/backend-api.txt: convert it to ReST
+  docs: filesystems: convert cifs/cifsroot.rst to ReST
+  docs: filesystems: convert configfs.txt to ReST
+  docs: filesystems: convert automount-support.txt to ReST
+  docs: filesystems: convert coda.txt to ReST
+  docs: filesystems: convert dax.txt to ReST
+  docs: filesystems: convert devpts.txt to ReST
+  docs: filesystems: convert dnotify.txt to ReST
+  docs: filesystems: convert fiemap.txt to ReST
+  docs: filesystems: convert files.txt to ReST
+  docs: filesystems: convert fuse-io.txt to ReST
+  docs: filesystems: convert gfs2-glocks.txt to ReST
+  docs: filesystems: convert locks.txt to ReST
+  docs: filesystems: convert mandatory-locking.txt to ReST
+  docs: filesystems: convert mount_api.txt to ReST
+  docs: filesystems: rename path-lookup.txt file
+  docs: filesystems: convert path-walking.txt to ReST
+  docs: filesystems: convert quota.txt to ReST
+  docs: filesystems: convert seq_file.txt to ReST
+  docs: filesystems: convert sharedsubtree.txt to ReST
+  docs: filesystems: split spufs.txt into 3 separate files
+  docs: filesystems: convert spufs/spu_create.txt to ReST
+  docs: filesystems: convert spufs/spufs.txt to ReST
+  docs: filesystems: convert spufs/spu_run.txt to ReST
+  docs: filesystems: convert sysfs-pci.txt to ReST
+  docs: filesystems: convert sysfs-tagging.txt to ReST
+  docs: filesystems: convert xfs-delayed-logging-design.txt to ReST
+  docs: filesystems: convert xfs-self-describing-metadata.txt to ReST
+
+ Documentation/ABI/stable/sysfs-devices-node   |    2 +-
+ Documentation/ABI/testing/procfs-smaps_rollup |    2 +-
+ Documentation/admin-guide/cpu-load.rst        |    2 +-
+ Documentation/admin-guide/ext4.rst            |    2 +-
+ Documentation/admin-guide/nfs/nfsroot.rst     |    2 +-
+ Documentation/admin-guide/sysctl/kernel.rst   |    2 +-
+ .../driver-api/driver-model/device.rst        |    2 +-
+ .../driver-api/driver-model/overview.rst      |    2 +-
+ ...ount-support.txt => automount-support.rst} |   23 +-
+ .../{backend-api.txt => backend-api.rst}      |  165 +-
+ .../{cachefiles.txt => cachefiles.rst}        |  139 +-
+ Documentation/filesystems/caching/fscache.rst |  565 ++++++
+ Documentation/filesystems/caching/fscache.txt |  448 -----
+ Documentation/filesystems/caching/index.rst   |   14 +
+ .../caching/{netfs-api.txt => netfs-api.rst}  |  172 +-
+ .../caching/{object.txt => object.rst}        |   43 +-
+ .../{operations.txt => operations.rst}        |   45 +-
+ .../cifs/{cifsroot.txt => cifsroot.rst}       |   56 +-
+ Documentation/filesystems/coda.rst            | 1670 ++++++++++++++++
+ Documentation/filesystems/coda.txt            | 1676 -----------------
+ .../{configfs/configfs.txt => configfs.rst}   |  129 +-
+ .../filesystems/{dax.txt => dax.rst}          |   11 +-
+ Documentation/filesystems/devpts.rst          |   36 +
+ Documentation/filesystems/devpts.txt          |   26 -
+ .../filesystems/{dnotify.txt => dnotify.rst}  |   13 +-
+ Documentation/filesystems/ext2.rst            |    2 +-
+ .../filesystems/{fiemap.txt => fiemap.rst}    |  133 +-
+ .../filesystems/{files.txt => files.rst}      |   15 +-
+ .../filesystems/{fuse-io.txt => fuse-io.rst}  |    6 +
+ .../{gfs2-glocks.txt => gfs2-glocks.rst}      |  147 +-
+ Documentation/filesystems/index.rst           |   26 +
+ .../filesystems/{locks.txt => locks.rst}      |   14 +-
+ ...tory-locking.txt => mandatory-locking.rst} |   25 +-
+ .../{mount_api.txt => mount_api.rst}          |  329 ++--
+ .../{path-lookup.txt => path-walking.rst}     |   88 +-
+ Documentation/filesystems/porting.rst         |    2 +-
+ Documentation/filesystems/proc.rst            |    2 +-
+ .../filesystems/{quota.txt => quota.rst}      |   41 +-
+ .../filesystems/ramfs-rootfs-initramfs.rst    |    2 +-
+ .../{seq_file.txt => seq_file.rst}            |   61 +-
+ .../{sharedsubtree.txt => sharedsubtree.rst}  |  394 ++--
+ Documentation/filesystems/spufs/index.rst     |   13 +
+ .../filesystems/spufs/spu_create.rst          |  131 ++
+ Documentation/filesystems/spufs/spu_run.rst   |  138 ++
+ .../{spufs.txt => spufs/spufs.rst}            |  304 +--
+ .../{sysfs-pci.txt => sysfs-pci.rst}          |   23 +-
+ .../{sysfs-tagging.txt => sysfs-tagging.rst}  |   22 +-
+ ...ign.txt => xfs-delayed-logging-design.rst} |   65 +-
+ ...a.txt => xfs-self-describing-metadata.rst} |  182 +-
+ Documentation/iio/iio_configfs.rst            |    2 +-
+ .../powerpc/firmware-assisted-dump.rst        |    2 +-
+ Documentation/process/adding-syscalls.rst     |    2 +-
+ .../it_IT/process/adding-syscalls.rst         |    2 +-
+ .../translations/zh_CN/filesystems/sysfs.txt  |    6 +-
+ Documentation/usb/gadget_configfs.rst         |    4 +-
+ MAINTAINERS                                   |   16 +-
+ drivers/gpu/drm/msm/disp/dpu1/dpu_kms.h       |    2 +-
+ fs/Kconfig                                    |    2 +-
+ fs/Kconfig.binfmt                             |    2 +-
+ fs/adfs/Kconfig                               |    2 +-
+ fs/affs/Kconfig                               |    2 +-
+ fs/afs/Kconfig                                |    6 +-
+ fs/bfs/Kconfig                                |    2 +-
+ fs/cachefiles/Kconfig                         |    4 +-
+ fs/coda/Kconfig                               |    2 +-
+ fs/configfs/inode.c                           |    2 +-
+ fs/configfs/item.c                            |    2 +-
+ fs/cramfs/Kconfig                             |    2 +-
+ fs/dcache.c                                   |    6 +-
+ fs/ecryptfs/Kconfig                           |    2 +-
+ fs/fat/Kconfig                                |    8 +-
+ fs/fscache/Kconfig                            |    8 +-
+ fs/fscache/cache.c                            |    8 +-
+ fs/fscache/cookie.c                           |    2 +-
+ fs/fscache/object.c                           |    4 +-
+ fs/fscache/operation.c                        |    2 +-
+ fs/fuse/Kconfig                               |    2 +-
+ fs/fuse/dev.c                                 |    2 +-
+ fs/hfs/Kconfig                                |    2 +-
+ fs/hpfs/Kconfig                               |    2 +-
+ fs/isofs/Kconfig                              |    2 +-
+ fs/locks.c                                    |    2 +-
+ fs/namei.c                                    |    2 +-
+ fs/namespace.c                                |    2 +-
+ fs/notify/inotify/Kconfig                     |    2 +-
+ fs/ntfs/Kconfig                               |    2 +-
+ fs/ocfs2/Kconfig                              |    2 +-
+ fs/overlayfs/Kconfig                          |    6 +-
+ fs/proc/Kconfig                               |    4 +-
+ fs/romfs/Kconfig                              |    2 +-
+ fs/sysfs/dir.c                                |    2 +-
+ fs/sysfs/file.c                               |    2 +-
+ fs/sysfs/mount.c                              |    2 +-
+ fs/sysfs/symlink.c                            |    2 +-
+ fs/sysv/Kconfig                               |    2 +-
+ fs/udf/Kconfig                                |    2 +-
+ include/linux/configfs.h                      |    2 +-
+ include/linux/fs_context.h                    |    2 +-
+ include/linux/fscache-cache.h                 |    4 +-
+ include/linux/fscache.h                       |   42 +-
+ include/linux/lsm_hooks.h                     |    2 +-
+ include/linux/relay.h                         |    2 +-
+ include/linux/sysfs.h                         |    2 +-
+ kernel/relay.c                                |    2 +-
+ 104 files changed, 4048 insertions(+), 3572 deletions(-)
+ rename Documentation/filesystems/{automount-support.txt => automount-support.rst} (92%)
+ rename Documentation/filesystems/caching/{backend-api.txt => backend-api.rst} (87%)
+ rename Documentation/filesystems/caching/{cachefiles.txt => cachefiles.rst} (90%)
+ create mode 100644 Documentation/filesystems/caching/fscache.rst
+ delete mode 100644 Documentation/filesystems/caching/fscache.txt
+ create mode 100644 Documentation/filesystems/caching/index.rst
+ rename Documentation/filesystems/caching/{netfs-api.txt => netfs-api.rst} (91%)
+ rename Documentation/filesystems/caching/{object.txt => object.rst} (95%)
+ rename Documentation/filesystems/caching/{operations.txt => operations.rst} (90%)
+ rename Documentation/filesystems/cifs/{cifsroot.txt => cifsroot.rst} (72%)
+ create mode 100644 Documentation/filesystems/coda.rst
+ delete mode 100644 Documentation/filesystems/coda.txt
+ rename Documentation/filesystems/{configfs/configfs.txt => configfs.rst} (87%)
+ rename Documentation/filesystems/{dax.txt => dax.rst} (96%)
+ create mode 100644 Documentation/filesystems/devpts.rst
+ delete mode 100644 Documentation/filesystems/devpts.txt
+ rename Documentation/filesystems/{dnotify.txt => dnotify.rst} (88%)
+ rename Documentation/filesystems/{fiemap.txt => fiemap.rst} (70%)
+ rename Documentation/filesystems/{files.txt => files.rst} (95%)
+ rename Documentation/filesystems/{fuse-io.txt => fuse-io.rst} (95%)
+ rename Documentation/filesystems/{gfs2-glocks.txt => gfs2-glocks.rst} (63%)
+ rename Documentation/filesystems/{locks.txt => locks.rst} (91%)
+ rename Documentation/filesystems/{mandatory-locking.txt => mandatory-locking.rst} (91%)
+ rename Documentation/filesystems/{mount_api.txt => mount_api.rst} (79%)
+ rename Documentation/filesystems/{path-lookup.txt => path-walking.rst} (91%)
+ rename Documentation/filesystems/{quota.txt => quota.rst} (81%)
+ rename Documentation/filesystems/{seq_file.txt => seq_file.rst} (92%)
+ rename Documentation/filesystems/{sharedsubtree.txt => sharedsubtree.rst} (72%)
+ create mode 100644 Documentation/filesystems/spufs/index.rst
+ create mode 100644 Documentation/filesystems/spufs/spu_create.rst
+ create mode 100644 Documentation/filesystems/spufs/spu_run.rst
+ rename Documentation/filesystems/{spufs.txt => spufs/spufs.rst} (57%)
+ rename Documentation/filesystems/{sysfs-pci.txt => sysfs-pci.rst} (92%)
+ rename Documentation/filesystems/{sysfs-tagging.txt => sysfs-tagging.rst} (72%)
+ rename Documentation/filesystems/{xfs-delayed-logging-design.txt => xfs-delayed-logging-design.rst} (97%)
+ rename Documentation/filesystems/{xfs-self-describing-metadata.txt => xfs-self-describing-metadata.rst} (83%)
+
+-- 
+2.25.2
