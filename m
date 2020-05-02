@@ -1,50 +1,94 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v2 00/33] Documentation fixes for Kernel 5.8
-Date: Mon, 20 Apr 2020 15:43:16 -0600
-Message-ID: <20200420154316.28e42905@lwn.net>
-References: <cover.1586881715.git.mchehab+huawei@kernel.org>
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: [PATCH 00/20] crypto: introduce crypto_shash_tfm_digest()
+Date: Fri,  1 May 2020 22:31:02 -0700
+Message-ID: <20200502053122.995648-1-ebiggers@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:53958 "EHLO ms.lwn.net"
+Received: from mail.kernel.org ([198.145.29.99]:38976 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725989AbgDTVnT (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Mon, 20 Apr 2020 17:43:19 -0400
-In-Reply-To: <cover.1586881715.git.mchehab+huawei@kernel.org>
+        id S1726058AbgEBFd2 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Sat, 2 May 2020 01:33:28 -0400
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, linux-kernel@vger.kernel.org, Rob Herring <robh@kernel.org>, Maxime Ripard <maxime@cerno.tech>, Linus Walleij <linus.walleij@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Kishon Vijay Abraham I <kishon@ti.com>, Yuti Amonkar <yamonkar@cadence.com>, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, kvm@vger.kernel.org, kvm-ppc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, dri-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org, kvmarm@lists.cs.columbia.edu, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org, linux
+To: linux-crypto@vger.kernel.org
+Cc: Cheng-Yi Chiang <cychiang@chromium.org>, ecryptfs@vger.kernel.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Gilad Ben-Yossef <gilad@benyossef.com>, Guenter Roeck <groeck@chromium.org>, Jesper Nilsson <jesper.nilsson@axis.com>, Kamil Konieczny <k.konieczny@samsung.com>, keyrings@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Krzysztof Opasiak <k.opasiak@samsung.com>, Lars Persson <lars.persson@axis.com>, linux-bluetooth@vger.kernel.org, linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org, linux-sctp@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Tom Lendacky <thomas.lendacky@amd.com>, Vladimir Zapolskiy <vz@mleia.com>, Zaibo Xu <xuzaibo@huawei.com>
 
-On Tue, 14 Apr 2020 18:48:26 +0200
-Mauro Carvalho Chehab <mchehab+huawei@kernel.org> wrote:
+This series introduces a helper function crypto_shash_tfm_digest() which
+replaces the following common pattern:
 
-> Patches 1 to 5 contain changes to the documentation toolset:
-> 
-> - The first 3 patches help to reduce a lot the number of reported
->   kernel-doc issues, by making the tool more smart.
-> 
-> - Patches 4 and 5 are meant to partially address the PDF
->   build, with now requires Sphinx version 2.4 or upper.
-> 
-> The remaining patches fix broken references detected by
-> this tool:
-> 
->         ./scripts/documentation-file-ref-check
-> 
-> and address other random errors due to tags being mis-interpreted
-> or mis-used.
-> 
-> They are independent each other, but some may depend on
-> the kernel-doc improvements.
-> 
-> PS.: Due to the large number of C/C, I opted to keep a smaller
-> set of C/C at this first e-mail (only e-mails with "L:" tag from
-> MAINTAINERS file).
+	{
+		SHASH_DESC_ON_STACK(desc, tfm);
+		int err;
 
-OK, I've applied this set, minus #17 which was applied elsewhere.
+		desc->tfm = tfm;
 
-Thanks,
+		err = crypto_shash_digest(desc, data, len, out);
 
-jon
+		shash_desc_zero(desc);
+	}
+
+with:
+
+	err = crypto_shash_tfm_digest(tfm, data, len, out);
+
+Patch 1 introduces this helper function, and patches 2-20 convert all
+relevant users to use it.
+
+IMO, it would be easiest to take all these patches through the crypto
+tree.  But taking just the "crypto:" ones and then me trying to get the
+rest merged later via subsystem trees is also an option.
+
+Eric Biggers (20):
+  crypto: hash - introduce crypto_shash_tfm_digest()
+  crypto: arm64/aes-glue - use crypto_shash_tfm_digest()
+  crypto: essiv - use crypto_shash_tfm_digest()
+  crypto: artpec6 - use crypto_shash_tfm_digest()
+  crypto: ccp - use crypto_shash_tfm_digest()
+  crypto: ccree - use crypto_shash_tfm_digest()
+  crypto: hisilicon/sec2 - use crypto_shash_tfm_digest()
+  crypto: mediatek - use crypto_shash_tfm_digest()
+  crypto: n2 - use crypto_shash_tfm_digest()
+  crypto: omap-sham - use crypto_shash_tfm_digest()
+  crypto: s5p-sss - use crypto_shash_tfm_digest()
+  nfc: s3fwrn5: use crypto_shash_tfm_digest()
+  fscrypt: use crypto_shash_tfm_digest()
+  ecryptfs: use crypto_shash_tfm_digest()
+  nfsd: use crypto_shash_tfm_digest()
+  ubifs: use crypto_shash_tfm_digest()
+  Bluetooth: use crypto_shash_tfm_digest()
+  sctp: use crypto_shash_tfm_digest()
+  KEYS: encrypted: use crypto_shash_tfm_digest()
+  ASoC: cros_ec_codec: use crypto_shash_tfm_digest()
+
+ arch/arm64/crypto/aes-glue.c               |  4 +--
+ crypto/essiv.c                             |  4 +--
+ crypto/shash.c                             | 16 +++++++++
+ drivers/crypto/axis/artpec6_crypto.c       | 10 ++----
+ drivers/crypto/ccp/ccp-crypto-sha.c        |  9 ++---
+ drivers/crypto/ccree/cc_cipher.c           |  9 ++---
+ drivers/crypto/hisilicon/sec2/sec_crypto.c |  5 ++-
+ drivers/crypto/mediatek/mtk-sha.c          |  7 ++--
+ drivers/crypto/n2_core.c                   |  7 ++--
+ drivers/crypto/omap-sham.c                 | 20 +++--------
+ drivers/crypto/s5p-sss.c                   | 39 ++++------------------
+ drivers/nfc/s3fwrn5/firmware.c             | 10 +-----
+ fs/crypto/fname.c                          |  7 +---
+ fs/crypto/hkdf.c                           |  6 +---
+ fs/ecryptfs/crypto.c                       | 17 +---------
+ fs/nfsd/nfs4recover.c                      | 26 ++++-----------
+ fs/ubifs/auth.c                            | 20 ++---------
+ fs/ubifs/master.c                          |  9 ++---
+ fs/ubifs/replay.c                          | 14 ++------
+ include/crypto/hash.h                      | 19 +++++++++++
+ net/bluetooth/smp.c                        |  6 +---
+ net/sctp/auth.c                            | 10 ++----
+ net/sctp/sm_make_chunk.c                   | 23 +++++--------
+ security/keys/encrypted-keys/encrypted.c   | 18 ++--------
+ sound/soc/codecs/cros_ec_codec.c           |  9 +----
+ 25 files changed, 95 insertions(+), 229 deletions(-)
+
+-- 
+2.26.2
+
