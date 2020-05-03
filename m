@@ -1,54 +1,104 @@
-From: Marcel Holtmann <marcel@holtmann.org>
+From: Ard Biesheuvel <ardb@kernel.org>
 Subject: Re: [PATCH 00/20] crypto: introduce crypto_shash_tfm_digest()
-Date: Sat, 2 May 2020 08:44:37 +0200
-Message-ID: <5E6F9382-3D91-4587-980A-377E7CB086E4@holtmann.org>
+Date: Sun, 3 May 2020 18:13:18 +0200
+Message-ID: <CAMj1kXG9Cubj9zO4paGd94cAvG1h21Z0X3CmyNr-orD7WC1=vw@mail.gmail.com>
 References: <20200502053122.995648-1-ebiggers@kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.80.23.2.2\))
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from coyote.holtmann.net ([212.227.132.17]:40713 "EHLO
-        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726473AbgEBGpK (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sat, 2 May 2020 02:45:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41136 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1728665AbgECQNb (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Sun, 3 May 2020 12:13:31 -0400
 In-Reply-To: <20200502053122.995648-1-ebiggers@kernel.org>
 Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Eric Biggers <ebiggers@kernel.org>
-Cc: linux-crypto@vger.kernel.org, Cheng-Yi Chiang <cychiang@chromium.org>, ecryptfs@vger.kernel.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Gilad Ben-Yossef <gilad@benyossef.com>, Guenter Roeck <groeck@chromium.org>, Jesper Nilsson <jesper.nilsson@axis.com>, Kamil Konieczny <k.konieczny@samsung.com>, keyrings@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Krzysztof Opasiak <k.opasiak@samsung.com>, Lars Persson <lars.persson@axis.com>, linux-bluetooth <linux-bluetooth@vger.kernel.org>, linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org, linux-sctp@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Tom Lendacky <thomas.lendacky@amd.com>, Vladimir Zapolskiy <vz@mleia.com>, Zaibo Xu <xuzaibo@huawei.com>
+Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Cheng-Yi Chiang <cychiang@chromium.org>, ecryptfs@vger.kernel.org, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Gilad Ben-Yossef <gilad@benyossef.com>, Guenter Roeck <groeck@chromium.org>, Jesper Nilsson <jesper.nilsson@axis.com>, Kamil Konieczny <k.konieczny@samsung.com>, keyrings@vger.kernel.org, Krzysztof Kozlowski <krzk@kernel.org>, Krzysztof Opasiak <k.opasiak@samsung.com>, Lars Persson <lars.persson@axis.com>, linux-bluetooth@vger.kernel.org, linux-mtd@lists.infradead.org, linux-nfs@vger.kernel.org, linux-sctp@vger.kernel.org, Robert Baldyga <r.baldyga@samsung.com>, Tom Lendacky <thomas.lendacky@amd.com>, Vladimir Zapolskiy <vz@mleia.com>, Zaibo Xu <xuzaibo@huawei.com>
 
-Hi Eric,
-
+On Sat, 2 May 2020 at 07:33, Eric Biggers <ebiggers@kernel.org> wrote:
+>
 > This series introduces a helper function crypto_shash_tfm_digest() which
 > replaces the following common pattern:
-> 
-> 	{
-> 		SHASH_DESC_ON_STACK(desc, tfm);
-> 		int err;
-> 
-> 		desc->tfm = tfm;
-> 
-> 		err = crypto_shash_digest(desc, data, len, out);
-> 
-> 		shash_desc_zero(desc);
-> 	}
-> 
+>
+>         {
+>                 SHASH_DESC_ON_STACK(desc, tfm);
+>                 int err;
+>
+>                 desc->tfm = tfm;
+>
+>                 err = crypto_shash_digest(desc, data, len, out);
+>
+>                 shash_desc_zero(desc);
+>         }
+>
 > with:
-> 
-> 	err = crypto_shash_tfm_digest(tfm, data, len, out);
-> 
+>
+>         err = crypto_shash_tfm_digest(tfm, data, len, out);
+>
 > Patch 1 introduces this helper function, and patches 2-20 convert all
 > relevant users to use it.
-> 
+>
 > IMO, it would be easiest to take all these patches through the crypto
 > tree.  But taking just the "crypto:" ones and then me trying to get the
 > rest merged later via subsystem trees is also an option.
+>
+> Eric Biggers (20):
+>   crypto: hash - introduce crypto_shash_tfm_digest()
+>   crypto: arm64/aes-glue - use crypto_shash_tfm_digest()
+>   crypto: essiv - use crypto_shash_tfm_digest()
+>   crypto: artpec6 - use crypto_shash_tfm_digest()
+>   crypto: ccp - use crypto_shash_tfm_digest()
+>   crypto: ccree - use crypto_shash_tfm_digest()
+>   crypto: hisilicon/sec2 - use crypto_shash_tfm_digest()
+>   crypto: mediatek - use crypto_shash_tfm_digest()
+>   crypto: n2 - use crypto_shash_tfm_digest()
+>   crypto: omap-sham - use crypto_shash_tfm_digest()
+>   crypto: s5p-sss - use crypto_shash_tfm_digest()
+>   nfc: s3fwrn5: use crypto_shash_tfm_digest()
+>   fscrypt: use crypto_shash_tfm_digest()
+>   ecryptfs: use crypto_shash_tfm_digest()
+>   nfsd: use crypto_shash_tfm_digest()
+>   ubifs: use crypto_shash_tfm_digest()
+>   Bluetooth: use crypto_shash_tfm_digest()
+>   sctp: use crypto_shash_tfm_digest()
+>   KEYS: encrypted: use crypto_shash_tfm_digest()
+>   ASoC: cros_ec_codec: use crypto_shash_tfm_digest()
+>
 
-I am fine if you take the net/bluetooth/smp.c change through the crypto tree.
+For the series,
 
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Acked-by: Ard Biesheuvel <ardb@kernel.org>
 
-Regards
 
-Marcel
-
+>  arch/arm64/crypto/aes-glue.c               |  4 +--
+>  crypto/essiv.c                             |  4 +--
+>  crypto/shash.c                             | 16 +++++++++
+>  drivers/crypto/axis/artpec6_crypto.c       | 10 ++----
+>  drivers/crypto/ccp/ccp-crypto-sha.c        |  9 ++---
+>  drivers/crypto/ccree/cc_cipher.c           |  9 ++---
+>  drivers/crypto/hisilicon/sec2/sec_crypto.c |  5 ++-
+>  drivers/crypto/mediatek/mtk-sha.c          |  7 ++--
+>  drivers/crypto/n2_core.c                   |  7 ++--
+>  drivers/crypto/omap-sham.c                 | 20 +++--------
+>  drivers/crypto/s5p-sss.c                   | 39 ++++------------------
+>  drivers/nfc/s3fwrn5/firmware.c             | 10 +-----
+>  fs/crypto/fname.c                          |  7 +---
+>  fs/crypto/hkdf.c                           |  6 +---
+>  fs/ecryptfs/crypto.c                       | 17 +---------
+>  fs/nfsd/nfs4recover.c                      | 26 ++++-----------
+>  fs/ubifs/auth.c                            | 20 ++---------
+>  fs/ubifs/master.c                          |  9 ++---
+>  fs/ubifs/replay.c                          | 14 ++------
+>  include/crypto/hash.h                      | 19 +++++++++++
+>  net/bluetooth/smp.c                        |  6 +---
+>  net/sctp/auth.c                            | 10 ++----
+>  net/sctp/sm_make_chunk.c                   | 23 +++++--------
+>  security/keys/encrypted-keys/encrypted.c   | 18 ++--------
+>  sound/soc/codecs/cros_ec_codec.c           |  9 +----
+>  25 files changed, 95 insertions(+), 229 deletions(-)
+>
+> --
+> 2.26.2
+>
