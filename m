@@ -1,73 +1,56 @@
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: Re: Umask ignored when mounting NFSv4.2 share of an exported
- Filesystem with noacl (was: Re: Bug#962254: NFS(v4) broken at 4.19.118-2)
-Date: Wed, 17 Jun 2020 18:50:04 +0200
-Message-ID: <CAHc6FU5-WGL8OwELQvpu8CsQgqW5o2h92UG3d2E3RUTPnBPgog@mail.gmail.com>
-References: <20200605183631.GA1720057@eldamar.local> <20200611223711.GA37917@mattapan.m5p.com>
- <20200613125431.GA349352@eldamar.local> <20200613184527.GA54221@mattapan.m5p.com>
- <20200615145035.GA214986@pick.fieldses.org> <20200615185311.GA702681@eldamar.local>
- <20200616023820.GB214986@pick.fieldses.org> <20200616024212.GC214986@pick.fieldses.org>
- <20200616161658.GA17251@lorien.valinor.li> <20200617144256.1028414-1-agruenba@redhat.com>
- <20200617153107.GL266716@pick.fieldses.org>
+From: Denis Efremov <efremov-ufN2psIa012HXe+LvDLADg@public.gmane.org>
+Subject: Re: [PATCH v4 0/3] mm, treewide: Rename kzfree() to kfree_sensitive()
+Date: Thu, 18 Jun 2020 00:31:01 +0300
+Message-ID: <17e4fede-bab0-d93c-6964-69decc889d7d@ispras.ru>
+References: <20200616015718.7812-1-longman@redhat.com>
+ <fe3b9a437be4aeab3bac68f04193cb6daaa5bee4.camel@perches.com>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from us-smtp-1.mimecast.com ([205.139.110.61]:51939 "EHLO
-        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726815AbgFQQuU (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 17 Jun 2020 12:50:20 -0400
-Received: by mail-ot1-f71.google.com with SMTP id t3so1286785otc.12
-        for <ecryptfs@vger.kernel.org>; Wed, 17 Jun 2020 09:50:16 -0700 (PDT)
-In-Reply-To: <20200617153107.GL266716@pick.fieldses.org>
-Sender: ecryptfs-owner@vger.kernel.org
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "J. Bruce Fields" <bfields@redhat.com>
-Cc: ecryptfs@vger.kernel.org, Salvatore Bonaccorso <carnil@debian.org>, Elliott Mitchell <ehem+debian@m5p.com>, 962254@bugs.debian.org, Linux NFS Mailing List <linux-nfs@vger.kernel.org>, Miklos Szeredi <mszeredi@redhat.com>
+Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane-mx.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <fe3b9a437be4aeab3bac68f04193cb6daaa5bee4.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>, 
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
+List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>, 
+ <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane-mx.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, "Serge E. Hallyn" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: "Jason A . Donenfeld" <Jason-OnJsPKxuuEcAvxtiuMwx3w@public.gmane.org>, Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kasan-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fscrypt-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Sterba <dsterba-AlSwsSmVLrQ@public.gmane.org>, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tipc-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 
-On Wed, Jun 17, 2020 at 5:31 PM J. Bruce Fields <bfields@redhat.com> wrote:
->
-> On Wed, Jun 17, 2020 at 04:42:56PM +0200, Andreas Gruenbacher wrote:
-> > Hi Bruce,
-> >
-> > On Wed, Jun 17, 2020 at 2:58 AM J. Bruce Fields <bfields@redhat.com> wrote:
-> > > I think I'll send the following upstream.
-> >
-> > looking good, but how about using a little helper for this?
->
-> I like it.  And the new comment's helpful too.
->
-> >
-> > Also I'm not sure if ecryptfs gets this right, so taking the ecryptfs
-> > list into the CC.
->
-> Yes, questions I had while doing this:
->
->         - cachefiles, ecrypfs, devtmpfs, and unix_mknod skip the check,
->           is that OK for all of them?  (Overlayfs too, I think?--that
->           code's harder to follow.
->
->         - why don't vfs_{create,mknod,mkdir} do the IS_POSIXACL check
->           themselves?  Even if it's unnecessary for some callers, surely
->           it wouldn't be wrong?
 
-That's a good question. The security_path_{mkdir,mknod} hooks would
-then probably be passed the original create mode before applying the
-umask, but at that point it's not clear what the new inode's final
-mode will be, anyway.
 
-> I also wondered why both vfs_{create,mknod,mkdir} and the callers were
-> calling security hooks, but now I see that the callers are calling
-> security_path_* hooks and the vfs_ functions are calling
-> security_inode_* hooks, so I guess they're not redundant.
->
-> Though now I wonder why some of the callers (nfsd, overlayfs) are
-> skipping the security_path_* hooks.
+On 6/16/20 9:53 PM, Joe Perches wrote:
+> On Mon, 2020-06-15 at 21:57 -0400, Waiman Long wrote:
+>>  v4:
+>>   - Break out the memzero_explicit() change as suggested by Dan Carpenter
+>>     so that it can be backported to stable.
+>>   - Drop the "crypto: Remove unnecessary memzero_explicit()" patch for
+>>     now as there can be a bit more discussion on what is best. It will be
+>>     introduced as a separate patch later on after this one is merged.
+> 
+> To this larger audience and last week without reply:
+> https://lore.kernel.org/lkml/573b3fbd5927c643920e1364230c296b23e7584d.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org/
+> 
+> Are there _any_ fastpath uses of kfree or vfree?
+> 
+> Many patches have been posted recently to fix mispairings
+> of specific types of alloc and free functions.
 
-The path based security hooks are only used by apparmor and tomoyo.
-Those hooks basically control who (which process) can do what where in
-the filesystem, but nfsd isn't aware of the "who", and overlayfs is a
-layer below the "where".
+I've prepared a coccinelle script to highlight these mispairings in a function
+a couple of days ago: https://lkml.org/lkml/2020/6/5/953
+I've listed all the fixes in the commit message. 
 
-Andreas
+Not so many mispairings actually, and most of them are harmless like:
+kmalloc(E) -> kvfree(E)
 
+However, coccinelle script can't detect cross-functions mispairings, i.e.
+allocation in one function, free in another funtion.
+
+Thanks,
+Denis
