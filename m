@@ -1,58 +1,176 @@
-From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 0/3] mm, treewide: Rename kzfree() to kfree_sensitive()
-Date: Wed, 17 Jun 2020 14:55:53 +0200
-Message-ID: <20200617125553.GO9499@dhcp22.suse.cz>
-References: <20200616015718.7812-1-longman@redhat.com>
- <fe3b9a437be4aeab3bac68f04193cb6daaa5bee4.camel@perches.com>
- <20200616230130.GJ27795@twin.jikos.cz>
- <20200617003711.GD8681@bombadil.infradead.org>
- <20200617071212.GJ9499@dhcp22.suse.cz>
- <20200617110820.GG8681@bombadil.infradead.org>
- <20200617113157.GM9499@dhcp22.suse.cz>
- <20200617122321.GJ8681@bombadil.infradead.org>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: Re: Umask ignored when mounting NFSv4.2 share of an exported Filesystem with noacl (was: Re: Bug#962254: NFS(v4) broken at 4.19.118-2)
+Date: Wed, 17 Jun 2020 16:42:56 +0200
+Message-ID: <20200617144256.1028414-1-agruenba@redhat.com>
+References: <20200617005849.GA262660@pick.fieldses.org> <20200605174349.GA40135@mattapan.m5p.com> <20200605183631.GA1720057@eldamar.local> <20200611223711.GA37917@mattapan.m5p.com> <20200613125431.GA349352@eldamar.local> <20200613184527.GA54221@mattapan.m5p.com> <20200615145035.GA214986@pick.fieldses.org> <20200615185311.GA702681@eldamar.local> <20200616023820.GB214986@pick.fieldses.org> <20200616024212.GC214986@pick.fieldses.org> <20200616161658.GA17251@lorien.valinor.li>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from us-smtp-1.mimecast.com ([205.139.110.61]:46522 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726491AbgFQOnF (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Wed, 17 Jun 2020 10:43:05 -0400
+In-Reply-To: <20200617005849.GA262660@pick.fieldses.org>
+Sender: ecryptfs-owner@vger.kernel.org
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mediatek-bounces+glpam-linux-mediatek=m.gmane-mx.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20200617122321.GJ8681-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mediatek>, 
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mediatek/>
-List-Post: <mailto:linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mediatek>, 
- <mailto:linux-mediatek-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "Linux-mediatek" <linux-mediatek-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: linux-mediatek-bounces+glpam-linux-mediatek=m.gmane-mx.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: "Jason A . Donenfeld" <Jason-OnJsPKxuuEcAvxtiuMwx3w@public.gmane.org>, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, dsterba-AlSwsSmVLrQ@public.gmane.org, David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keyrings-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, kasan-dev-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Serge E. Hallyn" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ecryptfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fscrypt-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mediatek-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-amlogic-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-integrity-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus
+To: "J. Bruce Fields" <bfields@redhat.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>, ecryptfs@vger.kernel.org, Salvatore Bonaccorso <carnil@debian.org>, Elliott Mitchell <ehem+debian@m5p.com>, 962254@bugs.debian.org, linux-nfs@vger.kernel.org
 
-On Wed 17-06-20 05:23:21, Matthew Wilcox wrote:
-> On Wed, Jun 17, 2020 at 01:31:57PM +0200, Michal Hocko wrote:
-> > On Wed 17-06-20 04:08:20, Matthew Wilcox wrote:
-> > > If you call vfree() under
-> > > a spinlock, you're in trouble.  in_atomic() only knows if we hold a
-> > > spinlock for CONFIG_PREEMPT, so it's not safe to check for in_atomic()
-> > > in __vfree().  So we need the warning in order that preempt people can
-> > > tell those without that there is a bug here.
-> > 
-> > ... Unless I am missing something in_interrupt depends on preempt_count() as
-> > well so neither of the two is reliable without PREEMPT_COUNT configured.
-> 
-> preempt_count() always tracks whether we're in interrupt context,
-> regardless of CONFIG_PREEMPT.  The difference is that CONFIG_PREEMPT
-> will track spinlock acquisitions as well.
+Hi Bruce,
 
-Right you are! Thanks for the clarification. I find the situation
-around preempt_count quite confusing TBH. Looking at existing users
-of in_atomic() (e.g. a random one zd_usb_iowrite16v_async which check
-in_atomic and then does GFP_KERNEL allocation which would be obviously
-broken on !PREEMPT if the function can be called from an atomic
-context), I am wondering whether it would make sense to track atomic
-context also for !PREEMPT. This check is just terribly error prone.
+On Wed, Jun 17, 2020 at 2:58 AM J. Bruce Fields <bfields@redhat.com> wrote:
+> I think I'll send the following upstream.
 
+looking good, but how about using a little helper for this?
+
+Also I'm not sure if ecryptfs gets this right, so taking the ecryptfs
+list into the CC.
+
+Thanks,
+Andreas
+
+--
+
+Add a posix_acl_apply_umask helper for filesystems like nfsd to apply
+the umask before calling into vfs_create, vfs_mkdir, and vfs_mknod when
+necessary.
+
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+---
+ fs/namei.c                |  9 +++------
+ fs/nfsd/vfs.c             |  6 ++----
+ fs/overlayfs/dir.c        |  4 ++--
+ fs/posix_acl.c            | 15 +++++++++++++++
+ include/linux/posix_acl.h |  6 ++++++
+ 5 files changed, 28 insertions(+), 12 deletions(-)
+
+diff --git a/fs/namei.c b/fs/namei.c
+index 72d4219c93ac..a68887d3a446 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -3054,8 +3054,7 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
+ 	if (open_flag & O_CREAT) {
+ 		if (open_flag & O_EXCL)
+ 			open_flag &= ~O_TRUNC;
+-		if (!IS_POSIXACL(dir->d_inode))
+-			mode &= ~current_umask();
++		posix_acl_apply_umask(dir->d_inode, &mode);
+ 		if (likely(got_write))
+ 			create_error = may_o_create(&nd->path, dentry, mode);
+ 		else
+@@ -3580,8 +3579,7 @@ long do_mknodat(int dfd, const char __user *filename, umode_t mode,
+ 	if (IS_ERR(dentry))
+ 		return PTR_ERR(dentry);
+ 
+-	if (!IS_POSIXACL(path.dentry->d_inode))
+-		mode &= ~current_umask();
++	posix_acl_apply_umask(path.dentry->d_inode, &mode);
+ 	error = security_path_mknod(&path, dentry, mode, dev);
+ 	if (error)
+ 		goto out;
+@@ -3657,8 +3655,7 @@ long do_mkdirat(int dfd, const char __user *pathname, umode_t mode)
+ 	if (IS_ERR(dentry))
+ 		return PTR_ERR(dentry);
+ 
+-	if (!IS_POSIXACL(path.dentry->d_inode))
+-		mode &= ~current_umask();
++	posix_acl_apply_umask(path.dentry->d_inode, &mode);
+ 	error = security_path_mkdir(&path, dentry, mode);
+ 	if (!error)
+ 		error = vfs_mkdir(path.dentry->d_inode, dentry, mode);
+diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+index d22a056da477..0c625b004b0c 100644
+--- a/fs/nfsd/vfs.c
++++ b/fs/nfsd/vfs.c
+@@ -1226,8 +1226,7 @@ nfsd_create_locked(struct svc_rqst *rqstp, struct svc_fh *fhp,
+ 		iap->ia_mode = 0;
+ 	iap->ia_mode = (iap->ia_mode & S_IALLUGO) | type;
+ 
+-	if (!IS_POSIXACL(dirp))
+-		iap->ia_mode &= ~current_umask();
++	posix_acl_apply_umask(dirp, &iap->ia_mode);
+ 
+ 	err = 0;
+ 	host_err = 0;
+@@ -1461,8 +1460,7 @@ do_nfsd_create(struct svc_rqst *rqstp, struct svc_fh *fhp,
+ 		goto out;
+ 	}
+ 
+-	if (!IS_POSIXACL(dirp))
+-		iap->ia_mode &= ~current_umask();
++	posix_acl_apply_umask(dirp, &iap->ia_mode);
+ 
+ 	host_err = vfs_create(dirp, dchild, iap->ia_mode, true);
+ 	if (host_err < 0) {
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 1bba4813f9cb..4d98db2a0208 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -325,8 +325,8 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 	struct dentry *newdentry;
+ 	int err;
+ 
+-	if (!attr->hardlink && !IS_POSIXACL(udir))
+-		attr->mode &= ~current_umask();
++	if (!attr->hardlink)
++	       posix_acl_apply_umask(udir, &attr->mode);
+ 
+ 	inode_lock_nested(udir, I_MUTEX_PARENT);
+ 	newdentry = ovl_create_real(udir,
+diff --git a/fs/posix_acl.c b/fs/posix_acl.c
+index 95882b3f5f62..7ee647b74bc2 100644
+--- a/fs/posix_acl.c
++++ b/fs/posix_acl.c
+@@ -578,6 +578,21 @@ posix_acl_chmod(struct inode *inode, umode_t mode)
+ }
+ EXPORT_SYMBOL(posix_acl_chmod);
+ 
++/*
++ * On inode creation, filesystems with ACL support are expected to apply the
++ * umask when no ACL is inherited from the parent directory; this is usually
++ * done by posix_acl_create.  Filesystems like nfsd that call vfs_create,
++ * vfs_mknod, or vfs_mkdir directly are expected to call posix_acl_apply_umask
++ * to apply the umask first when necessary.
++ */
++void
++posix_acl_apply_umask(struct inode *inode, umode_t *mode)
++{
++	if (!IS_POSIXACL(inode))
++		*mode &= ~current_umask();
++}
++EXPORT_SYMBOL(posix_acl_apply_umask);
++
+ int
+ posix_acl_create(struct inode *dir, umode_t *mode,
+ 		struct posix_acl **default_acl, struct posix_acl **acl)
+diff --git a/include/linux/posix_acl.h b/include/linux/posix_acl.h
+index 90797f1b421d..76e402ff4f92 100644
+--- a/include/linux/posix_acl.h
++++ b/include/linux/posix_acl.h
+@@ -73,6 +73,7 @@ extern int set_posix_acl(struct inode *, int, struct posix_acl *);
+ 
+ #ifdef CONFIG_FS_POSIX_ACL
+ extern int posix_acl_chmod(struct inode *, umode_t);
++extern void posix_acl_apply_umask(struct inode *, umode_t *);
+ extern int posix_acl_create(struct inode *, umode_t *, struct posix_acl **,
+ 		struct posix_acl **);
+ extern int posix_acl_update_mode(struct inode *, umode_t *, struct posix_acl **);
+@@ -99,6 +100,11 @@ static inline int posix_acl_chmod(struct inode *inode, umode_t mode)
+ 
+ #define simple_set_acl		NULL
+ 
++static inline void posix_acl_apply_umask(struct inode *inode, umode_t *mode)
++{
++	*mode &= ~current_umask();
++}
++
+ static inline int simple_acl_create(struct inode *dir, struct inode *inode)
+ {
+ 	return 0;
+
+base-commit: 69119673bd50b176ded34032fadd41530fb5af21
+prerequisite-patch-id: a8319d40da9f70f478892d0bd8e63f540364b089
 -- 
-Michal Hocko
-SUSE Labs
+2.26.2
+
