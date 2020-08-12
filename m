@@ -1,56 +1,79 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v4 0/3] mm, treewide: Rename kzfree() to
- kfree_sensitive()
-Date: Wed, 17 Jun 2020 16:12:06 -0700
-Message-ID: <38c5745d14cff75fe264a3bc61d19fd837baf7ad.camel@perches.com>
-References: <20200616015718.7812-1-longman@redhat.com>
-         <fe3b9a437be4aeab3bac68f04193cb6daaa5bee4.camel@perches.com>
-         <17e4fede-bab0-d93c-6964-69decc889d7d@ispras.ru>
+From: Onkobu Tanaake <onkobu@onkobutanaake.de>
+Subject: Re: Python 3 compatibility
+Date: Wed, 12 Aug 2020 22:18:17 +0200
+Message-ID: <e6818e67-9d2e-5bdb-fd14-393d23f43d75@onkobutanaake.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ppp-owner@vger.kernel.org>
-In-Reply-To: <17e4fede-bab0-d93c-6964-69decc889d7d@ispras.ru>
-Sender: linux-ppp-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="jmVGYu0LjpUMpnlxSDwyK60dnCFaQpKEe"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from ms-10.1blu.de ([178.254.4.101]:58436 "EHLO ms-10.1blu.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726030AbgHLUSL (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Wed, 12 Aug 2020 16:18:11 -0400
+Received: from [84.62.166.10] (helo=[192.168.2.50])
+        by ms-10.1blu.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.90_1)
+        (envelope-from <onkobu@onkobutanaake.de>)
+        id 1k5xCL-0006o2-2o
+        for ecryptfs@vger.kernel.org; Wed, 12 Aug 2020 22:18:09 +0200
+Sender: ecryptfs-owner@vger.kernel.org
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Denis Efremov <efremov@ispras.ru>, Waiman Long <longman@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, Linus Torvalds <torvalds@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>, Johannes Weiner <hannes@cmpxchg.org>, Dan Carpenter <dan.carpenter@oracle.com>, David Sterba <dsterba@suse.cz>, "Jason A . Donenfeld" <Jason@zx2c4.com>, linux-mm@kvack.org, keyrings@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-pm@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, linux-amlogic@lists.infradead.org, linux-mediatek@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-ppp@vger.kernel.org, wireguard@lists.zx2c4.com, linux-wireless@vger.kernel.org, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-fscrypt@vger.
+To: ecryptfs@vger.kernel.org
 
-On Thu, 2020-06-18 at 00:31 +0300, Denis Efremov wrote:
-> 
-> On 6/16/20 9:53 PM, Joe Perches wrote:
-> > On Mon, 2020-06-15 at 21:57 -0400, Waiman Long wrote:
-> > >  v4:
-> > >   - Break out the memzero_explicit() change as suggested by Dan Carpenter
-> > >     so that it can be backported to stable.
-> > >   - Drop the "crypto: Remove unnecessary memzero_explicit()" patch for
-> > >     now as there can be a bit more discussion on what is best. It will be
-> > >     introduced as a separate patch later on after this one is merged.
-> > 
-> > To this larger audience and last week without reply:
-> > https://lore.kernel.org/lkml/573b3fbd5927c643920e1364230c296b23e7584d.camel@perches.com/
-> > 
-> > Are there _any_ fastpath uses of kfree or vfree?
-> > 
-> > Many patches have been posted recently to fix mispairings
-> > of specific types of alloc and free functions.
-> 
-> I've prepared a coccinelle script to highlight these mispairings in a function
-> a couple of days ago: https://lkml.org/lkml/2020/6/5/953
-> I've listed all the fixes in the commit message. 
-> 
-> Not so many mispairings actually, and most of them are harmless like:
-> kmalloc(E) -> kvfree(E)
-> 
-> However, coccinelle script can't detect cross-functions mispairings, i.e.
-> allocation in one function, free in another funtion.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--jmVGYu0LjpUMpnlxSDwyK60dnCFaQpKEe
+Content-Type: multipart/mixed; boundary="qFZyL78ekXDat09Xf41y6ZnmTZ9B3bj2l"
 
-Hey Denis, thanks for those patches.
+--qFZyL78ekXDat09Xf41y6ZnmTZ9B3bj2l
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
+Content-Transfer-Encoding: quoted-printable
 
-If possible, it's probably better to not require these pairings
-and use a single standard kfree/free function.
+Hi,
 
-Given the existing ifs in kfree in slab/slob/slub, it seems
-likely that adding a few more wouldn't have much impact.
+Maybe this is not the correct place to ask, let me know then.
+
+At least Debian dropped python bindings entirely. Gentoo is undecided
+yet but seems as if they're going the same way. Arch still supports
+Python 2(.7). Maybe they're just waiting for things getting solved.
+
+Are there any plans to have a successor of ecryptfs-utils 111 with a
+final solution?
+
+Regards, onkobu
+
+--=20
+------
+Web: http://onkobutanaake.de - mit RSS-Feed
+Verschl=C3=BCsselte/ signierte Elektropost (PGP/GPG) an diese Adresse bev=
+orzugt,
+=C3=B6ffentlicher Schl=C3=BCssel http://onkobutanaake.de/onkobutanaake.as=
+c
+-
+Encrypted/ signed electro-mail (PGP/GPG) to this address preferred,
+public key http://onkobutanaake.de/onkobutanaake.asc
+
+Fingerprint 6261 2530 89DA 93E3 2D9F  A0C2 B660 481D 9F77 A942
 
 
+--qFZyL78ekXDat09Xf41y6ZnmTZ9B3bj2l--
+
+--jmVGYu0LjpUMpnlxSDwyK60dnCFaQpKEe
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEETex7HgdMXnYgnmJRJAu0YVECulcFAl80To4ACgkQJAu0YVEC
+ulfWYAgAmj0BLGKTqyBuDI9Ql0mVkJqkDpg977kY6eV1LDnTtKXX7S/7Z+SmDLv3
+No7jprmKkKRtk527fpXAyUc0aLkg9693cuu084mvg59JYohIvQyKnGMJNSET8jBM
+ysRP6QXuCL188Rw+8oNT/VeqrGzJB2yfeWlNXmsbuA2qaezQOb8KIj4LHi3qVjJx
+hc73CZOfbkk1/HEKS9vZImpzqlL7fdMynvxO8s8kuIaiREarGsX+o4+dV+xBLrkM
+gZ4us2eQYNM32MTK/46rr1Pwy4pK8mxiusVzSNCHx9rGBKv4x750ZKgZnnbUvsH6
+ipIXbffaMs9D+TD22YZD3zlcZ4CMeA==
+=MHcW
+-----END PGP SIGNATURE-----
+
+--jmVGYu0LjpUMpnlxSDwyK60dnCFaQpKEe--
