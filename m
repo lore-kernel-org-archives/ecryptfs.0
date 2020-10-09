@@ -1,7 +1,7 @@
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: [PATCH v2 10/16] hostfs: Tell the VFS that readpage was synchronous
-Date: Fri,  9 Oct 2020 15:30:58 +0100
-Message-ID: <20201009143104.22673-11-willy@infradead.org>
+Subject: [PATCH v2 14/16] vboxsf: Tell the VFS that readpage was synchronous
+Date: Fri,  9 Oct 2020 15:31:02 +0100
+Message-ID: <20201009143104.22673-15-willy@infradead.org>
 References: <20201009143104.22673-1-willy@infradead.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,27 +12,26 @@ Content-Type: text/plain; charset="us-ascii"
 To: linux-fsdevel@vger.kernel.org
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>, linux-mm@kvack.org, v9fs-developer@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-afs@lists.infradead.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, ecryptfs@vger.kernel.org, linux-um@lists.infradead.org, linux-mtd@lists.infradead.org, Richard Weinberger <richard@nod.at>, linux-xfs@vger.kernel.org
 
-The hostfs readpage implementation was already synchronous, so use
-AOP_UPDATED_PAGE to avoid cycling the page lock.
+The vboxsf inline data readpage implementation was already synchronous,
+so use AOP_UPDATED_PAGE to avoid cycling the page lock.
 
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Richard Weinberger <richard@nod.at>
 ---
- fs/hostfs/hostfs_kern.c | 2 ++
+ fs/vboxsf/file.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
-index c070c0d8e3e9..c49221c09c4b 100644
---- a/fs/hostfs/hostfs_kern.c
-+++ b/fs/hostfs/hostfs_kern.c
-@@ -455,6 +455,8 @@ static int hostfs_readpage(struct file *file, struct page *page)
-  out:
- 	flush_dcache_page(page);
+diff --git a/fs/vboxsf/file.c b/fs/vboxsf/file.c
+index c4ab5996d97a..c2a144e5cb5a 100644
+--- a/fs/vboxsf/file.c
++++ b/fs/vboxsf/file.c
+@@ -228,6 +228,8 @@ static int vboxsf_readpage(struct file *file, struct page *page)
+ 	}
+ 
  	kunmap(page);
-+	if (!ret)
++	if (!err)
 +		return AOP_UPDATED_PAGE;
  	unlock_page(page);
- 	return ret;
+ 	return err;
  }
 -- 
 2.28.0
