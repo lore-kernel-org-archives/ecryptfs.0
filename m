@@ -1,55 +1,52 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 16/16] iomap: Make readpage synchronous
-Date: Fri, 16 Oct 2020 07:35:46 +0100
-Message-ID: <20201016063546.GA4808@infradead.org>
-References: <20201009143104.22673-1-willy@infradead.org>
- <20201009143104.22673-17-willy@infradead.org>
- <20201015094203.GA21420@infradead.org>
- <20201015164333.GA20115@casper.infradead.org>
- <20201015175848.GA4145@infradead.org>
- <20201015190312.GB20115@casper.infradead.org>
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: [PATCH v3 10/18] ecryptfs: Tell the VFS that readpage was synchronous
+Date: Fri, 16 Oct 2020 17:04:35 +0100
+Message-ID: <20201016160443.18685-11-willy@infradead.org>
+References: <20201016160443.18685-1-willy@infradead.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37192 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40982 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2394251AbgJPGft (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 16 Oct 2020 02:35:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20201015190312.GB20115@casper.infradead.org>
+        with ESMTP id S2410564AbgJPQEt (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 16 Oct 2020 12:04:49 -0400
+In-Reply-To: <20201016160443.18685-1-willy@infradead.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, v9fs-developer@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-afs@lists.infradead.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, ecryptfs@vger.kernel.org, linux-um@lists.infradead.org, linux-mtd@lists.infradead.org, Richard Weinberger <richard@nod.at>, linux-xfs@vger.kernel.org
+To: linux-fsdevel@vger.kernel.org
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>, linux-mm@kvack.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org
 
-On Thu, Oct 15, 2020 at 08:03:12PM +0100, Matthew Wilcox wrote:
-> I honestly don't see the problem.  We have to assign the status
-> conditionally anyway so we don't overwrite an error with a subsequent
-> success.
+The ecryptfs readpage implementation was already synchronous, so use
+AOP_UPDATED_PAGE to avoid cycling the page lock.
 
-Yes, but having a potential NULL pointer to a common structure is just
-waiting for trouble.
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+---
+ fs/ecryptfs/mmap.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-> 
-> > True.  I'd still prefer the AOP_UPDATED_PAGE as the fallthrough case
-> > and an explicit goto out_unlock, though.
-> 
-> So this?
-> 
->         if (ctx.bio) {
->                 submit_bio(ctx.bio);
->                 wait_for_completion(&ctx.done);
->                 if (ret < 0)
->                         goto err;
->                 ret = blk_status_to_errno(ctx.status);
->         }
-> 
->         if (ret < 0)
->                 goto err;
->         return AOP_UPDATED_PAGE;
-> err:
->         unlock_page(page);
->         return ret;
-> 
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 019572c6b39a..dee35181d789 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -219,12 +219,13 @@ static int ecryptfs_readpage(struct file *file, struct page *page)
+ 		}
+ 	}
+ out:
+-	if (rc)
+-		ClearPageUptodate(page);
+-	else
+-		SetPageUptodate(page);
+-	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16lx]\n",
++	ecryptfs_printk(KERN_DEBUG, "Returning page with index = [0x%.16lx]\n",
+ 			page->index);
++	if (!rc) {
++		SetPageUptodate(page);
++		return AOP_UPDATED_PAGE;
++	}
++	ClearPageUptodate(page);
+ 	unlock_page(page);
+ 	return rc;
+ }
+-- 
+2.28.0
 
-Looks good.
