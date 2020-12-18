@@ -1,37 +1,44 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] eCryptfs: add a semicolon
-Date: Fri, 27 Nov 2020 10:11:23 -0800
-Message-ID: <3168a3aa5c4ac564340cba2a151359e8cd3dee5f.camel@perches.com>
-References: <20201127160513.2619747-1-trix@redhat.com>
+From: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
+Subject: [PATCH] ecryptfs: Fix inodes not being evicted until unmount
+Date: Fri, 18 Dec 2020 13:07:30 -0600
+Message-ID: <20201218190730.141761-1-jeffrey.mitchell@starlab.io>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtprelay0139.hostedemail.com ([216.40.44.139]:49898 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1732323AbgK0SL1 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 27 Nov 2020 13:11:27 -0500
-In-Reply-To: <20201127160513.2619747-1-trix@redhat.com>
+Received: from mail-bl2gcc02on2109.outbound.protection.outlook.com ([40.107.89.109]:20448
+        "EHLO GCC02-BL0-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725875AbgLRTJX (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Fri, 18 Dec 2020 14:09:23 -0500
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: trix@redhat.com, code@tyhicks.com, hannes@cmpxchg.org, mhocko@suse.com, longman@redhat.com, herbert@gondor.apana.org.au, ebiggers@google.com
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Tyler Hicks <code@tyhicks.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Robertson <daniel.robertson@starlab.io>, Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
 
-On Fri, 2020-11-27 at 08:05 -0800, trix@redhat.com wrote:
-> Function like macros should have a semicolon.
-[]
-> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-[]
-> @@ -1172,7 +1172,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs_a=
-uth_tok *auth_tok,
-> =A0	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_code=
-);
-> =A0	if (rc) {
-> =A0		ecryptfs_printk(KERN_ERR, "Cipher code [%d] is invalid\n",
-> -				cipher_code)
-> +				cipher_code);
+On asynchronous base filesystems like NFS, eCryptFS leaves inodes for
+deleted files in the cache until unmounting. Change call in
+ecryptfs_do_unlink() from set_nlink() to drop_nlink() in order to reliably
+evict inodes from the cache even on top of NFS.
 
-As this is the only use that does not have a semicolon,
-it'd be good to add the removal of the semicolon from
-the #define at the same time.
+Signed-off-by: Dan Robertson <daniel.robertson@starlab.io>
+Signed-off-by: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
+---
+ fs/ecryptfs/inode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index e23752d..f7594b6 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -147,7 +147,7 @@ static int ecryptfs_do_unlink(struct inode *dir, struct dentry *dentry,
+ 		goto out_unlock;
+ 	}
+ 	fsstack_copy_attr_times(dir, lower_dir_inode);
+-	set_nlink(inode, ecryptfs_inode_to_lower(inode)->i_nlink);
++	drop_nlink(inode);
+ 	inode->i_ctime = dir->i_ctime;
+ out_unlock:
+ 	dput(lower_dentry);
+-- 
+2.7.4
 
