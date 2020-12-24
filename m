@@ -1,18 +1,21 @@
 From: Zheng Yongjun <zhengyongjun3@huawei.com>
-Subject: [PATCH -next] ecryptfs: use DEFINE_MUTEX (and mutex_init() had been too late)
-Date: Wed, 23 Dec 2020 22:13:07 +0800
-Message-ID: <20201223141307.615-1-zhengyongjun3@huawei.com>
+Subject: [PATCH v2 -next] ecryptfs: use DEFINE_MUTEX() for mutex lock
+Date: Thu, 24 Dec 2020 21:22:33 +0800
+Message-ID: <20201224132233.30852-1-zhengyongjun3@huawei.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:9916 "EHLO
-        szxga07-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728578AbgLWON1 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 23 Dec 2020 09:13:27 -0500
+Received: from szxga06-in.huawei.com ([45.249.212.32]:9486 "EHLO
+        szxga06-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726746AbgLXNWp (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 24 Dec 2020 08:22:45 -0500
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Zheng Yongjun <zhengyongjun3@huawei.com>
+
+mutex lock can be initialized automatically with DEFINE_MUTEX()
+rather than explicitly calling mutex_init().
 
 Signed-off-by: Zheng Yongjun <zhengyongjun3@huawei.com>
 ---
