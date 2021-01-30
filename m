@@ -1,65 +1,54 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH] ecryptfs: Fix inodes not being evicted until unmount
-Date: Sat, 30 Jan 2021 11:06:40 -0600
-Message-ID: <20210130170640.GA58096@elm>
-References: <20201218190730.141761-1-jeffrey.mitchell@starlab.io>
+Subject: Re: [PATCH] eCryptfs: add a semicolon
+Date: Sat, 30 Jan 2021 11:57:11 -0600
+Message-ID: <20210130175711.GB58096@elm>
+References: <20201127160513.2619747-1-trix@redhat.com>
+ <3168a3aa5c4ac564340cba2a151359e8cd3dee5f.camel@perches.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43350 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231897AbhA3RHe (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sat, 30 Jan 2021 12:07:34 -0500
-Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93791C061574
-        for <ecryptfs@vger.kernel.org>; Sat, 30 Jan 2021 09:06:54 -0800 (PST)
-Received: by mail-oi1-x22f.google.com with SMTP id j25so13774639oii.0
-        for <ecryptfs@vger.kernel.org>; Sat, 30 Jan 2021 09:06:54 -0800 (PST)
+        with ESMTP id S231386AbhA3R6D (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sat, 30 Jan 2021 12:58:03 -0500
+Received: from mail-oi1-x232.google.com (mail-oi1-x232.google.com [IPv6:2607:f8b0:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D527C061574
+        for <ecryptfs@vger.kernel.org>; Sat, 30 Jan 2021 09:57:14 -0800 (PST)
+Received: by mail-oi1-x232.google.com with SMTP id g69so13817294oib.12
+        for <ecryptfs@vger.kernel.org>; Sat, 30 Jan 2021 09:57:14 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20201218190730.141761-1-jeffrey.mitchell@starlab.io>
+In-Reply-To: <3168a3aa5c4ac564340cba2a151359e8cd3dee5f.camel@perches.com>
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Dan Robertson <daniel.robertson@starlab.io>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Joe Perches <joe@perches.com>
+Cc: trix@redhat.com, hannes@cmpxchg.org, mhocko@suse.com, longman@redhat.com, herbert@gondor.apana.org.au, ebiggers@google.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2020-12-18 13:07:30, Jeffrey Mitchell wrote:
-> On asynchronous base filesystems like NFS, eCryptFS leaves inodes for
-> deleted files in the cache until unmounting. Change call in
-> ecryptfs_do_unlink() from set_nlink() to drop_nlink() in order to reliably
-> evict inodes from the cache even on top of NFS.
-> 
-> Signed-off-by: Dan Robertson <daniel.robertson@starlab.io>
-> Signed-off-by: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
+On 2020-11-27 10:11:23, Joe Perches wrote:
+> On Fri, 2020-11-27 at 08:05 -0800, trix@redhat.com wrote:
+> > Function like macros should have a semicolon.
+> []
+> > diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> []
+> > @@ -1172,7 +1172,7 @@ decrypt_pki_encrypted_session_key(struct ecryptfs=
+_auth_tok *auth_tok,
+> > =A0	rc =3D ecryptfs_cipher_code_to_string(crypt_stat->cipher, cipher_co=
+de);
+> > =A0	if (rc) {
+> > =A0		ecryptfs_printk(KERN_ERR, "Cipher code [%d] is invalid\n",
+> > -				cipher_code)
+> > +				cipher_code);
+>=20
+> As this is the only use that does not have a semicolon,
+> it'd be good to add the removal of the semicolon from
+> the #define at the same time.
 
-Hey Jeffrey and Dan - thanks for the patch! Unfortunately, I think this
-would allow the eCryptfs inode's nlink count to get out of sync with the
-lower inode's nlink count in the case of direct manipulation to the
-lower filesystem.
+I double checked that this is the only ecryptfs_printk() usage missing
+the trailing semicolon and then made Joe's suggested change before
+pushing the patch to the eCryptfs next branch:
 
-Is the condition that you're trying to fix a result of going through the
-this code path?
+ https://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git/log/?=
+h=3Dnext
 
- ecryptfs_unlink() -> ecryptfs_do_unlink() -> vfs_unlink() -> nfs_unlink() -> nfs_sillyrename() -> nfs_async_unlink()
+Thanks for the cleanup!
 
 Tyler
-
-> ---
->  fs/ecryptfs/inode.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index e23752d..f7594b6 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -147,7 +147,7 @@ static int ecryptfs_do_unlink(struct inode *dir, struct dentry *dentry,
->  		goto out_unlock;
->  	}
->  	fsstack_copy_attr_times(dir, lower_dir_inode);
-> -	set_nlink(inode, ecryptfs_inode_to_lower(inode)->i_nlink);
-> +	drop_nlink(inode);
->  	inode->i_ctime = dir->i_ctime;
->  out_unlock:
->  	dput(lower_dentry);
-> -- 
-> 2.7.4
-> 
