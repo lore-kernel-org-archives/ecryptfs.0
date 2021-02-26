@@ -1,43 +1,49 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH] ecryptfs: Fix typo in message
-Date: Wed, 24 Feb 2021 12:30:59 +0100
-Message-ID: <20210224113059.28445-1-s.hauer@pengutronix.de>
+From: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
+Subject: [PATCH] ecryptfs: fix kernel panic with null dev_name
+Date: Fri, 26 Feb 2021 15:00:23 -0600
+Message-ID: <20210226210023.77597-1-jeffrey.mitchell@starlab.io>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45916 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234327AbhBXLdy (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 24 Feb 2021 06:33:54 -0500
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFD93C06174A
-        for <ecryptfs@vger.kernel.org>; Wed, 24 Feb 2021 03:33:13 -0800 (PST)
+Received: from mail-bl2gcc02on2131.outbound.protection.outlook.com ([40.107.89.131]:23904
+        "EHLO GCC02-BL0-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S230434AbhBZVBk (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Fri, 26 Feb 2021 16:01:40 -0500
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: ecryptfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, Sascha Hauer <s.hauer@pengutronix.de>
+To: Tyler Hicks <code@tyhicks.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
 
-ecryptfs_decrypt_page() issues a warning "Error encrypting extent". This
-should be "Error decrypting extent" instead.
+When mounting eCryptfs, a null "dev_name" argument to ecryptfs_mount()
+causes a kernel panic if the parsed options are valid. The easiest way to
+reproduce this is to call mount() from userspace with an existing
+eCryptfs mount's options and a "source" argument of 0.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Error out if "dev_name" is null in ecryptfs_mount()
+
+Signed-off-by: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
 ---
- fs/ecryptfs/crypto.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/main.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index a48116aae02c..0fed4ff02f69 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -535,7 +535,7 @@ int ecryptfs_decrypt_page(struct page *page)
- 		rc = crypt_extent(crypt_stat, page, page,
- 				  extent_offset, DECRYPT);
- 		if (rc) {
--			printk(KERN_ERR "%s: Error encrypting extent; "
-+			printk(KERN_ERR "%s: Error decrypting extent; "
- 			       "rc = [%d]\n", __func__, rc);
- 			goto out;
- 		}
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index e63259fdef28..b2f6a1937d23 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -492,6 +492,12 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 		goto out;
+ 	}
+ 
++	if (!dev_name) {
++		rc = -EINVAL;
++		err = "Device name cannot be null";
++		goto out;
++	}
++
+ 	rc = ecryptfs_parse_options(sbi, raw_data, &check_ruid);
+ 	if (rc) {
+ 		err = "Error parsing options";
 -- 
-2.29.2
+2.25.1
 
