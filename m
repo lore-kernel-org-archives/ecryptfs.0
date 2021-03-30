@@ -1,7 +1,7 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 22/31] fs: ecryptfs: kthread: Demote file header and provide description for 'cred'
-Date: Tue, 30 Mar 2021 17:44:49 +0100
-Message-ID: <20210330164458.1625478-23-lee.jones@linaro.org>
+Subject: [PATCH 21/31] fs: ecryptfs: dentry: File headers are not good candidates for kernel-doc
+Date: Tue, 30 Mar 2021 17:44:48 +0100
+Message-ID: <20210330164458.1625478-22-lee.jones@linaro.org>
 References: <20210330164458.1625478-1-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,36 +14,30 @@ Cc: linux-kernel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, "Michael A. Ha
 
 Fixes the following W=1 kernel build warning(s):
 
- fs/ecryptfs/kthread.c:16: warning: cannot understand function prototype: 'struct ecryptfs_open_req '
- fs/ecryptfs/kthread.c:120: warning: Function parameter or member 'cred' not described in 'ecryptfs_privileged_open'
+ fs/ecryptfs/dentry.c:19: warning: Incorrect use of kernel-doc format:  * ecryptfs_d_revalidate - revalidate an ecryptfs dentry
+ fs/ecryptfs/dentry.c:32: warning: Function parameter or member 'dentry' not described in 'ecryptfs_d_revalidate'
+ fs/ecryptfs/dentry.c:32: warning: Function parameter or member 'flags' not described in 'ecryptfs_d_revalidate'
+ fs/ecryptfs/dentry.c:32: warning: expecting prototype for eCryptfs(). Prototype was for ecryptfs_d_revalidate() instead
 
 Cc: Tyler Hicks <code@tyhicks.com>
 Cc: "Michael A. Halcrow" <mahalcro@us.ibm.com>
 Cc: ecryptfs@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- fs/ecryptfs/kthread.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ecryptfs/dentry.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
-index a7c903cb01a05..ae4cb4e2e1348 100644
---- a/fs/ecryptfs/kthread.c
-+++ b/fs/ecryptfs/kthread.c
+diff --git a/fs/ecryptfs/dentry.c b/fs/ecryptfs/dentry.c
+index 44606f079efb0..acaa0825e9bbe 100644
+--- a/fs/ecryptfs/dentry.c
++++ b/fs/ecryptfs/dentry.c
 @@ -1,5 +1,5 @@
  // SPDX-License-Identifier: GPL-2.0-or-later
 -/**
 +/*
   * eCryptfs: Linux filesystem encryption layer
   *
-  * Copyright (C) 2008 International Business Machines Corp.
-@@ -108,6 +108,7 @@ void ecryptfs_destroy_kthread(void)
-  * @lower_file: Result of dentry_open by root on lower dentry
-  * @lower_dentry: Lower dentry for file to open
-  * @lower_mnt: Lower vfsmount for file to open
-+ * @cred: credential to use for this call
-  *
-  * This function gets a r/w file opened against the lower dentry.
-  *
+  * Copyright (C) 1997-2003 Erez Zadok
 -- 
 2.27.0
 
