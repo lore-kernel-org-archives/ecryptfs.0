@@ -1,86 +1,102 @@
 From: Lee Jones <lee.jones@linaro.org>
-Subject: [PATCH 25/31] fs: ecryptfs: messaging: Add missing param descriptions and demote abuses
-Date: Tue, 30 Mar 2021 17:44:52 +0100
-Message-ID: <20210330164458.1625478-26-lee.jones@linaro.org>
+Subject: [PATCH 31/31] fs: ecryptfs: keystore: Fix some kernel-doc issues and demote non-conformant headers
+Date: Tue, 30 Mar 2021 17:44:58 +0100
+Message-ID: <20210330164458.1625478-32-lee.jones@linaro.org>
 References: <20210330164458.1625478-1-lee.jones@linaro.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47090 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232505AbhC3Qp2 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 30 Mar 2021 12:45:28 -0400
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90DF1C061762
-        for <ecryptfs@vger.kernel.org>; Tue, 30 Mar 2021 09:45:27 -0700 (PDT)
-Received: by mail-wr1-x436.google.com with SMTP id c8so16872464wrq.11
-        for <ecryptfs@vger.kernel.org>; Tue, 30 Mar 2021 09:45:27 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20210330164458.1625478-1-lee.jones@linaro.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: lee.jones@linaro.org
-Cc: linux-kernel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, David Howells <dhowells@redhat.com>, Johannes Weiner <hannes@cmpxchg.org>, Waiman Long <longman@redhat.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, "Michael A. Halcrow" <mhalcrow@us.ibm.com>, ecryptfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, "Michael A. Halcrow" <mhalcrow@us.ibm.com>, "Michael C. Thompson" <mcthomps@us.ibm.com>, "Trevor S. Highland" <trevor.highland@gmail.com>, ecryptfs@vger.kernel.org
 
 Fixes the following W=1 kernel build warning(s):
 
- fs/ecryptfs/messaging.c:15: warning: Function parameter or member 'ecryptfs_msg_ctx_free_list' not described in 'LIST_HEAD'
- fs/ecryptfs/messaging.c:15: warning: expecting prototype for eCryptfs(). Prototype was for LIST_HEAD() instead
- fs/ecryptfs/messaging.c:157: warning: Function parameter or member 'daemon' not described in 'ecryptfs_exorcise_daemon'
- fs/ecryptfs/messaging.c:207: warning: Function parameter or member 'daemon' not described in 'ecryptfs_process_response'
- fs/ecryptfs/messaging.c:207: warning: expecting prototype for ecryptfs_process_reponse(). Prototype was for ecryptfs_process_response() instead
- fs/ecryptfs/messaging.c:262: warning: Function parameter or member 'msg_type' not described in 'ecryptfs_send_message_locked'
+ fs/ecryptfs/keystore.c:25: warning: Incorrect use of kernel-doc format:  * request_key returned an error instead of a valid key address;
+ fs/ecryptfs/keystore.c:30: warning: Function parameter or member 'err_code' not described in 'process_request_key_err'
+ fs/ecryptfs/keystore.c:30: warning: expecting prototype for eCryptfs(). Prototype was for process_request_key_err() instead
+ fs/ecryptfs/keystore.c:558: warning: Function parameter or member 'auth_tok_key' not described in 'ecryptfs_find_auth_tok_for_sig'
+ fs/ecryptfs/keystore.c:558: warning: Function parameter or member 'mount_crypt_stat' not described in 'ecryptfs_find_auth_tok_for_sig'
+ fs/ecryptfs/keystore.c:558: warning: Excess function parameter 'crypt_stat' description in 'ecryptfs_find_auth_tok_for_sig'
+ fs/ecryptfs/keystore.c:584: warning: cannot understand function prototype: 'struct ecryptfs_write_tag_70_packet_silly_stack '
+ fs/ecryptfs/keystore.c:622: warning: Function parameter or member 'dest' not described in 'ecryptfs_write_tag_70_packet'
+ fs/ecryptfs/keystore.c:622: warning: Function parameter or member 'remaining_bytes' not described in 'ecryptfs_write_tag_70_packet'
+ fs/ecryptfs/keystore.c:622: warning: Function parameter or member 'packet_size' not described in 'ecryptfs_write_tag_70_packet'
+ fs/ecryptfs/keystore.c:622: warning: Function parameter or member 'mount_crypt_stat' not described in 'ecryptfs_write_tag_70_packet'
+ fs/ecryptfs/keystore.c:622: warning: Function parameter or member 'filename_size' not described in 'ecryptfs_write_tag_70_packet'
+ fs/ecryptfs/keystore.c:622: warning: expecting prototype for write_tag_70_packet(). Prototype was for ecryptfs_write_tag_70_packet() instead
+ fs/ecryptfs/keystore.c:895: warning: expecting prototype for parse_tag_70_packet(). Prototype was for ecryptfs_parse_tag_70_packet() instead
 
 Cc: Tyler Hicks <code@tyhicks.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: "Michael A. Halcrow" <mhalcrow@us.ibm.com>
+Cc: "Michael C. Thompson" <mcthomps@us.ibm.com>
+Cc: "Trevor S. Highland" <trevor.highland@gmail.com>
 Cc: ecryptfs@vger.kernel.org
 Signed-off-by: Lee Jones <lee.jones@linaro.org>
 ---
- fs/ecryptfs/messaging.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/ecryptfs/keystore.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
-index c0dfd9647627a..b38bd742fd973 100644
---- a/fs/ecryptfs/messaging.c
-+++ b/fs/ecryptfs/messaging.c
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 2abd219cfeec6..3fe41964c0d8d 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
 @@ -1,5 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
+ // SPDX-License-Identifier: GPL-2.0-or-later
 -/**
 +/*
   * eCryptfs: Linux filesystem encryption layer
+  * In-kernel key management code.  Includes functions to parse and
+  * write authentication token-related packets with the underlying
+@@ -21,7 +21,7 @@
+ #include <linux/slab.h>
+ #include "ecryptfs_kernel.h"
+ 
+-/**
++/*
+  * request_key returned an error instead of a valid key address;
+  * determine the type of error, make appropriate log entries, and
+  * return an error code.
+@@ -536,8 +536,9 @@ ecryptfs_find_global_auth_tok_for_sig(
+ 
+ /**
+  * ecryptfs_find_auth_tok_for_sig
++ * @auth_tok_key: key containing the authentication token
+  * @auth_tok: Set to the matching auth_tok; NULL if not found
+- * @crypt_stat: inode crypt_stat crypto context
++ * @mount_crypt_stat: inode crypt_stat crypto context
+  * @sig: Sig of auth_tok to find
   *
-  * Copyright (C) 2004-2008 International Business Machines Corp.
-@@ -147,7 +147,7 @@ ecryptfs_spawn_daemon(struct ecryptfs_daemon **daemon, struct file *file)
+  * For now, this function simply looks at the registered auth_tok's
+@@ -576,7 +577,7 @@ ecryptfs_find_auth_tok_for_sig(
  	return rc;
  }
  
 -/**
 +/*
-  * ecryptfs_exorcise_daemon - Destroy the daemon struct
+  * write_tag_70_packet can gobble a lot of stack space. We stuff most
+  * of the function's parameters in a kmalloc'd struct to help reduce
+  * eCryptfs' overall stack usage.
+@@ -604,7 +605,7 @@ struct ecryptfs_write_tag_70_packet_silly_stack {
+ 	struct shash_desc *hash_desc;
+ };
+ 
+-/**
++/*
+  * write_tag_70_packet - Write encrypted filename (EFN) packet against FNEK
+  * @filename: NULL-terminated filename string
   *
-  * Must be called ceremoniously while in possession of
-@@ -181,7 +181,8 @@ int ecryptfs_exorcise_daemon(struct ecryptfs_daemon *daemon)
- }
+@@ -873,7 +874,7 @@ struct ecryptfs_parse_tag_70_packet_silly_stack {
+ };
  
  /**
-- * ecryptfs_process_reponse
-+ * ecryptfs_process_response
-+ * @daemon: eCryptfs daemon object
-  * @msg: The ecryptfs message received; the caller should sanity check
-  *       msg->data_len and free the memory
-  * @seq: The sequence number of the message; must match the sequence
-@@ -250,6 +251,7 @@ int ecryptfs_process_response(struct ecryptfs_daemon *daemon,
-  * ecryptfs_send_message_locked
-  * @data: The data to send
-  * @data_len: The length of data
-+ * @msg_type: Type of message
-  * @msg_ctx: The message context allocated for the send
-  *
-  * Must be called with ecryptfs_daemon_hash_mux held.
+- * parse_tag_70_packet - Parse and process FNEK-encrypted passphrase packet
++ * ecryptfs_parse_tag_70_packet - Parse and process FNEK-encrypted passphrase packet
+  * @filename: This function kmalloc's the memory for the filename
+  * @filename_size: This function sets this to the amount of memory
+  *                 kmalloc'd for the filename
 -- 
 2.27.0
 
