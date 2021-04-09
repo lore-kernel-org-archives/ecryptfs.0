@@ -1,15 +1,15 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 1/3] ecryptfs: remove unused helpers
-Date: Fri,  9 Apr 2021 18:24:20 +0200
-Message-ID: <20210409162422.1326565-2-brauner@kernel.org>
+Subject: [PATCH 2/3] ecryptfs: use private mount in path
+Date: Fri,  9 Apr 2021 18:24:21 +0200
+Message-ID: <20210409162422.1326565-3-brauner@kernel.org>
 References: <20210409162422.1326565-1-brauner@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34138 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231946AbhDIQ0K (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Fri, 9 Apr 2021 12:26:10 -0400
+        id S231946AbhDIQ0O (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Fri, 9 Apr 2021 12:26:14 -0400
 In-Reply-To: <20210409162422.1326565-1-brauner@kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
@@ -18,47 +18,95 @@ Cc: linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, Christia
 
 From: Christian Brauner <christian.brauner@ubuntu.com>
 
-Remove two helpers that are unused.
+Since [1] we support creating private mounts from a given path's
+vfsmount. This makes them very suitable for any filesystem or
+filesystem functionality that piggybacks on paths of another filesystem.
+Overlayfs, cachefiles, and ecryptfs are three prime examples.
 
+Since private mounts aren't attached in the filesystem they aren't
+affected by mount property changes after ecryptfs makes use of them.
+This seems a rather desirable property as the underlying path can't e.g.
+suddenly go from read-write to read-only and in general it means that
+ecryptfs is always in full control of the underlying mount after the
+user has allowed it to be used (apart from operations that affect the
+superblock of course).
+
+Besides that it also makes things simpler for a variety of other vfs
+features. One concrete example is fanotify. When the path->mnt of the
+path that is used as a cache has been marked with FAN_MARK_MOUNT the
+semantics get tricky as it isn't clear whether the watchers of path->mnt
+should get notified about fsnotify events when files are created by
+cachefilesd via path->mnt. Using a private mount let's us elegantly
+handle this case too and aligns the behavior of stacks created by
+overlayfs and cachefiles.
+
+Reading through the codebase of ecryptfs it currently takes path->mnt
+and then retrieves that path whenever it needs to perform operations in
+the underlying filesystem. Simply drop the old path->mnt once we've
+created a private mount and place the new private mnt into path->mnt.
+This should be all that is needed to make this work since ecryptfs uses
+the same lower path's vfsmount to construct the paths it uses to operate
+on the underlying filesystem.
+
+[1]: c771d683a62e ("vfs: introduce clone_private_mount()")
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Tyler Hicks <code@tyhicks.com>
 Cc: ecryptfs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/ecryptfs/ecryptfs_kernel.h | 12 ------------
- 1 file changed, 12 deletions(-)
+ fs/ecryptfs/main.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index e6ac78c62ca4..463b2d99b554 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -496,12 +496,6 @@ ecryptfs_set_superblock_lower(struct super_block *sb,
- 	((struct ecryptfs_sb_info *)sb->s_fs_info)->wsi_sb = lower_sb;
- }
- 
--static inline struct ecryptfs_dentry_info *
--ecryptfs_dentry_to_private(struct dentry *dentry)
--{
--	return (struct ecryptfs_dentry_info *)dentry->d_fsdata;
--}
--
- static inline void
- ecryptfs_set_dentry_private(struct dentry *dentry,
- 			    struct ecryptfs_dentry_info *dentry_info)
-@@ -515,12 +509,6 @@ ecryptfs_dentry_to_lower(struct dentry *dentry)
- 	return ((struct ecryptfs_dentry_info *)dentry->d_fsdata)->lower_path.dentry;
- }
- 
--static inline struct vfsmount *
--ecryptfs_dentry_to_lower_mnt(struct dentry *dentry)
--{
--	return ((struct ecryptfs_dentry_info *)dentry->d_fsdata)->lower_path.mnt;
--}
--
- static inline struct path *
- ecryptfs_dentry_to_lower_path(struct dentry *dentry)
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index cdf40a54a35d..9dcf9a0dd37b 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -476,6 +476,7 @@ static struct file_system_type ecryptfs_fs_type;
+ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags,
+ 			const char *dev_name, void *raw_data)
  {
++	struct vfsmount *mnt = NULL;
+ 	struct super_block *s;
+ 	struct ecryptfs_sb_info *sbi;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+@@ -537,6 +538,14 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 		goto out_free;
+ 	}
+ 
++	mnt = clone_private_mount(&path);
++	if (IS_ERR(mnt)) {
++		rc = PTR_ERR(mnt);
++		mnt = NULL;
++		pr_warn("Failed to create private mount for ecryptfs\n");
++		goto out_free;
++	}
++
+ 	if (check_ruid && !uid_eq(d_inode(path.dentry)->i_uid, current_uid())) {
+ 		rc = -EPERM;
+ 		printk(KERN_ERR "Mount of device (uid: %d) not owned by "
+@@ -592,6 +601,13 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 
+ 	/* ->kill_sb() will take care of root_info */
+ 	ecryptfs_set_dentry_private(s->s_root, root_info);
++
++	/* We've created a private clone of this mount above so drop it now. */
++	mntput(path.mnt);
++
++	/* Use our private mount from now on. */
++	path.mnt = mnt;
++
+ 	root_info->lower_path = path;
+ 
+ 	s->s_flags |= SB_ACTIVE;
+@@ -599,6 +615,7 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 
+ out_free:
+ 	path_put(&path);
++	mntput(mnt);
+ out1:
+ 	deactivate_locked_super(s);
+ out:
 -- 
 2.27.0
 
