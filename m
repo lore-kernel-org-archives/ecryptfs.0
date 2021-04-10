@@ -1,59 +1,32 @@
-From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 3/3] ecryptfs: extend ro check to private mount
-Date: Fri,  9 Apr 2021 18:24:22 +0200
-Message-ID: <20210409162422.1326565-4-brauner@kernel.org>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Subject: Re: [PATCH 2/3] ecryptfs: use private mount in path
+Date: Sat, 10 Apr 2021 00:31:02 +0000
+Message-ID: <YHDxxunCKNuV34Oz@zeniv-ca.linux.org.uk>
 References: <20210409162422.1326565-1-brauner@kernel.org>
+ <20210409162422.1326565-3-brauner@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34238 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233674AbhDIQ0S (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Fri, 9 Apr 2021 12:26:18 -0400
-In-Reply-To: <20210409162422.1326565-1-brauner@kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20210409162422.1326565-3-brauner@kernel.org>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <christian.brauner@ubuntu.com>
+Content-Transfer-Encoding: 7bit
+To: Christian Brauner <brauner@kernel.org>
+Cc: Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <christian.brauner@ubuntu.com>, Miklos Szeredi <miklos@szeredi.hu>
 
-From: Christian Brauner <christian.brauner@ubuntu.com>
+On Fri, Apr 09, 2021 at 06:24:21PM +0200, Christian Brauner wrote:
 
-So far ecryptfs only verified that the superblock wasn't read-only but
-didn't check whether the mount was. This made sense when we did not use
-a private mount because the read-only state could change at any point.
+> Reading through the codebase of ecryptfs it currently takes path->mnt
+> and then retrieves that path whenever it needs to perform operations in
+> the underlying filesystem. Simply drop the old path->mnt once we've
+> created a private mount and place the new private mnt into path->mnt.
+> This should be all that is needed to make this work since ecryptfs uses
+> the same lower path's vfsmount to construct the paths it uses to operate
+> on the underlying filesystem.
 
-Now that we have a private mount and mount properties can't change
-behind our back extend the read-only check to include the vfsmount.
+> +	mnt = clone_private_mount(&path);
 
-The __mnt_is_readonly() helper will check both the mount and the
-superblock.  Note that before we checked root->d_sb and now we check
-mnt->mnt_sb but since we have a matching <vfsmount, dentry> pair here
-this is only syntactical change, not a semantic one.
-
-Overlayfs and cachefiles have been changed to check this as well.
-
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
----
- fs/ecryptfs/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 9dcf9a0dd37b..cdf37d856c62 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -569,7 +569,7 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
- 	 *   1) The lower mount is ro
- 	 *   2) The ecryptfs_encrypted_view mount option is specified
- 	 */
--	if (sb_rdonly(path.dentry->d_sb) || mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
-+	if (__mnt_is_readonly(mnt) || mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
- 		s->s_flags |= SB_RDONLY;
- 
- 	s->s_maxbytes = path.dentry->d_sb->s_maxbytes;
--- 
-2.27.0
-
+Incidentally, why is that thing anything other than a trivial wrapper
+for mnt_clone_internal() (if that - I'm not convinced that the check of
+unbindable is the right thing to do here).  Miklos?
