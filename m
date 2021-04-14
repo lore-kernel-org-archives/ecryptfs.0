@@ -1,15 +1,15 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 2/7] namespace: add kernel doc for mnt_clone_internal()
-Date: Wed, 14 Apr 2021 14:37:46 +0200
-Message-ID: <20210414123750.2110159-3-brauner@kernel.org>
+Subject: [PATCH 3/7] namespace: move unbindable check out of clone_private_mount()
+Date: Wed, 14 Apr 2021 14:37:47 +0200
+Message-ID: <20210414123750.2110159-4-brauner@kernel.org>
 References: <20210414123750.2110159-1-brauner@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33850 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33864 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232883AbhDNMjC (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Wed, 14 Apr 2021 08:39:02 -0400
+        id S245007AbhDNMjG (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Wed, 14 Apr 2021 08:39:06 -0400
 In-Reply-To: <20210414123750.2110159-1-brauner@kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
@@ -18,8 +18,17 @@ Cc: Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@lst.de>, Tyler H
 
 From: Christian Brauner <christian.brauner@ubuntu.com>
 
-Document mnt_clone_internal().
+We're about to switch all filesystems that stack on top or otherwise use
+a struct path of another filesystem to use clone_private_mount() in the
+following commits. Most of these filesystems like ecryptfs and
+cachefiles don't need the MS_UNBDINDABLE check that overlayfs currently
+wants. So move the check out of clone_private_mount() and into overlayfs
+itself.
 
+Note that overlayfs can probably be switched to not rely on the
+MS_UNBDINDABLE check too but for now keep it.
+
+[1]: df820f8de4e4 ("ovl: make private mounts longterm")
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Miklos Szeredi <mszeredi@redhat.com>
@@ -27,36 +36,69 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/namespace.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/namespace.c       |  3 ---
+ fs/overlayfs/super.c | 13 +++++++++++--
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
 diff --git a/fs/namespace.c b/fs/namespace.c
-index 02f415061efe..7ffefa8b3980 100644
+index 7ffefa8b3980..f6efe1272b9d 100644
 --- a/fs/namespace.c
 +++ b/fs/namespace.c
-@@ -1271,6 +1271,22 @@ bool path_is_mountpoint(const struct path *path)
- }
- EXPORT_SYMBOL(path_is_mountpoint);
+@@ -1976,9 +1976,6 @@ struct vfsmount *clone_private_mount(const struct path *path)
+ 	struct mount *old_mnt = real_mount(path->mnt);
+ 	struct mount *new_mnt;
  
-+/**
-+ * mnt_clone_internal - create a private clone of a path
-+ * @path: path from which the mnt to clone will be taken
-+ *
-+ * This creates a new vfsmount, which will be a clone of @path's vfsmount.
-+ *
-+ * In contrast to clone_private_mount() the new mount will be marked
-+ * MNT_INTERNAL and will note have any mount namespace attached making it
-+ * suitable for short-lived internal mounts since mntput()ing it will always
-+ * hit the slowpath taking the mount lock.
-+ *
-+ * Since the mount is not reachable anwyhere mount properties and propagation
-+ * properties remain stable, i.e. cannot change.
-+ *
-+ * Return: A clone of @path's vfsmount on success, an error pointer on failure.
-+ */
- struct vfsmount *mnt_clone_internal(const struct path *path)
+-	if (IS_MNT_UNBINDABLE(old_mnt))
+-		return ERR_PTR(-EINVAL);
+-
+ 	new_mnt = clone_mnt(old_mnt, path->dentry, CL_PRIVATE);
+ 	if (IS_ERR(new_mnt))
+ 		return ERR_CAST(new_mnt);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index fdd72f1a9c5e..c942bb1073f6 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -15,6 +15,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/posix_acl_xattr.h>
+ #include <linux/exportfs.h>
++#include "../pnode.h"
+ #include "overlayfs.h"
+ 
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+@@ -1175,6 +1176,14 @@ static int ovl_report_in_use(struct ovl_fs *ofs, const char *name)
+ 	}
+ }
+ 
++static inline struct vfsmount *ovl_clone_private_mount(const struct path *path)
++{
++	if (IS_MNT_UNBINDABLE(real_mount(path->mnt)))
++		return ERR_PTR(-EINVAL);
++
++	return clone_private_mount(path);
++}
++
+ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 			 struct ovl_layer *upper_layer, struct path *upperpath)
  {
- 	struct mount *p;
+@@ -1201,7 +1210,7 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 	if (err)
+ 		goto out;
+ 
+-	upper_mnt = clone_private_mount(upperpath);
++	upper_mnt = ovl_clone_private_mount(upperpath);
+ 	err = PTR_ERR(upper_mnt);
+ 	if (IS_ERR(upper_mnt)) {
+ 		pr_err("failed to clone upperpath\n");
+@@ -1700,7 +1709,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 			}
+ 		}
+ 
+-		mnt = clone_private_mount(&stack[i]);
++		mnt = ovl_clone_private_mount(&stack[i]);
+ 		err = PTR_ERR(mnt);
+ 		if (IS_ERR(mnt)) {
+ 			pr_err("failed to clone lowerpath\n");
 -- 
 2.27.0
 
