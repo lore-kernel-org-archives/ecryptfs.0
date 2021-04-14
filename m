@@ -1,15 +1,15 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 4/7] cachefiles: switch to using a private mount
-Date: Wed, 14 Apr 2021 14:37:48 +0200
-Message-ID: <20210414123750.2110159-5-brauner@kernel.org>
+Subject: [PATCH 5/7] cachefiles: extend ro check to private mount
+Date: Wed, 14 Apr 2021 14:37:49 +0200
+Message-ID: <20210414123750.2110159-6-brauner@kernel.org>
 References: <20210414123750.2110159-1-brauner@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:33882 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:33902 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347245AbhDNMjK (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Wed, 14 Apr 2021 08:39:10 -0400
+        id S1347293AbhDNMjO (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Wed, 14 Apr 2021 08:39:14 -0400
 In-Reply-To: <20210414123750.2110159-1-brauner@kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
@@ -18,193 +18,60 @@ Cc: Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@lst.de>, Tyler H
 
 From: Christian Brauner <christian.brauner@ubuntu.com>
 
-Since [1] we support creating private mounts from a given path's
-vfsmount. This makes them very suitable for any filesystem or
-filesystem functionality that piggybacks on paths of another filesystem.
-Overlayfs and ecryptfs (which I'll port next) are just two such
-examples.
+So far cachefiles only verified that the superblock wasn't read-only but
+didn't check whether the mount was. This made sense when we did not use
+a private mount because the read-only state could change at any point.
 
-Without trying to imply to many similarities cachefiles have one thing
-in common with stacking filesystems namely that they also stack on top
-of existing paths. These paths are then used as caches for a netfs.
-Since private mounts aren't attached in the filesystem the aren't
-affected by mount property changes after cachefiles makes use of them.
-This seems a rather desirable property as the underlying path can't e.g.
-suddenly go from read-write to read-only and in general it means that
-cachefiles is always in full control of the underlying mount after the
-user has allowed it to be used as a cache (apart from operations that
-affect the superblock of course).
+Now that we have a private mount and mount properties can't change
+behind our back extend the read-only check to include the vfsmount.
 
-Besides that - and probably irrelevant from the perspective of a
-cachefiles developer - it also makes things simpler for a variety of
-other vfs features. One concrete example is fanotify. When the path->mnt
-of the path that is used as a cache has been marked with FAN_MARK_MOUNT
-the semantics get tricky as it isn't clear whether the watchers of
-path->mnt should get notified about fsnotify events when files are
-created by cachefilesd via path->mnt. Using a private mount let's us
-elegantly handle this case too and aligns the behavior of stacks created
-by overlayfs.
+The __mnt_is_readonly() helper will check both the mount and the
+superblock.  Note that before we checked root->d_sb and now we check
+mnt->mnt_sb but since we have a matching <vfsmount, dentry> pair here
+this is only syntactical change, not a semantic one.
 
-Reading through the codebase cachefiles currently takes path->mnt and
-stashes it in cache->mnt. Everytime a cache object needs to be created,
-looked-up, or in some other form interacted with cachefiles will create
-a custom path comprised of cache->mnt and the relevant dentry it is
-interested in:
+Here's how this works:
 
-struct path cachefiles_path = {
-        .mnt = cache->mnt,
-        .dentry = dentry,
-};
+mount -o ro --bind /var/cache/fscache/ /var/cache/fscache/
 
-So cachefiles already passes the cache->mnt through everywhere so
-supporting private mounts with cachefiles is pretty simply. Instead of
-recording path->mnt in cache->mnt we simply record a new private mount
-we created as a copy of path->mnt via clone_private_mount() in
-cache->mnt. The rest is cleanly handled by cachefiles already.
-
-I have tested this patch with afs:
-
-systemctl stop cachefilesd
-sudo mount --bind /var/cache/fscache /var/cache/fscache
 systemctl start cachefilesd
+  Job for cachefilesd.service failed because the control process exited with error code.
+  See "systemctl status cachefilesd.service" and "journalctl -xe" for details.
 
-sudo apt install kafs-client
-systemctl start afs.mount
-ls -al /afs
-ls -al /afs/grand.central.org/software/openafs/1.9.0
-md5sum /afs/grand.central.org/software/openafs/1.9.0/openafs-1.9.0-doc.tar.bz2
+dmesg | grep CacheFiles
+  [    2.922514] CacheFiles: Loaded
+  [  272.206907] CacheFiles: Failed to register: -30
 
-cat /proc/fs/fscache/stats | grep [1-9]
-  Cookies: idx=148 dat=35 spc=0
-  Objects: alc=41 nal=0 avl=41 ded=0
-  Pages  : mrk=934 unc=0
-  Acquire: n=183 nul=0 noc=0 ok=183 nbf=0 oom=0
-  Lookups: n=41 neg=41 pos=0 crt=41 tmo=0
-  Retrvls: n=19 ok=0 wt=1 nod=19 nbf=0 int=0 oom=0
-  Retrvls: ops=19 owt=0 abt=0
-  Stores : n=934 ok=934 agn=0 nbf=0 oom=0
-  Stores : ops=62 run=996 pgs=934 rxd=934 olm=0
-  Ops    : pend=0 run=81 enq=996 can=0 rej=0
-  Ops    : ini=953 dfr=0 rel=953 gc=0
+errno 30
+  EROFS 30 Read-only file system
 
-umount /afs/grand.central.org
-md5sum /afs/grand.central.org/software/openafs/1.9.0/openafs-1.9.0-doc.tar.bz2
-
-cat /proc/fs/fscache/stats | grep [1-9]
-  Cookies: idx=152 dat=60 spc=0
-  Objects: alc=70 nal=0 avl=70 ded=39
-  ChkAux : non=0 ok=25 upd=0 obs=0
-  Pages  : mrk=1868 unc=934
-  Acquire: n=212 nul=0 noc=0 ok=212 nbf=0 oom=0
-  Lookups: n=70 neg=41 pos=29 crt=41 tmo=0
-  Relinqs: n=39 nul=0 wcr=0 rtr=0
-  Retrvls: n=38 ok=19 wt=2 nod=19 nbf=0 int=0 oom=0
-  Retrvls: ops=38 owt=0 abt=0
-  Stores : n=934 ok=934 agn=0 nbf=0 oom=0
-  Stores : ops=62 run=996 pgs=934 rxd=934 olm=0
-  Ops    : pend=0 run=100 enq=996 can=0 rej=0
-  Ops    : ini=972 dfr=0 rel=972 gc=0
-
-[1]: c771d683a62e ("vfs: introduce clone_private_mount()")
-Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: David Howells <dhowells@redhat.com>
 Cc: linux-cachefs@redhat.com
 Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/cachefiles/bind.c | 34 ++++++++++++++++++++++++----------
- 1 file changed, 24 insertions(+), 10 deletions(-)
+ fs/cachefiles/bind.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/fs/cachefiles/bind.c b/fs/cachefiles/bind.c
-index 38bb7764b454..7ef572d698f0 100644
+index 7ef572d698f0..8cf283de4e14 100644
 --- a/fs/cachefiles/bind.c
 +++ b/fs/cachefiles/bind.c
-@@ -81,7 +81,7 @@ int cachefiles_daemon_bind(struct cachefiles_cache *cache, char *args)
- static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
- {
- 	struct cachefiles_object *fsdef;
--	struct path path;
-+	struct path path, cache_path;
- 	struct kstatfs stats;
- 	struct dentry *graveyard, *cachedir, *root;
- 	const struct cred *saved_cred;
-@@ -115,16 +115,23 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
- 	if (ret < 0)
- 		goto error_open_root;
- 
--	cache->mnt = path.mnt;
--	root = path.dentry;
--
--	ret = -EINVAL;
- 	if (mnt_user_ns(path.mnt) != &init_user_ns) {
-+		ret = -EINVAL;
-+		cache->mnt = NULL;
- 		pr_warn("File cache on idmapped mounts not supported");
- 		goto error_unsupported;
- 	}
- 
-+	cache->mnt = clone_private_mount(&path);
-+	if (IS_ERR(cache->mnt)) {
-+		ret = PTR_ERR(cache->mnt);
-+		cache->mnt = NULL;
-+		pr_warn("Failed to create private mount for file cache\n");
-+		goto error_unsupported;
-+	}
-+
- 	/* check parameters */
-+	root = path.dentry;
- 	ret = -EOPNOTSUPP;
- 	if (d_is_negative(root) ||
- 	    !d_backing_inode(root)->i_op->lookup ||
-@@ -144,8 +151,10 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
- 	if (ret < 0)
+@@ -141,8 +141,13 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
+ 	    !root->d_sb->s_op->sync_fs)
  		goto error_unsupported;
  
-+	cache_path.dentry = path.dentry;
-+	cache_path.mnt = cache->mnt;
- 	/* get the cache size and blocksize */
--	ret = vfs_statfs(&path, &stats);
-+	ret = vfs_statfs(&cache_path, &stats);
- 	if (ret < 0)
- 		goto error_unsupported;
- 
-@@ -229,7 +238,12 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
- 
- 	/* done */
- 	set_bit(CACHEFILES_READY, &cache->flags);
--	dput(root);
-+
 +	/*
-+	 * We've created a private mount and we've stashed our "cache" and
-+	 * "graveyard" dentries so we don't need the path anymore.
++	 * Verify our mount and superblock aren't read-only.
++	 * Note, while our private mount is guaranteed to not change anymore
++	 * the superblock may still go read-only later.
 +	 */
-+	path_put(&path);
+ 	ret = -EROFS;
+-	if (sb_rdonly(root->d_sb))
++	if (__mnt_is_readonly(cache->mnt))
+ 		goto error_unsupported;
  
- 	pr_info("File cache on %s registered\n", cache->cache.identifier);
- 
-@@ -242,11 +256,11 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
- 	dput(cache->graveyard);
- 	cache->graveyard = NULL;
- error_unsupported:
--	mntput(cache->mnt);
-+	path_put(&path);
-+	kern_unmount(cache->mnt);
- 	cache->mnt = NULL;
- 	dput(fsdef->dentry);
- 	fsdef->dentry = NULL;
--	dput(root);
- error_open_root:
- 	kmem_cache_free(cachefiles_object_jar, fsdef);
- error_root_object:
-@@ -270,7 +284,7 @@ void cachefiles_daemon_unbind(struct cachefiles_cache *cache)
- 	}
- 
- 	dput(cache->graveyard);
--	mntput(cache->mnt);
-+	kern_unmount(cache->mnt);
- 
- 	kfree(cache->rootdirname);
- 	kfree(cache->secctx);
+ 	/* determine the security of the on-disk cache as this governs
 -- 
 2.27.0
 
