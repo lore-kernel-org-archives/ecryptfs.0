@@ -1,59 +1,137 @@
-From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 7/7] ecryptfs: extend ro check to private mount
-Date: Wed, 14 Apr 2021 14:37:51 +0200
-Message-ID: <20210414123750.2110159-8-brauner@kernel.org>
-References: <20210414123750.2110159-1-brauner@kernel.org>
+From: Tyler Hicks <code@tyhicks.com>
+Subject: Re: [PATCH 28/31] fs: ecryptfs: crypto: Supply some missing param
+ descriptions and demote abuses
+Date: Sun, 18 Apr 2021 12:17:00 -0500
+Message-ID: <20210418171700.GA398325@elm>
+References: <20210330164458.1625478-1-lee.jones@linaro.org>
+ <20210330164458.1625478-29-lee.jones@linaro.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34008 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347336AbhDNMjV (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Wed, 14 Apr 2021 08:39:21 -0400
-In-Reply-To: <20210414123750.2110159-1-brauner@kernel.org>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52280 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229986AbhDRRRh (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 18 Apr 2021 13:17:37 -0400
+Received: from mail-ot1-x32a.google.com (mail-ot1-x32a.google.com [IPv6:2607:f8b0:4864:20::32a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47BF1C061760
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:17:09 -0700 (PDT)
+Received: by mail-ot1-x32a.google.com with SMTP id 92-20020a9d02e50000b029028fcc3d2c9eso7938229otl.0
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:17:09 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20210330164458.1625478-29-lee.jones@linaro.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: linux-fsdevel@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>, Christoph Hellwig <hch@lst.de>, Tyler Hicks <code@tyhicks.com>, David Howells <dhowells@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, linux-cachefs@redhat.com, Christian Brauner <christian.brauner@ubuntu.com>
+Content-Transfer-Encoding: 7bit
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-kernel@vger.kernel.org, Eric Biggers <ebiggers@google.com>, "Michael A. Halcrow" <mahalcro@us.ibm.com>, "Michael C. Thompson" <mcthomps@us.ibm.com>, ecryptfs@vger.kernel.org
 
-From: Christian Brauner <christian.brauner@ubuntu.com>
+On 2021-03-30 17:44:55, Lee Jones wrote:
+> Fixes the following W=1 kernel build warning(s):
+> 
+>  fs/ecryptfs/crypto.c:29: warning: expecting prototype for eCryptfs(). Prototype was for DECRYPT() instead
+>  fs/ecryptfs/crypto.c:360: warning: Function parameter or member 'crypt_stat' not described in 'lower_offset_for_page'
+>  fs/ecryptfs/crypto.c:360: warning: Function parameter or member 'page' not described in 'lower_offset_for_page'
+>  fs/ecryptfs/crypto.c:637: warning: Function parameter or member 'crypt_stat' not described in 'ecryptfs_compute_root_iv'
+>  fs/ecryptfs/crypto.c:1386: warning: Function parameter or member 'ecryptfs_dentry' not described in 'ecryptfs_read_metadata'
+>  fs/ecryptfs/crypto.c:1463: warning: Function parameter or member 'filename' not described in 'ecryptfs_encrypt_filename'
+>  fs/ecryptfs/crypto.c:1463: warning: Function parameter or member 'mount_crypt_stat' not described in 'ecryptfs_encrypt_filename'
+>  fs/ecryptfs/crypto.c:1897: warning: Function parameter or member 'encoded_name_size' not described in 'ecryptfs_encrypt_and_encode_filename'
+>  fs/ecryptfs/crypto.c:1897: warning: Function parameter or member 'mount_crypt_stat' not described in 'ecryptfs_encrypt_and_encode_filename'
+>  fs/ecryptfs/crypto.c:1897: warning: Function parameter or member 'name_size' not described in 'ecryptfs_encrypt_and_encode_filename'
+>  fs/ecryptfs/crypto.c:1897: warning: Excess function parameter 'crypt_stat' description in 'ecryptfs_encrypt_and_encode_filename'
+>  fs/ecryptfs/crypto.c:1897: warning: Excess function parameter 'length' description in 'ecryptfs_encrypt_and_encode_filename'
+>  fs/ecryptfs/crypto.c:2006: warning: Function parameter or member 'sb' not described in 'ecryptfs_decode_and_decrypt_filename'
+>  fs/ecryptfs/crypto.c:2006: warning: Excess function parameter 'ecryptfs_dir_dentry' description in 'ecryptfs_decode_and_decrypt_filename'
+> 
+> Cc: Tyler Hicks <code@tyhicks.com>
+> Cc: Eric Biggers <ebiggers@google.com>
+> Cc: "Michael A. Halcrow" <mahalcro@us.ibm.com>
+> Cc: "Michael C. Thompson" <mcthomps@us.ibm.com>
+> Cc: ecryptfs@vger.kernel.org
+> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> ---
+>  fs/ecryptfs/crypto.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index 7671412b8f0b4..cdcbcf7b5b6c7 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2004 Erez Zadok
+> @@ -350,7 +350,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
+>  	return rc;
+>  }
+>  
+> -/**
+> +/*
+>   * lower_offset_for_page
+>   *
+>   * Convert an eCryptfs page index into a lower byte offset
+> @@ -627,9 +627,8 @@ void ecryptfs_set_default_sizes(struct ecryptfs_crypt_stat *crypt_stat)
+>  	}
+>  }
+>  
+> -/**
+> +/*
+>   * ecryptfs_compute_root_iv
+> - * @crypt_stats
+>   *
+>   * On error, sets the root IV to all 0's.
+>   */
+> @@ -1370,7 +1369,7 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+>  	return rc;
+>  }
+>  
+> -/**
+> +/*
+>   * ecryptfs_read_metadata
+>   *
+>   * Common entry point for reading file metadata. From here, we could
+> @@ -1448,7 +1447,7 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+>  	return rc;
+>  }
+>  
+> -/**
+> +/*
+>   * ecryptfs_encrypt_filename - encrypt filename
+>   *
+>   * CBC-encrypts the filename. We do not want to encrypt the same
+> @@ -1876,10 +1875,11 @@ ecryptfs_decode_from_filename(unsigned char *dst, size_t *dst_size,
+>  
+>  /**
+>   * ecryptfs_encrypt_and_encode_filename - converts a plaintext file name to cipher text
+> - * @crypt_stat: The crypt_stat struct associated with the file anem to encode
+> + * @encoded_name: The encrypted name
+> + * @encoded_name_size: Length of the encrypted name
+> + * @mount_crypt_stat: The crypt_stat struct associated with the file anem to encode
 
-So far ecryptfs only verified that the superblock wasn't read-only but
-didn't check whether the mount was. This made sense when we did not use
-a private mount because the read-only state could change at any point.
+s/anem/name/
 
-Now that we have a private mount and mount properties can't change
-behind our back extend the read-only check to include the vfsmount.
+I'll fix this up when applying.
 
-The __mnt_is_readonly() helper will check both the mount and the
-superblock.  Note that before we checked root->d_sb and now we check
-mnt->mnt_sb but since we have a matching <vfsmount, dentry> pair here
-this is only syntactical change, not a semantic one.
+Tyler
 
-Overlayfs and cachefiles have been changed to check this as well.
-
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
----
- fs/ecryptfs/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-index 3ba2c0f349a3..4e5aeec91e95 100644
---- a/fs/ecryptfs/main.c
-+++ b/fs/ecryptfs/main.c
-@@ -571,7 +571,7 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
- 	 *   1) The lower mount is ro
- 	 *   2) The ecryptfs_encrypted_view mount option is specified
- 	 */
--	if (sb_rdonly(path.dentry->d_sb) || mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
-+	if (__mnt_is_readonly(mnt) || mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
- 		s->s_flags |= SB_RDONLY;
- 
- 	s->s_maxbytes = path.dentry->d_sb->s_maxbytes;
--- 
-2.27.0
-
+>   * @name: The plaintext name
+> - * @length: The length of the plaintext
+> - * @encoded_name: The encypted name
+> + * @name_size: The length of the plaintext name
+>   *
+>   * Encrypts and encodes a filename into something that constitutes a
+>   * valid filename for a filesystem, with printable characters.
+> @@ -1991,7 +1991,7 @@ static bool is_dot_dotdot(const char *name, size_t name_size)
+>   * ecryptfs_decode_and_decrypt_filename - converts the encoded cipher text name to decoded plaintext
+>   * @plaintext_name: The plaintext name
+>   * @plaintext_name_size: The plaintext name size
+> - * @ecryptfs_dir_dentry: eCryptfs directory dentry
+> + * @sb: Ecryptfs's super_block
+>   * @name: The filename in cipher text
+>   * @name_size: The cipher text name size
+>   *
+> -- 
+> 2.27.0
+> 
