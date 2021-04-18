@@ -1,73 +1,57 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH -next] eCryptfs: Use DEFINE_MUTEX() for mutex lock
-Date: Sun, 18 Apr 2021 12:34:33 -0500
-Message-ID: <20210418173433.GD398325@elm>
-References: <20210409095142.2294032-1-yebin10@huawei.com>
+Subject: Re: [PATCH] ecryptfs: Fix typo in message
+Date: Sun, 18 Apr 2021 12:38:19 -0500
+Message-ID: <20210418173819.GE398325@elm>
+References: <20210224113059.28445-1-s.hauer@pengutronix.de>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56024 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230038AbhDRRfE (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sun, 18 Apr 2021 13:35:04 -0400
-Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47105C061760
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:34:36 -0700 (PDT)
-Received: by mail-oo1-xc36.google.com with SMTP id c6-20020a4aacc60000b02901e6260b12e2so4760541oon.3
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:34:35 -0700 (PDT)
+        with ESMTP id S231735AbhDRRix (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 18 Apr 2021 13:38:53 -0400
+Received: from mail-ot1-x334.google.com (mail-ot1-x334.google.com [IPv6:2607:f8b0:4864:20::334])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD547C061760
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:38:21 -0700 (PDT)
+Received: by mail-ot1-x334.google.com with SMTP id c8-20020a9d78480000b0290289e9d1b7bcso16382772otm.4
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:38:21 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20210409095142.2294032-1-yebin10@huawei.com>
+In-Reply-To: <20210224113059.28445-1-s.hauer@pengutronix.de>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ye Bin <yebin10@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>, Michal Hocko <mhocko@suse.com>, Waiman Long <longman@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, David Howells <dhowells@redhat.com>, ecryptfs@vger.kernel.org, kernel-janitors@vger.kernel.org, Hulk Robot <hulkci@huawei.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2021-04-09 17:51:42, Ye Bin wrote:
-> mutex lock can be initialized automatically with DEFINE_MUTEX()
-> rather than explicitly calling mutex_init().
+On 2021-02-24 12:30:59, Sascha Hauer wrote:
+> ecryptfs_decrypt_page() issues a warning "Error encrypting extent". This
+> should be "Error decrypting extent" instead.
 > 
-> Reported-by: Hulk Robot <hulkci@huawei.com>
-> Signed-off-by: Ye Bin <yebin10@huawei.com>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-This looks good to me. Thanks for the fix.
+Thanks! This looks good. I'll add the following fixes line while
+applying:
+
+Fixes: 0216f7f79217 ("eCryptfs: replace encrypt, decrypt, and inode size write")
 
 Tyler
 
 > ---
->  fs/ecryptfs/messaging.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
+>  fs/ecryptfs/crypto.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
-> index c0dfd9647627..25ed9baf524e 100644
-> --- a/fs/ecryptfs/messaging.c
-> +++ b/fs/ecryptfs/messaging.c
-> @@ -14,10 +14,10 @@
->  
->  static LIST_HEAD(ecryptfs_msg_ctx_free_list);
->  static LIST_HEAD(ecryptfs_msg_ctx_alloc_list);
-> -static struct mutex ecryptfs_msg_ctx_lists_mux;
-> +static DEFINE_MUTEX(ecryptfs_msg_ctx_lists_mux);
->  
->  static struct hlist_head *ecryptfs_daemon_hash;
-> -struct mutex ecryptfs_daemon_hash_mux;
-> +DEFINE_MUTEX(ecryptfs_daemon_hash_mux);
->  static int ecryptfs_hash_bits;
->  #define ecryptfs_current_euid_hash(uid) \
->  	hash_long((unsigned long)from_kuid(&init_user_ns, current_euid()), ecryptfs_hash_bits)
-> @@ -359,7 +359,6 @@ int __init ecryptfs_init_messaging(void)
->  		       "too large, defaulting to [%d] users\n", __func__,
->  		       ecryptfs_number_of_users);
->  	}
-> -	mutex_init(&ecryptfs_daemon_hash_mux);
->  	mutex_lock(&ecryptfs_daemon_hash_mux);
->  	ecryptfs_hash_bits = 1;
->  	while (ecryptfs_number_of_users >> ecryptfs_hash_bits)
-> @@ -383,7 +382,6 @@ int __init ecryptfs_init_messaging(void)
->  		rc = -ENOMEM;
->  		goto out;
->  	}
-> -	mutex_init(&ecryptfs_msg_ctx_lists_mux);
->  	mutex_lock(&ecryptfs_msg_ctx_lists_mux);
->  	ecryptfs_msg_counter = 0;
->  	for (i = 0; i < ecryptfs_message_buf_len; i++) {
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index a48116aae02c..0fed4ff02f69 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -535,7 +535,7 @@ int ecryptfs_decrypt_page(struct page *page)
+>  		rc = crypt_extent(crypt_stat, page, page,
+>  				  extent_offset, DECRYPT);
+>  		if (rc) {
+> -			printk(KERN_ERR "%s: Error encrypting extent; "
+> +			printk(KERN_ERR "%s: Error decrypting extent; "
+>  			       "rc = [%d]\n", __func__, rc);
+>  			goto out;
+>  		}
+> -- 
+> 2.29.2
 > 
