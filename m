@@ -1,60 +1,189 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH 26/31] fs: ecryptfs: main: Demote a bunch of
- non-conformant kernel-doc headers
-Date: Sun, 18 Apr 2021 12:19:02 -0500
-Message-ID: <20210418171902.GB398325@elm>
-References: <20210330164458.1625478-1-lee.jones@linaro.org>
- <20210330164458.1625478-27-lee.jones@linaro.org>
+Subject: Re: [PATCH] ecryptfs: fix incorrect kernel-doc comment syntax in
+ files
+Date: Sun, 18 Apr 2021 12:24:11 -0500
+Message-ID: <20210418172411.GC398325@elm>
+References: <20210320081551.13954-1-yashsri421@gmail.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52704 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229783AbhDRRTd (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sun, 18 Apr 2021 13:19:33 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 632ACC06174A
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:19:05 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id l17so1923969oil.11
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:19:05 -0700 (PDT)
+        with ESMTP id S229783AbhDRRYm (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 18 Apr 2021 13:24:42 -0400
+Received: from mail-ot1-x329.google.com (mail-ot1-x329.google.com [IPv6:2607:f8b0:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 010B3C061760
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:24:13 -0700 (PDT)
+Received: by mail-ot1-x329.google.com with SMTP id c8-20020a9d78480000b0290289e9d1b7bcso16361976otm.4
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 10:24:13 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20210330164458.1625478-27-lee.jones@linaro.org>
+In-Reply-To: <20210320081551.13954-1-yashsri421@gmail.com>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>, James Morris <jamorris@linux.microsoft.com>, "Michael A. Halcrow" <mahalcro@us.ibm.com>, "Michael C. Thompson" <mcthomps@us.ibm.com>, ecryptfs@vger.kernel.org
+To: Aditya Srivastava <yashsri421@gmail.com>
+Cc: lukas.bulwahn@gmail.com, linux-kernel-mentees@lists.linuxfoundation.org, corbet@lwn.net, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, rdunlap@infradead.org, christian.brauner@ubuntu.com
 
-On 2021-03-30 17:44:53, Lee Jones wrote:
-> Fixes the following W=1 kernel build warning(s):
+On 2021-03-20 13:45:51, Aditya Srivastava wrote:
+> The opening comment mark '/**' is used for kernel-doc comments.
+> There are files in fs/encrypts which follows this syntax, but the content
+> inside does not comply with kernel-doc.
+> This causes unexpected warnings from kernel-doc.
 > 
->  fs/ecryptfs/main.c:28: warning: Incorrect use of kernel-doc format:  * Module parameter that defines the ecryptfs_verbosity level.
->  fs/ecryptfs/main.c:30: warning: cannot understand function prototype: 'int ecryptfs_verbosity = 0; '
->  fs/ecryptfs/main.c:40: warning: cannot understand function prototype: 'unsigned int ecryptfs_message_buf_len = ECRYPTFS_DEFAULT_MSG_CTX_ELEMS; '
->  fs/ecryptfs/main.c:52: warning: cannot understand function prototype: 'signed long ecryptfs_message_wait_timeout = ECRYPTFS_MAX_MSG_CTX_TTL / HZ; '
->  fs/ecryptfs/main.c:65: warning: cannot understand function prototype: 'unsigned int ecryptfs_number_of_users = ECRYPTFS_DEFAULT_NUM_USERS; '
->  fs/ecryptfs/main.c:106: warning: Function parameter or member 'dentry' not described in 'ecryptfs_init_lower_file'
->  fs/ecryptfs/main.c:106: warning: Function parameter or member 'lower_file' not described in 'ecryptfs_init_lower_file'
->  fs/ecryptfs/main.c:106: warning: Excess function parameter 'ecryptfs_dentry' description in 'ecryptfs_init_lower_file'
->  fs/ecryptfs/main.c:244: warning: Function parameter or member 'sbi' not described in 'ecryptfs_parse_options'
->  fs/ecryptfs/main.c:244: warning: Excess function parameter 'sb' description in 'ecryptfs_parse_options'
->  fs/ecryptfs/main.c:478: warning: Function parameter or member 'fs_type' not described in 'ecryptfs_mount'
->  fs/ecryptfs/main.c:478: warning: Function parameter or member 'flags' not described in 'ecryptfs_mount'
->  fs/ecryptfs/main.c:478: warning: expecting prototype for ecryptfs_get_sb(). Prototype was for ecryptfs_mount() instead
->  fs/ecryptfs/main.c:645: warning: Function parameter or member 'vptr' not described in 'inode_info_init_once'
+> E.g., header comment for fs/ecryptfs/dentry.c follows kernel-doc syntax
+> for comments(i.e., '/**'), but the content inside does not.
 > 
-> Cc: Tyler Hicks <code@tyhicks.com>
-> Cc: Christian Brauner <christian.brauner@ubuntu.com>
-> Cc: James Morris <jamorris@linux.microsoft.com>
-> Cc: "Michael A. Halcrow" <mahalcro@us.ibm.com>
-> Cc: "Michael C. Thompson" <mcthomps@us.ibm.com>
-> Cc: ecryptfs@vger.kernel.org
-> Signed-off-by: Lee Jones <lee.jones@linaro.org>
+> Running kernel-doc -none on fs/ecryptfs/dentry.c causes these
+> unexpected warnings:
+> "warning: Incorrect use of kernel-doc format:  * ecryptfs_d_revalidate - revalidate an ecryptfs dentry"
+> "warning: Function parameter or member 'dentry' not described in 'ecryptfs_d_revalidate'"
+> "warning: Function parameter or member 'flags' not described in 'ecryptfs_d_revalidate'"
+> "warning: expecting prototype for eCryptfs(). Prototype was for ecryptfs_d_revalidate() instead"
+> 
+> Similarly for other files too.
+> 
+> Provide a simple fix by replacing such occurrences with general comment
+> format, i.e. '/*', to prevent kernel-doc from parsing it.
+> 
+> Signed-off-by: Aditya Srivastava <yashsri421@gmail.com>
+
+Hello Aditya - Thank you for this fix. In the time it took me to review
+this patch, someone else submitted a series that fixed all W=1 warnings
+under fs/ecryptfs/:
+
+ https://lore.kernel.org/lkml/20210330164458.1625478-1-lee.jones@linaro.org/
+
+I'm going to take Lee's series for simplicity's sake. Thank you again
+for taking time to submit your patch.
+
+Tyler
+
 > ---
->  fs/ecryptfs/main.c | 20 +++++++++-----------
->  1 file changed, 9 insertions(+), 11 deletions(-)
+> * Applies perfectly on next-20210312
 > 
+>  fs/ecryptfs/crypto.c          |  2 +-
+>  fs/ecryptfs/debug.c           |  2 +-
+>  fs/ecryptfs/dentry.c          |  2 +-
+>  fs/ecryptfs/ecryptfs_kernel.h |  2 +-
+>  fs/ecryptfs/file.c            |  2 +-
+>  fs/ecryptfs/inode.c           |  2 +-
+>  fs/ecryptfs/keystore.c        |  6 +++---
+>  fs/ecryptfs/kthread.c         |  2 +-
+>  fs/ecryptfs/main.c            | 10 +++++-----
+>  fs/ecryptfs/messaging.c       |  2 +-
+>  fs/ecryptfs/miscdev.c         |  2 +-
+>  fs/ecryptfs/mmap.c            |  6 +++---
+>  fs/ecryptfs/read_write.c      |  2 +-
+>  fs/ecryptfs/super.c           |  2 +-
+>  14 files changed, 22 insertions(+), 22 deletions(-)
+> 
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index 7671412b8f0b..48184ff65f90 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2004 Erez Zadok
+> diff --git a/fs/ecryptfs/debug.c b/fs/ecryptfs/debug.c
+> index 1f65e99f9a41..65702d7fc4b9 100644
+> --- a/fs/ecryptfs/debug.c
+> +++ b/fs/ecryptfs/debug.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   * Functions only useful for debugging.
+>   *
+> diff --git a/fs/ecryptfs/dentry.c b/fs/ecryptfs/dentry.c
+> index 44606f079efb..acaa0825e9bb 100644
+> --- a/fs/ecryptfs/dentry.c
+> +++ b/fs/ecryptfs/dentry.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2003 Erez Zadok
+> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+> index 4a62a7dcc4f5..f8aa99e41c48 100644
+> --- a/fs/ecryptfs/ecryptfs_kernel.h
+> +++ b/fs/ecryptfs/ecryptfs_kernel.h
+> @@ -1,5 +1,5 @@
+>  /* SPDX-License-Identifier: GPL-2.0-or-later */
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   * Kernel declarations.
+>   *
+> diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+> index 5fb45d865ce5..2d8344774885 100644
+> --- a/fs/ecryptfs/file.c
+> +++ b/fs/ecryptfs/file.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2004 Erez Zadok
+> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+> index 18e9285fbb4c..541b46d76f89 100644
+> --- a/fs/ecryptfs/inode.c
+> +++ b/fs/ecryptfs/inode.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2004 Erez Zadok
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 2abd219cfeec..475d939ff695 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   * In-kernel key management code.  Includes functions to parse and
+>   * write authentication token-related packets with the underlying
+> @@ -21,7 +21,7 @@
+>  #include <linux/slab.h>
+>  #include "ecryptfs_kernel.h"
+>  
+> -/**
+> +/*
+>   * request_key returned an error instead of a valid key address;
+>   * determine the type of error, make appropriate log entries, and
+>   * return an error code.
+> @@ -576,7 +576,7 @@ ecryptfs_find_auth_tok_for_sig(
+>  	return rc;
+>  }
+>  
+> -/**
+> +/*
+>   * write_tag_70_packet can gobble a lot of stack space. We stuff most
+>   * of the function's parameters in a kmalloc'd struct to help reduce
+>   * eCryptfs' overall stack usage.
+> diff --git a/fs/ecryptfs/kthread.c b/fs/ecryptfs/kthread.c
+> index a7c903cb01a0..d1b1c3546972 100644
+> --- a/fs/ecryptfs/kthread.c
+> +++ b/fs/ecryptfs/kthread.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 2008 International Business Machines Corp.
 > diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
-> index cdf40a54a35d8..0a6ef2472f205 100644
+> index cdf40a54a35d..9bc19a092917 100644
 > --- a/fs/ecryptfs/main.c
 > +++ b/fs/ecryptfs/main.c
 > @@ -1,5 +1,5 @@
@@ -100,53 +229,79 @@ On 2021-03-30 17:44:53, Lee Jones wrote:
 >   * Module parameter that is an estimate of the maximum number of users
 >   * that will be concurrently using eCryptfs. Set this to the right
 >   * value to balance performance and memory use.
-> @@ -80,7 +80,7 @@ void __ecryptfs_printk(const char *fmt, ...)
->  	va_end(args);
+> diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
+> index c0dfd9647627..9f42fca7fc36 100644
+> --- a/fs/ecryptfs/messaging.c
+> +++ b/fs/ecryptfs/messaging.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 2004-2008 International Business Machines Corp.
+> diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
+> index 742ece22c1d4..7e741e36dfe7 100644
+> --- a/fs/ecryptfs/miscdev.c
+> +++ b/fs/ecryptfs/miscdev.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 2008 International Business Machines Corp.
+> diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+> index 2f333a40ff4d..485f6c1e19b5 100644
+> --- a/fs/ecryptfs/mmap.c
+> +++ b/fs/ecryptfs/mmap.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   * This is where eCryptfs coordinates the symmetric encryption and
+>   * decryption of the file data as it passes between the lower
+> @@ -78,7 +78,7 @@ static void strip_xattr_flag(char *page_virt,
+>  	}
 >  }
 >  
 > -/**
 > +/*
->   * ecryptfs_init_lower_file
->   * @ecryptfs_dentry: Fully initialized eCryptfs dentry object, with
->   *                   the lower dentry and the lower mount set
-> @@ -221,7 +221,7 @@ static void ecryptfs_init_mount_crypt_stat(
->  
->  /**
->   * ecryptfs_parse_options
-> - * @sb: The ecryptfs super block
-> + * @sbi: The ecryptfs super block
->   * @options: The options passed to the kernel
->   * @check_ruid: set to 1 if device uid should be checked against the ruid
->   *
-> @@ -466,10 +466,8 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
->  struct kmem_cache *ecryptfs_sb_info_cache;
->  static struct file_system_type ecryptfs_fs_type;
+>   *   Header Extent:
+>   *     Octets 0-7:        Unencrypted file size (big-endian)
+>   *     Octets 8-15:       eCryptfs special marker
+> @@ -229,7 +229,7 @@ static int ecryptfs_readpage(struct file *file, struct page *page)
+>  	return rc;
+>  }
 >  
 > -/**
 > +/*
->   * ecryptfs_get_sb
-> - * @fs_type
-> - * @flags
-
-This wasn't quite the right change. This function documentation block
-was for ecryptfs_mount(). It was probably ecryptfs_get_sb() in the past
-and the docs weren't updated. I've adjusted the function doc header and
-added descriptions for @fs_type and @flags.
-
-Tyler
-
->   * @dev_name: The path to mount over
->   * @raw_data: The options passed into the kernel
+>   * Called with lower inode mutex held.
 >   */
-> @@ -635,7 +633,7 @@ static struct file_system_type ecryptfs_fs_type = {
->  };
->  MODULE_ALIAS_FS("ecryptfs");
->  
+>  static int fill_zeros_to_end_of_page(struct page *page, unsigned int to)
+> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+> index 0438997ac9d8..384b383b4a48 100644
+> --- a/fs/ecryptfs/read_write.c
+> +++ b/fs/ecryptfs/read_write.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
 > -/**
 > +/*
->   * inode_info_init_once
+>   * eCryptfs: Linux filesystem encryption layer
 >   *
->   * Initializes the ecryptfs_inode_info_cache when it is created
+>   * Copyright (C) 2007 International Business Machines Corp.
+> diff --git a/fs/ecryptfs/super.c b/fs/ecryptfs/super.c
+> index 6b1853f1c06a..cc16d044165d 100644
+> --- a/fs/ecryptfs/super.c
+> +++ b/fs/ecryptfs/super.c
+> @@ -1,5 +1,5 @@
+>  // SPDX-License-Identifier: GPL-2.0-or-later
+> -/**
+> +/*
+>   * eCryptfs: Linux filesystem encryption layer
+>   *
+>   * Copyright (C) 1997-2003 Erez Zadok
 > -- 
-> 2.27.0
+> 2.17.1
 > 
