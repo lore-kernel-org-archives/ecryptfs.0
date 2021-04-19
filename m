@@ -1,31 +1,26 @@
-From: Tyler Hicks <code@tyhicks.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
 Subject: Re: [PATCH 1/3] ecryptfs: remove unused helpers
-Date: Mon, 19 Apr 2021 09:22:58 -0500
-Message-ID: <20210419142258.GC4991@sequoia>
+Date: Mon, 19 Apr 2021 16:37:08 +0200
+Message-ID: <20210419143708.7zlmjeabuzfyf2rs@wittgenstein>
 References: <20210409162422.1326565-1-brauner@kernel.org>
  <20210409162422.1326565-2-brauner@kernel.org>
  <20210419044850.GF398325@elm>
  <YH2KVPsPdSFMEhEY@zeniv-ca.linux.org.uk>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45002 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239343AbhDSOX3 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Apr 2021 10:23:29 -0400
-Received: from mail-oi1-x235.google.com (mail-oi1-x235.google.com [IPv6:2607:f8b0:4864:20::235])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB33C06174A
-        for <ecryptfs@vger.kernel.org>; Mon, 19 Apr 2021 07:23:00 -0700 (PDT)
-Received: by mail-oi1-x235.google.com with SMTP id u16so18260809oiu.7
-        for <ecryptfs@vger.kernel.org>; Mon, 19 Apr 2021 07:23:00 -0700 (PDT)
+Received: from mail.kernel.org ([198.145.29.99]:60434 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S240144AbhDSOho (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Mon, 19 Apr 2021 10:37:44 -0400
 Content-Disposition: inline
 In-Reply-To: <YH2KVPsPdSFMEhEY@zeniv-ca.linux.org.uk>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Tyler Hicks <code@tyhicks.com>, Christian Brauner <brauner@kernel.org>, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
 
-On 2021-04-19 13:49:08, Al Viro wrote:
+On Mon, Apr 19, 2021 at 01:49:08PM +0000, Al Viro wrote:
 > On Sun, Apr 18, 2021 at 11:48:50PM -0500, Tyler Hicks wrote:
 > > On 2021-04-09 18:24:20, Christian Brauner wrote:
 > > > From: Christian Brauner <christian.brauner@ubuntu.com>
@@ -44,11 +39,5 @@ On 2021-04-19 13:49:08, Al Viro wrote:
 > FWIW, there's also a series in vfs.git #work.ecryptfs (posted Mar 20),
 > and that, AFAICS, duplicates 483bc7e82ccfc in there...
 
-Yeah, I noticed that after I pushed Christian's commit to my next
-branch. I've fallen behind on eCryptfs patch review. :/
-
-I plan to review vfs.git #work.ecryptfs in the next couple days. If
-everything looks good, do you want me to take it via my tree or were you
-planning on taking those yourself?
-
-Tyler
+Yeah, this is why I dropped the patch in the combined series I sent out
+last week.
