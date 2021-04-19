@@ -1,60 +1,68 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH 00/31] Rid W=1 warnings from GFS2 and EncryptFS
-Date: Mon, 19 Apr 2021 00:09:26 -0500
-Message-ID: <20210419050926.GB405651@elm>
-References: <20210330164458.1625478-1-lee.jones@linaro.org>
+Subject: Re: [PATCH] ecryptfs: fix kernel panic with null dev_name
+Date: Mon, 19 Apr 2021 00:51:48 -0500
+Message-ID: <20210419055148.GC405651@elm>
+References: <20210226210023.77597-1-jeffrey.mitchell@starlab.io>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35476 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230490AbhDSFJ7 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Apr 2021 01:09:59 -0400
-Received: from mail-oi1-x229.google.com (mail-oi1-x229.google.com [IPv6:2607:f8b0:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88B74C061760
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 22:09:29 -0700 (PDT)
-Received: by mail-oi1-x229.google.com with SMTP id b3so19545786oie.5
-        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 22:09:29 -0700 (PDT)
+        with ESMTP id S229652AbhDSFwU (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 19 Apr 2021 01:52:20 -0400
+Received: from mail-oo1-xc2e.google.com (mail-oo1-xc2e.google.com [IPv6:2607:f8b0:4864:20::c2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2126AC061760
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 22:51:51 -0700 (PDT)
+Received: by mail-oo1-xc2e.google.com with SMTP id i20-20020a4a8d940000b02901bc71746525so7502907ook.2
+        for <ecryptfs@vger.kernel.org>; Sun, 18 Apr 2021 22:51:51 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20210330164458.1625478-1-lee.jones@linaro.org>
+In-Reply-To: <20210226210023.77597-1-jeffrey.mitchell@starlab.io>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lee Jones <lee.jones@linaro.org>
-Cc: linux-kernel@vger.kernel.org, Andreas Gruenbacher <agruenba@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Bob Peterson <rpeterso@redhat.com>, Christian Brauner <christian.brauner@ubuntu.com>, cluster-devel@redhat.com, David Howells <dhowells@redhat.com>, ecryptfs@vger.kernel.org, Eric Biggers <ebiggers@google.com>, James Morris <jamorris@linux.microsoft.com>, Johannes Weiner <hannes@cmpxchg.org>, "Michael A. Halcrow" <mahalcro@us.ibm.com>, "Michael A. Halcrow" <mhalcrow@us.ibm.com>, "Michael C. Thompsion" <mcthomps@us.ibm.com>, Michal Hocko <mhocko@suse.com>, "Trevor S. Highland" <trevor.highland@gmail.com>, Tycho Andersen <tycho@tycho.pizza>, Waiman Long <longman@redhat.com>
+To: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2021-03-30 17:44:27, Lee Jones wrote:
-> This set is part of a larger effort attempting to clean-up W=1
-> kernel builds, which are currently overwhelmingly riddled with
-> niggly little warnings.
+On 2021-02-26 15:00:23, Jeffrey Mitchell wrote:
+> When mounting eCryptfs, a null "dev_name" argument to ecryptfs_mount()
+> causes a kernel panic if the parsed options are valid. The easiest way to
+> reproduce this is to call mount() from userspace with an existing
+> eCryptfs mount's options and a "source" argument of 0.
 > 
-> There is more to do in filesystems.  Another set will follow.
+> Error out if "dev_name" is null in ecryptfs_mount()
 > 
-> Lee Jones (31):
-...
->   fs: ecryptfs: read_write: File headers do not make good candidates for
->     kernel-doc
->   fs: ecryptfs: debug: Demote a couple of kernel-doc abuses
->   fs: ecryptfs: dentry: File headers are not good candidates for
->     kernel-doc
->   fs: ecryptfs: kthread: Demote file header and provide description for
->     'cred'
->   fs: ecryptfs: file: Demote kernel-doc abuses
->   fs: ecryptfs: super: Fix formatting, naming and kernel-doc abuses
->   fs: ecryptfs: messaging: Add missing param descriptions and demote
->     abuses
->   fs: ecryptfs: main: Demote a bunch of non-conformant kernel-doc
->     headers
->   fs: ecryptfs: miscdev: File headers are not good kernel-doc candidates
->   fs: ecryptfs: crypto: Supply some missing param descriptions and
->     demote abuses
->   fs: ecryptfs: mmap: Help out one function header and demote other
->     abuses
->   fs: ecryptfs: inode: Help out nearly-there header and demote
->     non-conformant ones
->   fs: ecryptfs: keystore: Fix some kernel-doc issues and demote
->     non-conformant headers
+> Signed-off-by: Jeffrey Mitchell <jeffrey.mitchell@starlab.io>
 
-I've applied the eCryptfs fixes to the next branch of
-tyhicks/ecryptfs.git. Thanks for the clean-up!
+Thanks for the fix! I reproduced this on a 4.15 and, while I didn't try
+anything older than that, I think it affects the first kernel release
+with eCryptfs. I've added the following Fixes tag:
+
+ Fixes: 237fead61998 ("[PATCH] ecryptfs: fs/Makefile and fs/Kconfig")
+
+I've pushed it to the next branch of tyhicks/ecryptfs.git.
 
 Tyler
+
+> ---
+>  fs/ecryptfs/main.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+> index e63259fdef28..b2f6a1937d23 100644
+> --- a/fs/ecryptfs/main.c
+> +++ b/fs/ecryptfs/main.c
+> @@ -492,6 +492,12 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+>  		goto out;
+>  	}
+>  
+> +	if (!dev_name) {
+> +		rc = -EINVAL;
+> +		err = "Device name cannot be null";
+> +		goto out;
+> +	}
+> +
+>  	rc = ecryptfs_parse_options(sbi, raw_data, &check_ruid);
+>  	if (rc) {
+>  		err = "Error parsing options";
+> -- 
+> 2.25.1
+> 
