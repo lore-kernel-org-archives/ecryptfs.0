@@ -1,30 +1,33 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] eCryptfs updates for 5.13-rc1
-Date: Thu, 06 May 2021 17:57:43 +0000
-Message-ID: <162032386305.1989.10037069998243079729.pr-tracker-bot@kernel.org>
-References: <20210506022851.GA622556@elm>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 3/3] mm: require ->set_page_dirty to be explicitly wire
+ up
+Date: Mon, 21 Jun 2021 07:26:12 +0200
+Message-ID: <20210621052612.GA4064@lst.de>
+References: <20210614061512.3966143-1-hch@lst.de> <20210614061512.3966143-4-hch@lst.de> <ddafcc0d-8636-46ca-44b7-54392e0d22b4@gmail.com>
+Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:40552 "EHLO mail.kernel.org"
+Received: from verein.lst.de ([213.95.11.211]:40524 "EHLO verein.lst.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236341AbhEFR6l (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Thu, 6 May 2021 13:58:41 -0400
-In-Reply-To: <20210506022851.GA622556@elm>
+        id S229486AbhFUF23 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
+        Mon, 21 Jun 2021 01:28:29 -0400
+Content-Disposition: inline
+In-Reply-To: <ddafcc0d-8636-46ca-44b7-54392e0d22b4@gmail.com>
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tyler Hicks <code@tyhicks.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: Dmitry Osipenko <digetx@gmail.com>, Tyler Hicks <code@tyhicks.com>
+Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-The pull request you sent on Wed, 5 May 2021 21:28:51 -0500:
+On Fri, Jun 18, 2021 at 10:23:55PM +0300, Dmitry Osipenko wrote:
+> >  21 files changed, 29 insertions(+), 14 deletions(-)
+> 
+> The ecryptfs is now crashing with NULL deference, please fix.
 
-> https://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-5.13-rc1-updates
+Which means it crashed the same before on configs without CONFIG_BLOCK.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/682a8e2b41effcaf2e80697e395d47f77c91273f
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Tyler, can you look at what ecryptfs should do for ->set_page_dirty?
+Currently it implicitly gets __set_page_dirty_buffers for kernels
+with COFIG_BLOCK set, but given that this function looks at buffer_heads
+that ecryptfs doesn't use it can't really be the right choice.
+__set_page_dirty_nobuffers will probably work, but I'd love to see an
+audit of the page dirtying and writeback for ecryptfs while we're at it.
