@@ -1,33 +1,52 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 3/3] mm: require ->set_page_dirty to be explicitly wire
- up
-Date: Mon, 21 Jun 2021 07:26:12 +0200
-Message-ID: <20210621052612.GA4064@lst.de>
-References: <20210614061512.3966143-1-hch@lst.de> <20210614061512.3966143-4-hch@lst.de> <ddafcc0d-8636-46ca-44b7-54392e0d22b4@gmail.com>
+Subject: [PATCH] ecryptfs: add a ->set_page_dirty cludge
+Date: Thu, 24 Jun 2021 14:52:50 +0200
+Message-ID: <20210624125250.536369-1-hch@lst.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:40524 "EHLO verein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229486AbhFUF23 (ORCPT <rfc822;ecryptfs@vger.kernel.org>);
-        Mon, 21 Jun 2021 01:28:29 -0400
-Content-Disposition: inline
-In-Reply-To: <ddafcc0d-8636-46ca-44b7-54392e0d22b4@gmail.com>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50844 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231262AbhFXMzq (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 24 Jun 2021 08:55:46 -0400
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Dmitry Osipenko <digetx@gmail.com>, Tyler Hicks <code@tyhicks.com>
-Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, Jun 18, 2021 at 10:23:55PM +0300, Dmitry Osipenko wrote:
-> >  21 files changed, 29 insertions(+), 14 deletions(-)
-> 
-> The ecryptfs is now crashing with NULL deference, please fix.
+"fix" ecryptfs to work the same as before the recent change to the
+behavior without a ->set_page_dirty method.
 
-Which means it crashed the same before on configs without CONFIG_BLOCK.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/ecryptfs/mmap.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Tyler, can you look at what ecryptfs should do for ->set_page_dirty?
-Currently it implicitly gets __set_page_dirty_buffers for kernels
-with COFIG_BLOCK set, but given that this function looks at buffer_heads
-that ecryptfs doesn't use it can't really be the right choice.
-__set_page_dirty_nobuffers will probably work, but I'd love to see an
-audit of the page dirtying and writeback for ecryptfs while we're at it.
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 392e721b50a3..7d85e64ea62f 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -533,7 +533,20 @@ static sector_t ecryptfs_bmap(struct address_space *mapping, sector_t block)
+ 	return block;
+ }
+ 
++#include <linux/buffer_head.h>
++
+ const struct address_space_operations ecryptfs_aops = {
++	/*
++	 * XXX: This is pretty broken for multiple reasons: ecryptfs does not
++	 * actually use buffer_heads, and ecryptfs will crash without
++	 * CONFIG_BLOCK.  But it matches the behavior before the default for
++	 * address_space_operations without the ->set_page_dirty method was
++	 * cleaned up, so this is the best we can do without maintainer
++	 * feedback.
++	 */
++#ifdef CONFIG_BLOCK
++	.set_page_dirty = __set_page_dirty_buffers,
++#endif
+ 	.writepage = ecryptfs_writepage,
+ 	.readpage = ecryptfs_readpage,
+ 	.write_begin = ecryptfs_write_begin,
+-- 
+2.30.2
+
