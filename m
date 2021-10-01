@@ -1,28 +1,55 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH] ecryptfs: add a ->set_page_dirty cludge
-Date: Thu, 24 Jun 2021 14:07:47 +0100
-Message-ID: <YNSDoyG7VqgJbxS0@casper.infradead.org>
-References: <20210624125250.536369-1-hch@lst.de>
+From: Matthias Bodenbinder <matthias@bodenbinder.de>
+Subject: bad file permissions: write but no read access
+Date: Fri, 01 Oct 2021 13:04:58 +0200
+Message-ID: <e0af3fe10229d90357dd351b4348ec6af59f2e3f.camel@bodenbinder.de>
+Reply-To: matthias@bodenbinder.de
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54236 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229881AbhFXNKa (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 24 Jun 2021 09:10:30 -0400
-Content-Disposition: inline
-In-Reply-To: <20210624125250.536369-1-hch@lst.de>
+Received: from smtp-out005.kontent.com ([81.88.40.219]:45948 "EHLO
+        smtp-out005.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1353780AbhJALbs (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 1 Oct 2021 07:31:48 -0400
+Received: from rakete.bodenbinder.de (p4ffdb9d4.dip0.t-ipconnect.de [79.253.185.212])
+        (Authenticated sender: bodenbinder_de@smtp-out005.kontent.com)
+        by smtp-out005.kontent.com (Postfix) with ESMTPA id F1131300CC19
+        for <ecryptfs@vger.kernel.org>; Fri,  1 Oct 2021 13:04:58 +0200 (CEST)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+        by rakete.bodenbinder.de (Postfix) with ESMTP id C5A592B0C858
+        for <ecryptfs@vger.kernel.org>; Fri,  1 Oct 2021 13:04:58 +0200 (CEST)
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: akpm@linux-foundation.org, code@tyhicks.com, ecryptfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: ecryptfs@vger.kernel.org
 
-On Thu, Jun 24, 2021 at 02:52:50PM +0200, Christoph Hellwig wrote:
-> "fix" ecryptfs to work the same as before the recent change to the
-> behavior without a ->set_page_dirty method.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Hi,
 
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+I hundreds of files in my ecryptfs home which I can write (e.g. rename them) but I can not read them resp. open them. A chmod as
+user or even as root is not working. 
 
-This is atrocious, but we can't really do better.
+Example:
+
+34# file wencke-18te.xcf
+wencke-18te.xcf: writable, regular file, no read permission
+
+35# ll wencke-18te.xcf
+.rw-r--r-- matthias matthias 41 MB Thu Aug  3 16:00:46 2017 wencke-18te.xcf
+
+36# getfacl wencke-18te.xcf 
+# file: wencke-18te.xcf
+# owner: matthias
+# group: matthias
+user::rw-
+group::r--
+other::r--
+
+37# chmod 644 wencke-18te.xcf
+chmod: changing permissions of 'wencke-18te.xcf': Input/output error
+
+The underlying ecryptfs directory /home/.ecryptfs/matthias/ with .Private and .ecryptfs subdirectories is readable without error.
+I can rsync it to my backup server. But when I mount it from the backup server with ecryptfs-recover-private I have the same
+issue.
+
+What can I do to fix that and make the files readable again?
+
+Matthias
+
