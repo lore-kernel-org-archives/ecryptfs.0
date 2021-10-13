@@ -1,75 +1,224 @@
-From: Matthias Bodenbinder <matthias@bodenbinder.de>
-Subject: Re: bad file permissions: write but no read access
-Date: Fri, 01 Oct 2021 17:11:58 +0200
-Message-ID: <014f761a4baf0a18dbeb16c439b2297296976cf7.camel@bodenbinder.de>
-References: <e0af3fe10229d90357dd351b4348ec6af59f2e3f.camel@bodenbinder.de>
-Reply-To: matthias@bodenbinder.de
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH v2] eCryptfs: fix setattr on empty lower file
+Date: Wed, 13 Oct 2021 14:56:52 +0200
+Message-ID: <20211013125652.3578336-1-s.hauer@pengutronix.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from smtp-out001.kontent.com ([81.88.40.215]:52432 "EHLO
-        smtp-out001.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231890AbhJAPNp (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 1 Oct 2021 11:13:45 -0400
-Received: from rakete.bodenbinder.de (p4ffdb9d4.dip0.t-ipconnect.de [79.253.185.212])
-        (Authenticated sender: bodenbinder_de@smtp-out001.kontent.com)
-        by smtp-out001.kontent.com (Postfix) with ESMTPA id 3EE504002B19
-        for <ecryptfs@vger.kernel.org>; Fri,  1 Oct 2021 17:11:58 +0200 (CEST)
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by rakete.bodenbinder.de (Postfix) with ESMTP id 14F5B2B0C858
-        for <ecryptfs@vger.kernel.org>; Fri,  1 Oct 2021 17:11:58 +0200 (CEST)
-In-Reply-To: <e0af3fe10229d90357dd351b4348ec6af59f2e3f.camel@bodenbinder.de>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56184 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234642AbhJMM67 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Wed, 13 Oct 2021 08:58:59 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B830C061753
+        for <ecryptfs@vger.kernel.org>; Wed, 13 Oct 2021 05:56:56 -0700 (PDT)
 List-ID: <ecryptfs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 To: ecryptfs@vger.kernel.org
+Cc: Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org, kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>
 
-I notice messages like this in the journal for each such file Itry to read:
+Depending on the synchronization state of the lower filesystem during a
+power cut it can happen that a lower file is empty after that power cut.
 
-kernel: Valid eCryptfs headers not found in file header region or xattr reg=
-ion, inode 105438
+An inode_operations::setattr operation fails with -EIO on such files,
+because ecryptfs_read_metadata() fails. In e3ccaa976120 ("eCryptfs:
+Initialize empty lower files when opening them") a similar problem was
+solved in the open() path:
 
-How can this be fixed?=20
+| To transparently solve this problem, this patch initializes empty lower
+| files in the ecryptfs_open() error path. If the metadata is unreadable
+| due to the lower inode size being 0, plaintext passthrough support is
+| not in use, and the metadata is stored in the header of the file (as
+| opposed to the user.ecryptfs extended attribute), the lower file will be
+| initialized.
 
-Matthias
+Do the same in inode_operations::setattr to allow setattr on empty lower
+files.
 
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
 
-Am Freitag, dem 01.10.2021 um 13:04 +0200 schrieb Matthias Bodenbinder:
-> Hi,
->=20
-> I hundreds of files in my ecryptfs home which I can write (e.g. rename th=
-em) but I can not read them resp. open them. A chmod as
-> user or even as root is not working.=20
->=20
-> Example:
->=20
-> 34# file wencke-18te.xcf
-> wencke-18te.xcf: writable, regular file, no read permission
->=20
-> 35# ll wencke-18te.xcf
-> .rw-r--r-- matthias matthias 41 MB Thu Aug=C2=A0 3 16:00:46 2017 wencke-1=
-8te.xcf
->=20
-> 36# getfacl wencke-18te.xcf=20
-> # file: wencke-18te.xcf
-> # owner: matthias
-> # group: matthias
-> user::rw-
-> group::r--
-> other::r--
->=20
-> 37# chmod 644 wencke-18te.xcf
-> chmod: changing permissions of 'wencke-18te.xcf': Input/output error
->=20
-> The underlying ecryptfs directory /home/.ecryptfs/matthias/ with .Private=
- and .ecryptfs subdirectories is readable without
-> error.
-> I can rsync it to my backup server. But when I mount it from the backup s=
-erver with ecryptfs-recover-private I have the same
-> issue.
->=20
-> What can I do to fix that and make the files readable again?
->=20
-> Matthias
->=20
+Changes since v1 (https://www.spinics.net/lists/ecryptfs/msg01397.html):
+- In ecryptfs_setattr() ecryptfs_read_or_initialize_metadata() can't be
+  called directly as &crypt_stat->cs_mutex would be locked, but in
+  ecryptfs_settattr() that mutex is already locked. Create a
+  locked/unlocked version of ecryptfs_read_or_initialize_metadata() and
+  use the latter one in ecryptfs_setattr().
 
+ fs/ecryptfs/crypto.c          | 61 +++++++++++++++++++++++++++++++++--
+ fs/ecryptfs/ecryptfs_kernel.h |  3 +-
+ fs/ecryptfs/file.c            | 44 +------------------------
+ fs/ecryptfs/inode.c           |  2 +-
+ 4 files changed, 63 insertions(+), 47 deletions(-)
+
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index e3f5d7f3c8a0a..a14d3ef40259f 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -1377,7 +1377,7 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
+  *
+  * Returns zero if valid headers found and parsed; non-zero otherwise
+  */
+-int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
++static int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ {
+ 	int rc;
+ 	char *page_virt;
+@@ -1443,7 +1443,64 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ 	return rc;
+ }
+ 
+-/*
++int ecryptfs_read_or_initialize_metadata_locked(struct dentry *dentry)
++{
++	struct inode *inode = d_inode(dentry);
++	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
++	struct ecryptfs_crypt_stat *crypt_stat;
++	int rc;
++
++	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
++	mount_crypt_stat = &ecryptfs_superblock_to_private(
++						inode->i_sb)->mount_crypt_stat;
++
++	if (crypt_stat->flags & ECRYPTFS_POLICY_APPLIED &&
++	    crypt_stat->flags & ECRYPTFS_KEY_VALID) {
++		rc = 0;
++		goto out;
++	}
++
++	rc = ecryptfs_read_metadata(dentry);
++	if (!rc)
++		goto out;
++
++	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED) {
++		crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
++				       | ECRYPTFS_ENCRYPTED);
++		rc = 0;
++		goto out;
++	}
++
++	if (!(mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED) &&
++	    !i_size_read(ecryptfs_inode_to_lower(inode))) {
++		rc = ecryptfs_initialize_file(dentry, inode);
++		if (!rc)
++			goto out;
++	}
++
++	rc = -EIO;
++out:
++	return rc;
++}
++
++int ecryptfs_read_or_initialize_metadata(struct dentry *dentry)
++{
++	struct inode *inode = d_inode(dentry);
++	struct ecryptfs_crypt_stat *crypt_stat;
++	int rc;
++
++	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
++
++	mutex_lock(&crypt_stat->cs_mutex);
++
++	rc = ecryptfs_read_or_initialize_metadata_locked(dentry);
++
++	mutex_unlock(&crypt_stat->cs_mutex);
++
++	return rc;
++}
++
++/**
+  * ecryptfs_encrypt_filename - encrypt filename
+  *
+  * CBC-encrypts the filename. We do not want to encrypt the same
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 5f2b49e13731a..af71d6f7da91d 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -573,7 +573,8 @@ int ecryptfs_encrypt_page(struct page *page);
+ int ecryptfs_decrypt_page(struct page *page);
+ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
+ 			    struct inode *ecryptfs_inode);
+-int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry);
++int ecryptfs_read_or_initialize_metadata(struct dentry *dentry);
++int ecryptfs_read_or_initialize_metadata_locked(struct dentry *dentry);
+ int ecryptfs_new_file_context(struct inode *ecryptfs_inode);
+ void ecryptfs_write_crypt_stat_flags(char *page_virt,
+ 				     struct ecryptfs_crypt_stat *crypt_stat,
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 18d5b91cb573e..4721aba376784 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -124,48 +124,6 @@ static int ecryptfs_readdir(struct file *file, struct dir_context *ctx)
+ 
+ struct kmem_cache *ecryptfs_file_info_cache;
+ 
+-static int read_or_initialize_metadata(struct dentry *dentry)
+-{
+-	struct inode *inode = d_inode(dentry);
+-	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+-	struct ecryptfs_crypt_stat *crypt_stat;
+-	int rc;
+-
+-	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
+-	mount_crypt_stat = &ecryptfs_superblock_to_private(
+-						inode->i_sb)->mount_crypt_stat;
+-	mutex_lock(&crypt_stat->cs_mutex);
+-
+-	if (crypt_stat->flags & ECRYPTFS_POLICY_APPLIED &&
+-	    crypt_stat->flags & ECRYPTFS_KEY_VALID) {
+-		rc = 0;
+-		goto out;
+-	}
+-
+-	rc = ecryptfs_read_metadata(dentry);
+-	if (!rc)
+-		goto out;
+-
+-	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED) {
+-		crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
+-				       | ECRYPTFS_ENCRYPTED);
+-		rc = 0;
+-		goto out;
+-	}
+-
+-	if (!(mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED) &&
+-	    !i_size_read(ecryptfs_inode_to_lower(inode))) {
+-		rc = ecryptfs_initialize_file(dentry, inode);
+-		if (!rc)
+-			goto out;
+-	}
+-
+-	rc = -EIO;
+-out:
+-	mutex_unlock(&crypt_stat->cs_mutex);
+-	return rc;
+-}
+-
+ static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct file *lower_file = ecryptfs_file_to_lower(file);
+@@ -232,7 +190,7 @@ static int ecryptfs_open(struct inode *inode, struct file *file)
+ 	}
+ 	ecryptfs_set_file_lower(
+ 		file, ecryptfs_inode_to_private(inode)->lower_file);
+-	rc = read_or_initialize_metadata(ecryptfs_dentry);
++	rc = ecryptfs_read_or_initialize_metadata(ecryptfs_dentry);
+ 	if (rc)
+ 		goto out_put;
+ 	ecryptfs_printk(KERN_DEBUG, "inode w/ addr = [0x%p], i_ino = "
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 16d50dface59a..bdeeb89d1dc95 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -916,7 +916,7 @@ static int ecryptfs_setattr(struct user_namespace *mnt_userns,
+ 			mutex_unlock(&crypt_stat->cs_mutex);
+ 			goto out;
+ 		}
+-		rc = ecryptfs_read_metadata(dentry);
++		rc = ecryptfs_read_or_initialize_metadata_locked(dentry);
+ 		ecryptfs_put_lower_file(inode);
+ 		if (rc) {
+ 			if (!(mount_crypt_stat->flags
+-- 
+2.30.2
 
