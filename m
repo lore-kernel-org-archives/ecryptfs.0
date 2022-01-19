@@ -1,224 +1,95 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH v2] eCryptfs: fix setattr on empty lower file
-Date: Wed, 13 Oct 2021 14:56:52 +0200
-Message-ID: <20211013125652.3578336-1-s.hauer@pengutronix.de>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [bug report] eCryptfs: convert mmap functions to use persistent file
+Date: Wed, 19 Jan 2022 14:30:11 +0300
+Message-ID: <20220119113011.GB8111@kili>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56184 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234642AbhJMM67 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 13 Oct 2021 08:58:59 -0400
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B830C061753
-        for <ecryptfs@vger.kernel.org>; Wed, 13 Oct 2021 05:56:56 -0700 (PDT)
+Received: from mx0a-00069f02.pphosted.com ([205.220.165.32]:1754 "EHLO
+        mx0a-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1354064AbiASLaZ (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Wed, 19 Jan 2022 06:30:25 -0500
+Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20JA8CwJ002457
+        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:25 GMT
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3dnc5f4sbg-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:24 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20JBK5XW037269
+        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:23 GMT
+Received: from nam12-bn8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2173.outbound.protection.outlook.com [104.47.55.173])
+        by userp3020.oracle.com with ESMTP id 3dkqqq6cej-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:23 +0000
+Content-Disposition: inline
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: ecryptfs@vger.kernel.org
-Cc: Tyler Hicks <code@tyhicks.com>, linux-kernel@vger.kernel.org, kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>
 
-Depending on the synchronization state of the lower filesystem during a
-power cut it can happen that a lower file is empty after that power cut.
+Hello eCryptFS developers,
 
-An inode_operations::setattr operation fails with -EIO on such files,
-because ecryptfs_read_metadata() fails. In e3ccaa976120 ("eCryptfs:
-Initialize empty lower files when opening them") a similar problem was
-solved in the open() path:
+The patch bf12be1cc851: "eCryptfs: convert mmap functions to use
+persistent file" from Oct 16, 2007, leads to the following Smatch
+static checker warning:
 
-| To transparently solve this problem, this patch initializes empty lower
-| files in the ecryptfs_open() error path. If the metadata is unreadable
-| due to the lower inode size being 0, plaintext passthrough support is
-| not in use, and the metadata is stored in the header of the file (as
-| opposed to the user.ecryptfs extended attribute), the lower file will be
-| initialized.
+	./include/linux/fs.h:777 inode_lock()
+	warn: sleeping in atomic context
 
-Do the same in inode_operations::setattr to allow setattr on empty lower
-files.
+ecryptfs_copy_up_encrypted_with_header() <- disables preempt
+-> ecryptfs_read_xattr_region()
+   -> ecryptfs_getxattr_lower()
+      -> inode_lock()
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
+fs/ecryptfs/mmap.c
+   108        static int
+   109        ecryptfs_copy_up_encrypted_with_header(struct page *page,
+   110                                               struct ecryptfs_crypt_stat *crypt_stat)
+   111        {
+   112                loff_t extent_num_in_page = 0;
+   113                loff_t num_extents_per_page = (PAGE_SIZE
+   114                                               / crypt_stat->extent_size);
+   115                int rc = 0;
+   116
+   117                while (extent_num_in_page < num_extents_per_page) {
+   118                        loff_t view_extent_num = ((((loff_t)page->index)
+   119                                                   * num_extents_per_page)
+   120                                                  + extent_num_in_page);
+   121                        size_t num_header_extents_at_front =
+   122                                (crypt_stat->metadata_size / crypt_stat->extent_size);
+   123
+   124                        if (view_extent_num < num_header_extents_at_front) {
+   125                                /* This is a header extent */
+   126                                char *page_virt;
+   127
+   128                                page_virt = kmap_atomic(page);
 
-Changes since v1 (https://www.spinics.net/lists/ecryptfs/msg01397.html):
-- In ecryptfs_setattr() ecryptfs_read_or_initialize_metadata() can't be
-  called directly as &crypt_stat->cs_mutex would be locked, but in
-  ecryptfs_settattr() that mutex is already locked. Create a
-  locked/unlocked version of ecryptfs_read_or_initialize_metadata() and
-  use the latter one in ecryptfs_setattr().
+kmap_atomic() disables preemption
 
- fs/ecryptfs/crypto.c          | 61 +++++++++++++++++++++++++++++++++--
- fs/ecryptfs/ecryptfs_kernel.h |  3 +-
- fs/ecryptfs/file.c            | 44 +------------------------
- fs/ecryptfs/inode.c           |  2 +-
- 4 files changed, 63 insertions(+), 47 deletions(-)
+   129                                memset(page_virt, 0, PAGE_SIZE);
+   130                                /* TODO: Support more than one header extent */
+   131                                if (view_extent_num == 0) {
+   132                                        size_t written;
+   133
+   134                                        rc = ecryptfs_read_xattr_region(
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+ecryptfs_read_xattr_region() cannot succeed without taking a mutex.
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index e3f5d7f3c8a0a..a14d3ef40259f 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -1377,7 +1377,7 @@ int ecryptfs_read_and_validate_xattr_region(struct dentry *dentry,
-  *
-  * Returns zero if valid headers found and parsed; non-zero otherwise
-  */
--int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
-+static int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
- {
- 	int rc;
- 	char *page_virt;
-@@ -1443,7 +1443,64 @@ int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
- 	return rc;
- }
- 
--/*
-+int ecryptfs_read_or_initialize_metadata_locked(struct dentry *dentry)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
-+	struct ecryptfs_crypt_stat *crypt_stat;
-+	int rc;
-+
-+	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
-+	mount_crypt_stat = &ecryptfs_superblock_to_private(
-+						inode->i_sb)->mount_crypt_stat;
-+
-+	if (crypt_stat->flags & ECRYPTFS_POLICY_APPLIED &&
-+	    crypt_stat->flags & ECRYPTFS_KEY_VALID) {
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	rc = ecryptfs_read_metadata(dentry);
-+	if (!rc)
-+		goto out;
-+
-+	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED) {
-+		crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
-+				       | ECRYPTFS_ENCRYPTED);
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	if (!(mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED) &&
-+	    !i_size_read(ecryptfs_inode_to_lower(inode))) {
-+		rc = ecryptfs_initialize_file(dentry, inode);
-+		if (!rc)
-+			goto out;
-+	}
-+
-+	rc = -EIO;
-+out:
-+	return rc;
-+}
-+
-+int ecryptfs_read_or_initialize_metadata(struct dentry *dentry)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct ecryptfs_crypt_stat *crypt_stat;
-+	int rc;
-+
-+	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
-+
-+	mutex_lock(&crypt_stat->cs_mutex);
-+
-+	rc = ecryptfs_read_or_initialize_metadata_locked(dentry);
-+
-+	mutex_unlock(&crypt_stat->cs_mutex);
-+
-+	return rc;
-+}
-+
-+/**
-  * ecryptfs_encrypt_filename - encrypt filename
-  *
-  * CBC-encrypts the filename. We do not want to encrypt the same
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 5f2b49e13731a..af71d6f7da91d 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -573,7 +573,8 @@ int ecryptfs_encrypt_page(struct page *page);
- int ecryptfs_decrypt_page(struct page *page);
- int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- 			    struct inode *ecryptfs_inode);
--int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry);
-+int ecryptfs_read_or_initialize_metadata(struct dentry *dentry);
-+int ecryptfs_read_or_initialize_metadata_locked(struct dentry *dentry);
- int ecryptfs_new_file_context(struct inode *ecryptfs_inode);
- void ecryptfs_write_crypt_stat_flags(char *page_virt,
- 				     struct ecryptfs_crypt_stat *crypt_stat,
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 18d5b91cb573e..4721aba376784 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -124,48 +124,6 @@ static int ecryptfs_readdir(struct file *file, struct dir_context *ctx)
- 
- struct kmem_cache *ecryptfs_file_info_cache;
- 
--static int read_or_initialize_metadata(struct dentry *dentry)
--{
--	struct inode *inode = d_inode(dentry);
--	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
--	struct ecryptfs_crypt_stat *crypt_stat;
--	int rc;
--
--	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
--	mount_crypt_stat = &ecryptfs_superblock_to_private(
--						inode->i_sb)->mount_crypt_stat;
--	mutex_lock(&crypt_stat->cs_mutex);
--
--	if (crypt_stat->flags & ECRYPTFS_POLICY_APPLIED &&
--	    crypt_stat->flags & ECRYPTFS_KEY_VALID) {
--		rc = 0;
--		goto out;
--	}
--
--	rc = ecryptfs_read_metadata(dentry);
--	if (!rc)
--		goto out;
--
--	if (mount_crypt_stat->flags & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED) {
--		crypt_stat->flags &= ~(ECRYPTFS_I_SIZE_INITIALIZED
--				       | ECRYPTFS_ENCRYPTED);
--		rc = 0;
--		goto out;
--	}
--
--	if (!(mount_crypt_stat->flags & ECRYPTFS_XATTR_METADATA_ENABLED) &&
--	    !i_size_read(ecryptfs_inode_to_lower(inode))) {
--		rc = ecryptfs_initialize_file(dentry, inode);
--		if (!rc)
--			goto out;
--	}
--
--	rc = -EIO;
--out:
--	mutex_unlock(&crypt_stat->cs_mutex);
--	return rc;
--}
--
- static int ecryptfs_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct file *lower_file = ecryptfs_file_to_lower(file);
-@@ -232,7 +190,7 @@ static int ecryptfs_open(struct inode *inode, struct file *file)
- 	}
- 	ecryptfs_set_file_lower(
- 		file, ecryptfs_inode_to_private(inode)->lower_file);
--	rc = read_or_initialize_metadata(ecryptfs_dentry);
-+	rc = ecryptfs_read_or_initialize_metadata(ecryptfs_dentry);
- 	if (rc)
- 		goto out_put;
- 	ecryptfs_printk(KERN_DEBUG, "inode w/ addr = [0x%p], i_ino = "
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 16d50dface59a..bdeeb89d1dc95 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -916,7 +916,7 @@ static int ecryptfs_setattr(struct user_namespace *mnt_userns,
- 			mutex_unlock(&crypt_stat->cs_mutex);
- 			goto out;
- 		}
--		rc = ecryptfs_read_metadata(dentry);
-+		rc = ecryptfs_read_or_initialize_metadata_locked(dentry);
- 		ecryptfs_put_lower_file(inode);
- 		if (rc) {
- 			if (!(mount_crypt_stat->flags
--- 
-2.30.2
+   135                                                page_virt, page->mapping->host);
+   136                                        strip_xattr_flag(page_virt + 16, crypt_stat);
+   137                                        ecryptfs_write_header_metadata(page_virt + 20,
+   138                                                                       crypt_stat,
+   139                                                                       &written);
+   140                                }
+   141                                kunmap_atomic(page_virt);
+   142                                flush_dcache_page(page);
+   143                                if (rc) {
+   144                                        printk(KERN_ERR "%s: Error reading xattr "
+   145                                               "region; rc = [%d]\n", __func__, rc);
+   146                                        goto out;
+   147                                }
+   148                        } else {
 
+regards,
+dan carpenter
