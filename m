@@ -1,95 +1,102 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [bug report] eCryptfs: convert mmap functions to use persistent file
-Date: Wed, 19 Jan 2022 14:30:11 +0300
-Message-ID: <20220119113011.GB8111@kili>
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: [RFC PATCH] ecryptfs: Replace kmap() with kmap_local_page()
+Date: Tue, 28 Jun 2022 20:49:50 +0200
+Message-ID: <20220628184950.2045-1-fmdefrancesco@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from mx0a-00069f02.pphosted.com ([205.220.165.32]:1754 "EHLO
-        mx0a-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1354064AbiASLaZ (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 19 Jan 2022 06:30:25 -0500
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20JA8CwJ002457
-        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:25 GMT
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-        by mx0b-00069f02.pphosted.com with ESMTP id 3dnc5f4sbg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:24 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-        by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20JBK5XW037269
-        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:23 GMT
-Received: from nam12-bn8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2173.outbound.protection.outlook.com [104.47.55.173])
-        by userp3020.oracle.com with ESMTP id 3dkqqq6cej-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
-        for <ecryptfs@vger.kernel.org>; Wed, 19 Jan 2022 11:30:23 +0000
-Content-Disposition: inline
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48912 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234041AbiF1St7 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 28 Jun 2022 14:49:59 -0400
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: ecryptfs@vger.kernel.org
+To: Tyler Hicks <code@tyhicks.com>, Christian Brauner <brauner@kernel.org>, Seth Forshee <sforshee@digitalocean.com>, Amir Goldstein <amir73il@gmail.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Muchun Song <songmuchun@bytedance.com>, Roman Gushchin <roman.gushchin@linux.dev>, Theodore Ts'o <tytso@mit.edu>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>, Ira Weiny <ira.weiny@intel.com>
 
-Hello eCryptFS developers,
+The use of kmap() is being deprecated in favor of kmap_local_page().
 
-The patch bf12be1cc851: "eCryptfs: convert mmap functions to use
-persistent file" from Oct 16, 2007, leads to the following Smatch
-static checker warning:
+With kmap_local_page() the mappings are per thread, CPU local and not
+globally visible.
 
-	./include/linux/fs.h:777 inode_lock()
-	warn: sleeping in atomic context
+Use kmap_local_page() on all calling sites where kmap() is currently used.
 
-ecryptfs_copy_up_encrypted_with_header() <- disables preempt
--> ecryptfs_read_xattr_region()
-   -> ecryptfs_getxattr_lower()
-      -> inode_lock()
+The mappings in fs/ecryptfs seem to conform to the prerequisites for
+easy conversions to kmap_local_page(), however I am not familiar with this
+code.
 
-fs/ecryptfs/mmap.c
-   108        static int
-   109        ecryptfs_copy_up_encrypted_with_header(struct page *page,
-   110                                               struct ecryptfs_crypt_stat *crypt_stat)
-   111        {
-   112                loff_t extent_num_in_page = 0;
-   113                loff_t num_extents_per_page = (PAGE_SIZE
-   114                                               / crypt_stat->extent_size);
-   115                int rc = 0;
-   116
-   117                while (extent_num_in_page < num_extents_per_page) {
-   118                        loff_t view_extent_num = ((((loff_t)page->index)
-   119                                                   * num_extents_per_page)
-   120                                                  + extent_num_in_page);
-   121                        size_t num_header_extents_at_front =
-   122                                (crypt_stat->metadata_size / crypt_stat->extent_size);
-   123
-   124                        if (view_extent_num < num_header_extents_at_front) {
-   125                                /* This is a header extent */
-   126                                char *page_virt;
-   127
-   128                                page_virt = kmap_atomic(page);
+This is why this is an RFC PATCH. I'd appreciate if people familiar with
+eCryptfs could test and confirm whether these conversions are safe or not.
 
-kmap_atomic() disables preemption
+Suggested-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+---
+ fs/ecryptfs/crypto.c     | 8 ++++----
+ fs/ecryptfs/read_write.c | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-   129                                memset(page_virt, 0, PAGE_SIZE);
-   130                                /* TODO: Support more than one header extent */
-   131                                if (view_extent_num == 0) {
-   132                                        size_t written;
-   133
-   134                                        rc = ecryptfs_read_xattr_region(
-                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
-ecryptfs_read_xattr_region() cannot succeed without taking a mutex.
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index e3f5d7f3c8a0..03263ebcccc6 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -465,10 +465,10 @@ int ecryptfs_encrypt_page(struct page *page)
+ 	}
+ 
+ 	lower_offset = lower_offset_for_page(crypt_stat, page);
+-	enc_extent_virt = kmap(enc_extent_page);
++	enc_extent_virt = kmap_local_page(enc_extent_page);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offset,
+ 				  PAGE_SIZE);
+-	kunmap(enc_extent_page);
++	kunmap_local(enc_extent_virt);
+ 	if (rc < 0) {
+ 		ecryptfs_printk(KERN_ERR,
+ 			"Error attempting to write lower page; rc = [%d]\n",
+@@ -514,10 +514,10 @@ int ecryptfs_decrypt_page(struct page *page)
+ 	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
+ 
+ 	lower_offset = lower_offset_for_page(crypt_stat, page);
+-	page_virt = kmap(page);
++	page_virt = kmap_local_page(page);
+ 	rc = ecryptfs_read_lower(page_virt, lower_offset, PAGE_SIZE,
+ 				 ecryptfs_inode);
+-	kunmap(page);
++	kunmap_local(page_virt);
+ 	if (rc < 0) {
+ 		ecryptfs_printk(KERN_ERR,
+ 			"Error attempting to read lower page; rc = [%d]\n",
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 60bdcaddcbe5..5edf027c8359 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -64,11 +64,11 @@ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
+ 
+ 	offset = ((((loff_t)page_for_lower->index) << PAGE_SHIFT)
+ 		  + offset_in_page);
+-	virt = kmap(page_for_lower);
++	virt = kmap_local_page(page_for_lower);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, virt, offset, size);
+ 	if (rc > 0)
+ 		rc = 0;
+-	kunmap(page_for_lower);
++	kunmap_local(virt);
+ 	return rc;
+ }
+ 
+@@ -253,11 +253,11 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
+ 	int rc;
+ 
+ 	offset = ((((loff_t)page_index) << PAGE_SHIFT) + offset_in_page);
+-	virt = kmap(page_for_ecryptfs);
++	virt = kmap_local_page(page_for_ecryptfs);
+ 	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
+ 	if (rc > 0)
+ 		rc = 0;
+-	kunmap(page_for_ecryptfs);
++	kunmap_local(virt);
+ 	flush_dcache_page(page_for_ecryptfs);
+ 	return rc;
+ }
+-- 
+2.36.1
 
-   135                                                page_virt, page->mapping->host);
-   136                                        strip_xattr_flag(page_virt + 16, crypt_stat);
-   137                                        ecryptfs_write_header_metadata(page_virt + 20,
-   138                                                                       crypt_stat,
-   139                                                                       &written);
-   140                                }
-   141                                kunmap_atomic(page_virt);
-   142                                flush_dcache_page(page);
-   143                                if (rc) {
-   144                                        printk(KERN_ERR "%s: Error reading xattr "
-   145                                               "region; rc = [%d]\n", __func__, rc);
-   146                                        goto out;
-   147                                }
-   148                        } else {
-
-regards,
-dan carpenter
