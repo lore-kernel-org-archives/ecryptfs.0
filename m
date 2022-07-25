@@ -1,22 +1,22 @@
-From: Slark Xiao <slark_xiao@163.com>
-Subject: [PATCH] ecryptfs: keystore: Fix typo 'the the' in comment
-Date: Fri, 22 Jul 2022 18:02:12 +0800
-Message-ID: <20220722100212.79490-1-slark_xiao@163.com>
+From: Jason Wang <wangborong@cdjrlc.com>
+Subject: [PATCH] ecryptfs: Fix comment typo
+Date: Mon, 25 Jul 2022 12:38:53 +0800
+Message-ID: <20220725043853.7441-1-wangborong@cdjrlc.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40250 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230308AbiGVKCW (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 22 Jul 2022 06:02:22 -0400
+        with ESMTP id S236783AbiG1MlA (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Jul 2022 08:41:00 -0400
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: code@tyhicks.com
-Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org, Slark Xiao <slark_xiao@163.com>
+To: wangborong@cdjrlc.com
+Cc: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Replace 'the the' with 'the' in the comment.
+The double `the' is duplicated in the comment, remove one.
 
-Signed-off-by: Slark Xiao <slark_xiao@163.com>
+Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
 ---
  fs/ecryptfs/keystore.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -35,5 +35,5 @@ index 3fe41964c0d8..2452d6fd7062 100644
   * @mount_crypt_stat: The mount-wide cryptographic context
   * @data: The memory location containing the start of the tag 70
 -- 
-2.25.1
+2.35.1
 
