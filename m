@@ -1,14 +1,14 @@
 From: Jason Wang <wangborong@cdjrlc.com>
-Subject: [PATCH] ecryptfs: Fix comment typo
-Date: Mon, 25 Jul 2022 12:38:53 +0800
-Message-ID: <20220725043853.7441-1-wangborong@cdjrlc.com>
+Subject: [PATCH] ecryptfs: keystore: Fix comment typo
+Date: Thu, 11 Aug 2022 22:03:35 +0800
+Message-ID: <20220811140335.32067-1-wangborong@cdjrlc.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52068 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236783AbiG1MlA (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 28 Jul 2022 08:41:00 -0400
+        with ESMTP id S235570AbiHKOEe (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 11 Aug 2022 10:04:34 -0400
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: wangborong@cdjrlc.com
@@ -35,5 +35,5 @@ index 3fe41964c0d8..2452d6fd7062 100644
   * @mount_crypt_stat: The mount-wide cryptographic context
   * @data: The memory location containing the start of the tag 70
 -- 
-2.35.1
+2.36.1
 
