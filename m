@@ -1,22 +1,19 @@
-From: Jason Wang <wangborong@cdjrlc.com>
-Subject: [PATCH] ecryptfs: keystore: Fix comment typo
-Date: Thu, 11 Aug 2022 22:03:35 +0800
-Message-ID: <20220811140335.32067-1-wangborong@cdjrlc.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47504 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235570AbiHKOEe (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 11 Aug 2022 10:04:34 -0400
+From: Jules Maselbas <jmaselbas@kalray.eu>
+Subject: [PATCH] fs/ecryptfs: Fix repeated word in comments
+Date: Fri, 26 Aug 2022 12:00:37 +0200
+Message-ID: <20220826100052.22945-9-jmaselbas@kalray.eu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: wangborong@cdjrlc.com
-Cc: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Jules Maselbas <jmaselbas@kalray.eu>, ecryptfs@vger.kernel.org
 
-The double `the' is duplicated in the comment, remove one.
+Remove redundant word `the`.
 
-Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+CC: ecryptfs@vger.kernel.org
+Signed-off-by: Jules Maselbas <jmaselbas@kalray.eu>
 ---
  fs/ecryptfs/keystore.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -35,5 +32,5 @@ index 3fe41964c0d8..2452d6fd7062 100644
   * @mount_crypt_stat: The mount-wide cryptographic context
   * @data: The memory location containing the start of the tag 70
 -- 
-2.36.1
+2.17.1
 
