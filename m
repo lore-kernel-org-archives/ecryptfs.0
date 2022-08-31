@@ -1,36 +1,41 @@
-From: Jules Maselbas <jmaselbas@kalray.eu>
-Subject: [PATCH] fs/ecryptfs: Fix repeated word in comments
-Date: Fri, 26 Aug 2022 12:00:37 +0200
-Message-ID: <20220826100052.22945-9-jmaselbas@kalray.eu>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+From: Yangtao Li <frank.li@vivo.com>
+Subject: [PATCH] ecryptfs: make splice write available again
+Date: Wed, 31 Aug 2022 11:35:05 +0800
+Message-ID: <20220831033505.23178-1-frank.li@vivo.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52318 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229908AbiHaDfW (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 30 Aug 2022 23:35:22 -0400
 List-ID: <ecryptfs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Jules Maselbas <jmaselbas@kalray.eu>, ecryptfs@vger.kernel.org
+To: code@tyhicks.com
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <frank.li@vivo.com>
 
-Remove redundant word `the`.
+Since 5.10, splice() or sendfile() return EINVAL.  This was
+caused by commit 36e2c7421f02 ("fs: don't allow splice read/write
+without explicit ops").
 
-CC: ecryptfs@vger.kernel.org
-Signed-off-by: Jules Maselbas <jmaselbas@kalray.eu>
+This patch initializes the splice_write field in file_operations, like
+most file systems do, to restore the functionality.
+
+Signed-off-by: Yangtao Li <frank.li@vivo.com>
 ---
- fs/ecryptfs/keystore.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/file.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 3fe41964c0d8..2452d6fd7062 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -878,7 +878,7 @@ struct ecryptfs_parse_tag_70_packet_silly_stack {
-  * @filename: This function kmalloc's the memory for the filename
-  * @filename_size: This function sets this to the amount of memory
-  *                 kmalloc'd for the filename
-- * @packet_size: This function sets this to the the number of octets
-+ * @packet_size: This function sets this to the number of octets
-  *               in the packet parsed
-  * @mount_crypt_stat: The mount-wide cryptographic context
-  * @data: The memory location containing the start of the tag 70
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 18d5b91cb573..d070ca0fac2b 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -421,4 +421,5 @@ const struct file_operations ecryptfs_main_fops = {
+ 	.fsync = ecryptfs_fsync,
+ 	.fasync = ecryptfs_fasync,
+ 	.splice_read = generic_file_splice_read,
++	.splice_write = iter_file_splice_write,
+ };
 -- 
-2.17.1
+2.25.1
 
