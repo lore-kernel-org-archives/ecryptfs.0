@@ -1,14 +1,14 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 19/29] ecryptfs: implement get acl method
-Date: Thu, 22 Sep 2022 17:17:17 +0200
-Message-ID: <20220922151728.1557914-20-brauner@kernel.org>
+Subject: [PATCH 20/29] ecryptfs: implement set acl method
+Date: Thu, 22 Sep 2022 17:17:18 +0200
+Message-ID: <20220922151728.1557914-21-brauner@kernel.org>
 References: <20220922151728.1557914-1-brauner@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41270 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231945AbiIVPSl (ORCPT
+        with ESMTP id S231941AbiIVPSl (ORCPT
         <rfc822;ecryptfs@vger.kernel.org>); Thu, 22 Sep 2022 11:18:41 -0400
 In-Reply-To: <20220922151728.1557914-1-brauner@kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
@@ -41,49 +41,48 @@ patch is a non-functional change.
 Link: https://lore.kernel.org/all/20220801145520.1532837-1-brauner@kernel.org [1]
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
- fs/ecryptfs/inode.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ fs/ecryptfs/inode.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 16d50dface59..740312986388 100644
+index 740312986388..c3d1ae688a19 100644
 --- a/fs/ecryptfs/inode.c
 +++ b/fs/ecryptfs/inode.c
-@@ -18,6 +18,8 @@
- #include <linux/fs_stack.h>
- #include <linux/slab.h>
- #include <linux/xattr.h>
-+#include <linux/posix_acl.h>
-+#include <linux/posix_acl_xattr.h>
- #include <linux/fileattr.h>
- #include <asm/unaligned.h>
- #include "ecryptfs_kernel.h"
-@@ -1120,6 +1122,13 @@ static int ecryptfs_fileattr_set(struct user_namespace *mnt_userns,
- 	return rc;
+@@ -1129,6 +1129,21 @@ static struct posix_acl *ecryptfs_get_acl(struct user_namespace *mnt_userns,
+ 			   posix_acl_xattr_name(type));
  }
  
-+static struct posix_acl *ecryptfs_get_acl(struct user_namespace *mnt_userns,
-+					  struct dentry *dentry, int type)
++static int ecryptfs_set_acl(struct user_namespace *mnt_userns,
++			    struct dentry *dentry, struct posix_acl *acl,
++			    int type)
 +{
-+	return vfs_get_acl(mnt_userns, ecryptfs_dentry_to_lower(dentry),
-+			   posix_acl_xattr_name(type));
++	int rc;
++	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
++	struct inode *lower_inode = d_inode(lower_dentry);
++
++	rc = vfs_set_acl(&init_user_ns, lower_dentry,
++			 posix_acl_xattr_name(type), acl);
++	if (!rc)
++		fsstack_copy_attr_all(d_inode(dentry), lower_inode);
++	return rc;
 +}
 +
  const struct inode_operations ecryptfs_symlink_iops = {
  	.get_link = ecryptfs_get_link,
  	.permission = ecryptfs_permission,
-@@ -1143,6 +1152,7 @@ const struct inode_operations ecryptfs_dir_iops = {
- 	.listxattr = ecryptfs_listxattr,
+@@ -1153,6 +1168,7 @@ const struct inode_operations ecryptfs_dir_iops = {
  	.fileattr_get = ecryptfs_fileattr_get,
  	.fileattr_set = ecryptfs_fileattr_set,
-+	.get_acl = ecryptfs_get_acl,
+ 	.get_acl = ecryptfs_get_acl,
++	.set_acl = ecryptfs_set_acl,
  };
  
  const struct inode_operations ecryptfs_main_iops = {
-@@ -1152,6 +1162,7 @@ const struct inode_operations ecryptfs_main_iops = {
- 	.listxattr = ecryptfs_listxattr,
+@@ -1163,6 +1179,7 @@ const struct inode_operations ecryptfs_main_iops = {
  	.fileattr_get = ecryptfs_fileattr_get,
  	.fileattr_set = ecryptfs_fileattr_set,
-+	.get_acl = ecryptfs_get_acl,
+ 	.get_acl = ecryptfs_get_acl,
++	.set_acl = ecryptfs_set_acl,
  };
  
  static int ecryptfs_xattr_get(const struct xattr_handler *handler,
