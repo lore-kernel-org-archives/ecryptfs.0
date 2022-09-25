@@ -1,26 +1,27 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH] ecryptfs: Fix comment typo
-Date: Sun, 25 Sep 2022 12:16:48 -0500
-Message-ID: <20220925171648.GB59018@sequoia>
-References: <20220725043853.7441-1-wangborong@cdjrlc.com>
+Subject: Re: [PATCH] fs/ecryptfs: Fix repeated word in comments
+Date: Sun, 25 Sep 2022 12:17:03 -0500
+Message-ID: <20220925171703.GC59018@sequoia>
+References: <20220826100052.22945-9-jmaselbas@kalray.eu>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39190 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39336 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231169AbiIYRQw (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sun, 25 Sep 2022 13:16:52 -0400
+        with ESMTP id S232947AbiIYRRH (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 25 Sep 2022 13:17:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20220725043853.7441-1-wangborong@cdjrlc.com>
+In-Reply-To: <20220826100052.22945-9-jmaselbas@kalray.eu>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason Wang <wangborong@cdjrlc.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jules Maselbas <jmaselbas@kalray.eu>
+Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-On 2022-07-25 12:38:53, Jason Wang wrote:
-> The double `the' is duplicated in the comment, remove one.
+On 2022-08-26 12:00:37, Jules Maselbas wrote:
+> Remove redundant word `the`.
 > 
-> Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+> CC: ecryptfs@vger.kernel.org
+> Signed-off-by: Jules Maselbas <jmaselbas@kalray.eu>
 > ---
 
 Thanks for the patch but I applied this one that was sent a little
@@ -47,5 +48,5 @@ Tyler
 >   * @mount_crypt_stat: The mount-wide cryptographic context
 >   * @data: The memory location containing the start of the tag 70
 > -- 
-> 2.35.1
+> 2.17.1
 > 
