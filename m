@@ -1,45 +1,48 @@
-From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH 25/29] ecryptfs: use stub posix acl handlers
-Date: Thu, 22 Sep 2022 17:17:23 +0200
-Message-ID: <20220922151728.1557914-26-brauner@kernel.org>
-References: <20220922151728.1557914-1-brauner@kernel.org>
+From: Tyler Hicks <code@tyhicks.com>
+Subject: Re: [PATCH] ecryptfs: keystore: Fix typo 'the the' in comment
+Date: Sun, 25 Sep 2022 12:15:11 -0500
+Message-ID: <20220925171511.GA59018@sequoia>
+References: <20220722100212.79490-1-slark_xiao@163.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41180 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231984AbiIVPSn (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 22 Sep 2022 11:18:43 -0400
-In-Reply-To: <20220922151728.1557914-1-brauner@kernel.org>
+        with ESMTP id S232781AbiIYRP3 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 25 Sep 2022 13:15:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20220722100212.79490-1-slark_xiao@163.com>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: linux-fsdevel@vger.kernel.org
-Cc: Christian Brauner <brauner@kernel.org>, Seth Forshee <sforshee@kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Slark Xiao <slark_xiao@163.com>
+Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
 
-Now that ecryptfs supports the get and set acl inode operations and the
-vfs has been switched to the new posi api, ecryptfs can simply rely on
-the stub posix acl handlers.
+On 2022-07-22 18:02:12, Slark Xiao wrote:
+> Replace 'the the' with 'the' in the comment.
+> 
+> Signed-off-by: Slark Xiao <slark_xiao@163.com>
+> ---
 
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
----
- fs/ecryptfs/inode.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Thanks! I've applied the cleanup.
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index c3d1ae688a19..bd6ae2582cd6 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -1210,6 +1210,10 @@ static const struct xattr_handler ecryptfs_xattr_handler = {
- };
- 
- const struct xattr_handler *ecryptfs_xattr_handlers[] = {
-+#ifdef CONFIG_XFS_POSIX_ACL
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
-+#endif
- 	&ecryptfs_xattr_handler,
- 	NULL
- };
--- 
-2.34.1
+Tyler
 
+>  fs/ecryptfs/keystore.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+> index 3fe41964c0d8..2452d6fd7062 100644
+> --- a/fs/ecryptfs/keystore.c
+> +++ b/fs/ecryptfs/keystore.c
+> @@ -878,7 +878,7 @@ struct ecryptfs_parse_tag_70_packet_silly_stack {
+>   * @filename: This function kmalloc's the memory for the filename
+>   * @filename_size: This function sets this to the amount of memory
+>   *                 kmalloc'd for the filename
+> - * @packet_size: This function sets this to the the number of octets
+> + * @packet_size: This function sets this to the number of octets
+>   *               in the packet parsed
+>   * @mount_crypt_stat: The mount-wide cryptographic context
+>   * @data: The memory location containing the start of the tag 70
+> -- 
+> 2.25.1
+> 
