@@ -1,29 +1,32 @@
 From: Tyler Hicks <code@tyhicks.com>
-Subject: Re: [PATCH] ecryptfs: keystore: Fix typo 'the the' in comment
-Date: Sun, 25 Sep 2022 12:15:11 -0500
-Message-ID: <20220925171511.GA59018@sequoia>
-References: <20220722100212.79490-1-slark_xiao@163.com>
+Subject: Re: [PATCH] ecryptfs: Fix comment typo
+Date: Sun, 25 Sep 2022 12:16:48 -0500
+Message-ID: <20220925171648.GB59018@sequoia>
+References: <20220725043853.7441-1-wangborong@cdjrlc.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37090 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232781AbiIYRP3 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Sun, 25 Sep 2022 13:15:29 -0400
+        with ESMTP id S231169AbiIYRQw (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Sun, 25 Sep 2022 13:16:52 -0400
 Content-Disposition: inline
-In-Reply-To: <20220722100212.79490-1-slark_xiao@163.com>
+In-Reply-To: <20220725043853.7441-1-wangborong@cdjrlc.com>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Slark Xiao <slark_xiao@163.com>
-Cc: linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+To: Jason Wang <wangborong@cdjrlc.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2022-07-22 18:02:12, Slark Xiao wrote:
-> Replace 'the the' with 'the' in the comment.
+On 2022-07-25 12:38:53, Jason Wang wrote:
+> The double `the' is duplicated in the comment, remove one.
 > 
-> Signed-off-by: Slark Xiao <slark_xiao@163.com>
+> Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
 > ---
 
-Thanks! I've applied the cleanup.
+Thanks for the patch but I applied this one that was sent a little
+earlier:
+
+ https://lore.kernel.org/lkml/20220722100212.79490-1-slark_xiao@163.com/
 
 Tyler
 
@@ -44,5 +47,5 @@ Tyler
 >   * @mount_crypt_stat: The mount-wide cryptographic context
 >   * @data: The memory location containing the start of the tag 70
 > -- 
-> 2.25.1
+> 2.35.1
 > 
