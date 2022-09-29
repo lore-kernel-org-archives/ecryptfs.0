@@ -1,25 +1,44 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v3 25/29] ecryptfs: use stub posix acl handlers
-Date: Wed, 28 Sep 2022 18:08:39 +0200
-Message-ID: <20220928160843.382601-26-brauner@kernel.org>
-References: <20220928160843.382601-1-brauner@kernel.org>
+Subject: [PATCH v4 19/30] ecryptfs: implement get acl method
+Date: Thu, 29 Sep 2022 17:30:29 +0200
+Message-ID: <20220929153041.500115-20-brauner@kernel.org>
+References: <20220929153041.500115-1-brauner@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58220 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234203AbiI1QO7 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 28 Sep 2022 12:14:59 -0400
-In-Reply-To: <20220928160843.382601-1-brauner@kernel.org>
+        with ESMTP id S235937AbiI2Pc3 (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 29 Sep 2022 11:32:29 -0400
+In-Reply-To: <20220929153041.500115-1-brauner@kernel.org>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-fsdevel@vger.kernel.org
 Cc: Christian Brauner <brauner@kernel.org>, Seth Forshee <sforshee@kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, linux-security-module@vger.kernel.org
 
-Now that ecryptfs supports the get and set acl inode operations and the
-vfs has been switched to the new posi api, ecryptfs can simply rely on
-the stub posix acl handlers.
+The current way of setting and getting posix acls through the generic
+xattr interface is error prone and type unsafe. The vfs needs to
+interpret and fixup posix acls before storing or reporting it to
+userspace. Various hacks exist to make this work. The code is hard to
+understand and difficult to maintain in it's current form. Instead of
+making this work by hacking posix acls through xattr handlers we are
+building a dedicated posix acl api around the get and set inode
+operations. This removes a lot of hackiness and makes the codepaths
+easier to maintain. A lot of background can be found in [1].
 
+In order to build a type safe posix api around get and set acl we need
+all filesystem to implement get and set acl.
+
+So far ecryptfs didn't implement get and set acl inode operations
+because it wanted easy access to the dentry. Now that we extended the
+set acl inode operation to take a dentry argument and added a new get
+acl inode operation that takes a dentry argument we can let ecryptfs
+implement get and set acl inode operations.
+
+Note, until the vfs has been switched to the new posix acl api this
+patch is a non-functional change.
+
+Link: https://lore.kernel.org/all/20220801145520.1532837-1-brauner@kernel.org [1]
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
 
@@ -29,25 +48,56 @@ Notes:
     
     /* v3 */
     unchanged
+    
+    /* v4 */
+    unchanged
 
- fs/ecryptfs/inode.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ecryptfs/inode.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index c3d1ae688a19..bd6ae2582cd6 100644
+index 16d50dface59..740312986388 100644
 --- a/fs/ecryptfs/inode.c
 +++ b/fs/ecryptfs/inode.c
-@@ -1210,6 +1210,10 @@ static const struct xattr_handler ecryptfs_xattr_handler = {
+@@ -18,6 +18,8 @@
+ #include <linux/fs_stack.h>
+ #include <linux/slab.h>
+ #include <linux/xattr.h>
++#include <linux/posix_acl.h>
++#include <linux/posix_acl_xattr.h>
+ #include <linux/fileattr.h>
+ #include <asm/unaligned.h>
+ #include "ecryptfs_kernel.h"
+@@ -1120,6 +1122,13 @@ static int ecryptfs_fileattr_set(struct user_namespace *mnt_userns,
+ 	return rc;
+ }
+ 
++static struct posix_acl *ecryptfs_get_acl(struct user_namespace *mnt_userns,
++					  struct dentry *dentry, int type)
++{
++	return vfs_get_acl(mnt_userns, ecryptfs_dentry_to_lower(dentry),
++			   posix_acl_xattr_name(type));
++}
++
+ const struct inode_operations ecryptfs_symlink_iops = {
+ 	.get_link = ecryptfs_get_link,
+ 	.permission = ecryptfs_permission,
+@@ -1143,6 +1152,7 @@ const struct inode_operations ecryptfs_dir_iops = {
+ 	.listxattr = ecryptfs_listxattr,
+ 	.fileattr_get = ecryptfs_fileattr_get,
+ 	.fileattr_set = ecryptfs_fileattr_set,
++	.get_acl = ecryptfs_get_acl,
  };
  
- const struct xattr_handler *ecryptfs_xattr_handlers[] = {
-+#ifdef CONFIG_XFS_POSIX_ACL
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
-+#endif
- 	&ecryptfs_xattr_handler,
- 	NULL
+ const struct inode_operations ecryptfs_main_iops = {
+@@ -1152,6 +1162,7 @@ const struct inode_operations ecryptfs_main_iops = {
+ 	.listxattr = ecryptfs_listxattr,
+ 	.fileattr_get = ecryptfs_fileattr_get,
+ 	.fileattr_set = ecryptfs_fileattr_set,
++	.get_acl = ecryptfs_get_acl,
  };
+ 
+ static int ecryptfs_xattr_get(const struct xattr_handler *handler,
 -- 
 2.34.1
 
