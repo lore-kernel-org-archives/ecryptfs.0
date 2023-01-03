@@ -1,32 +1,60 @@
-From: Eric Biggers <ebiggers@kernel.org>
-Subject: Re: [PATCH linux-next] ecryptfs: crypto: use strscpy() to instead of
- strncpy()
-Date: Thu, 29 Dec 2022 12:51:52 -0800
-Message-ID: <Y6396PQlotOmKirR@sol.localdomain>
-References: <202212280936545669762@zte.com.cn>
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Subject: [PATCH] fs/ecryptfs: Replace kmap_atomic() with kmap_local_page()
+Date: Tue,  3 Jan 2023 20:02:59 +0100
+Message-ID: <20230103190259.30944-1-fmdefrancesco@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59514 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229613AbiL2Uv6 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 29 Dec 2022 15:51:58 -0500
-Content-Disposition: inline
-In-Reply-To: <202212280936545669762@zte.com.cn>
+        with ESMTP id S238481AbjACTDG (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 3 Jan 2023 14:03:06 -0500
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: yang.yang29@zte.com.cn
-Cc: code@tyhicks.com, ira.weiny@intel.com, fmdefrancesco@gmail.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, xu.panda@zte.com.cn
+To: Tyler Hicks <code@tyhicks.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Christian Brauner <brauner@kernel.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>, "Fabio M. De Francesco" <fmdefrancesco@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Muchun Song <muchun.song@linux.dev>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ira Weiny <ira.weiny@intel.com>
 
-On Wed, Dec 28, 2022 at 09:36:54AM +0800, yang.yang29@zte.com.cn wrote:
-> From: Xu Panda <xu.panda@zte.com.cn>
-> 
-> The implementation of strscpy() is more robust and safer.
-> That's now the recommended way to copy NUL-terminated strings.
+kmap_atomic() is deprecated in favor of kmap_local_page(). Therefore,
+replace kmap_atomic() with kmap_local_page() in ecryptfs_write().
 
-Unlike strncpy(), strscpy() does not initialize the full destination array, so
-it is unsafe in some situations, such as initializing structures that are then
-copied to userspace or to disk.  Please include an actual explanation for why
-this patch is correct.
+kmap_atomic() is implemented like a kmap_local_page() which also disables
+page-faults and preemption (the latter only for !PREEMPT_RT kernels).
 
-- Eric
+The code within the mapping/un-mapping in ecryptfs_write() does not
+depend on the above-mentioned side effects.
+
+Therefore, a mere replacement of the old API with the new one is all that
+is required (i.e., there is no need to explicitly add any calls to
+pagefault_disable() and/or preempt_disable()).
+
+Suggested-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+---
+ fs/ecryptfs/read_write.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 5edf027c8359..3458f153a588 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -140,7 +140,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       ecryptfs_page_idx, rc);
+ 			goto out;
+ 		}
+-		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
++		ecryptfs_page_virt = kmap_local_page(ecryptfs_page);
+ 
+ 		/*
+ 		 * pos: where we're now writing, offset: where the request was
+@@ -163,7 +163,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 			       (data + data_offset), num_bytes);
+ 			data_offset += num_bytes;
+ 		}
+-		kunmap_atomic(ecryptfs_page_virt);
++		kunmap_local(ecryptfs_page_virt);
+ 		flush_dcache_page(ecryptfs_page);
+ 		SetPageUptodate(ecryptfs_page);
+ 		unlock_page(ecryptfs_page);
+-- 
+2.39.0
+
