@@ -1,8 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 2/17] net: macsec: Add scaffolding to change
+Subject: [PATCH 5/17] net: ipv4: Add scaffolding to change
  completion function signature
-Date: Mon, 06 Feb 2023 18:22:15 +0800
-Message-ID: <E1pOydb-007zgc-0p@formenos.hmeau.com>
+Date: Mon, 06 Feb 2023 18:22:21 +0800
+Message-ID: <E1pOydh-007zhJ-B3@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,38 +23,104 @@ To: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <a
 This patch adds temporary scaffolding so that the Crypto API
 completion function can take a void * instead of crypto_async_request.
 Once affected users have been converted this can be removed.
-
+    
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- drivers/net/macsec.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/ah4.c  |    8 ++++----
+ net/ipv4/esp4.c |   20 ++++++++++----------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
-index bf8ac7a3ded7..b7d9d487ccd2 100644
---- a/drivers/net/macsec.c
-+++ b/drivers/net/macsec.c
-@@ -528,9 +528,9 @@ static void count_tx(struct net_device *dev, int ret, int len)
+diff --git a/net/ipv4/ah4.c b/net/ipv4/ah4.c
+index ee4e578c7f20..1fc0231eb1ee 100644
+--- a/net/ipv4/ah4.c
++++ b/net/ipv4/ah4.c
+@@ -117,11 +117,11 @@ static int ip_clear_mutable_options(const struct iphdr *iph, __be32 *daddr)
+ 	return 0;
+ }
+ 
+-static void ah_output_done(struct crypto_async_request *base, int err)
++static void ah_output_done(crypto_completion_data_t *data, int err)
+ {
+ 	u8 *icv;
+ 	struct iphdr *iph;
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_state *x = skb_dst(skb)->xfrm;
+ 	struct ah_data *ahp = x->data;
+ 	struct iphdr *top_iph = ip_hdr(skb);
+@@ -262,12 +262,12 @@ static int ah_output(struct xfrm_state *x, struct sk_buff *skb)
+ 	return err;
+ }
+ 
+-static void ah_input_done(struct crypto_async_request *base, int err)
++static void ah_input_done(crypto_completion_data_t *data, int err)
+ {
+ 	u8 *auth_data;
+ 	u8 *icv;
+ 	struct iphdr *work_iph;
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_state *x = xfrm_input_state(skb);
+ 	struct ah_data *ahp = x->data;
+ 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
+diff --git a/net/ipv4/esp4.c b/net/ipv4/esp4.c
+index 52c8047efedb..8abe07c1ff28 100644
+--- a/net/ipv4/esp4.c
++++ b/net/ipv4/esp4.c
+@@ -244,9 +244,9 @@ static int esp_output_tail_tcp(struct xfrm_state *x, struct sk_buff *skb)
+ }
+ #endif
+ 
+-static void esp_output_done(struct crypto_async_request *base, int err)
++static void esp_output_done(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_offload *xo = xfrm_offload(skb);
+ 	void *tmp;
+ 	struct xfrm_state *x;
+@@ -332,12 +332,12 @@ static struct ip_esp_hdr *esp_output_set_extra(struct sk_buff *skb,
+ 	return esph;
+ }
+ 
+-static void esp_output_done_esn(struct crypto_async_request *base, int err)
++static void esp_output_done_esn(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 
+ 	esp_output_restore_header(skb);
+-	esp_output_done(base, err);
++	esp_output_done(data, err);
+ }
+ 
+ static struct ip_esp_hdr *esp_output_udp_encap(struct sk_buff *skb,
+@@ -830,9 +830,9 @@ int esp_input_done2(struct sk_buff *skb, int err)
+ }
+ EXPORT_SYMBOL_GPL(esp_input_done2);
+ 
+-static void esp_input_done(struct crypto_async_request *base, int err)
++static void esp_input_done(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 
+ 	xfrm_input_resume(skb, esp_input_done2(skb, err));
+ }
+@@ -860,12 +860,12 @@ static void esp_input_set_header(struct sk_buff *skb, __be32 *seqhi)
  	}
  }
  
--static void macsec_encrypt_done(struct crypto_async_request *base, int err)
-+static void macsec_encrypt_done(crypto_completion_data_t *data, int err)
+-static void esp_input_done_esn(struct crypto_async_request *base, int err)
++static void esp_input_done_esn(crypto_completion_data_t *data, int err)
  {
 -	struct sk_buff *skb = base->data;
 +	struct sk_buff *skb = crypto_get_completion_data(data);
- 	struct net_device *dev = skb->dev;
- 	struct macsec_dev *macsec = macsec_priv(dev);
- 	struct macsec_tx_sa *sa = macsec_skb_cb(skb)->tx_sa;
-@@ -835,9 +835,9 @@ static void count_rx(struct net_device *dev, int len)
- 	u64_stats_update_end(&stats->syncp);
+ 
+ 	esp_input_restore_header(skb);
+-	esp_input_done(base, err);
++	esp_input_done(data, err);
  }
  
--static void macsec_decrypt_done(struct crypto_async_request *base, int err)
-+static void macsec_decrypt_done(crypto_completion_data_t *data, int err)
- {
--	struct sk_buff *skb = base->data;
-+	struct sk_buff *skb = crypto_get_completion_data(data);
- 	struct net_device *dev = skb->dev;
- 	struct macsec_dev *macsec = macsec_priv(dev);
- 	struct macsec_rx_sa *rx_sa = macsec_skb_cb(skb)->rx_sa;
+ /*
