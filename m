@@ -1,15 +1,15 @@
 From: Mike Snitzer <snitzer@kernel.org>
-Subject: Re: [PATCH 1/17] dm: Add scaffolding to change
- completion function signature
-Date: Mon, 6 Feb 2023 12:29:06 -0500
-Message-ID: <Y+E44kb3bJViytuh@redhat.com>
+Subject: Re: [PATCH 11/17] dm: Remove completion function
+ scaffolding
+Date: Mon, 6 Feb 2023 12:29:38 -0500
+Message-ID: <Y+E5AkiVTbjgXWjs@redhat.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
- <E1pOydY-007zgU-U2@formenos.hmeau.com>
+ <E1pOydu-007zio-0W@formenos.hmeau.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <dm-devel-bounces@redhat.com>
-In-Reply-To: <E1pOydY-007zgU-U2@formenos.hmeau.com>
+In-Reply-To: <E1pOydu-007zio-0W@formenos.hmeau.com>
 List-Id: <ecryptfs.vger.kernel.org>
 List-Unsubscribe: <https://listman.redhat.com/mailman/options/dm-devel>,
  <mailto:dm-devel-request@redhat.com?subject=unsubscribe>
@@ -27,9 +27,8 @@ Cc: David Howells <dhowells@redhat.com>, dm-devel@redhat.com, keyrings@vger.kern
 On Mon, Feb 06 2023 at  5:22P -0500,
 Herbert Xu <herbert@gondor.apana.org.au> wrote:
 
-> This patch adds temporary scaffolding so that the Crypto API
-> completion function can take a void * instead of crypto_async_request.
-> Once affected users have been converted this can be removed.
+> This patch removes the temporary scaffolding now that the comletion
+> function signature has been converted.
 > 
 > Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 
