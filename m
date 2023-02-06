@@ -1,8 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 1/17] dm: Add scaffolding to change completion
- function signature
-Date: Mon, 06 Feb 2023 18:22:12 +0800
-Message-ID: <E1pOydY-007zgU-U2@formenos.hmeau.com>
+Subject: [PATCH 6/17] net: ipv6: Add scaffolding to change
+ completion function signature
+Date: Mon, 06 Feb 2023 18:22:23 +0800
+Message-ID: <E1pOydj-007zhY-EX@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,54 +23,105 @@ To: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <a
 This patch adds temporary scaffolding so that the Crypto API
 completion function can take a void * instead of crypto_async_request.
 Once affected users have been converted this can be removed.
-
+    
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- drivers/md/dm-crypt.c     |    8 +++-----
- drivers/md/dm-integrity.c |    4 ++--
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ net/ipv6/ah6.c  |    8 ++++----
+ net/ipv6/esp6.c |   20 ++++++++++----------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 2653516bcdef..7609fe39ab8c 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -1458,8 +1458,7 @@ static int crypt_convert_block_skcipher(struct crypt_config *cc,
- 	return r;
+diff --git a/net/ipv6/ah6.c b/net/ipv6/ah6.c
+index 5228d2716289..e43735578a76 100644
+--- a/net/ipv6/ah6.c
++++ b/net/ipv6/ah6.c
+@@ -281,12 +281,12 @@ static int ipv6_clear_mutable_options(struct ipv6hdr *iph, int len, int dir)
+ 	return 0;
  }
  
--static void kcryptd_async_done(struct crypto_async_request *async_req,
--			       int error);
-+static void kcryptd_async_done(crypto_completion_data_t *async_req, int error);
- 
- static int crypt_alloc_req_skcipher(struct crypt_config *cc,
- 				     struct convert_context *ctx)
-@@ -2147,10 +2146,9 @@ static void kcryptd_crypt_read_convert(struct dm_crypt_io *io)
- 	crypt_dec_pending(io);
- }
- 
--static void kcryptd_async_done(struct crypto_async_request *async_req,
--			       int error)
-+static void kcryptd_async_done(crypto_completion_data_t *data, int error)
+-static void ah6_output_done(struct crypto_async_request *base, int err)
++static void ah6_output_done(crypto_completion_data_t *data, int err)
  {
--	struct dm_crypt_request *dmreq = async_req->data;
-+	struct dm_crypt_request *dmreq = crypto_get_completion_data(data);
- 	struct convert_context *ctx = dmreq->ctx;
- 	struct dm_crypt_io *io = container_of(ctx, struct dm_crypt_io, ctx);
- 	struct crypt_config *cc = io->cc;
-diff --git a/drivers/md/dm-integrity.c b/drivers/md/dm-integrity.c
-index 1388ee35571e..eefe25ed841e 100644
---- a/drivers/md/dm-integrity.c
-+++ b/drivers/md/dm-integrity.c
-@@ -955,9 +955,9 @@ static void xor_journal(struct dm_integrity_c *ic, bool encrypt, unsigned sectio
- 	async_tx_issue_pending_all();
+ 	int extlen;
+ 	u8 *iph_base;
+ 	u8 *icv;
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_state *x = skb_dst(skb)->xfrm;
+ 	struct ah_data *ahp = x->data;
+ 	struct ipv6hdr *top_iph = ipv6_hdr(skb);
+@@ -451,12 +451,12 @@ static int ah6_output(struct xfrm_state *x, struct sk_buff *skb)
+ 	return err;
  }
  
--static void complete_journal_encrypt(struct crypto_async_request *req, int err)
-+static void complete_journal_encrypt(crypto_completion_data_t *data, int err)
+-static void ah6_input_done(struct crypto_async_request *base, int err)
++static void ah6_input_done(crypto_completion_data_t *data, int err)
  {
--	struct journal_completion *comp = req->data;
-+	struct journal_completion *comp = crypto_get_completion_data(data);
- 	if (unlikely(err)) {
- 		if (likely(err == -EINPROGRESS)) {
- 			complete(&comp->ic->crypto_backoff);
+ 	u8 *auth_data;
+ 	u8 *icv;
+ 	u8 *work_iph;
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_state *x = xfrm_input_state(skb);
+ 	struct ah_data *ahp = x->data;
+ 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
+diff --git a/net/ipv6/esp6.c b/net/ipv6/esp6.c
+index 14ed868680c6..b9ee81c7dfcf 100644
+--- a/net/ipv6/esp6.c
++++ b/net/ipv6/esp6.c
+@@ -278,9 +278,9 @@ static void esp_output_encap_csum(struct sk_buff *skb)
+ 	}
+ }
+ 
+-static void esp_output_done(struct crypto_async_request *base, int err)
++static void esp_output_done(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 	struct xfrm_offload *xo = xfrm_offload(skb);
+ 	void *tmp;
+ 	struct xfrm_state *x;
+@@ -368,12 +368,12 @@ static struct ip_esp_hdr *esp_output_set_esn(struct sk_buff *skb,
+ 	return esph;
+ }
+ 
+-static void esp_output_done_esn(struct crypto_async_request *base, int err)
++static void esp_output_done_esn(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 
+ 	esp_output_restore_header(skb);
+-	esp_output_done(base, err);
++	esp_output_done(data, err);
+ }
+ 
+ static struct ip_esp_hdr *esp6_output_udp_encap(struct sk_buff *skb,
+@@ -879,9 +879,9 @@ int esp6_input_done2(struct sk_buff *skb, int err)
+ }
+ EXPORT_SYMBOL_GPL(esp6_input_done2);
+ 
+-static void esp_input_done(struct crypto_async_request *base, int err)
++static void esp_input_done(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 
+ 	xfrm_input_resume(skb, esp6_input_done2(skb, err));
+ }
+@@ -909,12 +909,12 @@ static void esp_input_set_header(struct sk_buff *skb, __be32 *seqhi)
+ 	}
+ }
+ 
+-static void esp_input_done_esn(struct crypto_async_request *base, int err)
++static void esp_input_done_esn(crypto_completion_data_t *data, int err)
+ {
+-	struct sk_buff *skb = base->data;
++	struct sk_buff *skb = crypto_get_completion_data(data);
+ 
+ 	esp_input_restore_header(skb);
+-	esp_input_done(base, err);
++	esp_input_done(data, err);
+ }
+ 
+ static int esp6_input(struct xfrm_state *x, struct sk_buff *skb)
