@@ -1,7 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 3/17] fs: ecryptfs: Use crypto_wait_req
-Date: Mon, 06 Feb 2023 18:22:17 +0800
-Message-ID: <E1pOydd-007zgo-4c@formenos.hmeau.com>
+Subject: [PATCH 1/17] dm: Add scaffolding to change completion
+ function signature
+Date: Mon, 06 Feb 2023 18:22:12 +0800
+Message-ID: <E1pOydY-007zgU-U2@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,81 +20,57 @@ Errors-To: dm-devel-bounces@redhat.com
 Sender: "dm-devel" <dm-devel-bounces@redhat.com>
 To: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko@kernel.org>, keyrings@vger.kernel.org
 
-This patch replaces the custom crypto completion function with
-crypto_req_done.
+This patch adds temporary scaffolding so that the Crypto API
+completion function can take a void * instead of crypto_async_request.
+Once affected users have been converted this can be removed.
 
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- fs/ecryptfs/crypto.c |   30 +++---------------------------
- 1 file changed, 3 insertions(+), 27 deletions(-)
+ drivers/md/dm-crypt.c     |    8 +++-----
+ drivers/md/dm-integrity.c |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index e3f5d7f3c8a0..c3057539f088 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -260,22 +260,6 @@ int virt_to_scatterlist(const void *addr, int size, struct scatterlist *sg,
- 	return i;
+diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
+index 2653516bcdef..7609fe39ab8c 100644
+--- a/drivers/md/dm-crypt.c
++++ b/drivers/md/dm-crypt.c
+@@ -1458,8 +1458,7 @@ static int crypt_convert_block_skcipher(struct crypt_config *cc,
+ 	return r;
  }
  
--struct extent_crypt_result {
--	struct completion completion;
--	int rc;
--};
--
--static void extent_crypt_complete(struct crypto_async_request *req, int rc)
--{
--	struct extent_crypt_result *ecr = req->data;
--
--	if (rc == -EINPROGRESS)
--		return;
--
--	ecr->rc = rc;
--	complete(&ecr->completion);
--}
--
- /**
-  * crypt_scatterlist
-  * @crypt_stat: Pointer to the crypt_stat struct to initialize.
-@@ -293,7 +277,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- 			     unsigned char *iv, int op)
+-static void kcryptd_async_done(struct crypto_async_request *async_req,
+-			       int error);
++static void kcryptd_async_done(crypto_completion_data_t *async_req, int error);
+ 
+ static int crypt_alloc_req_skcipher(struct crypt_config *cc,
+ 				     struct convert_context *ctx)
+@@ -2147,10 +2146,9 @@ static void kcryptd_crypt_read_convert(struct dm_crypt_io *io)
+ 	crypt_dec_pending(io);
+ }
+ 
+-static void kcryptd_async_done(struct crypto_async_request *async_req,
+-			       int error)
++static void kcryptd_async_done(crypto_completion_data_t *data, int error)
  {
- 	struct skcipher_request *req = NULL;
--	struct extent_crypt_result ecr;
-+	DECLARE_CRYPTO_WAIT(ecr);
- 	int rc = 0;
+-	struct dm_crypt_request *dmreq = async_req->data;
++	struct dm_crypt_request *dmreq = crypto_get_completion_data(data);
+ 	struct convert_context *ctx = dmreq->ctx;
+ 	struct dm_crypt_io *io = container_of(ctx, struct dm_crypt_io, ctx);
+ 	struct crypt_config *cc = io->cc;
+diff --git a/drivers/md/dm-integrity.c b/drivers/md/dm-integrity.c
+index 1388ee35571e..eefe25ed841e 100644
+--- a/drivers/md/dm-integrity.c
++++ b/drivers/md/dm-integrity.c
+@@ -955,9 +955,9 @@ static void xor_journal(struct dm_integrity_c *ic, bool encrypt, unsigned sectio
+ 	async_tx_issue_pending_all();
+ }
  
- 	if (unlikely(ecryptfs_verbosity > 0)) {
-@@ -303,8 +287,6 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- 				  crypt_stat->key_size);
- 	}
- 
--	init_completion(&ecr.completion);
--
- 	mutex_lock(&crypt_stat->cs_tfm_mutex);
- 	req = skcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
- 	if (!req) {
-@@ -315,7 +297,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- 
- 	skcipher_request_set_callback(req,
- 			CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
--			extent_crypt_complete, &ecr);
-+			crypto_req_done, &ecr);
- 	/* Consider doing this once, when the file is opened */
- 	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
- 		rc = crypto_skcipher_setkey(crypt_stat->tfm, crypt_stat->key,
-@@ -334,13 +316,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- 	skcipher_request_set_crypt(req, src_sg, dst_sg, size, iv);
- 	rc = op == ENCRYPT ? crypto_skcipher_encrypt(req) :
- 			     crypto_skcipher_decrypt(req);
--	if (rc == -EINPROGRESS || rc == -EBUSY) {
--		struct extent_crypt_result *ecr = req->base.data;
--
--		wait_for_completion(&ecr->completion);
--		rc = ecr->rc;
--		reinit_completion(&ecr->completion);
--	}
-+	rc = crypto_wait_req(rc, &ecr);
- out:
- 	skcipher_request_free(req);
- 	return rc;
+-static void complete_journal_encrypt(struct crypto_async_request *req, int err)
++static void complete_journal_encrypt(crypto_completion_data_t *data, int err)
+ {
+-	struct journal_completion *comp = req->data;
++	struct journal_completion *comp = crypto_get_completion_data(data);
+ 	if (unlikely(err)) {
+ 		if (likely(err == -EINPROGRESS)) {
+ 			complete(&comp->ic->crypto_backoff);
