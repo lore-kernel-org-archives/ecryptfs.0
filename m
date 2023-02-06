@@ -1,8 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 6/17] net: ipv6: Add scaffolding to change
- completion function signature
-Date: Mon, 06 Feb 2023 18:22:23 +0800
-Message-ID: <E1pOydj-007zhY-EX@formenos.hmeau.com>
+Subject: [PATCH 7/17] tipc: Add scaffolding to change completion
+ function signature
+Date: Mon, 06 Feb 2023 18:22:25 +0800
+Message-ID: <E1pOydl-007zhn-Io@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,101 +27,47 @@ Once affected users have been converted this can be removed.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- net/ipv6/ah6.c  |    8 ++++----
- net/ipv6/esp6.c |   20 ++++++++++----------
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ net/tipc/crypto.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv6/ah6.c b/net/ipv6/ah6.c
-index 5228d2716289..e43735578a76 100644
---- a/net/ipv6/ah6.c
-+++ b/net/ipv6/ah6.c
-@@ -281,12 +281,12 @@ static int ipv6_clear_mutable_options(struct ipv6hdr *iph, int len, int dir)
- 	return 0;
+diff --git a/net/tipc/crypto.c b/net/tipc/crypto.c
+index d67440de011e..ab356e7a3870 100644
+--- a/net/tipc/crypto.c
++++ b/net/tipc/crypto.c
+@@ -267,10 +267,10 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
+ 			     struct tipc_bearer *b,
+ 			     struct tipc_media_addr *dst,
+ 			     struct tipc_node *__dnode);
+-static void tipc_aead_encrypt_done(struct crypto_async_request *base, int err);
++static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err);
+ static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
+ 			     struct sk_buff *skb, struct tipc_bearer *b);
+-static void tipc_aead_decrypt_done(struct crypto_async_request *base, int err);
++static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err);
+ static inline int tipc_ehdr_size(struct tipc_ehdr *ehdr);
+ static int tipc_ehdr_build(struct net *net, struct tipc_aead *aead,
+ 			   u8 tx_key, struct sk_buff *skb,
+@@ -830,9 +830,9 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
+ 	return rc;
  }
  
--static void ah6_output_done(struct crypto_async_request *base, int err)
-+static void ah6_output_done(crypto_completion_data_t *data, int err)
- {
- 	int extlen;
- 	u8 *iph_base;
- 	u8 *icv;
--	struct sk_buff *skb = base->data;
-+	struct sk_buff *skb = crypto_get_completion_data(data);
- 	struct xfrm_state *x = skb_dst(skb)->xfrm;
- 	struct ah_data *ahp = x->data;
- 	struct ipv6hdr *top_iph = ipv6_hdr(skb);
-@@ -451,12 +451,12 @@ static int ah6_output(struct xfrm_state *x, struct sk_buff *skb)
- 	return err;
- }
- 
--static void ah6_input_done(struct crypto_async_request *base, int err)
-+static void ah6_input_done(crypto_completion_data_t *data, int err)
- {
- 	u8 *auth_data;
- 	u8 *icv;
- 	u8 *work_iph;
--	struct sk_buff *skb = base->data;
-+	struct sk_buff *skb = crypto_get_completion_data(data);
- 	struct xfrm_state *x = xfrm_input_state(skb);
- 	struct ah_data *ahp = x->data;
- 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
-diff --git a/net/ipv6/esp6.c b/net/ipv6/esp6.c
-index 14ed868680c6..b9ee81c7dfcf 100644
---- a/net/ipv6/esp6.c
-+++ b/net/ipv6/esp6.c
-@@ -278,9 +278,9 @@ static void esp_output_encap_csum(struct sk_buff *skb)
- 	}
- }
- 
--static void esp_output_done(struct crypto_async_request *base, int err)
-+static void esp_output_done(crypto_completion_data_t *data, int err)
+-static void tipc_aead_encrypt_done(struct crypto_async_request *base, int err)
++static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err)
  {
 -	struct sk_buff *skb = base->data;
 +	struct sk_buff *skb = crypto_get_completion_data(data);
- 	struct xfrm_offload *xo = xfrm_offload(skb);
- 	void *tmp;
- 	struct xfrm_state *x;
-@@ -368,12 +368,12 @@ static struct ip_esp_hdr *esp_output_set_esn(struct sk_buff *skb,
- 	return esph;
+ 	struct tipc_crypto_tx_ctx *tx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
+ 	struct tipc_bearer *b = tx_ctx->bearer;
+ 	struct tipc_aead *aead = tx_ctx->aead;
+@@ -954,9 +954,9 @@ static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
+ 	return rc;
  }
  
--static void esp_output_done_esn(struct crypto_async_request *base, int err)
-+static void esp_output_done_esn(crypto_completion_data_t *data, int err)
+-static void tipc_aead_decrypt_done(struct crypto_async_request *base, int err)
++static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err)
  {
 -	struct sk_buff *skb = base->data;
 +	struct sk_buff *skb = crypto_get_completion_data(data);
- 
- 	esp_output_restore_header(skb);
--	esp_output_done(base, err);
-+	esp_output_done(data, err);
- }
- 
- static struct ip_esp_hdr *esp6_output_udp_encap(struct sk_buff *skb,
-@@ -879,9 +879,9 @@ int esp6_input_done2(struct sk_buff *skb, int err)
- }
- EXPORT_SYMBOL_GPL(esp6_input_done2);
- 
--static void esp_input_done(struct crypto_async_request *base, int err)
-+static void esp_input_done(crypto_completion_data_t *data, int err)
- {
--	struct sk_buff *skb = base->data;
-+	struct sk_buff *skb = crypto_get_completion_data(data);
- 
- 	xfrm_input_resume(skb, esp6_input_done2(skb, err));
- }
-@@ -909,12 +909,12 @@ static void esp_input_set_header(struct sk_buff *skb, __be32 *seqhi)
- 	}
- }
- 
--static void esp_input_done_esn(struct crypto_async_request *base, int err)
-+static void esp_input_done_esn(crypto_completion_data_t *data, int err)
- {
--	struct sk_buff *skb = base->data;
-+	struct sk_buff *skb = crypto_get_completion_data(data);
- 
- 	esp_input_restore_header(skb);
--	esp_input_done(base, err);
-+	esp_input_done(data, err);
- }
- 
- static int esp6_input(struct xfrm_state *x, struct sk_buff *skb)
+ 	struct tipc_crypto_rx_ctx *rx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
+ 	struct tipc_bearer *b = rx_ctx->bearer;
+ 	struct tipc_aead *aead = rx_ctx->aead;
