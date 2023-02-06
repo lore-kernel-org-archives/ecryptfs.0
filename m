@@ -1,7 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 11/17] dm: Remove completion function scaffolding
-Date: Mon, 06 Feb 2023 18:22:34 +0800
-Message-ID: <E1pOydu-007zio-0W@formenos.hmeau.com>
+Subject: [PATCH 12/17] net: macsec: Remove completion function
+ scaffolding
+Date: Mon, 06 Feb 2023 18:22:36 +0800
+Message-ID: <E1pOydw-007zjD-3q@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,48 +26,34 @@ function signature has been converted.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- drivers/md/dm-crypt.c     |    6 +++---
- drivers/md/dm-integrity.c |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/net/macsec.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/md/dm-crypt.c b/drivers/md/dm-crypt.c
-index 7609fe39ab8c..3aeeb8f2802f 100644
---- a/drivers/md/dm-crypt.c
-+++ b/drivers/md/dm-crypt.c
-@@ -1458,7 +1458,7 @@ static int crypt_convert_block_skcipher(struct crypt_config *cc,
- 	return r;
+diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
+index b7d9d487ccd2..becb04123d3e 100644
+--- a/drivers/net/macsec.c
++++ b/drivers/net/macsec.c
+@@ -528,9 +528,9 @@ static void count_tx(struct net_device *dev, int ret, int len)
+ 	}
  }
  
--static void kcryptd_async_done(crypto_completion_data_t *async_req, int error);
-+static void kcryptd_async_done(void *async_req, int error);
- 
- static int crypt_alloc_req_skcipher(struct crypt_config *cc,
- 				     struct convert_context *ctx)
-@@ -2146,9 +2146,9 @@ static void kcryptd_crypt_read_convert(struct dm_crypt_io *io)
- 	crypt_dec_pending(io);
- }
- 
--static void kcryptd_async_done(crypto_completion_data_t *data, int error)
-+static void kcryptd_async_done(void *data, int error)
+-static void macsec_encrypt_done(crypto_completion_data_t *data, int err)
++static void macsec_encrypt_done(void *data, int err)
  {
--	struct dm_crypt_request *dmreq = crypto_get_completion_data(data);
-+	struct dm_crypt_request *dmreq = data;
- 	struct convert_context *ctx = dmreq->ctx;
- 	struct dm_crypt_io *io = container_of(ctx, struct dm_crypt_io, ctx);
- 	struct crypt_config *cc = io->cc;
-diff --git a/drivers/md/dm-integrity.c b/drivers/md/dm-integrity.c
-index eefe25ed841e..c58156deb2b1 100644
---- a/drivers/md/dm-integrity.c
-+++ b/drivers/md/dm-integrity.c
-@@ -955,9 +955,9 @@ static void xor_journal(struct dm_integrity_c *ic, bool encrypt, unsigned sectio
- 	async_tx_issue_pending_all();
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct net_device *dev = skb->dev;
+ 	struct macsec_dev *macsec = macsec_priv(dev);
+ 	struct macsec_tx_sa *sa = macsec_skb_cb(skb)->tx_sa;
+@@ -835,9 +835,9 @@ static void count_rx(struct net_device *dev, int len)
+ 	u64_stats_update_end(&stats->syncp);
  }
  
--static void complete_journal_encrypt(crypto_completion_data_t *data, int err)
-+static void complete_journal_encrypt(void *data, int err)
+-static void macsec_decrypt_done(crypto_completion_data_t *data, int err)
++static void macsec_decrypt_done(void *data, int err)
  {
--	struct journal_completion *comp = crypto_get_completion_data(data);
-+	struct journal_completion *comp = data;
- 	if (unlikely(err)) {
- 		if (likely(err == -EINPROGRESS)) {
- 			complete(&comp->ic->crypto_backoff);
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct net_device *dev = skb->dev;
+ 	struct macsec_dev *macsec = macsec_priv(dev);
+ 	struct macsec_rx_sa *rx_sa = macsec_skb_cb(skb)->rx_sa;
