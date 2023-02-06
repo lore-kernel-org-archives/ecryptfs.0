@@ -1,8 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 15/17] tipc: Remove completion function
+Subject: [PATCH 17/17] crypto: api - Remove completion function
  scaffolding
-Date: Mon, 06 Feb 2023 18:22:42 +0800
-Message-ID: <E1pOye2-007zkJ-CU@formenos.hmeau.com>
+Date: Mon, 06 Feb 2023 18:22:46 +0800
+Message-ID: <E1pOye6-007zks-J4@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,47 +26,30 @@ function signature has been converted.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- net/tipc/crypto.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/crypto.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/net/tipc/crypto.c b/net/tipc/crypto.c
-index ab356e7a3870..577fa5af33ec 100644
---- a/net/tipc/crypto.c
-+++ b/net/tipc/crypto.c
-@@ -267,10 +267,10 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
- 			     struct tipc_bearer *b,
- 			     struct tipc_media_addr *dst,
- 			     struct tipc_node *__dnode);
--static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err);
-+static void tipc_aead_encrypt_done(void *data, int err);
- static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
- 			     struct sk_buff *skb, struct tipc_bearer *b);
--static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err);
-+static void tipc_aead_decrypt_done(void *data, int err);
- static inline int tipc_ehdr_size(struct tipc_ehdr *ehdr);
- static int tipc_ehdr_build(struct net *net, struct tipc_aead *aead,
- 			   u8 tx_key, struct sk_buff *skb,
-@@ -830,9 +830,9 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
- 	return rc;
- }
+diff --git a/include/linux/crypto.h b/include/linux/crypto.h
+index 80f6350fb588..bb1d9b0e1647 100644
+--- a/include/linux/crypto.h
++++ b/include/linux/crypto.h
+@@ -176,7 +176,6 @@ struct crypto_async_request;
+ struct crypto_tfm;
+ struct crypto_type;
  
--static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err)
-+static void tipc_aead_encrypt_done(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 	struct tipc_crypto_tx_ctx *tx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
- 	struct tipc_bearer *b = tx_ctx->bearer;
- 	struct tipc_aead *aead = tx_ctx->aead;
-@@ -954,9 +954,9 @@ static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
- 	return rc;
- }
+-typedef void crypto_completion_data_t;
+ typedef void (*crypto_completion_t)(void *req, int err);
  
--static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err)
-+static void tipc_aead_decrypt_done(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 	struct tipc_crypto_rx_ctx *rx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
- 	struct tipc_bearer *b = rx_ctx->bearer;
- 	struct tipc_aead *aead = rx_ctx->aead;
+ /**
+@@ -596,11 +595,6 @@ struct crypto_wait {
+ /*
+  * Async ops completion helper functioons
+  */
+-static inline void *crypto_get_completion_data(void *data)
+-{
+-	return data;
+-}
+-
+ void crypto_req_done(void *req, int err);
+ 
+ static inline int crypto_wait_req(int err, struct crypto_wait *wait)
