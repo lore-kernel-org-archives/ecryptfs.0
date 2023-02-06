@@ -1,8 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 12/17] net: macsec: Remove completion function
+Subject: [PATCH 14/17] net: ipv6: Remove completion function
  scaffolding
-Date: Mon, 06 Feb 2023 18:22:36 +0800
-Message-ID: <E1pOydw-007zjD-3q@formenos.hmeau.com>
+Date: Mon, 06 Feb 2023 18:22:40 +0800
+Message-ID: <E1pOye0-007zk1-9e@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,34 +26,93 @@ function signature has been converted.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- drivers/net/macsec.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/ipv6/ah6.c  |    8 ++++----
+ net/ipv6/esp6.c |   16 ++++++++--------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
-index b7d9d487ccd2..becb04123d3e 100644
---- a/drivers/net/macsec.c
-+++ b/drivers/net/macsec.c
-@@ -528,9 +528,9 @@ static void count_tx(struct net_device *dev, int ret, int len)
+diff --git a/net/ipv6/ah6.c b/net/ipv6/ah6.c
+index e43735578a76..01005035ad10 100644
+--- a/net/ipv6/ah6.c
++++ b/net/ipv6/ah6.c
+@@ -281,12 +281,12 @@ static int ipv6_clear_mutable_options(struct ipv6hdr *iph, int len, int dir)
+ 	return 0;
+ }
+ 
+-static void ah6_output_done(crypto_completion_data_t *data, int err)
++static void ah6_output_done(void *data, int err)
+ {
+ 	int extlen;
+ 	u8 *iph_base;
+ 	u8 *icv;
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct xfrm_state *x = skb_dst(skb)->xfrm;
+ 	struct ah_data *ahp = x->data;
+ 	struct ipv6hdr *top_iph = ipv6_hdr(skb);
+@@ -451,12 +451,12 @@ static int ah6_output(struct xfrm_state *x, struct sk_buff *skb)
+ 	return err;
+ }
+ 
+-static void ah6_input_done(crypto_completion_data_t *data, int err)
++static void ah6_input_done(void *data, int err)
+ {
+ 	u8 *auth_data;
+ 	u8 *icv;
+ 	u8 *work_iph;
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct xfrm_state *x = xfrm_input_state(skb);
+ 	struct ah_data *ahp = x->data;
+ 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
+diff --git a/net/ipv6/esp6.c b/net/ipv6/esp6.c
+index b9ee81c7dfcf..fddd0cbdede1 100644
+--- a/net/ipv6/esp6.c
++++ b/net/ipv6/esp6.c
+@@ -278,9 +278,9 @@ static void esp_output_encap_csum(struct sk_buff *skb)
  	}
  }
  
--static void macsec_encrypt_done(crypto_completion_data_t *data, int err)
-+static void macsec_encrypt_done(void *data, int err)
+-static void esp_output_done(crypto_completion_data_t *data, int err)
++static void esp_output_done(void *data, int err)
  {
 -	struct sk_buff *skb = crypto_get_completion_data(data);
 +	struct sk_buff *skb = data;
- 	struct net_device *dev = skb->dev;
- 	struct macsec_dev *macsec = macsec_priv(dev);
- 	struct macsec_tx_sa *sa = macsec_skb_cb(skb)->tx_sa;
-@@ -835,9 +835,9 @@ static void count_rx(struct net_device *dev, int len)
- 	u64_stats_update_end(&stats->syncp);
+ 	struct xfrm_offload *xo = xfrm_offload(skb);
+ 	void *tmp;
+ 	struct xfrm_state *x;
+@@ -368,9 +368,9 @@ static struct ip_esp_hdr *esp_output_set_esn(struct sk_buff *skb,
+ 	return esph;
  }
  
--static void macsec_decrypt_done(crypto_completion_data_t *data, int err)
-+static void macsec_decrypt_done(void *data, int err)
+-static void esp_output_done_esn(crypto_completion_data_t *data, int err)
++static void esp_output_done_esn(void *data, int err)
  {
 -	struct sk_buff *skb = crypto_get_completion_data(data);
 +	struct sk_buff *skb = data;
- 	struct net_device *dev = skb->dev;
- 	struct macsec_dev *macsec = macsec_priv(dev);
- 	struct macsec_rx_sa *rx_sa = macsec_skb_cb(skb)->rx_sa;
+ 
+ 	esp_output_restore_header(skb);
+ 	esp_output_done(data, err);
+@@ -879,9 +879,9 @@ int esp6_input_done2(struct sk_buff *skb, int err)
+ }
+ EXPORT_SYMBOL_GPL(esp6_input_done2);
+ 
+-static void esp_input_done(crypto_completion_data_t *data, int err)
++static void esp_input_done(void *data, int err)
+ {
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 
+ 	xfrm_input_resume(skb, esp6_input_done2(skb, err));
+ }
+@@ -909,9 +909,9 @@ static void esp_input_set_header(struct sk_buff *skb, __be32 *seqhi)
+ 	}
+ }
+ 
+-static void esp_input_done_esn(crypto_completion_data_t *data, int err)
++static void esp_input_done_esn(void *data, int err)
+ {
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 
+ 	esp_input_restore_header(skb);
+ 	esp_input_done(data, err);
