@@ -1,8 +1,7 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 13/17] net: ipv4: Remove completion function
- scaffolding
-Date: Mon, 06 Feb 2023 18:22:38 +0800
-Message-ID: <E1pOydy-007zjk-6G@formenos.hmeau.com>
+Subject: [PATCH 16/17] tls: Remove completion function scaffolding
+Date: Mon, 06 Feb 2023 18:22:44 +0800
+Message-ID: <E1pOye4-007zka-Fr@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,92 +25,34 @@ function signature has been converted.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- net/ipv4/ah4.c  |    8 ++++----
- net/ipv4/esp4.c |   16 ++++++++--------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ net/tls/tls_sw.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/ah4.c b/net/ipv4/ah4.c
-index 1fc0231eb1ee..015c0f4ec5ba 100644
---- a/net/ipv4/ah4.c
-+++ b/net/ipv4/ah4.c
-@@ -117,11 +117,11 @@ static int ip_clear_mutable_options(const struct iphdr *iph, __be32 *daddr)
- 	return 0;
+diff --git a/net/tls/tls_sw.c b/net/tls/tls_sw.c
+index 5b7f67a7d394..0515cda32fe2 100644
+--- a/net/tls/tls_sw.c
++++ b/net/tls/tls_sw.c
+@@ -179,9 +179,9 @@ static int tls_padding_length(struct tls_prot_info *prot, struct sk_buff *skb,
+ 	return sub;
  }
  
--static void ah_output_done(crypto_completion_data_t *data, int err)
-+static void ah_output_done(void *data, int err)
+-static void tls_decrypt_done(crypto_completion_data_t *data, int err)
++static void tls_decrypt_done(void *data, int err)
  {
- 	u8 *icv;
- 	struct iphdr *iph;
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 	struct xfrm_state *x = skb_dst(skb)->xfrm;
- 	struct ah_data *ahp = x->data;
- 	struct iphdr *top_iph = ip_hdr(skb);
-@@ -262,12 +262,12 @@ static int ah_output(struct xfrm_state *x, struct sk_buff *skb)
- 	return err;
+-	struct aead_request *aead_req = crypto_get_completion_data(data);
++	struct aead_request *aead_req = data;
+ 	struct crypto_aead *aead = crypto_aead_reqtfm(aead_req);
+ 	struct scatterlist *sgout = aead_req->dst;
+ 	struct scatterlist *sgin = aead_req->src;
+@@ -428,9 +428,9 @@ int tls_tx_records(struct sock *sk, int flags)
+ 	return rc;
  }
  
--static void ah_input_done(crypto_completion_data_t *data, int err)
-+static void ah_input_done(void *data, int err)
+-static void tls_encrypt_done(crypto_completion_data_t *data, int err)
++static void tls_encrypt_done(void *data, int err)
  {
- 	u8 *auth_data;
- 	u8 *icv;
- 	struct iphdr *work_iph;
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 	struct xfrm_state *x = xfrm_input_state(skb);
- 	struct ah_data *ahp = x->data;
- 	struct ip_auth_hdr *ah = ip_auth_hdr(skb);
-diff --git a/net/ipv4/esp4.c b/net/ipv4/esp4.c
-index 8abe07c1ff28..ba06ed42e428 100644
---- a/net/ipv4/esp4.c
-+++ b/net/ipv4/esp4.c
-@@ -244,9 +244,9 @@ static int esp_output_tail_tcp(struct xfrm_state *x, struct sk_buff *skb)
- }
- #endif
- 
--static void esp_output_done(crypto_completion_data_t *data, int err)
-+static void esp_output_done(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 	struct xfrm_offload *xo = xfrm_offload(skb);
- 	void *tmp;
- 	struct xfrm_state *x;
-@@ -332,9 +332,9 @@ static struct ip_esp_hdr *esp_output_set_extra(struct sk_buff *skb,
- 	return esph;
- }
- 
--static void esp_output_done_esn(crypto_completion_data_t *data, int err)
-+static void esp_output_done_esn(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 
- 	esp_output_restore_header(skb);
- 	esp_output_done(data, err);
-@@ -830,9 +830,9 @@ int esp_input_done2(struct sk_buff *skb, int err)
- }
- EXPORT_SYMBOL_GPL(esp_input_done2);
- 
--static void esp_input_done(crypto_completion_data_t *data, int err)
-+static void esp_input_done(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 
- 	xfrm_input_resume(skb, esp_input_done2(skb, err));
- }
-@@ -860,9 +860,9 @@ static void esp_input_set_header(struct sk_buff *skb, __be32 *seqhi)
- 	}
- }
- 
--static void esp_input_done_esn(crypto_completion_data_t *data, int err)
-+static void esp_input_done_esn(void *data, int err)
- {
--	struct sk_buff *skb = crypto_get_completion_data(data);
-+	struct sk_buff *skb = data;
- 
- 	esp_input_restore_header(skb);
- 	esp_input_done(data, err);
+-	struct aead_request *aead_req = crypto_get_completion_data(data);
++	struct aead_request *aead_req = data;
+ 	struct tls_sw_context_tx *ctx;
+ 	struct tls_context *tls_ctx;
+ 	struct tls_prot_info *prot;
