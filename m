@@ -1,7 +1,8 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 16/17] tls: Remove completion function scaffolding
-Date: Mon, 06 Feb 2023 18:22:44 +0800
-Message-ID: <E1pOye4-007zka-Fr@formenos.hmeau.com>
+Subject: [PATCH 15/17] tipc: Remove completion function
+ scaffolding
+Date: Mon, 06 Feb 2023 18:22:42 +0800
+Message-ID: <E1pOye2-007zkJ-CU@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,34 +26,47 @@ function signature has been converted.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- net/tls/tls_sw.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/tipc/crypto.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/tls/tls_sw.c b/net/tls/tls_sw.c
-index 5b7f67a7d394..0515cda32fe2 100644
---- a/net/tls/tls_sw.c
-+++ b/net/tls/tls_sw.c
-@@ -179,9 +179,9 @@ static int tls_padding_length(struct tls_prot_info *prot, struct sk_buff *skb,
- 	return sub;
- }
- 
--static void tls_decrypt_done(crypto_completion_data_t *data, int err)
-+static void tls_decrypt_done(void *data, int err)
- {
--	struct aead_request *aead_req = crypto_get_completion_data(data);
-+	struct aead_request *aead_req = data;
- 	struct crypto_aead *aead = crypto_aead_reqtfm(aead_req);
- 	struct scatterlist *sgout = aead_req->dst;
- 	struct scatterlist *sgin = aead_req->src;
-@@ -428,9 +428,9 @@ int tls_tx_records(struct sock *sk, int flags)
+diff --git a/net/tipc/crypto.c b/net/tipc/crypto.c
+index ab356e7a3870..577fa5af33ec 100644
+--- a/net/tipc/crypto.c
++++ b/net/tipc/crypto.c
+@@ -267,10 +267,10 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
+ 			     struct tipc_bearer *b,
+ 			     struct tipc_media_addr *dst,
+ 			     struct tipc_node *__dnode);
+-static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err);
++static void tipc_aead_encrypt_done(void *data, int err);
+ static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
+ 			     struct sk_buff *skb, struct tipc_bearer *b);
+-static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err);
++static void tipc_aead_decrypt_done(void *data, int err);
+ static inline int tipc_ehdr_size(struct tipc_ehdr *ehdr);
+ static int tipc_ehdr_build(struct net *net, struct tipc_aead *aead,
+ 			   u8 tx_key, struct sk_buff *skb,
+@@ -830,9 +830,9 @@ static int tipc_aead_encrypt(struct tipc_aead *aead, struct sk_buff *skb,
  	return rc;
  }
  
--static void tls_encrypt_done(crypto_completion_data_t *data, int err)
-+static void tls_encrypt_done(void *data, int err)
+-static void tipc_aead_encrypt_done(crypto_completion_data_t *data, int err)
++static void tipc_aead_encrypt_done(void *data, int err)
  {
--	struct aead_request *aead_req = crypto_get_completion_data(data);
-+	struct aead_request *aead_req = data;
- 	struct tls_sw_context_tx *ctx;
- 	struct tls_context *tls_ctx;
- 	struct tls_prot_info *prot;
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct tipc_crypto_tx_ctx *tx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
+ 	struct tipc_bearer *b = tx_ctx->bearer;
+ 	struct tipc_aead *aead = tx_ctx->aead;
+@@ -954,9 +954,9 @@ static int tipc_aead_decrypt(struct net *net, struct tipc_aead *aead,
+ 	return rc;
+ }
+ 
+-static void tipc_aead_decrypt_done(crypto_completion_data_t *data, int err)
++static void tipc_aead_decrypt_done(void *data, int err)
+ {
+-	struct sk_buff *skb = crypto_get_completion_data(data);
++	struct sk_buff *skb = data;
+ 	struct tipc_crypto_rx_ctx *rx_ctx = TIPC_SKB_CB(skb)->crypto_ctx;
+ 	struct tipc_bearer *b = rx_ctx->bearer;
+ 	struct tipc_aead *aead = rx_ctx->aead;
