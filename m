@@ -1,60 +1,49 @@
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-Subject: [PATCH] fs/ecryptfs: Replace kmap_atomic() with kmap_local_page()
-Date: Tue,  3 Jan 2023 20:02:59 +0100
-Message-ID: <20230103190259.30944-1-fmdefrancesco@gmail.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: [PATCH 0/17] crypto: api - Change completion callback
+ argument to void star
+Date: Mon, 6 Feb 2023 18:21:06 +0800
+Message-ID: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40702 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238481AbjACTDG (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 3 Jan 2023 14:03:06 -0500
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tyler Hicks <code@tyhicks.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Christian Brauner <brauner@kernel.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>, "Fabio M. De Francesco" <fmdefrancesco@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Muchun Song <muchun.song@linux.dev>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ira Weiny <ira.weiny@intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <dm-devel-bounces@redhat.com>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://listman.redhat.com/mailman/options/dm-devel>,
+ <mailto:dm-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <http://listman.redhat.com/archives/dm-devel/>
+List-Post: <mailto:dm-devel@redhat.com>
+List-Help: <mailto:dm-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://listman.redhat.com/mailman/listinfo/dm-devel>,
+ <mailto:dm-devel-request@redhat.com?subject=subscribe>
+Errors-To: dm-devel-bounces@redhat.com
+Sender: "dm-devel" <dm-devel-bounces@redhat.com>
+Content-Disposition: inline
+To: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko@kernel.org>, keyrings@vger.kernel.org
 
-kmap_atomic() is deprecated in favor of kmap_local_page(). Therefore,
-replace kmap_atomic() with kmap_local_page() in ecryptfs_write().
+Hi:
 
-kmap_atomic() is implemented like a kmap_local_page() which also disables
-page-faults and preemption (the latter only for !PREEMPT_RT kernels).
+The crypto completion function currently takes a pointer to a
+struct crypto_async_request object.  However, in reality the API
+does not allow the use of any part of the object apart from the
+data field.  For example, ahash/shash will create a fake object
+on the stack to pass along a different data field.
 
-The code within the mapping/un-mapping in ecryptfs_write() does not
-depend on the above-mentioned side effects.
+This leads to potential bugs where the user may try to dereference
+or otherwise use the crypto_async_request object.
 
-Therefore, a mere replacement of the old API with the new one is all that
-is required (i.e., there is no need to explicitly add any calls to
-pagefault_disable() and/or preempt_disable()).
+This series changes the completion function to take a void *
+argument instead of crypto_async_request.
 
-Suggested-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
----
- fs/ecryptfs/read_write.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This series touches code in a number of different subsystems.
+Most of them are trivial except for tls which was actually buggy
+as it did exactly what was described above.
 
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 5edf027c8359..3458f153a588 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -140,7 +140,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
-+		ecryptfs_page_virt = kmap_local_page(ecryptfs_page);
- 
- 		/*
- 		 * pos: where we're now writing, offset: where the request was
-@@ -163,7 +163,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			       (data + data_offset), num_bytes);
- 			data_offset += num_bytes;
- 		}
--		kunmap_atomic(ecryptfs_page_virt);
-+		kunmap_local(ecryptfs_page_virt);
- 		flush_dcache_page(ecryptfs_page);
- 		SetPageUptodate(ecryptfs_page);
- 		unlock_page(ecryptfs_page);
+I'd like to pull all the changes through the crypto tree.  But
+feel free to object if you'd like the relevant patches to go
+through your trees instead and I'll split this up.
+
+Thanks,
 -- 
-2.39.0
-
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
