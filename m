@@ -1,7 +1,7 @@
 From: "Herbert Xu" <herbert@gondor.apana.org.au>
-Subject: [PATCH 4/17] Bluetooth: Use crypto_wait_req
-Date: Mon, 06 Feb 2023 18:22:19 +0800
-Message-ID: <E1pOydf-007zgz-7o@formenos.hmeau.com>
+Subject: [PATCH 9/17] KEYS: DH: Use crypto_wait_req
+Date: Mon, 06 Feb 2023 18:22:29 +0800
+Message-ID: <E1pOydp-007ziH-Oe@formenos.hmeau.com>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,100 +25,69 @@ crypto_req_done.
 Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 ---
 
- net/bluetooth/ecdh_helper.c |   37 ++++++-------------------------------
- 1 file changed, 6 insertions(+), 31 deletions(-)
+ security/keys/dh.c |   30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
 
-diff --git a/net/bluetooth/ecdh_helper.c b/net/bluetooth/ecdh_helper.c
-index 989401f116e9..0efc93fdae8a 100644
---- a/net/bluetooth/ecdh_helper.c
-+++ b/net/bluetooth/ecdh_helper.c
-@@ -25,22 +25,6 @@
- #include <linux/scatterlist.h>
- #include <crypto/ecdh.h>
+diff --git a/security/keys/dh.c b/security/keys/dh.c
+index b339760a31dd..da64c358474b 100644
+--- a/security/keys/dh.c
++++ b/security/keys/dh.c
+@@ -64,22 +64,6 @@ static void dh_free_data(struct dh *dh)
+ 	kfree_sensitive(dh->g);
+ }
  
--struct ecdh_completion {
+-struct dh_completion {
 -	struct completion completion;
 -	int err;
 -};
 -
--static void ecdh_complete(struct crypto_async_request *req, int err)
+-static void dh_crypto_done(struct crypto_async_request *req, int err)
 -{
--	struct ecdh_completion *res = req->data;
+-	struct dh_completion *compl = req->data;
 -
 -	if (err == -EINPROGRESS)
 -		return;
 -
--	res->err = err;
--	complete(&res->completion);
+-	compl->err = err;
+-	complete(&compl->completion);
 -}
 -
- static inline void swap_digits(u64 *in, u64 *out, unsigned int ndigits)
+ static int kdf_alloc(struct crypto_shash **hash, char *hashname)
  {
- 	int i;
-@@ -60,9 +44,9 @@ static inline void swap_digits(u64 *in, u64 *out, unsigned int ndigits)
- int compute_ecdh_secret(struct crypto_kpp *tfm, const u8 public_key[64],
- 			u8 secret[32])
- {
-+	DECLARE_CRYPTO_WAIT(result);
+ 	struct crypto_shash *tfm;
+@@ -146,7 +130,7 @@ long __keyctl_dh_compute(struct keyctl_dh_params __user *params,
+ 	struct keyctl_dh_params pcopy;
+ 	struct dh dh_inputs;
+ 	struct scatterlist outsg;
+-	struct dh_completion compl;
++	DECLARE_CRYPTO_WAIT(compl);
+ 	struct crypto_kpp *tfm;
  	struct kpp_request *req;
- 	u8 *tmp;
--	struct ecdh_completion result;
- 	struct scatterlist src, dst;
- 	int err;
+ 	uint8_t *secret;
+@@ -266,22 +250,18 @@ long __keyctl_dh_compute(struct keyctl_dh_params __user *params,
  
-@@ -76,8 +60,6 @@ int compute_ecdh_secret(struct crypto_kpp *tfm, const u8 public_key[64],
- 		goto free_tmp;
- 	}
- 
--	init_completion(&result.completion);
--
- 	swap_digits((u64 *)public_key, (u64 *)tmp, 4); /* x */
- 	swap_digits((u64 *)&public_key[32], (u64 *)&tmp[32], 4); /* y */
- 
-@@ -86,12 +68,9 @@ int compute_ecdh_secret(struct crypto_kpp *tfm, const u8 public_key[64],
- 	kpp_request_set_input(req, &src, 64);
- 	kpp_request_set_output(req, &dst, 32);
- 	kpp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
--				 ecdh_complete, &result);
-+				 crypto_req_done, &result);
- 	err = crypto_kpp_compute_shared_secret(req);
--	if (err == -EINPROGRESS) {
--		wait_for_completion(&result.completion);
--		err = result.err;
--	}
-+	err = crypto_wait_req(err, &result);
- 	if (err < 0) {
- 		pr_err("alg: ecdh: compute shared secret failed. err %d\n",
- 		       err);
-@@ -165,9 +144,9 @@ int set_ecdh_privkey(struct crypto_kpp *tfm, const u8 private_key[32])
-  */
- int generate_ecdh_public_key(struct crypto_kpp *tfm, u8 public_key[64])
- {
-+	DECLARE_CRYPTO_WAIT(result);
- 	struct kpp_request *req;
- 	u8 *tmp;
--	struct ecdh_completion result;
- 	struct scatterlist dst;
- 	int err;
- 
-@@ -181,18 +160,14 @@ int generate_ecdh_public_key(struct crypto_kpp *tfm, u8 public_key[64])
- 		goto free_tmp;
- 	}
- 
--	init_completion(&result.completion);
- 	sg_init_one(&dst, tmp, 64);
  	kpp_request_set_input(req, NULL, 0);
- 	kpp_request_set_output(req, &dst, 64);
- 	kpp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
--				 ecdh_complete, &result);
-+				 crypto_req_done, &result);
+ 	kpp_request_set_output(req, &outsg, outlen);
+-	init_completion(&compl.completion);
+ 	kpp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG |
+ 				 CRYPTO_TFM_REQ_MAY_SLEEP,
+-				 dh_crypto_done, &compl);
++				 crypto_req_done, &compl);
  
- 	err = crypto_kpp_generate_public_key(req);
--	if (err == -EINPROGRESS) {
--		wait_for_completion(&result.completion);
--		err = result.err;
+ 	/*
+ 	 * For DH, generate_public_key and generate_shared_secret are
+ 	 * the same calculation
+ 	 */
+ 	ret = crypto_kpp_generate_public_key(req);
+-	if (ret == -EINPROGRESS) {
+-		wait_for_completion(&compl.completion);
+-		ret = compl.err;
+-		if (ret)
+-			goto out6;
 -	}
-+	err = crypto_wait_req(err, &result);
- 	if (err < 0)
- 		goto free_all;
++	ret = crypto_wait_req(ret, &compl);
++	if (ret)
++		goto out6;
  
+ 	if (kdfcopy) {
+ 		/*
