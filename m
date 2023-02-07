@@ -1,45 +1,86 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 0/17] crypto: api - Change completion callback argument
- to void star
-Date: Tue, 7 Feb 2023 16:03:52 +0800
-Message-ID: <Y+IF6L4cb2Ijy0fN@gondor.apana.org.au>
+Subject: [PATCH] tls: Pass rec instead of aead_req into
+ tls_encrypt_done
+Date: Tue, 7 Feb 2023 16:18:36 +0800
+Message-ID: <Y+IJXEYPuaQWjfR5@gondor.apana.org.au>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
- <20230206231008.64c822c1@kernel.org>
+ <E1pOydn-007zi3-LG@formenos.hmeau.com>
+ <20230206231521.712f53e5@kernel.org>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45194 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230075AbjBGIEd (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 7 Feb 2023 03:04:33 -0500
-Content-Disposition: inline
-In-Reply-To: <20230206231008.64c822c1@kernel.org>
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <dm-devel-bounces@redhat.com>
+In-Reply-To: <20230206231521.712f53e5@kernel.org>
+List-Id: <ecryptfs.vger.kernel.org>
+List-Unsubscribe: <https://listman.redhat.com/mailman/options/dm-devel>,
+ <mailto:dm-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <http://listman.redhat.com/archives/dm-devel/>
+List-Post: <mailto:dm-devel@redhat.com>
+List-Help: <mailto:dm-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://listman.redhat.com/mailman/listinfo/dm-devel>,
+ <mailto:dm-devel-request@redhat.com?subject=subscribe>
+Errors-To: dm-devel-bounces@redhat.com
+Sender: "dm-devel" <dm-devel-bounces@redhat.com>
+Content-Disposition: inline
 To: Jakub Kicinski <kuba@kernel.org>
-Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko@kerne>
+Cc: David Howells <dhowells@redhat.com>, dm-devel@redhat.com, keyrings@vger.kernel.org, Alasdair Kergon <agk@redhat.com>, Steffen Klassert <steffen.klassert@secunet.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, Tyler Hicks <code@tyhicks.com>, Paolo Abeni <pabeni@redhat.com>, Johan Hedberg <johan.hedberg@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, ecryptfs@vger.kernel.org, Mike Snitzer <snitzer@kernel.org>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, netdev@vger.kernel.org, Eric Dumazet <edumazet@google.com>, Jon Maloy <jmaloy@redhat.com>, linux-bluetooth@vger.kernel.org, Jarkko Sakkinen <jarkko@kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Ying Xue <ying.xue@windriver.com>, "David S. Miller" <davem@davemloft.net>
 
-On Mon, Feb 06, 2023 at 11:10:08PM -0800, Jakub Kicinski wrote:
-> On Mon, 6 Feb 2023 18:21:06 +0800 Herbert Xu wrote:
-> > The crypto completion function currently takes a pointer to a
-> > struct crypto_async_request object.  However, in reality the API
-> > does not allow the use of any part of the object apart from the
-> > data field.  For example, ahash/shash will create a fake object
-> > on the stack to pass along a different data field.
+On Mon, Feb 06, 2023 at 11:15:21PM -0800, Jakub Kicinski wrote:
+>
+> >  	aead_request_set_callback(aead_req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+> > -				  tls_encrypt_done, sk);
+> > +				  tls_encrypt_done, aead_req);
 > 
-> "different data field" == copy the value to a different structure?
-> A bit hard to parse TBH.
+> ... let's just pass rec instead of aead_req here, then?
 
-The word data here refers to the data field in struct crypto_async_request.
+Good point.  Could we do this as a follow-up patch? Reposting
+the whole series would disturb a lot of people.  Of course if
+other major issues crop up I can fold this into the existing
+patch.
+
+Thanks!
+
+---8<---
+The function tls_encrypt_done only uses aead_req to get ahold of
+the tls_rec object.  So we could pass that in instead of aead_req
+to simplify the code.
+
+Suggested-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+
+diff --git a/net/tls/tls_sw.c b/net/tls/tls_sw.c
+index 0515cda32fe2..6dfec2e8fdfa 100644
+--- a/net/tls/tls_sw.c
++++ b/net/tls/tls_sw.c
+@@ -430,18 +430,16 @@ int tls_tx_records(struct sock *sk, int flags)
  
-> Buggy means bug could be hit in real light or buggy == did not use 
-> the API right?
-
-Yes this bug is real.  If you hit a driver/algorithm that returns
-a different request object (of which there are many in the API) then
-you will be dereferencing random pointers.
-
-Cheers,
+ static void tls_encrypt_done(void *data, int err)
+ {
+-	struct aead_request *aead_req = data;
+ 	struct tls_sw_context_tx *ctx;
+ 	struct tls_context *tls_ctx;
+ 	struct tls_prot_info *prot;
++	struct tls_rec *rec = data;
+ 	struct scatterlist *sge;
+ 	struct sk_msg *msg_en;
+-	struct tls_rec *rec;
+ 	bool ready = false;
+ 	struct sock *sk;
+ 	int pending;
+ 
+-	rec = container_of(aead_req, struct tls_rec, aead_req);
+ 	msg_en = &rec->msg_encrypted;
+ 
+ 	sk = rec->sk;
+@@ -536,7 +534,7 @@ static int tls_do_encryption(struct sock *sk,
+ 			       data_len, rec->iv_data);
+ 
+ 	aead_request_set_callback(aead_req, CRYPTO_TFM_REQ_MAY_BACKLOG,
+-				  tls_encrypt_done, aead_req);
++				  tls_encrypt_done, rec);
+ 
+ 	/* Add the record in tx_list */
+ 	list_add_tail((struct list_head *)&rec->list, &ctx->tx_list);
 -- 
 Email: Herbert Xu <herbert@gondor.apana.org.au>
 Home Page: http://gondor.apana.org.au/~herbert/
