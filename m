@@ -1,35 +1,45 @@
-From: Mike Snitzer <snitzer@kernel.org>
-Subject: Re: [PATCH 11/17] dm: Remove completion function
- scaffolding
-Date: Mon, 6 Feb 2023 12:29:38 -0500
-Message-ID: <Y+E5AkiVTbjgXWjs@redhat.com>
+From: Jakub Kicinski <kuba@kernel.org>
+Subject: Re: [PATCH 0/17] crypto: api - Change completion callback argument
+ to void star
+Date: Mon, 6 Feb 2023 23:10:08 -0800
+Message-ID: <20230206231008.64c822c1@kernel.org>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
- <E1pOydu-007zio-0W@formenos.hmeau.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <dm-devel-bounces@redhat.com>
-In-Reply-To: <E1pOydu-007zio-0W@formenos.hmeau.com>
-List-Id: <ecryptfs.vger.kernel.org>
-List-Unsubscribe: <https://listman.redhat.com/mailman/options/dm-devel>,
- <mailto:dm-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <http://listman.redhat.com/archives/dm-devel/>
-List-Post: <mailto:dm-devel@redhat.com>
-List-Help: <mailto:dm-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://listman.redhat.com/mailman/listinfo/dm-devel>,
- <mailto:dm-devel-request@redhat.com?subject=subscribe>
-Errors-To: dm-devel-bounces@redhat.com
-Sender: "dm-devel" <dm-devel-bounces@redhat.com>
-Content-Disposition: inline
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231335AbjBGHKO (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 7 Feb 2023 02:10:14 -0500
+In-Reply-To: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
+List-ID: <ecryptfs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David Howells <dhowells@redhat.com>, dm-devel@redhat.com, keyrings@vger.kernel.org, Alasdair Kergon <agk@redhat.com>, Steffen Klassert <steffen.klassert@secunet.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, Tyler Hicks <code@tyhicks.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Johan Hedberg <johan.hedberg@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, ecryptfs@vger.kernel.org, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, netdev@vger.kernel.org, Eric Dumazet <edumazet@google.com>, Jon Maloy <jmaloy@redhat.com>, linux-bluetooth@vger.kernel.org, Jarkko Sakkinen <jarkko@kernel.org>, Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Ying Xue <ying.xue@windriver.com>, "David S. Miller" <davem@davemloft.net>
+Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.com>, Jarkko Sakkinen <jarkko@kerne>
 
-On Mon, Feb 06 2023 at  5:22P -0500,
-Herbert Xu <herbert@gondor.apana.org.au> wrote:
+On Mon, 6 Feb 2023 18:21:06 +0800 Herbert Xu wrote:
+> The crypto completion function currently takes a pointer to a
+> struct crypto_async_request object.  However, in reality the API
+> does not allow the use of any part of the object apart from the
+> data field.  For example, ahash/shash will create a fake object
+> on the stack to pass along a different data field.
 
-> This patch removes the temporary scaffolding now that the comletion
-> function signature has been converted.
+"different data field" == copy the value to a different structure?
+A bit hard to parse TBH.
+
+> This leads to potential bugs where the user may try to dereference
+> or otherwise use the crypto_async_request object.
 > 
-> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+> This series changes the completion function to take a void *
+> argument instead of crypto_async_request.
+> 
+> This series touches code in a number of different subsystems.
+> Most of them are trivial except for tls which was actually buggy
+> as it did exactly what was described above.
 
-Acked-by: Mike Snitzer <snitzer@kernel.org>
+Buggy means bug could be hit in real light or buggy == did not use 
+the API right?
+
+> I'd like to pull all the changes through the crypto tree.  But
+> feel free to object if you'd like the relevant patches to go
+> through your trees instead and I'll split this up.
