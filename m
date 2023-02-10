@@ -1,106 +1,66 @@
 From: Jarkko Sakkinen <jarkko@kernel.org>
-Subject: Re: [PATCH 3/17] fs: ecryptfs: Use crypto_wait_req
-Date: Fri, 10 Feb 2023 02:42:55 +0200
-Message-ID: <Y+WTD3TrxaJOPdRg@kernel.org>
+Subject: Re: [PATCH 2/17] net: macsec: Add scaffolding to change completion
+ function signature
+Date: Fri, 10 Feb 2023 02:43:55 +0200
+Message-ID: <Y+WTS5w9nbsoyZyr@kernel.org>
 References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
- <E1pOydd-007zgo-4c@formenos.hmeau.com>
+ <E1pOydb-007zgc-0p@formenos.hmeau.com>
 Mime-Version: 1.0
 Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37688 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229674AbjBJAm7 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 9 Feb 2023 19:42:59 -0500
+        with ESMTP id S229585AbjBJAoB (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Thu, 9 Feb 2023 19:44:01 -0500
 Content-Disposition: inline
-In-Reply-To: <E1pOydd-007zgo-4c@formenos.hmeau.com>
+In-Reply-To: <E1pOydb-007zgc-0p@formenos.hmeau.com>
 List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.c>
 
-On Mon, Feb 06, 2023 at 06:22:17PM +0800, Herbert Xu wrote:
-> This patch replaces the custom crypto completion function with
-> crypto_req_done.
+On Mon, Feb 06, 2023 at 06:22:15PM +0800, Herbert Xu wrote:
+> This patch adds temporary scaffolding so that the Crypto API
 
-nit: "Replace the custom crypto ..."
+nit: "Add ..."
 
+> completion function can take a void * instead of crypto_async_request.
+> Once affected users have been converted this can be removed.
 > 
 > Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 > ---
 > 
->  fs/ecryptfs/crypto.c |   30 +++---------------------------
->  1 file changed, 3 insertions(+), 27 deletions(-)
+>  drivers/net/macsec.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-> index e3f5d7f3c8a0..c3057539f088 100644
-> --- a/fs/ecryptfs/crypto.c
-> +++ b/fs/ecryptfs/crypto.c
-> @@ -260,22 +260,6 @@ int virt_to_scatterlist(const void *addr, int size, struct scatterlist *sg,
->  	return i;
+> diff --git a/drivers/net/macsec.c b/drivers/net/macsec.c
+> index bf8ac7a3ded7..b7d9d487ccd2 100644
+> --- a/drivers/net/macsec.c
+> +++ b/drivers/net/macsec.c
+> @@ -528,9 +528,9 @@ static void count_tx(struct net_device *dev, int ret, int len)
+>  	}
 >  }
 >  
-> -struct extent_crypt_result {
-> -	struct completion completion;
-> -	int rc;
-> -};
-> -
-> -static void extent_crypt_complete(struct crypto_async_request *req, int rc)
-> -{
-> -	struct extent_crypt_result *ecr = req->data;
-> -
-> -	if (rc == -EINPROGRESS)
-> -		return;
-> -
-> -	ecr->rc = rc;
-> -	complete(&ecr->completion);
-> -}
-> -
->  /**
->   * crypt_scatterlist
->   * @crypt_stat: Pointer to the crypt_stat struct to initialize.
-> @@ -293,7 +277,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
->  			     unsigned char *iv, int op)
+> -static void macsec_encrypt_done(struct crypto_async_request *base, int err)
+> +static void macsec_encrypt_done(crypto_completion_data_t *data, int err)
 >  {
->  	struct skcipher_request *req = NULL;
-> -	struct extent_crypt_result ecr;
-> +	DECLARE_CRYPTO_WAIT(ecr);
->  	int rc = 0;
+> -	struct sk_buff *skb = base->data;
+> +	struct sk_buff *skb = crypto_get_completion_data(data);
+>  	struct net_device *dev = skb->dev;
+>  	struct macsec_dev *macsec = macsec_priv(dev);
+>  	struct macsec_tx_sa *sa = macsec_skb_cb(skb)->tx_sa;
+> @@ -835,9 +835,9 @@ static void count_rx(struct net_device *dev, int len)
+>  	u64_stats_update_end(&stats->syncp);
+>  }
 >  
->  	if (unlikely(ecryptfs_verbosity > 0)) {
-> @@ -303,8 +287,6 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
->  				  crypt_stat->key_size);
->  	}
->  
-> -	init_completion(&ecr.completion);
-> -
->  	mutex_lock(&crypt_stat->cs_tfm_mutex);
->  	req = skcipher_request_alloc(crypt_stat->tfm, GFP_NOFS);
->  	if (!req) {
-> @@ -315,7 +297,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
->  
->  	skcipher_request_set_callback(req,
->  			CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
-> -			extent_crypt_complete, &ecr);
-> +			crypto_req_done, &ecr);
->  	/* Consider doing this once, when the file is opened */
->  	if (!(crypt_stat->flags & ECRYPTFS_KEY_SET)) {
->  		rc = crypto_skcipher_setkey(crypt_stat->tfm, crypt_stat->key,
-> @@ -334,13 +316,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
->  	skcipher_request_set_crypt(req, src_sg, dst_sg, size, iv);
->  	rc = op == ENCRYPT ? crypto_skcipher_encrypt(req) :
->  			     crypto_skcipher_decrypt(req);
-> -	if (rc == -EINPROGRESS || rc == -EBUSY) {
-> -		struct extent_crypt_result *ecr = req->base.data;
-> -
-> -		wait_for_completion(&ecr->completion);
-> -		rc = ecr->rc;
-> -		reinit_completion(&ecr->completion);
-> -	}
-> +	rc = crypto_wait_req(rc, &ecr);
->  out:
->  	skcipher_request_free(req);
->  	return rc;
-
+> -static void macsec_decrypt_done(struct crypto_async_request *base, int err)
+> +static void macsec_decrypt_done(crypto_completion_data_t *data, int err)
+>  {
+> -	struct sk_buff *skb = base->data;
+> +	struct sk_buff *skb = crypto_get_completion_data(data);
+>  	struct net_device *dev = skb->dev;
+>  	struct macsec_dev *macsec = macsec_priv(dev);
+>  	struct macsec_rx_sa *rx_sa = macsec_skb_cb(skb)->rx_sa;
 
 Acked-by: Jarkko Sakkinen <jarkko@kernel.org>
 
