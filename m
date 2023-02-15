@@ -1,64 +1,69 @@
-From: Jarkko Sakkinen <jarkko@kernel.org>
-Subject: Re: [PATCH 17/17] crypto: api - Remove completion function
- scaffolding
-Date: Fri, 10 Feb 2023 02:56:34 +0200
-Message-ID: <Y+WWQgP/qTmLN42m@kernel.org>
-References: <Y+DUkqe1sagWaErA@gondor.apana.org.au>
- <E1pOye6-007zks-J4@formenos.hmeau.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH] fs/ecryptfs: Replace kmap_atomic() with kmap_local_page()
+Date: Tue, 14 Feb 2023 20:42:33 -0800
+Message-ID: <63ec62b9a1285_18bf5929449@iweiny-mobl.notmuch>
+References: <20230103190259.30944-1-fmdefrancesco@gmail.com>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48974 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230507AbjBJA6a (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Thu, 9 Feb 2023 19:58:30 -0500
-Content-Disposition: inline
-In-Reply-To: <E1pOye6-007zks-J4@formenos.hmeau.com>
-List-ID: <ecryptfs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Return-path: <ecryptfs-owner@vger.kernel.org>
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59276 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229536AbjBOEmx (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 14 Feb 2023 23:42:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20230103190259.30944-1-fmdefrancesco@gmail.com>
+List-ID: <ecryptfs.vger.kernel.org>
 Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Linux Crypto Mailing List <linux-crypto@vger.kernel.org>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com, "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Johan Hedberg <johan.hedberg@gmail.com>, Luiz Augusto von Dentz <luiz.dentz@gmail.com>, linux-bluetooth@vger.kernel.org, Steffen Klassert <steffen.klassert@secunet.com>, Jon Maloy <jmaloy@redhat.com>, Ying Xue <ying.xue@windriver.com>, Boris Pismenny <borisp@nvidia.com>, John Fastabend <john.fastabend@gmail.com>, David Howells <dhowells@redhat.c>
+To: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>, Tyler Hicks <code@tyhicks.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, Christian Brauner <brauner@kernel.org>, Damien Le Moal <damien.lemoal@opensource.wdc.com>, Al Viro <viro@zeniv.linux.org.uk>, Muchun Song <muchun.song@linux.dev>, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ira Weiny <ira.weiny@intel.com>
 
-On Mon, Feb 06, 2023 at 06:22:46PM +0800, Herbert Xu wrote:
-> This patch removes the temporary scaffolding now that the comletion
-> function signature has been converted.
+Fabio M. De Francesco wrote:
+> kmap_atomic() is deprecated in favor of kmap_local_page(). Therefore,
+> replace kmap_atomic() with kmap_local_page() in ecryptfs_write().
 > 
-> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+> kmap_atomic() is implemented like a kmap_local_page() which also disables
+> page-faults and preemption (the latter only for !PREEMPT_RT kernels).
+> 
+> The code within the mapping/un-mapping in ecryptfs_write() does not
+> depend on the above-mentioned side effects.
+> 
+> Therefore, a mere replacement of the old API with the new one is all that
+> is required (i.e., there is no need to explicitly add any calls to
+> pagefault_disable() and/or preempt_disable()).
+> 
+> Suggested-by: Ira Weiny <ira.weiny@intel.com>
 
-For the 1-17:
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-Acked-by: Jarkko Sakkinen <jarkko@kernel.org>
-
-(nit applies tho to all of them but use your own judgement i guess)
-
+> Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
 > ---
+>  fs/ecryptfs/read_write.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
->  include/linux/crypto.h |    6 ------
->  1 file changed, 6 deletions(-)
+> diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+> index 5edf027c8359..3458f153a588 100644
+> --- a/fs/ecryptfs/read_write.c
+> +++ b/fs/ecryptfs/read_write.c
+> @@ -140,7 +140,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+>  			       ecryptfs_page_idx, rc);
+>  			goto out;
+>  		}
+> -		ecryptfs_page_virt = kmap_atomic(ecryptfs_page);
+> +		ecryptfs_page_virt = kmap_local_page(ecryptfs_page);
+>  
+>  		/*
+>  		 * pos: where we're now writing, offset: where the request was
+> @@ -163,7 +163,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+>  			       (data + data_offset), num_bytes);
+>  			data_offset += num_bytes;
+>  		}
+> -		kunmap_atomic(ecryptfs_page_virt);
+> +		kunmap_local(ecryptfs_page_virt);
+>  		flush_dcache_page(ecryptfs_page);
+>  		SetPageUptodate(ecryptfs_page);
+>  		unlock_page(ecryptfs_page);
+> -- 
+> 2.39.0
 > 
-> diff --git a/include/linux/crypto.h b/include/linux/crypto.h
-> index 80f6350fb588..bb1d9b0e1647 100644
-> --- a/include/linux/crypto.h
-> +++ b/include/linux/crypto.h
-> @@ -176,7 +176,6 @@ struct crypto_async_request;
->  struct crypto_tfm;
->  struct crypto_type;
->  
-> -typedef void crypto_completion_data_t;
->  typedef void (*crypto_completion_t)(void *req, int err);
->  
->  /**
-> @@ -596,11 +595,6 @@ struct crypto_wait {
->  /*
->   * Async ops completion helper functioons
->   */
-> -static inline void *crypto_get_completion_data(void *data)
-> -{
-> -	return data;
-> -}
-> -
->  void crypto_req_done(void *req, int err);
->  
->  static inline int crypto_wait_req(int err, struct crypto_wait *wait)
 
-BR, Jarkko
+
