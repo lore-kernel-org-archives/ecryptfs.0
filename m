@@ -2,129 +2,132 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D717FC77B7C
-	for <ecryptfs@archiver.kernel.org>; Wed, 26 Apr 2023 17:22:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C7AC77B7F
+	for <ecryptfs@archiver.kernel.org>; Fri,  5 May 2023 08:13:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234335AbjDZRWk (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Wed, 26 Apr 2023 13:22:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45712 "EHLO
+        id S231268AbjEEINb (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Fri, 5 May 2023 04:13:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234539AbjDZRWi (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 26 Apr 2023 13:22:38 -0400
-Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA5D2659C;
-        Wed, 26 Apr 2023 10:22:36 -0700 (PDT)
-Received: by mail-wm1-x331.google.com with SMTP id 5b1f17b1804b1-3f09b4a156eso50064575e9.3;
-        Wed, 26 Apr 2023 10:22:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682529755; x=1685121755;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=M2lKJ7H2AsnPXnAoRhxC4/QNYeStDrQGHV93BCmG0Qk=;
-        b=ovVlK3mUnL5PxCnuMsF/F7CJzQEvkzeNKwTDaOqDQH/wtcEcObY8SZovSARnXzo48D
-         5WZatdlcVN53E+ZbOacBVcbhVFASWLOhRce1jZ5uE4T/4GVGyjnNnL2A/IX36gN/BL7R
-         /cdnOLqnIR9eHguMRexaSVyeflq/qNCA890EujZEtgTfTq/n95wz6mUnBAxzXdlUezxL
-         L9UpfKxqMw5VG0a77bQpHNTWgyZ5RBIFM/YfqxM52mefCxuPMDekYX0oMJCivJPUudQB
-         1rh9WusNGV6r5R0TwyrirLUTW5skUTgsX6xxtsZLEjrXJSrxZuW7m1sUEZUkkcm9T+Iz
-         1dIg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682529755; x=1685121755;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=M2lKJ7H2AsnPXnAoRhxC4/QNYeStDrQGHV93BCmG0Qk=;
-        b=OOwd27RCUfx8YbkBJGH6JqPs+nwB04dcK3k/0CARtQUJ/X64mZ58vznwzDQOKJCWPg
-         UT3VpRo2tKGTuz6cYyrOiCUk4OF3T/fL5E8Vk1IwXXPPl4b/AUn9z5ve3R4N7oufKWss
-         tO8XO6rYt6iGF1hrHcvHX033NYPl9oidEXa1qrqE3sBbeKAIa4pPmd/c6e3BoEQuNwIa
-         yGosQLA+MI/lN0DoL3EWAvsozM/zcqS8NU9m2xJJb4iUZIpQUxyaF5yY9WBdP35VKmGi
-         6SljFvRqzHZevZ8YC+XL1UDnzlwknR5HY8DHx8h3weeg9Oujdrb6AkCAllBrjUejp/h5
-         aHrg==
-X-Gm-Message-State: AAQBX9f7mj6uJD9xC/Oyh8+9Q5VsBlcCubYRT5sEnYCX0ySapoYWJZI0
-        ExyUfa4CfioqefMLjMGoTp6USuVnobE=
-X-Google-Smtp-Source: AKy350bQz4xJGQrPbvsHjzNKXIpaf52CPbDK2Xhbosn8rBfTawkRh8ySw5Gxe0HpAI92oL79Y6ErRw==
-X-Received: by 2002:a05:600c:378f:b0:3f1:73c8:3a6d with SMTP id o15-20020a05600c378f00b003f173c83a6dmr13831126wmr.12.1682529754983;
-        Wed, 26 Apr 2023 10:22:34 -0700 (PDT)
-Received: from localhost.localdomain (host-87-21-14-179.retail.telecomitalia.it. [87.21.14.179])
-        by smtp.gmail.com with ESMTPSA id v21-20020a7bcb55000000b003f16f362ae7sm18675613wmj.21.2023.04.26.10.22.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 26 Apr 2023 10:22:34 -0700 (PDT)
-From:   "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-To:     Tyler Hicks <code@tyhicks.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Dave Chinner <dchinner@redhat.com>,
-        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH v2 3/3] fs/ecryptfs: Use kmap_local_page() in copy_up_encrypted_with_header()
-Date:   Wed, 26 Apr 2023 19:22:23 +0200
-Message-Id: <20230426172223.8896-4-fmdefrancesco@gmail.com>
-X-Mailer: git-send-email 2.40.0
-In-Reply-To: <20230426172223.8896-1-fmdefrancesco@gmail.com>
-References: <20230426172223.8896-1-fmdefrancesco@gmail.com>
+        with ESMTP id S231139AbjEEINa (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 5 May 2023 04:13:30 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 710981634D;
+        Fri,  5 May 2023 01:13:29 -0700 (PDT)
+Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QCNgb2Bb0zsR53;
+        Fri,  5 May 2023 16:11:39 +0800 (CST)
+Received: from ubuntu1804.huawei.com (10.67.174.58) by
+ dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Fri, 5 May 2023 16:13:26 +0800
+From:   Xiu Jianfeng <xiujianfeng@huawei.com>
+To:     <gregkh@linuxfoundation.org>, <rafael@kernel.org>,
+        <viro@zeniv.linux.org.uk>, <brauner@kernel.org>,
+        <dhowells@redhat.com>, <code@tyhicks.com>,
+        <hirofumi@mail.parknet.co.jp>, <linkinjeon@kernel.org>,
+        <sfrench@samba.org>, <senozhatsky@chromium.org>, <tom@talpey.com>,
+        <chuck.lever@oracle.com>, <jlayton@kernel.org>,
+        <miklos@szeredi.hu>, <paul@paul-moore.com>, <jmorris@namei.org>,
+        <serge@hallyn.com>, <stephen.smalley.work@gmail.com>,
+        <eparis@parisplace.org>, <casey@schaufler-ca.com>,
+        <dchinner@redhat.com>, <john.johansen@canonical.com>,
+        <mcgrof@kernel.org>, <mortonm@chromium.org>, <fred@cloudflare.com>,
+        <mic@digikod.net>, <mpe@ellerman.id.au>, <nathanl@linux.ibm.com>,
+        <gnoack3000@gmail.com>, <roberto.sassu@huawei.com>
+CC:     <linux-kernel@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+        <linux-cachefs@redhat.com>, <ecryptfs@vger.kernel.org>,
+        <linux-cifs@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+        <linux-unionfs@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>, <selinux@vger.kernel.org>,
+        <wangweiyang2@huawei.com>
+Subject: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
+Date:   Fri, 5 May 2023 16:11:58 +0800
+Message-ID: <20230505081200.254449-1-xiujianfeng@huawei.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.67.174.58]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggpeml500023.china.huawei.com (7.185.36.114)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <ecryptfs.vger.kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 
-kmap_atomic() has been deprecated in favor of kmap_local_page().
+Hi,
 
-Therefore, replace kmap_atomic() with kmap_local_page() in
-ecryptfs_copy_up_encrypted_with_header().
+I am working on adding xattr/attr support for landlock [1], so we can
+control fs accesses such as chmod, chown, uptimes, setxattr, etc.. inside
+landlock sandbox. the LSM hooks as following are invoved:
+1.inode_setattr
+2.inode_setxattr
+3.inode_removexattr
+4.inode_set_acl
+5.inode_remove_acl
+which are controlled by LANDLOCK_ACCESS_FS_WRITE_METADATA.
 
-kmap_atomic() is implemented like a kmap_local_page() which also
-disables page-faults and preemption (the latter only in !PREEMPT_RT
-kernels). The kernel virtual addresses returned by these two API are
-only valid in the context of the callers (i.e., they cannot be handed to
-other threads).
+and
+1.inode_getattr
+2.inode_get_acl
+3.inode_getxattr
+4.inode_listxattr
+which are controlled by LANDLOCK_ACCESS_FS_READ_METADATA
 
-With kmap_local_page() the mappings are per thread and CPU local like
-in kmap_atomic(); however, they can handle page-faults and can be called
-from any context (including interrupts). The tasks that call
-kmap_local_page() can be preempted and, when they are scheduled to run
-again, the kernel virtual addresses are restored and are still valid.
+Some of these hooks only take struct dentry as a argument, However, for
+path-based LSMs such Landlock, Apparmor and Tomoyo, struct path instead
+of struct dentry required to make sense of attr/xattr accesses. So we
+need to refactor these hooks to take a struct path argument.
 
-In ecryptfs_copy_up_encrypted_with_header(), the block of code between
-the mapping and un-mapping does not depend on the above-mentioned side
-effects of kmap_aatomic(), so that the mere replacements of the old API
-with the new one is all that is required (i.e., there is no need to
-explicitly call pagefault_disable() and/or preempt_disable()).
+This patchset only refators inode_setattr hook as part of whole work.
 
-Tested in a QEMU/KVM x86_32 VM, 6GB RAM, booting a kernel with
-HIGHMEM64GB enabled.
+Also, I have a problem about file_dentry() in __file_remove_privs() of the
+first patch, before changes in commit c1892c37769cf ("vfs: fix deadlock in
+file_remove_privs() on overlayfs"), it gets dentry and inode as belows:
 
-Cc: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
----
- fs/ecryptfs/mmap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+struct dentry *dentry = file->f_path.dentry;
+struct inode *inode = d_inode(dentry);
 
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 373c3e5747e6..cb1e998ce54d 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -125,7 +125,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
- 			/* This is a header extent */
- 			char *page_virt;
- 
--			page_virt = kmap_atomic(page);
-+			page_virt = kmap_local_page(page);
- 			memset(page_virt, 0, PAGE_SIZE);
- 			/* TODO: Support more than one header extent */
- 			if (view_extent_num == 0) {
-@@ -138,7 +138,7 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
- 							       crypt_stat,
- 							       &written);
- 			}
--			kunmap_atomic(page_virt);
-+			kunmap_local(page_virt);
- 			flush_dcache_page(page);
- 			if (rc) {
- 				printk(KERN_ERR "%s: Error reading xattr "
+That would be clear to change it to pass &file->f_path to
+__remove_privs()->notify_change()->inode_setattr().
+After that commit, it has been changed to:
+
+struct dentry *dentry = file_dentry(file);
+struct inode *inode = file_inode(file);
+
+If I understand correctly, the dentry from file_dentry() maybe the upper
+or the lower, it can be different from file->f_path.dentry. It can't just
+go back to use &file->f_path otherwise the bug will come back for
+overlayfs. So for such scenario, how to get a path from file if the file
+maybe or not from overlayfs, and which kind of overlayfs path is ok for
+Landlock?
+
+Xiu Jianfeng (2):
+  fs: Change notify_change() to take struct path argument
+  lsm: Change inode_setattr hook to take struct path argument
+
+ drivers/base/devtmpfs.c       |  5 +++--
+ fs/attr.c                     |  7 ++++---
+ fs/cachefiles/interface.c     |  4 ++--
+ fs/coredump.c                 |  2 +-
+ fs/ecryptfs/inode.c           | 18 +++++++++---------
+ fs/fat/file.c                 |  2 +-
+ fs/inode.c                    |  8 +++++---
+ fs/ksmbd/smb2pdu.c            |  6 +++---
+ fs/ksmbd/smbacl.c             |  2 +-
+ fs/namei.c                    |  2 +-
+ fs/nfsd/vfs.c                 | 12 ++++++++----
+ fs/open.c                     | 19 ++++++++++---------
+ fs/overlayfs/overlayfs.h      |  4 +++-
+ fs/utimes.c                   |  2 +-
+ include/linux/fs.h            |  4 ++--
+ include/linux/lsm_hook_defs.h |  2 +-
+ include/linux/security.h      |  4 ++--
+ security/security.c           | 10 +++++-----
+ security/selinux/hooks.c      |  3 ++-
+ security/smack/smack_lsm.c    |  5 +++--
+ 20 files changed, 67 insertions(+), 54 deletions(-)
+
 -- 
-2.40.0
+2.17.1
 
