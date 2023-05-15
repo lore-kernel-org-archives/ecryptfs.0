@@ -2,69 +2,67 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45709C7EE23
-	for <ecryptfs@archiver.kernel.org>; Wed, 10 May 2023 00:58:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F18FC77B75
+	for <ecryptfs@archiver.kernel.org>; Mon, 15 May 2023 15:12:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235302AbjEJA6Y (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Tue, 9 May 2023 20:58:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45640 "EHLO
+        id S240509AbjEOPMj (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Mon, 15 May 2023 11:12:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229702AbjEJA6W (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Tue, 9 May 2023 20:58:22 -0400
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A375E44AB;
-        Tue,  9 May 2023 17:58:20 -0700 (PDT)
-Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.53])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4QGGjw6xnszTkTS;
-        Wed, 10 May 2023 08:53:40 +0800 (CST)
-Received: from [10.67.110.112] (10.67.110.112) by
- dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Wed, 10 May 2023 08:58:18 +0800
-Message-ID: <c6e84076-9134-8c27-75bb-9191da6c23c3@huawei.com>
-Date:   Wed, 10 May 2023 08:58:17 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.5.1
+        with ESMTP id S239217AbjEOPMi (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Mon, 15 May 2023 11:12:38 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27F9A8E;
+        Mon, 15 May 2023 08:12:38 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8AE57625F3;
+        Mon, 15 May 2023 15:12:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AA3FC433D2;
+        Mon, 15 May 2023 15:12:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684163557;
+        bh=W0/Ro3g+UnuQaJT98MLDjMPTmmzKa0SW17mCg2HptuM=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=qEwtpFA4B/izRqgX0Ybd2/WCOsnAVQoJrCFH/KTc479UYdVLoJ0CCpe6eI64JOn8t
+         1IUMF1n1TH7q3GPEeqE3DxNpZlBFGo4xjAV2N8V/AQpZjs78o85IccISP779XvEB0j
+         uQ2HJPQ8T3w6XH5FsTz+/wcYHQT39jwQU37RQI9xK7+grnrsT8A+1wDt+loetoEtQE
+         kX/E/qdTJRobgxzTV6j0aHTA1+rE8G2HJTsEZymPuCUZCQTepnSwR+L4qLoaMNsfQV
+         fa6j7N1q4xFWI0djfVNyNhnX9akdSQcaKgz0lrGYRdbLLg9ZP7ZeD6UeOIf9O1mnRt
+         nMKXs1lMWu9tQ==
+Date:   Mon, 15 May 2023 17:12:24 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc:     gregkh@linuxfoundation.org, rafael@kernel.org,
+        viro@zeniv.linux.org.uk, dhowells@redhat.com, code@tyhicks.com,
+        hirofumi@mail.parknet.co.jp, linkinjeon@kernel.org,
+        sfrench@samba.org, senozhatsky@chromium.org, tom@talpey.com,
+        chuck.lever@oracle.com, jlayton@kernel.org, miklos@szeredi.hu,
+        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+        stephen.smalley.work@gmail.com, eparis@parisplace.org,
+        casey@schaufler-ca.com, dchinner@redhat.com,
+        john.johansen@canonical.com, mcgrof@kernel.org,
+        mortonm@chromium.org, fred@cloudflare.com, mic@digikod.net,
+        mpe@ellerman.id.au, nathanl@linux.ibm.com, gnoack3000@gmail.com,
+        roberto.sassu@huawei.com, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
+        wangweiyang2@huawei.com
 Subject: Re: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
-Content-Language: en-US
-From:   xiujianfeng <xiujianfeng@huawei.com>
-To:     <gregkh@linuxfoundation.org>, <rafael@kernel.org>,
-        <viro@zeniv.linux.org.uk>, <brauner@kernel.org>,
-        <dhowells@redhat.com>, <code@tyhicks.com>,
-        <hirofumi@mail.parknet.co.jp>, <linkinjeon@kernel.org>,
-        <sfrench@samba.org>, <senozhatsky@chromium.org>, <tom@talpey.com>,
-        <chuck.lever@oracle.com>, <jlayton@kernel.org>,
-        <miklos@szeredi.hu>, <paul@paul-moore.com>, <jmorris@namei.org>,
-        <serge@hallyn.com>, <stephen.smalley.work@gmail.com>,
-        <eparis@parisplace.org>, <casey@schaufler-ca.com>,
-        <dchinner@redhat.com>, <john.johansen@canonical.com>,
-        <mcgrof@kernel.org>, <mortonm@chromium.org>, <fred@cloudflare.com>,
-        <mic@digikod.net>, <mpe@ellerman.id.au>, <nathanl@linux.ibm.com>,
-        <gnoack3000@gmail.com>, <roberto.sassu@huawei.com>
-CC:     <linux-kernel@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-cachefs@redhat.com>, <ecryptfs@vger.kernel.org>,
-        <linux-cifs@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
-        <linux-unionfs@vger.kernel.org>,
-        <linux-security-module@vger.kernel.org>, <selinux@vger.kernel.org>,
-        <wangweiyang2@huawei.com>
+Message-ID: <20230515-nutzen-umgekehrt-eee629a0101e@brauner>
 References: <20230505081200.254449-1-xiujianfeng@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 In-Reply-To: <20230505081200.254449-1-xiujianfeng@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.67.110.112]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- dggpeml500023.china.huawei.com (7.185.36.114)
-X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <ecryptfs.vger.kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 
-sorry, I forgot to add the link to preview discussion:
-
-https://lore.kernel.org/all/20220827111215.131442-1-xiujianfeng@huawei.com/
-
-On 2023/5/5 16:11, Xiu Jianfeng wrote:
+On Fri, May 05, 2023 at 04:11:58PM +0800, Xiu Jianfeng wrote:
 > Hi,
 > 
 > I am working on adding xattr/attr support for landlock [1], so we can
@@ -83,58 +81,20 @@ On 2023/5/5 16:11, Xiu Jianfeng wrote:
 > 3.inode_getxattr
 > 4.inode_listxattr
 > which are controlled by LANDLOCK_ACCESS_FS_READ_METADATA
-> 
-> Some of these hooks only take struct dentry as a argument, However, for
-> path-based LSMs such Landlock, Apparmor and Tomoyo, struct path instead
-> of struct dentry required to make sense of attr/xattr accesses. So we
-> need to refactor these hooks to take a struct path argument.
-> 
-> This patchset only refators inode_setattr hook as part of whole work.
-> 
-> Also, I have a problem about file_dentry() in __file_remove_privs() of the
-> first patch, before changes in commit c1892c37769cf ("vfs: fix deadlock in
-> file_remove_privs() on overlayfs"), it gets dentry and inode as belows:
-> 
-> struct dentry *dentry = file->f_path.dentry;
-> struct inode *inode = d_inode(dentry);
-> 
-> That would be clear to change it to pass &file->f_path to
-> __remove_privs()->notify_change()->inode_setattr().
-> After that commit, it has been changed to:
-> 
-> struct dentry *dentry = file_dentry(file);
-> struct inode *inode = file_inode(file);
-> 
-> If I understand correctly, the dentry from file_dentry() maybe the upper
-> or the lower, it can be different from file->f_path.dentry. It can't just
-> go back to use &file->f_path otherwise the bug will come back for
-> overlayfs. So for such scenario, how to get a path from file if the file
-> maybe or not from overlayfs, and which kind of overlayfs path is ok for
-> Landlock?
-> 
-> Xiu Jianfeng (2):
->   fs: Change notify_change() to take struct path argument
->   lsm: Change inode_setattr hook to take struct path argument
-> 
->  drivers/base/devtmpfs.c       |  5 +++--
->  fs/attr.c                     |  7 ++++---
->  fs/cachefiles/interface.c     |  4 ++--
->  fs/coredump.c                 |  2 +-
->  fs/ecryptfs/inode.c           | 18 +++++++++---------
->  fs/fat/file.c                 |  2 +-
->  fs/inode.c                    |  8 +++++---
->  fs/ksmbd/smb2pdu.c            |  6 +++---
->  fs/ksmbd/smbacl.c             |  2 +-
->  fs/namei.c                    |  2 +-
->  fs/nfsd/vfs.c                 | 12 ++++++++----
->  fs/open.c                     | 19 ++++++++++---------
->  fs/overlayfs/overlayfs.h      |  4 +++-
->  fs/utimes.c                   |  2 +-
->  include/linux/fs.h            |  4 ++--
->  include/linux/lsm_hook_defs.h |  2 +-
->  include/linux/security.h      |  4 ++--
->  security/security.c           | 10 +++++-----
->  security/selinux/hooks.c      |  3 ++-
->  security/smack/smack_lsm.c    |  5 +++--
->  20 files changed, 67 insertions(+), 54 deletions(-)
-> 
+
+It would be helpful to get the complete, full picture.
+
+Piecemeal extending vfs helpers with struct path arguments is costly,
+will cause a lot of churn and will require a lot of review time from us.
+
+Please give us the list of all security hooks to which you want to pass
+a struct path (if there are more to come apart from the ones listed
+here). Then please follow all callchains and identify the vfs helpers
+that would need to be updated. Then please figure out where those
+vfs helpers are called from and follow all callchains finding all
+inode_operations that would have to be updated and passed a struct path
+argument. So ultimately we'll end up with a list of vfs helpers and
+inode_operations that would have to be changed.
+
+I'm very reluctant to see anything merged without knowing _exactly_ what
+you're getting us into.
