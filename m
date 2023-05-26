@@ -2,127 +2,113 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10EC2C77B73
-	for <ecryptfs@archiver.kernel.org>; Mon, 22 May 2023 13:54:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B09E4C7EE31
+	for <ecryptfs@archiver.kernel.org>; Fri, 26 May 2023 16:42:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234099AbjEVNyL (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Mon, 22 May 2023 09:54:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59336 "EHLO
+        id S229664AbjEZQmb (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Fri, 26 May 2023 12:42:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234127AbjEVNwv (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 22 May 2023 09:52:51 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 459FCE46
-        for <ecryptfs@vger.kernel.org>; Mon, 22 May 2023 06:51:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684763498;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=biWhCp40UoPe+CyS0Ztg+L+BfqL/s+IwYQGGzgJK6kA=;
-        b=BZKIK2rvkymFSSGrNDWoDXlABsVpdviFM1UlquAXtu6MjlADtyUU6Y6dQtsq5cALdRov8a
-        b8Q2aOMzIRln49jW4z+p4xxGelDZYKFR53+06kR8Z1QbbuwV+VWyOGzgccJKpLtY5qCA7K
-        DsxqU6oGfXA23WkFQBenrnOic/OH1aA=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-671-pS6JrZMuO7KdRfWYxzCxgw-1; Mon, 22 May 2023 09:51:33 -0400
-X-MC-Unique: pS6JrZMuO7KdRfWYxzCxgw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 0380C800BFF;
-        Mon, 22 May 2023 13:51:32 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.39.192.68])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id A3683C1ED99;
-        Mon, 22 May 2023 13:51:28 +0000 (UTC)
-From:   David Howells <dhowells@redhat.com>
-To:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>
-Cc:     David Howells <dhowells@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Jeff Layton <jlayton@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Hillf Danton <hdanton@sina.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Christoph Hellwig <hch@lst.de>, Tyler Hicks <code@tyhicks.com>,
-        ecryptfs@vger.kernel.org
-Subject: [PATCH v22 17/31] ecryptfs: Provide a splice-read wrapper
-Date:   Mon, 22 May 2023 14:50:04 +0100
-Message-Id: <20230522135018.2742245-18-dhowells@redhat.com>
-In-Reply-To: <20230522135018.2742245-1-dhowells@redhat.com>
-References: <20230522135018.2742245-1-dhowells@redhat.com>
+        with ESMTP id S236818AbjEZQma (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 26 May 2023 12:42:30 -0400
+X-Greylist: delayed 553 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 26 May 2023 09:42:26 PDT
+Received: from smtp-bc0a.mail.infomaniak.ch (smtp-bc0a.mail.infomaniak.ch [IPv6:2001:1600:4:17::bc0a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66C5C1B4
+        for <ecryptfs@vger.kernel.org>; Fri, 26 May 2023 09:42:26 -0700 (PDT)
+Received: from smtp-3-0001.mail.infomaniak.ch (unknown [10.4.36.108])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4QSVpc2hLFzMq9gR;
+        Fri, 26 May 2023 18:33:12 +0200 (CEST)
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4QSVpV20JTzMskdH;
+        Fri, 26 May 2023 18:33:06 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=digikod.net;
+        s=20191114; t=1685118792;
+        bh=HJQhmbmtbBhKQKuJigfXUA3I5dGt5vNd+kwPhAR19ZE=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=QqUfw9dzLlsE/jUv5i4Jbgo6yOquEH/LNulEp4j1bWACweWhxdKLOxVud95fbWB4E
+         npEnxoPtqyuJGwkskhuE2oFCSu10WcSFOgyuW8dZTYuf1lnresczWPQXS0hze8B1ou
+         boYfLZK8RC3g7VGc+V2WpOIG30d240jDxiyeRn5Q=
+Message-ID: <75b4746d-d41e-7c9f-4bb0-42a46bda7f17@digikod.net>
+Date:   Fri, 26 May 2023 18:33:05 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.8
+User-Agent: 
+Subject: Re: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
+Content-Language: en-US
+To:     Christian Brauner <brauner@kernel.org>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>
+Cc:     gregkh@linuxfoundation.org, rafael@kernel.org,
+        viro@zeniv.linux.org.uk, dhowells@redhat.com, code@tyhicks.com,
+        hirofumi@mail.parknet.co.jp, linkinjeon@kernel.org,
+        sfrench@samba.org, senozhatsky@chromium.org, tom@talpey.com,
+        chuck.lever@oracle.com, jlayton@kernel.org, miklos@szeredi.hu,
+        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+        stephen.smalley.work@gmail.com, eparis@parisplace.org,
+        casey@schaufler-ca.com, dchinner@redhat.com,
+        john.johansen@canonical.com, mcgrof@kernel.org,
+        mortonm@chromium.org, fred@cloudflare.com, mpe@ellerman.id.au,
+        nathanl@linux.ibm.com, gnoack3000@gmail.com,
+        roberto.sassu@huawei.com, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
+        wangweiyang2@huawei.com
+References: <20230505081200.254449-1-xiujianfeng@huawei.com>
+ <20230515-nutzen-umgekehrt-eee629a0101e@brauner>
+From:   =?UTF-8?Q?Micka=c3=abl_Sala=c3=bcn?= <mic@digikod.net>
+In-Reply-To: <20230515-nutzen-umgekehrt-eee629a0101e@brauner>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Infomaniak-Routing: alpha
 Precedence: bulk
 List-ID: <ecryptfs.vger.kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 
-Provide a splice_read wrapper for ecryptfs to update the access time on the
-lower file after the operation.  Splicing from a direct I/O fd will update
-the access time when ->read_iter() is called.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Christoph Hellwig <hch@lst.de>
-cc: Al Viro <viro@zeniv.linux.org.uk>
-cc: Jens Axboe <axboe@kernel.dk>
-cc: Tyler Hicks <code@tyhicks.com>
-cc: ecryptfs@vger.kernel.org
-cc: linux-fsdevel@vger.kernel.org
-cc: linux-block@vger.kernel.org
-cc: linux-mm@kvack.org
----
- fs/ecryptfs/file.c | 27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+On 15/05/2023 17:12, Christian Brauner wrote:
+> On Fri, May 05, 2023 at 04:11:58PM +0800, Xiu Jianfeng wrote:
+>> Hi,
+>>
+>> I am working on adding xattr/attr support for landlock [1], so we can
+>> control fs accesses such as chmod, chown, uptimes, setxattr, etc.. inside
+>> landlock sandbox. the LSM hooks as following are invoved:
+>> 1.inode_setattr
+>> 2.inode_setxattr
+>> 3.inode_removexattr
+>> 4.inode_set_acl
+>> 5.inode_remove_acl
+>> which are controlled by LANDLOCK_ACCESS_FS_WRITE_METADATA.
+>>
+>> and
+>> 1.inode_getattr
+>> 2.inode_get_acl
+>> 3.inode_getxattr
+>> 4.inode_listxattr
+>> which are controlled by LANDLOCK_ACCESS_FS_READ_METADATA
+> 
+> It would be helpful to get the complete, full picture.
+> 
+> Piecemeal extending vfs helpers with struct path arguments is costly,
+> will cause a lot of churn and will require a lot of review time from us.
+> 
+> Please give us the list of all security hooks to which you want to pass
+> a struct path (if there are more to come apart from the ones listed
+> here). Then please follow all callchains and identify the vfs helpers
+> that would need to be updated. Then please figure out where those
+> vfs helpers are called from and follow all callchains finding all
+> inode_operations that would have to be updated and passed a struct path
+> argument. So ultimately we'll end up with a list of vfs helpers and
+> inode_operations that would have to be changed.
+> 
+> I'm very reluctant to see anything merged without knowing _exactly_ what
+> you're getting us into.
 
-diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
-index 268b74499c28..284395587be0 100644
---- a/fs/ecryptfs/file.c
-+++ b/fs/ecryptfs/file.c
-@@ -44,6 +44,31 @@ static ssize_t ecryptfs_read_update_atime(struct kiocb *iocb,
- 	return rc;
- }
- 
-+/*
-+ * ecryptfs_splice_read_update_atime
-+ *
-+ * generic_file_splice_read updates the atime of upper layer inode.  But, it
-+ * doesn't give us a chance to update the atime of the lower layer inode.  This
-+ * function is a wrapper to generic_file_read.  It updates the atime of the
-+ * lower level inode if generic_file_read returns without any errors. This is
-+ * to be used only for file reads.  The function to be used for directory reads
-+ * is ecryptfs_read.
-+ */
-+static ssize_t ecryptfs_splice_read_update_atime(struct file *in, loff_t *ppos,
-+						 struct pipe_inode_info *pipe,
-+						 size_t len, unsigned int flags)
-+{
-+	ssize_t rc;
-+	const struct path *path;
-+
-+	rc = generic_file_splice_read(in, ppos, pipe, len, flags);
-+	if (rc >= 0) {
-+		path = ecryptfs_dentry_to_lower_path(in->f_path.dentry);
-+		touch_atime(path);
-+	}
-+	return rc;
-+}
-+
- struct ecryptfs_getdents_callback {
- 	struct dir_context ctx;
- 	struct dir_context *caller;
-@@ -414,5 +439,5 @@ const struct file_operations ecryptfs_main_fops = {
- 	.release = ecryptfs_release,
- 	.fsync = ecryptfs_fsync,
- 	.fasync = ecryptfs_fasync,
--	.splice_read = generic_file_splice_read,
-+	.splice_read = ecryptfs_splice_read_update_atime,
- };
+Ultimately we'd like the path-based LSMs to reach parity with the 
+inode-based LSMs. This proposal's goal is to provide users the ability 
+to control (in a complete and easy way) file metadata access. For these 
+we need to extend the inode_*attr hooks and inode_*acl hooks to handle 
+paths. The chown/chmod hooks are already good.
 
+In the future, I'd also like to be able to control directory traversals 
+(e.g. chdir), which currently only calls inode_permission().
+
+What would be the best way to reach this goal?
