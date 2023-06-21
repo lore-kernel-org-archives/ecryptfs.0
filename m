@@ -2,90 +2,76 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1663DC7EE2E
-	for <ecryptfs@archiver.kernel.org>; Mon, 12 Jun 2023 12:27:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB438EB64D7
+	for <ecryptfs@archiver.kernel.org>; Wed, 21 Jun 2023 14:50:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230369AbjFLM13 (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Mon, 12 Jun 2023 08:27:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51782 "EHLO
+        id S229926AbjFUOuJ (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Wed, 21 Jun 2023 10:50:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229541AbjFLM12 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Mon, 12 Jun 2023 08:27:28 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7062130
-        for <ecryptfs@vger.kernel.org>; Mon, 12 Jun 2023 05:26:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686572762;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=tTMhvLLlxLduku60kqh9t4hhU2KGCMkQO9qTJKYmDvE=;
-        b=ARn19Ew7MHAz00cixyaW4hDwMQybY3p327MHWFaEzdfwYTy/l1y8YZcpoNMQ0GPThHO1jP
-        efHqIKzYNnuQe8TlXxmNA/apY46rEP3b6lY08OTQ5XNmh8Tp6qpyC4uQvxWtDT0v4lnLam
-        ALuoh/NN09jjerCZjT4vAPty2gnblT8=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-30-AynBElupPJ6WiOJw2BAedg-1; Mon, 12 Jun 2023 08:25:57 -0400
-X-MC-Unique: AynBElupPJ6WiOJw2BAedg-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        with ESMTP id S230193AbjFUOtZ (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Wed, 21 Jun 2023 10:49:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B4B992135;
+        Wed, 21 Jun 2023 07:48:13 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id BDEEC3C11C67;
-        Mon, 12 Jun 2023 12:25:55 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.67])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 023222026833;
-        Mon, 12 Jun 2023 12:25:50 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-        Kingdom.
-        Registered in England and Wales under Company Registration No. 3798903
-From:   David Howells <dhowells@redhat.com>
-In-Reply-To: <202306121557.2d17019b-oliver.sang@intel.com>
-References: <202306121557.2d17019b-oliver.sang@intel.com>
-To:     kernel test robot <oliver.sang@intel.com>
-Cc:     dhowells@redhat.com, oe-lkp@lists.linux.dev, lkp@intel.com,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>,
-        Christian Brauner <brauner@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        David Hildenbrand <david@redhat.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-afs@lists.infradead.org, linux-btrfs@vger.kernel.org,
-        ecryptfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
-        linux-ext4@vger.kernel.org, cluster-devel@redhat.com,
-        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
-        jfs-discussion@lists.sourceforge.net, linux-nilfs@vger.kernel.org,
-        linux-ntfs-dev@lists.sourceforge.net, ntfs3@lists.linux.dev,
-        ocfs2-devel@oss.oracle.com,
-        linux-karma-devel@lists.sourceforge.net,
-        reiserfs-devel@vger.kernel.org, ying.huang@intel.com,
-        feng.tang@intel.com, fengwei.yin@intel.com
-Subject: Re: [linux-next:master] [splice] 2cb1e08985: stress-ng.sendfile.ops_per_sec 11.6% improvement
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8CB456157B;
+        Wed, 21 Jun 2023 14:48:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55919C433C9;
+        Wed, 21 Jun 2023 14:48:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687358893;
+        bh=zkF7XZXkTymtKzVrHDI637HQp5mSePtzjunOQ79N8zE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=gSHiEXsKhNqGZ+sB3hwTHXGNior3Vyk10xSUYstyJLFKIlTJSAOcnOQ2r8J35gKv4
+         hTQgG3n1FDzKuUnLiBOM2ubd4vVWoC1tGAFdUvw8PCKQpszcxBzhXWia3+eKh79s6B
+         uS2vR2lIKa92/++teZMrzYnXERN0GyecvjAunedslC8Ku286r07eMZOWmnPpXt151i
+         ARyuJgLmKm5pmwarGxtAYtFLRQgryXexDZHGYhW1Q4Fe6L+tP6QiTDIWsr2LP7GTHp
+         NykRzV8nRP3w7h5VFEoufujbW+ZihUvJJmL33Lkza8IfhRNn0JonD1p/9u/b2LvNCM
+         DYObIt+Ob7Yaw==
+From:   Jeff Layton <jlayton@kernel.org>
+To:     Christian Brauner <brauner@kernel.org>,
+        Tyler Hicks <code@tyhicks.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+        ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 23/79] ecryptfs: switch to new ctime accessors
+Date:   Wed, 21 Jun 2023 10:45:36 -0400
+Message-ID: <20230621144735.55953-22-jlayton@kernel.org>
+X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230621144735.55953-1-jlayton@kernel.org>
+References: <20230621144507.55591-1-jlayton@kernel.org>
+ <20230621144735.55953-1-jlayton@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <105868.1686572748.1@warthog.procyon.org.uk>
-Content-Transfer-Encoding: quoted-printable
-Date:   Mon, 12 Jun 2023 13:25:48 +0100
-Message-ID: <105869.1686572748@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <ecryptfs.vger.kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 
-kernel test robot <oliver.sang@intel.com> wrote:
+In later patches, we're going to change how the ctime.tv_nsec field is
+utilized. Switch to using accessor functions instead of raw accesses of
+inode->i_ctime.
 
-> kernel test robot noticed a 11.6% improvement of stress-ng.sendfile.ops_=
-per_sec on:
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+---
+ fs/ecryptfs/inode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If it's sending to a socket, this is entirely feasible.  The
-splice_to_socket() function now sends multiple pages in one go to the netw=
-ork
-protocol's sendmsg() method to process instead of using sendpage to send o=
-ne
-page at a time.
-
-David
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 83274915ba6d..3171214fdffd 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -148,7 +148,7 @@ static int ecryptfs_do_unlink(struct inode *dir, struct dentry *dentry,
+ 	}
+ 	fsstack_copy_attr_times(dir, lower_dir);
+ 	set_nlink(inode, ecryptfs_inode_to_lower(inode)->i_nlink);
+-	inode->i_ctime = dir->i_ctime;
++	inode_ctime_set(inode, inode_ctime_peek(dir));
+ out_unlock:
+ 	dput(lower_dentry);
+ 	inode_unlock(lower_dir);
+-- 
+2.41.0
 
