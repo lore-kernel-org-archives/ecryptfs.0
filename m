@@ -2,62 +2,60 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F5BEB64DD
-	for <ecryptfs@archiver.kernel.org>; Wed, 12 Jul 2023 15:33:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD130EB64DC
+	for <ecryptfs@archiver.kernel.org>; Tue, 18 Jul 2023 07:56:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233131AbjGLPc7 (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Wed, 12 Jul 2023 11:32:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48898 "EHLO
+        id S230199AbjGRH4f (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Tue, 18 Jul 2023 03:56:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232884AbjGLPc6 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Wed, 12 Jul 2023 11:32:58 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70720C2;
-        Wed, 12 Jul 2023 08:32:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:From:References:To:Subject:MIME-Version:Date:
-        Message-ID:Sender:Reply-To:Cc:Content-ID:Content-Description;
-        bh=689SEK0ciFY8KgDlRHFBreHHAC2z+cvH0wQ011Q2aMI=; b=df/VKiT91ZqRa0x7ofoJaXGlph
-        PM7CRP4KkwoXZKNJlvYdkig+/LLrQ9LVGVf40H6Qaywx20JwTqHlizlUxF15FF/hdi7QMcfJ88rOM
-        Tk9o3z44pMTcermnTCrLWAF39fzqRsD0ms+1lMmZtzToJzTD0SUcPG6eXBFgIigvbDeEBrSIYXiW/
-        GnykGmmqxl8DWPpBQb6tfrtLGgdO7lnddHDuy7SXW0bC9E1PhpCLadB/V3QSWJPX+bNFvOifeRdsy
-        3Vg5gSGOgGr74Cyg+9z9dxsezgnvq5bViTggfgF6K6g7cj7jT1ssxpJXUEt4gBcr4IJbEN74vqTce
-        EZsIkLBg==;
-Received: from [2601:1c2:980:9ec0::2764]
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1qJboy-000MRl-20;
-        Wed, 12 Jul 2023 15:32:04 +0000
-Message-ID: <03e153ce-328b-f279-2a40-4074bea2bc8f@infradead.org>
-Date:   Wed, 12 Jul 2023 08:31:55 -0700
+        with ESMTP id S230152AbjGRH4e (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Tue, 18 Jul 2023 03:56:34 -0400
+Received: from mail.venturelinkbiz.com (mail.venturelinkbiz.com [51.195.119.142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2614E199
+        for <ecryptfs@vger.kernel.org>; Tue, 18 Jul 2023 00:56:30 -0700 (PDT)
+Received: by mail.venturelinkbiz.com (Postfix, from userid 1002)
+        id C67E344EC2; Tue, 18 Jul 2023 07:56:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=venturelinkbiz.com;
+        s=mail; t=1689666985;
+        bh=Mjfq+hZZ0+rPTC06HjjASvlnsTMgj1yAndWxi/OAu2M=;
+        h=Date:From:To:Subject:From;
+        b=lJW8z4095MilFEuButUqEXe22HAGlQnWZhqrTaQqzFH5eGkdBurKZS878IzrdPSym
+         pk1zBmhxjQN9GVU4TftD27zq4bqwXmXBslxXyRJEQtGeqJ37R0AQ8GXngK1nTGAsa0
+         p7SY77fQ+bdQtWFP29qeljVFSQgYDuN1FAFHPZ/1LSKmmQ41V8PcUpiB+pqGA5pmDW
+         jcJzpqubCRjhLDHLqZEUmYSdN/9s2dmA+PXm87lmJ7fzdGM9S6HqUHEqhpS30BQHk1
+         9KupCY+3Ggs0/PrY6cmhNQ6d4HbedY4wL6Gdj9mKaAAg8c21clMNZzn/yxBlTj1u3+
+         c4AmhCIcTWKfw==
+Received: by venturelinkbiz.com for <ecryptfs@vger.kernel.org>; Tue, 18 Jul 2023 07:56:04 GMT
+Message-ID: <20230718064500-0.1.19.36r2.0.51krgsrhlp@venturelinkbiz.com>
+Date:   Tue, 18 Jul 2023 07:56:04 GMT
+From:   "Michal Rmoutil" <michal.rmoutil@venturelinkbiz.com>
+To:     <ecryptfs@vger.kernel.org>
+Subject: =?UTF-8?Q?Syst=C3=A9m_sledov=C3=A1n=C3=AD_a_optimalizace_v=C3=BDroby?=
+X-Mailer: mail.venturelinkbiz.com
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH 01/79] fs: add ctime accessors infrastructure
-Content-Language: en-US
-To:     Jeff Layton <jlayton@kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        linux-um <linux-um@lists.infradead.org>
-References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621144507.55591-2-jlayton@kernel.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20230621144507.55591-2-jlayton@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <ecryptfs.vger.kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 
-Hi Jeff,
+Dobr=C3=A9 r=C3=A1no
 
-On arch/um/, (subarch i386 or x86_64), hostfs build fails with:
+Zn=C3=A1te syst=C3=A9m, kter=C3=BD nejen hl=C3=ADd=C3=A1, ale i optimaliz=
+uje v=C3=BDrobu a p=C5=99in=C3=A1=C5=A1=C3=AD st=C3=A1l=C3=BD p=C5=99=C3=AD=
+jem?
 
-../fs/hostfs/hostfs_kern.c:520:36: error: incompatible type for arg
-ument 2 of 'inode_set_ctime_to_ts'
-../include/linux/fs.h:1499:73: note: expected 'struct timespec64' b
-ut argument is of type 'const struct hostfs_timespec *'
+D=C3=ADky nejnov=C4=9Bj=C5=A1=C3=ADm technologi=C3=ADm a anal=C3=BDze dat=
+ na=C5=A1e =C5=99e=C5=A1en=C3=AD identifikuje oblasti optimalizace, zv=C3=
+=BD=C5=A1en=C3=AD efektivity a sn=C3=AD=C5=BEen=C3=AD n=C3=A1klad=C5=AF. =
+Na=C5=A1i klienti zaznamenali n=C3=A1r=C5=AFst p=C5=99=C3=ADjm=C5=AF v pr=
+=C5=AFm=C4=9Bru o 20 % a dnes si to m=C5=AF=C5=BEete vyzkou=C5=A1et na 60=
+ dn=C3=AD zdarma.
+
+Pokud chcete dal=C5=A1=C3=AD podrobnosti, odpov=C4=9Bzte pros=C3=ADm na k=
+ontaktn=C3=AD =C4=8D=C3=ADslo.
 
 
--- 
-~Randy
+Pozdravy
+Michal Rmoutil
