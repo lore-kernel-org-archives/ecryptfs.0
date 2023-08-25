@@ -2,29 +2,29 @@ Return-Path: <ecryptfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EEFBEE49A5
-	for <ecryptfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB2EC71133
+	for <ecryptfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:15:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243066AbjHYOMY (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
-        Fri, 25 Aug 2023 10:12:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51254 "EHLO
+        id S244072AbjHYOPM (ORCPT <rfc822;ecryptfs@archiver.kernel.org>);
+        Fri, 25 Aug 2023 10:15:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42398 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343637AbjHYOL4 (ORCPT
-        <rfc822;ecryptfs@vger.kernel.org>); Fri, 25 Aug 2023 10:11:56 -0400
-Received: from out-250.mta1.migadu.com (out-250.mta1.migadu.com [IPv6:2001:41d0:203:375::fa])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABFC82D67;
-        Fri, 25 Aug 2023 07:11:31 -0700 (PDT)
+        with ESMTP id S1343569AbjHYOOm (ORCPT
+        <rfc822;ecryptfs@vger.kernel.org>); Fri, 25 Aug 2023 10:14:42 -0400
+Received: from out-244.mta1.migadu.com (out-244.mta1.migadu.com [IPv6:2001:41d0:203:375::f4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5D6E2698;
+        Fri, 25 Aug 2023 07:14:17 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1692972337;
+        t=1692972442;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=mjhC+caj2gJRQH+sSsUlDYCC/6KksdCJUKl454sdMkA=;
-        b=O2I4LuIVYgSn+nmzJUq/UHofHubEntakWSPFjqloiwwujETAFgWOGN3xteSPe9gSVMqAFq
-        d8hRn0Wa7uhhjg2GTvasuKf8CHjMi2bI9Lkmg+s4bspXsO5Xaxy412PPH/FB0SLGDG9CfT
-        9ayHr7HUCratE15Bg5Ihc+obof/8RuQ=
+        bh=NAMtHKwgj081g8lIPVs72MliioxtTYHj7D9CTN85ELE=;
+        b=sbYFUS6BU4QMfloFkojbf7LlIvBmbwqI6WjTGL8/Nwev4csxD24mU9E4d6JXOYCR7eZA1m
+        PqI1zbyFtIGUv/PonAelJnAkImEIFlhA1NIhorTVqtvxfqefn7QdiSQXQ23nqD5sCFBkVJ
+        VzfeXLG9iKOnGGbqPpV4YVYm/Xq84uM=
 From:   Hao Xu <hao.xu@linux.dev>
 To:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>
 Cc:     Dominique Martinet <asmadeus@codewreck.org>,
@@ -46,9 +46,9 @@ Cc:     Dominique Martinet <asmadeus@codewreck.org>,
         devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
         samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
         Wanpeng Li <wanpengli@tencent.com>
-Subject: [PATCH 26/29] xfs: return -EAGAIN when nowait meets sync in transaction commit
-Date:   Fri, 25 Aug 2023 21:54:28 +0800
-Message-Id: <20230825135431.1317785-27-hao.xu@linux.dev>
+Subject: [PATCH 29/29] io_uring: add support for getdents
+Date:   Fri, 25 Aug 2023 21:54:31 +0800
+Message-Id: <20230825135431.1317785-30-hao.xu@linux.dev>
 In-Reply-To: <20230825135431.1317785-1-hao.xu@linux.dev>
 References: <20230825135431.1317785-1-hao.xu@linux.dev>
 MIME-Version: 1.0
@@ -60,44 +60,143 @@ X-Mailing-List: ecryptfs@vger.kernel.org
 
 From: Hao Xu <howeyxu@tencent.com>
 
-if the log transaction is a sync one, let's fail the nowait try and
-return -EAGAIN directly since sync transaction means blocked by IO.
+This add support for getdents64 to io_uring, acting exactly like the
+syscall: the directory is iterated from it's current's position as
+stored in the file struct, and the file's position is updated exactly as
+if getdents64 had been called.
 
+For filesystems that support NOWAIT in iterate_shared(), try to use it
+first; if a user already knows the filesystem they use do not support
+nowait they can force async through IOSQE_ASYNC in the sqe flags,
+avoiding the need to bounce back through a useless EAGAIN return.
+
+Co-developed-by: Dominique Martinet <asmadeus@codewreck.org>
+Signed-off-by: Dominique Martinet <asmadeus@codewreck.org>
 Signed-off-by: Hao Xu <howeyxu@tencent.com>
 ---
- fs/xfs/xfs_trans.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ include/uapi/linux/io_uring.h |  1 +
+ io_uring/fs.c                 | 53 +++++++++++++++++++++++++++++++++++
+ io_uring/fs.h                 |  3 ++
+ io_uring/opdef.c              |  8 ++++++
+ 4 files changed, 65 insertions(+)
 
-diff --git a/fs/xfs/xfs_trans.c b/fs/xfs/xfs_trans.c
-index 7988b4c7f36e..f1f84a3dd456 100644
---- a/fs/xfs/xfs_trans.c
-+++ b/fs/xfs/xfs_trans.c
-@@ -968,12 +968,24 @@ __xfs_trans_commit(
- 	xfs_csn_t		commit_seq = 0;
- 	int			error = 0;
- 	int			sync = tp->t_flags & XFS_TRANS_SYNC;
-+	bool			nowait = tp->t_flags & XFS_TRANS_NOWAIT;
-+	bool			perm_log = tp->t_flags & XFS_TRANS_PERM_LOG_RES;
+diff --git a/include/uapi/linux/io_uring.h b/include/uapi/linux/io_uring.h
+index 8e61f8b7c2ce..3896397a1998 100644
+--- a/include/uapi/linux/io_uring.h
++++ b/include/uapi/linux/io_uring.h
+@@ -240,6 +240,7 @@ enum io_uring_op {
+ 	IORING_OP_URING_CMD,
+ 	IORING_OP_SEND_ZC,
+ 	IORING_OP_SENDMSG_ZC,
++	IORING_OP_GETDENTS,
  
- 	trace_xfs_trans_commit(tp, _RET_IP_);
+ 	/* this goes last, obviously */
+ 	IORING_OP_LAST,
+diff --git a/io_uring/fs.c b/io_uring/fs.c
+index f6a69a549fd4..04711feac4e6 100644
+--- a/io_uring/fs.c
++++ b/io_uring/fs.c
+@@ -47,6 +47,12 @@ struct io_link {
+ 	int				flags;
+ };
  
-+	if (nowait && sync) {
-+		/*
-+		 * Currently nowait is only from xfs_vn_update_time()
-+		 * so perm_log is always false here, but let's make
-+		 * code general.
-+		 */
-+		if (perm_log)
-+			xfs_defer_cancel(tp);
-+		goto out_unreserve;
++struct io_getdents {
++	struct file			*file;
++	struct linux_dirent64 __user	*dirent;
++	unsigned int			count;
++};
++
+ int io_renameat_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe)
+ {
+ 	struct io_rename *ren = io_kiocb_to_cmd(req, struct io_rename);
+@@ -291,3 +297,50 @@ void io_link_cleanup(struct io_kiocb *req)
+ 	putname(sl->oldpath);
+ 	putname(sl->newpath);
+ }
++
++int io_getdents_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe)
++{
++	struct io_getdents *gd = io_kiocb_to_cmd(req, struct io_getdents);
++
++	if (READ_ONCE(sqe->off))
++		return -EINVAL;
++
++	gd->dirent = u64_to_user_ptr(READ_ONCE(sqe->addr));
++	gd->count = READ_ONCE(sqe->len);
++
++	return 0;
++}
++
++int io_getdents(struct io_kiocb *req, unsigned int issue_flags)
++{
++	struct io_getdents *gd = io_kiocb_to_cmd(req, struct io_getdents);
++	struct file *file = req->file;
++	unsigned long getdents_flags = 0;
++	bool force_nonblock = issue_flags & IO_URING_F_NONBLOCK;
++	bool locked;
++	int ret;
++
++	if (force_nonblock) {
++		if (!(file->f_flags & O_NONBLOCK) &&
++		    !(file->f_mode & FMODE_NOWAIT))
++			return -EAGAIN;
++
++		getdents_flags = DIR_CONTEXT_F_NOWAIT;
 +	}
- 	error = xfs_trans_run_precommits(tp);
- 	if (error) {
--		if (tp->t_flags & XFS_TRANS_PERM_LOG_RES)
-+		if (perm_log)
- 			xfs_defer_cancel(tp);
- 		goto out_unreserve;
- 	}
++
++	ret = file_pos_lock_nowait(file, force_nonblock);
++	if (ret == -EAGAIN)
++		return ret;
++	locked = ret;
++
++	ret = vfs_getdents(file, gd->dirent, gd->count, getdents_flags);
++	if (locked)
++		file_pos_unlock(file);
++
++	if (ret == -EAGAIN && force_nonblock)
++		return -EAGAIN;
++
++	io_req_set_res(req, ret, 0);
++	return 0;
++}
++
+diff --git a/io_uring/fs.h b/io_uring/fs.h
+index 0bb5efe3d6bb..f83a6f3a678d 100644
+--- a/io_uring/fs.h
++++ b/io_uring/fs.h
+@@ -18,3 +18,6 @@ int io_symlinkat(struct io_kiocb *req, unsigned int issue_flags);
+ int io_linkat_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe);
+ int io_linkat(struct io_kiocb *req, unsigned int issue_flags);
+ void io_link_cleanup(struct io_kiocb *req);
++
++int io_getdents_prep(struct io_kiocb *req, const struct io_uring_sqe *sqe);
++int io_getdents(struct io_kiocb *req, unsigned int issue_flags);
+diff --git a/io_uring/opdef.c b/io_uring/opdef.c
+index 3b9c6489b8b6..1bae6b2a8d0b 100644
+--- a/io_uring/opdef.c
++++ b/io_uring/opdef.c
+@@ -428,6 +428,11 @@ const struct io_issue_def io_issue_defs[] = {
+ 		.prep			= io_eopnotsupp_prep,
+ #endif
+ 	},
++	[IORING_OP_GETDENTS] = {
++		.needs_file		= 1,
++		.prep			= io_getdents_prep,
++		.issue			= io_getdents,
++	},
+ };
+ 
+ 
+@@ -648,6 +653,9 @@ const struct io_cold_def io_cold_defs[] = {
+ 		.fail			= io_sendrecv_fail,
+ #endif
+ 	},
++	[IORING_OP_GETDENTS] = {
++		.name			= "GETDENTS",
++	},
+ };
+ 
+ const char *io_uring_get_opcode(u8 opcode)
 -- 
 2.25.1
 
