@@ -1,22 +1,22 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 138842E82B;
-	Tue, 16 Jan 2024 01:08:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9611F3EA7A;
+	Tue, 16 Jan 2024 01:08:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="U+qiIVph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9517BC43390;
-	Tue, 16 Jan 2024 01:08:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I/oaI49M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84379C43390;
+	Tue, 16 Jan 2024 01:08:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1705367288;
+	s=k20201202; t=1705367312;
 	bh=TJqRddFjDl5iBcUmWcW6ywZ7vqFu0BSvQf50wqCCMU8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=U+qiIVphhs9rf8/KPJFLCBLWFj/xNb+z9HOoyV2tIbMZpzQKXK/1OIGD7nA0kGVMk
-	 X0HpHT4oTP37//5mMYt2Pe511Yyv41Vm/MUJwhqWGygTLn2vMWtA1kKOS++jPRw248
-	 MBNAw8d5yDJ2wzK7ENAEmMXYR/vFZ95+uYBegUxChg1RlA3g1eMsE3j5U444qdecE2
-	 HygZl3vBPh0YI6pt8rSe9giPpoQ5ecvUsvg8rSmJ/WIfQ+T94eBKNCyTGGY+3s/rbB
-	 ab5pK/yDfMuyVdZxAQIuci2KyKxxQaZpFg+9y6BsbQEub8cCwpaXQ4O5BOlS0SrkBV
-	 XNxdrYS4MnfxQ==
+	b=I/oaI49MDLlA4sVTwBWilL5yY6bOTNRGqMet12DE1jx8Pd5qZQsZsN5/KkoLH6Ihh
+	 dQE1oc0+kriJXVjp+HcbLSTu3VDnZxQHRsCN/TafR/z4Fh+P0EksQPqkd6RD3k2Zmf
+	 W8V4UX2E+fyJ23l9LC7AZ+bll4Aoks1EeUUSlNLfGW/MzszhcmI92gmqCFSZG9QlQD
+	 g8jJ0sBTwKxLukT1BnbkIqx356YJtE1OjR71PPTKCz9EwT+7jGSZ9pDD7paRMFapL9
+	 4Zbmc4C+3HQvdYEzAaYzILszUrl6n362HCGEed5nQ/RCUX4BE1qWnQAr2fkQpGSQaW
+	 VY1xFUoxb4OcA==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -28,15 +28,16 @@ Cc: Gabriel Krisman Bertazi <krisman@suse.de>,
 	dchinner@redhat.com,
 	jack@suse.cz,
 	jlayton@kernel.org,
+	amir73il@gmail.com,
 	stefanb@linux.ibm.com,
 	walmeida@microsoft.com,
 	ecryptfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 5/9] ecryptfs: Reject casefold directory inodes
-Date: Mon, 15 Jan 2024 20:07:49 -0500
-Message-ID: <20240116010757.219495-5-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 5/9] ecryptfs: Reject casefold directory inodes
+Date: Mon, 15 Jan 2024 20:08:11 -0500
+Message-ID: <20240116010819.219701-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240116010757.219495-1-sashal@kernel.org>
-References: <20240116010757.219495-1-sashal@kernel.org>
+In-Reply-To: <20240116010819.219701-1-sashal@kernel.org>
+References: <20240116010819.219701-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -45,7 +46,7 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.208
+X-stable-base: Linux 5.4.267
 Content-Transfer-Encoding: 8bit
 
 From: Gabriel Krisman Bertazi <krisman@suse.de>
