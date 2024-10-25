@@ -1,32 +1,33 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3223220C324;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3229220D4F9;
 	Fri, 25 Oct 2024 19:08:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729883307; cv=none; b=PPYQTt9EXPPDULj3vaCwtqHUofldBCqOMLNFv3npPrzJfNLSi9DIaNWiZZyNzPtNbbyTu9FtDv6eEhc+uljmbppeKFz5P+I+0igk+mCctIPqufRQl6QiLFe2nf6GOs2o3RicYc3CpiaOOcmkQ427FM7Cc1XLka7n1HKuIAj50Ws=
+	t=1729883307; cv=none; b=lGqFqbOWtxPYztUso1myBf4wswMyW9l3YTSf1g48367g+dQD7bS6A4TEtDXzHLRLN1Fp2IUlcWY4Ak4cMqUGapXFOEtUJjf4A5M+g0mJxV5pym4sYxLFs5JSwrxR4CAMq8S2sX8cQ5petkueMtjVBbyvZt17MlbdSXjdaqJrr44=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729883307; c=relaxed/simple;
-	bh=Q5cv4ejlLyAbdSN8ZyGuvmkbB6tsTETOyhlhXchnkWQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qH5dMIQcPWKMUSH+TKH+kqvc9eTO5lu/3twYPw0vER2PkAbhrslL9iS4w64jn0AYqDD2/XflOGLNH9INEJ7bP3tiggCxK8lhoz6iErwGxQxjdM7EuBeDmVfwwsoUDy+ohPVV0EoDXQDZXNKiOqjpP0GeTRzW2XKGd/GrPD3CbXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=szr5fSlr; arc=none smtp.client-ip=90.155.50.34
+	bh=yMd3c8W3s/W+W73+PzOt8tHrfz0d7KV4KHFiXlvrZ1A=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=NckqEcT5OBQkipBfXQJs7QnqOC9oBCv0wVs/e0UU0t74KdlH1ZEAhXezh9Mv1PdAHg4ilm0icHkc6lDhLiGSQknMmuf0hXQP8x6GEuwKfPd+WDQX7CU+GRfwSkcLy7OgrJ71dt/F+QZx9s/VxHEb/X5xGgxqY/WFBre+Zk0kV8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=WIt7Qdkj; arc=none smtp.client-ip=90.155.50.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="szr5fSlr"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WIt7Qdkj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:In-Reply-To:References;
-	bh=MRoCCleCfQ7M0+2tbcltkNRpZIWLteR4MiwF9XEsQNw=; b=szr5fSlrr7ASR2VAYzQ1IxmZlu
-	laRujFw1Qper+7lBPqjJ2UrDfQfd3qiYBCW7ISRqwWINwj3xVbg9BQYGsDWv1VJGwS1b37hclztha
-	dD1M3EHk0Ie6M+1jRwp0CwMXuxiqN8zM8W+CsLd9JJAShwzHhlli2v/X1iIv/oFqgLbg4Sm3bszXF
-	wCGVjT0iqsmN6z2tuY+k5C8QzEC/20Cigkiuie3Ef5UJFdO6xtxjFMnBqMpeb9fqMW2/lloeXkTH9
-	HjVT8eCelqfss4CN9O4AwvYrLl6wLwqEaOK6OlKE2peyr5oQoejK+0v1D1qcBy6MLnipEeTXclVEB
-	xpPPDq3g==;
+	References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=ngUUNpMHchzF+LT0PYTuG94y5wEqsIYZzLCEqG1mipQ=; b=WIt7QdkjJnUJSbX1hGDNBGS7+n
+	jqqR2SbscxqBe/Xx2kGqe5v2Z2PwYN38eD58GY6HQgjMrZoSUcrLakh3aTEPqSdLUfTkUYR/bzkOO
+	GcUYUvHV2re9928zGWvqTYvSc6S4ruHjUWYLCHBp5sfZmu8tO7rwzD+7lG898o/4Z6vM6kyw7k6Y8
+	rxMwQ7CFVL6GR8ssG48cqR8GZ9rc3lN2fo9LeODfXu52790pHFDkMcuMHSIMdLmCELRhCMkkJfzn4
+	6PeqT5qjpVM9Pv/3wdZQHyaz4Lg3/EW013hAeHjwA+ohIPkmLRDUfz+vvHRyY0zWTMdRr7imjCNqb
+	Pguun7BQ==;
 Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1t4Pfb-00000005XB0-1qEg;
+	id 1t4Pfb-00000005XB4-2lXI;
 	Fri, 25 Oct 2024 19:08:23 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: Tyler Hicks <code@tyhicks.com>
@@ -34,10 +35,12 @@ Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	ecryptfs@vger.kernel.org,
 	Christian Brauner <brauner@kernel.org>,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v2 00/10] Convert ecryptfs to use folios
-Date: Fri, 25 Oct 2024 20:08:10 +0100
-Message-ID: <20241025190822.1319162-1-willy@infradead.org>
+Subject: [PATCH v2 02/10] ecryptfs: Use a folio throughout ecryptfs_read_folio()
+Date: Fri, 25 Oct 2024 20:08:12 +0100
+Message-ID: <20241025190822.1319162-3-willy@infradead.org>
 X-Mailer: git-send-email 2.46.0
+In-Reply-To: <20241025190822.1319162-1-willy@infradead.org>
+References: <20241025190822.1319162-1-willy@infradead.org>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -46,37 +49,102 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The next step in the folio project is to remove page->index.  This
-patchset does that for ecryptfs.  As an unloved filesystem, I haven't
-made any effort to support large folios; this is just "keep it working".
-I have only compile tested this, but since it's a straightforward
-conversion I'm not expecting any problems beyond my fat fingers.
+Remove the conversion to a struct page.  Removes a few hidden calls to
+compound_head().  Use 'err' instead of 'rc' for clarity.
 
-v2:
- - Switch from 'rc' to 'err' in ecryptfs_read_folio
- - Use folio_end_read() in ecryptfs_read_folio
- - Remove kernel-doc warnings that 0day warned about
- - R-b tags from Pankaj
+Also remove the unnecessary call to ClearPageUptodate(); the uptodate
+flag is already clear if this function is being called.  That lets us
+switch to folio_end_read() which does one atomic flag operation instead
+of two.
 
-Matthew Wilcox (Oracle) (10):
-  ecryptfs: Convert ecryptfs_writepage() to ecryptfs_writepages()
-  ecryptfs: Use a folio throughout ecryptfs_read_folio()
-  ecryptfs: Convert ecryptfs_copy_up_encrypted_with_header() to take a
-    folio
-  ecryptfs: Convert ecryptfs_read_lower_page_segment() to take a folio
-  ecryptfs: Convert ecryptfs_write() to use a folio
-  ecryptfs: Convert ecryptfs_write_lower_page_segment() to take a folio
-  ecryptfs: Convert ecryptfs_encrypt_page() to take a folio
-  ecryptfs: Convert ecryptfs_decrypt_page() to take a folio
-  ecryptfs: Convert lower_offset_for_page() to take a folio
-  ecryptfs: Pass the folio index to crypt_extent()
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+---
+ fs/ecryptfs/mmap.c | 50 +++++++++++++++++++++-------------------------
+ 1 file changed, 23 insertions(+), 27 deletions(-)
 
- fs/ecryptfs/crypto.c          |  35 +++++----
- fs/ecryptfs/ecryptfs_kernel.h |   9 +--
- fs/ecryptfs/mmap.c            | 136 ++++++++++++++--------------------
- fs/ecryptfs/read_write.c      |  50 ++++++-------
- 4 files changed, 105 insertions(+), 125 deletions(-)
-
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 92ea39d907de..25a756fec5c2 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -178,55 +178,51 @@ ecryptfs_copy_up_encrypted_with_header(struct page *page,
+  */
+ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
+ {
+-	struct page *page = &folio->page;
++	struct inode *inode = folio->mapping->host;
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+-		&ecryptfs_inode_to_private(page->mapping->host)->crypt_stat;
+-	int rc = 0;
++		&ecryptfs_inode_to_private(inode)->crypt_stat;
++	int err = 0;
+ 
+ 	if (!crypt_stat || !(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
+-		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
+-						      PAGE_SIZE,
+-						      page->mapping->host);
++		err = ecryptfs_read_lower_page_segment(&folio->page, folio->index, 0,
++						      folio_size(folio),
++						      inode);
+ 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+-			rc = ecryptfs_copy_up_encrypted_with_header(page,
++			err = ecryptfs_copy_up_encrypted_with_header(&folio->page,
+ 								    crypt_stat);
+-			if (rc) {
++			if (err) {
+ 				printk(KERN_ERR "%s: Error attempting to copy "
+ 				       "the encrypted content from the lower "
+ 				       "file whilst inserting the metadata "
+-				       "from the xattr into the header; rc = "
+-				       "[%d]\n", __func__, rc);
++				       "from the xattr into the header; err = "
++				       "[%d]\n", __func__, err);
+ 				goto out;
+ 			}
+ 
+ 		} else {
+-			rc = ecryptfs_read_lower_page_segment(
+-				page, page->index, 0, PAGE_SIZE,
+-				page->mapping->host);
+-			if (rc) {
+-				printk(KERN_ERR "Error reading page; rc = "
+-				       "[%d]\n", rc);
++			err = ecryptfs_read_lower_page_segment(&folio->page,
++					folio->index, 0, folio_size(folio),
++					inode);
++			if (err) {
++				printk(KERN_ERR "Error reading page; err = "
++				       "[%d]\n", err);
+ 				goto out;
+ 			}
+ 		}
+ 	} else {
+-		rc = ecryptfs_decrypt_page(page);
+-		if (rc) {
++		err = ecryptfs_decrypt_page(&folio->page);
++		if (err) {
+ 			ecryptfs_printk(KERN_ERR, "Error decrypting page; "
+-					"rc = [%d]\n", rc);
++					"err = [%d]\n", err);
+ 			goto out;
+ 		}
+ 	}
+ out:
+-	if (rc)
+-		ClearPageUptodate(page);
+-	else
+-		SetPageUptodate(page);
+-	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16lx]\n",
+-			page->index);
+-	unlock_page(page);
+-	return rc;
++	ecryptfs_printk(KERN_DEBUG, "Unlocking folio with index = [0x%.16lx]\n",
++			folio->index);
++	folio_end_read(folio, err == 0);
++	return err;
+ }
+ 
+ /*
 -- 
 2.43.0
 
