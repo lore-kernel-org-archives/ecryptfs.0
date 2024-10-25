@@ -1,43 +1,43 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 760CC20D507;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C550B20D50A;
 	Fri, 25 Oct 2024 19:08:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729883307; cv=none; b=nXlytjDVEksCbVijbK3oS++m2s097GinEkBFihMSQRtOfeUC4gX4OcIeLXeLSJAFQLVm2WTXz2UfMHfL4Hj2HE+rwL1FMxBHzRqoGwBbwr2IUQf6KT7kAt1BdsbfY1H2kvD6pO+IK77oyZnkzUTJtneybe5/RAW+wjjt0ZRCf90=
+	t=1729883307; cv=none; b=M2vTOqdgaCZCjycMAMBiZx6QbA0cweysFq1/kHslQb3og4EUJ67tVe/NH9hnSsY/U8QhFj08K3d/wH3edHwWmYG76SEFOjIBh61TM71s3LX4248KsT4hZ1mhNs0Bac7vT0AEi38VzxLa9TsytVrY4GD00Nw31gW2E5BjPwbn8TI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1729883307; c=relaxed/simple;
-	bh=9enTVMVHs12oKfVFpWnjhqvGuFpEAoOlLxy3Fzi7IXA=;
+	bh=11GVfrGHVGUJ8rEw/ymHMCSa9wpYBo4NA4H0pP1QBbM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Iga8YxF+5Sdxx0S8LW1izZjKLkob7JE1bonBU8yMPXYcaZM7OcdmNc818I7YDHCa2uzGklrCKzEtluyRLHJVoGsZX3OQZzRWORIQ315To5eTkFy5Ce9uO76UWr/tP6XCqc2Cy0W7/Txr/qqdkbGEY27MkIMba+MK1O8tB4LdQVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Z9CKdDsE; arc=none smtp.client-ip=90.155.50.34
+	 MIME-Version; b=OKoBBJM8P9nFRRW6SRO7EmS9BPnm172ZzsOzg5TLGKszWOA7lIESxClQH2SS99K1A5FduDfVvGuyenuYntxYWrKsw7traYTYJ6qyfirYTnPt6Lw3Xrs/3fb6sBmwwucbEesGNLFIqHDmkndHH55RiVxxzT+2BPI1AD/htL3WeOs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=AJCIDfM1; arc=none smtp.client-ip=90.155.50.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Z9CKdDsE"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="AJCIDfM1"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=bYLtvapkR7mcubzCOgvmer10s+f1RTTVikU9TF3hbBA=; b=Z9CKdDsEz4JMlRlPWuCVGKZt01
-	GtO1EvbE+LYe8HAn77ofsWAET1MG3O3GQMZbNWTuDMfKPVvVdhWFJnmiDgpAl5TgzgsNxC+ZzPaSl
-	+uqkEUmK7QRPrSYwSLThXHi9fL3pdtBUNUmaGRrug3aZo+9xK7mwcO3aU+WxqwlgOH5kG7zar1YBo
-	g4Xky4/PKYi6Xr6f3vqfY7KMXGwnpOMiqM6da0zh8jgoet0KZMLiY0tYLIKwZ8dgtY+dzwrHeFxZm
-	qWvnICkolymZVqN4+sd8CzMkQtOzmG3GjE8p27c9kS0Xys7w/1EY2mBAnLPrLUvnTdW+zbbGkRi28
-	DcyiMMUg==;
+	bh=T8anEtHvOl0eVCeTvnZyGUr2OJt/aDQDu9u2v9ejoZQ=; b=AJCIDfM1Y4//I2IqWOQMuU+OU5
+	wgJSfg9s47djG8h8IJlKb2kcK0P2rvHvA7OUMjuMPy0DOzrEBJkb6Za041WLXsEZSlk1UEeC1SaAM
+	UTP5g2NngRJcFNHf9toiYadk/4Wo6uRN8spmHhjjpQQGM7E6Clzc8M1Bpb1+iY/tpWcPyGPH/DMRl
+	UwlT6oyt+nfWYzVzPZ1TpB/7mhfk/Jd5RD3c2Sc4BGJuv14LterHziIjPNNNU0kp+4kWBWiK6huBN
+	tcHwFtmMR5Q/fJ190F2V+2wPpE1hCdQzT9RhPxDN7Bw9XXLKDDLU7qAw5LoXDZe7AcSj8Eu5Vv+qK
+	vF+MmBMw==;
 Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1t4Pfb-00000005XBJ-3sKj;
-	Fri, 25 Oct 2024 19:08:23 +0000
+	id 1t4Pfc-00000005XBU-11Q3;
+	Fri, 25 Oct 2024 19:08:24 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: Tyler Hicks <code@tyhicks.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
 	ecryptfs@vger.kernel.org,
 	Christian Brauner <brauner@kernel.org>,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v2 04/10] ecryptfs: Convert ecryptfs_read_lower_page_segment() to take a folio
-Date: Fri, 25 Oct 2024 20:08:14 +0100
-Message-ID: <20241025190822.1319162-5-willy@infradead.org>
+Subject: [PATCH v2 07/10] ecryptfs: Convert ecryptfs_encrypt_page() to take a folio
+Date: Fri, 25 Oct 2024 20:08:17 +0100
+Message-ID: <20241025190822.1319162-8-willy@infradead.org>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20241025190822.1319162-1-willy@infradead.org>
 References: <20241025190822.1319162-1-willy@infradead.org>
@@ -49,120 +49,115 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-All callers have a folio, so pass it in and use it directly.  This will
-not work for large folios, but I doubt anybody wants to use large folios
-with ecryptfs.
+All three callers have a folio, so pass it in and use it throughout.
 
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
+ fs/ecryptfs/crypto.c          | 12 ++++++------
  fs/ecryptfs/ecryptfs_kernel.h |  2 +-
- fs/ecryptfs/mmap.c            | 13 ++++++-------
- fs/ecryptfs/read_write.c      | 10 +++++-----
- 3 files changed, 12 insertions(+), 13 deletions(-)
+ fs/ecryptfs/mmap.c            |  4 ++--
+ fs/ecryptfs/read_write.c      |  2 +-
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index c586c5db18b5..43f1b5ff987d 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -658,7 +658,7 @@ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
- int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_t size);
- int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
- 			struct inode *ecryptfs_inode);
--int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
-+int ecryptfs_read_lower_page_segment(struct folio *folio_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index bd78a36ed479..1fc87c83e43c 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -150,7 +150,7 @@ ecryptfs_copy_up_encrypted_with_header(struct folio *folio,
- 				 - crypt_stat->metadata_size);
- 
- 			rc = ecryptfs_read_lower_page_segment(
--				&folio->page, (lower_offset >> PAGE_SHIFT),
-+				folio, (lower_offset >> PAGE_SHIFT),
- 				(lower_offset & ~PAGE_MASK),
- 				crypt_stat->extent_size, folio->mapping->host);
- 			if (rc) {
-@@ -184,9 +184,8 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 	int err = 0;
- 
- 	if (!crypt_stat || !(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
--		err = ecryptfs_read_lower_page_segment(&folio->page, folio->index, 0,
--						      folio_size(folio),
--						      inode);
-+		err = ecryptfs_read_lower_page_segment(folio, folio->index, 0,
-+				folio_size(folio), inode);
- 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
- 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
- 			err = ecryptfs_copy_up_encrypted_with_header(folio,
-@@ -201,7 +200,7 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 			}
- 
- 		} else {
--			err = ecryptfs_read_lower_page_segment(&folio->page,
-+			err = ecryptfs_read_lower_page_segment(folio,
- 					folio->index, 0, folio_size(folio),
- 					inode);
- 			if (err) {
-@@ -279,7 +278,7 @@ static int ecryptfs_write_begin(struct file *file,
- 
- 		if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
- 			rc = ecryptfs_read_lower_page_segment(
--				&folio->page, index, 0, PAGE_SIZE, mapping->host);
-+				folio, index, 0, PAGE_SIZE, mapping->host);
- 			if (rc) {
- 				printk(KERN_ERR "%s: Error attempting to read "
- 				       "lower page segment; rc = [%d]\n",
-@@ -305,7 +304,7 @@ static int ecryptfs_write_begin(struct file *file,
- 				folio_mark_uptodate(folio);
- 			} else {
- 				rc = ecryptfs_read_lower_page_segment(
--					&folio->page, index, 0, PAGE_SIZE,
-+					folio, index, 0, PAGE_SIZE,
- 					mapping->host);
- 				if (rc) {
- 					printk(KERN_ERR "%s: Error reading "
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 3458f153a588..251e9f6c6972 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -228,7 +228,7 @@ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 827278525fd9..995ae3a97d52 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -392,7 +392,7 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
  
  /**
-  * ecryptfs_read_lower_page_segment
-- * @page_for_ecryptfs: The page into which data for eCryptfs will be
-+ * @folio_for_ecryptfs: The folio into which data for eCryptfs will be
-  *                     written
-  * @page_index: Page index in @page_for_ecryptfs from which to start
-  *		writing
-@@ -243,7 +243,7 @@ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
+  * ecryptfs_encrypt_page
+- * @page: Page mapped from the eCryptfs inode for the file; contains
++ * @folio: Folio mapped from the eCryptfs inode for the file; contains
+  *        decrypted content that needs to be encrypted (to a temporary
+  *        page; not in place) and written out to the lower file
   *
-  * Returns zero on success; non-zero otherwise
+@@ -406,7 +406,7 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
+  *
+  * Returns zero on success; negative on error
   */
--int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
-+int ecryptfs_read_lower_page_segment(struct folio *folio_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode)
-@@ -252,12 +252,12 @@ int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
- 	loff_t offset;
- 	int rc;
+-int ecryptfs_encrypt_page(struct page *page)
++int ecryptfs_encrypt_page(struct folio *folio)
+ {
+ 	struct inode *ecryptfs_inode;
+ 	struct ecryptfs_crypt_stat *crypt_stat;
+@@ -416,7 +416,7 @@ int ecryptfs_encrypt_page(struct page *page)
+ 	loff_t lower_offset;
+ 	int rc = 0;
  
--	offset = ((((loff_t)page_index) << PAGE_SHIFT) + offset_in_page);
--	virt = kmap_local_page(page_for_ecryptfs);
-+	offset = (loff_t)page_index * PAGE_SIZE + offset_in_page;
-+	virt = kmap_local_folio(folio_for_ecryptfs, 0);
- 	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
- 	if (rc > 0)
- 		rc = 0;
- 	kunmap_local(virt);
--	flush_dcache_page(page_for_ecryptfs);
-+	flush_dcache_folio(folio_for_ecryptfs);
- 	return rc;
- }
+-	ecryptfs_inode = page->mapping->host;
++	ecryptfs_inode = folio->mapping->host;
+ 	crypt_stat =
+ 		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
+ 	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
+@@ -431,8 +431,8 @@ int ecryptfs_encrypt_page(struct page *page)
+ 	for (extent_offset = 0;
+ 	     extent_offset < (PAGE_SIZE / crypt_stat->extent_size);
+ 	     extent_offset++) {
+-		rc = crypt_extent(crypt_stat, enc_extent_page, page,
+-				  extent_offset, ENCRYPT);
++		rc = crypt_extent(crypt_stat, enc_extent_page,
++				folio_page(folio, 0), extent_offset, ENCRYPT);
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error encrypting extent; "
+ 			       "rc = [%d]\n", __func__, rc);
+@@ -440,7 +440,7 @@ int ecryptfs_encrypt_page(struct page *page)
+ 		}
+ 	}
+ 
+-	lower_offset = lower_offset_for_page(crypt_stat, page);
++	lower_offset = lower_offset_for_page(crypt_stat, &folio->page);
+ 	enc_extent_virt = kmap_local_page(enc_extent_page);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offset,
+ 				  PAGE_SIZE);
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 0cac8d3155ae..bffced0c1d8f 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -569,7 +569,7 @@ void ecryptfs_destroy_mount_crypt_stat(
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat);
+ int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat);
+ int ecryptfs_write_inode_size_to_metadata(struct inode *ecryptfs_inode);
+-int ecryptfs_encrypt_page(struct page *page);
++int ecryptfs_encrypt_page(struct folio *folio);
+ int ecryptfs_decrypt_page(struct page *page);
+ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
+ 			    struct inode *ecryptfs_inode);
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 1c1eb9437505..b2c22f49ef6f 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -34,7 +34,7 @@ static int ecryptfs_writepages(struct address_space *mapping,
+ 	int error;
+ 
+ 	while ((folio = writeback_iter(mapping, wbc, folio, &error))) {
+-		error = ecryptfs_encrypt_page(&folio->page);
++		error = ecryptfs_encrypt_page(folio);
+ 		if (error) {
+ 			ecryptfs_printk(KERN_WARNING,
+ 				"Error encrypting folio (index [0x%.16lx])\n",
+@@ -476,7 +476,7 @@ static int ecryptfs_write_end(struct file *file,
+ 			"zeros in page with index = [0x%.16lx]\n", index);
+ 		goto out;
+ 	}
+-	rc = ecryptfs_encrypt_page(&folio->page);
++	rc = ecryptfs_encrypt_page(folio);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
+ 				"index [0x%.16lx])\n", index);
+diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
+index 665bcd7d1c8e..b3b451c2b941 100644
+--- a/fs/ecryptfs/read_write.c
++++ b/fs/ecryptfs/read_write.c
+@@ -168,7 +168,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
+ 		folio_mark_uptodate(ecryptfs_folio);
+ 		folio_unlock(ecryptfs_folio);
+ 		if (crypt_stat->flags & ECRYPTFS_ENCRYPTED)
+-			rc = ecryptfs_encrypt_page(&ecryptfs_folio->page);
++			rc = ecryptfs_encrypt_page(ecryptfs_folio);
+ 		else
+ 			rc = ecryptfs_write_lower_page_segment(ecryptfs_inode,
+ 						ecryptfs_folio,
 -- 
 2.43.0
 
