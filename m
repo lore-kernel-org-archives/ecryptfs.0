@@ -1,47 +1,41 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0DF220F3E9;
-	Fri, 25 Oct 2024 19:08:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A030613D539;
+	Mon, 28 Oct 2024 14:19:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729883310; cv=none; b=jrcGNMWw7SzpBR4WXXu/02wBJvAmNj96XUKizyfhi7Uuq5PYIQEgSbDtlljcTmLj3i+7oy7DQ7i3ZY7Pp2FpJr2FMEIuX94uUlOtCEKkWqeKbJb2oQZpWgZTGN/1h2mb/ZolaJrkezg/rBz7w9tE10ZD79M7W0mfeaZfhpliDQk=
+	t=1730125199; cv=none; b=UdYfGDIthjybOk67JsQanqYWiaYgXt7DFUu//k25SnrswF2IpJA7efe/ry+8h2fHQ05YEQ0NtgZHRegdQ9lt9KRHes3QnUlngTGoyZF+1vpNaDajn6YNJ09Jn9FrgdrLJRTbewjAcBYKkoCSsMilSuF6RAuO4JsF0/p24yxfUsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729883310; c=relaxed/simple;
-	bh=ALkEMND5YMvhbJ2+CnCL8OdosGMJCP2ZOv9ELv+nEfw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UPCLKvslyGBMQWJ+w2J6SLOrznbcjsDs7NRIq2LLsGBJXCVCPXVTKICJ16AX3b2NMX/TRC4Y5mq545PBIgrmjqmeA5JHdxHt9f1bMnwMjaQc7dA5qQGWN7rcZvsvYd5aO3ZpAx/j6eqPjKHAp6MHNoyshxmp56sr8YtvpPLVhOI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=srhCtQ4e; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1730125199; c=relaxed/simple;
+	bh=tqIGXfWySVqmxwbK2vYBkyXaDOuE2luc6nOJqDyrECc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Fh+mujIKL+DF2PgT70pRW0C2sRCizWwz1CKb5tlLfvRoj2MnavHx0ucPoP9aiZ8Q2wndm5ncodo+dkIVhj5QjD0VjbaS7EmG1nGYe4c/sPD9vMW+DRl4oESbB3Ntbf0aF6CFe6A3Z3oxhOo0CPQEoAmMEM8nP/H9ni4VOTcAeT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YromjrQF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="srhCtQ4e"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-	References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=R+C+x5yy1n5WeLXrriW8ixLELGKIHvlS2PI0jfWKMBU=; b=srhCtQ4eFkLsvISYO/hpy1FgFo
-	kip2gpRjAJXscP8CvGTnedctHCjrTVMzNLgcJfDBzy1ehtyhKoF8DE+YglIANkciXWh09pKmn7Mml
-	f7FjQoSdugnpwQkS8Eo+A4HVS4688y/4m68qjWN6mRkYBoWHmig+JiQfHmFvrZtatLu4hvWKv/GaY
-	JFxDegwg/2aakj413rAF63Oli4a/RaJ5wvrOH3K7fDLtMKv5vyXL21Ickv7mDHzBB+cPHUFbN8b1l
-	xbCwfsZyO/3N6qbWIq800s1wry9DXWR0kr83G8czbpjOyKKCC3CYZHrYuYV/UV+HI7h6YLXL7qVsY
-	J8EPTjxw==;
-Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1t4Pfc-00000005XBL-05vN;
-	Fri, 25 Oct 2024 19:08:24 +0000
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YromjrQF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 139F5C4CEC3;
+	Mon, 28 Oct 2024 14:19:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730125199;
+	bh=tqIGXfWySVqmxwbK2vYBkyXaDOuE2luc6nOJqDyrECc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=YromjrQFrPchwFDEmAVQjA0yJg8/CYb4ec5x4sDlJ7HyTqtgIgFOjlEdummqsmOt0
+	 wJCQE9IH3EO/5j6V35PYYaLaC91lU2VyjdKiYxHXhJmgDh2UV2g0uKqC9p+tXq0ave
+	 nmtVzamzhU9S7zpHBO/3y6XS2M+EEeEnKgVseZ0DpmIH3uGwDUYE92C7dSGE92HKmY
+	 lKrrUavBuJnD42yTJd69n2FXa55I0FeiSCh2cnP0e63zABLsiTPX3w4iDZSjnIQZsq
+	 niNtKQ1quRfVErzRLJw1t9qwQgboXOUVDZBe5BN/wVoMgL8lbGRbYUKtGzhQe87wNR
+	 1965g4vlU9oiQ==
+From: Arnd Bergmann <arnd@kernel.org>
+To: Tyler Hicks <code@tyhicks.com>,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Damien Le Moal <damien.lemoal@opensource.wdc.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
 	ecryptfs@vger.kernel.org,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org,
-	Pankaj Raghav <p.raghav@samsung.com>
-Subject: [PATCH v2 05/10] ecryptfs: Convert ecryptfs_write() to use a folio
-Date: Fri, 25 Oct 2024 20:08:15 +0100
-Message-ID: <20241025190822.1319162-6-willy@infradead.org>
-X-Mailer: git-send-email 2.46.0
-In-Reply-To: <20241025190822.1319162-1-willy@infradead.org>
-References: <20241025190822.1319162-1-willy@infradead.org>
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] eccryptfs: select CONFIG_BUFFER_HEAD
+Date: Mon, 28 Oct 2024 14:18:45 +0000
+Message-Id: <20241028141955.639633-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -50,124 +44,41 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Remove ecryptfs_get_locked_page() and call read_mapping_folio()
-directly.  Use the folio throught this function.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
+The ecryptfs file system uses functions from fs/buffer.c that
+are only available when CONFIG_BUFFER_HEAD is enabled:
+
+ld.lld-20: error: undefined symbol: block_dirty_folio
+>>>               vmlinux.o:(ecryptfs_aops)
+ld.lld-20: error: undefined symbol: block_invalidate_folio
+>>>               vmlinux.o:(ecryptfs_aops)
+
+When CONFIG_BLOCK is turned off completely, this is not needed,
+so add a conditional 'select BUFFER_HEAD'.
+
+Fixes: 7ba13abbd31e ("fs: Turn block_invalidatepage into block_invalidate_folio")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- fs/ecryptfs/ecryptfs_kernel.h |  1 -
- fs/ecryptfs/mmap.c            | 16 ----------------
- fs/ecryptfs/read_write.c      | 25 +++++++++++++------------
- 3 files changed, 13 insertions(+), 29 deletions(-)
+Ideally we would not depend on buffer heads and instead remove
+the dependency here, but I could not immediately figure out how
+to do that.
+---
+ fs/ecryptfs/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 43f1b5ff987d..f04aa24f6bcd 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -662,7 +662,6 @@ int ecryptfs_read_lower_page_segment(struct folio *folio_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
--struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index);
- int ecryptfs_parse_packet_length(unsigned char *data, size_t *size,
- 				 size_t *length_size);
- int ecryptfs_write_packet_length(char *dest, size_t size,
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 1fc87c83e43c..f6b9390e720a 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -22,22 +22,6 @@
- #include <linux/unaligned.h>
- #include "ecryptfs_kernel.h"
- 
--/*
-- * ecryptfs_get_locked_page
-- *
-- * Get one page from cache or lower f/s, return error otherwise.
-- *
-- * Returns locked and up-to-date page (if ok), with increased
-- * refcnt.
-- */
--struct page *ecryptfs_get_locked_page(struct inode *inode, loff_t index)
--{
--	struct page *page = read_mapping_page(inode->i_mapping, index, NULL);
--	if (!IS_ERR(page))
--		lock_page(page);
--	return page;
--}
--
- /*
-  * This is where we encrypt the data and pass the encrypted data to
-  * the lower filesystem.  In OpenPGP-compatible mode, we operate on
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 251e9f6c6972..cddfdfced879 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -93,7 +93,6 @@ int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
- int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 		   size_t size)
- {
--	struct page *ecryptfs_page;
- 	struct ecryptfs_crypt_stat *crypt_stat;
- 	char *ecryptfs_page_virt;
- 	loff_t ecryptfs_file_size = i_size_read(ecryptfs_inode);
-@@ -111,6 +110,7 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 	else
- 		pos = offset;
- 	while (pos < (offset + size)) {
-+		struct folio *ecryptfs_folio;
- 		pgoff_t ecryptfs_page_idx = (pos >> PAGE_SHIFT);
- 		size_t start_offset_in_page = (pos & ~PAGE_MASK);
- 		size_t num_bytes = (PAGE_SIZE - start_offset_in_page);
-@@ -130,17 +130,18 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			if (num_bytes > total_remaining_zeros)
- 				num_bytes = total_remaining_zeros;
- 		}
--		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_inode,
--							 ecryptfs_page_idx);
--		if (IS_ERR(ecryptfs_page)) {
--			rc = PTR_ERR(ecryptfs_page);
-+		ecryptfs_folio = read_mapping_folio(ecryptfs_inode->i_mapping,
-+				ecryptfs_page_idx, NULL);
-+		if (IS_ERR(ecryptfs_folio)) {
-+			rc = PTR_ERR(ecryptfs_folio);
- 			printk(KERN_ERR "%s: Error getting page at "
- 			       "index [%ld] from eCryptfs inode "
- 			       "mapping; rc = [%d]\n", __func__,
- 			       ecryptfs_page_idx, rc);
- 			goto out;
- 		}
--		ecryptfs_page_virt = kmap_local_page(ecryptfs_page);
-+		folio_lock(ecryptfs_folio);
-+		ecryptfs_page_virt = kmap_local_folio(ecryptfs_folio, 0);
- 
- 		/*
- 		 * pos: where we're now writing, offset: where the request was
-@@ -164,17 +165,17 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 			data_offset += num_bytes;
- 		}
- 		kunmap_local(ecryptfs_page_virt);
--		flush_dcache_page(ecryptfs_page);
--		SetPageUptodate(ecryptfs_page);
--		unlock_page(ecryptfs_page);
-+		flush_dcache_folio(ecryptfs_folio);
-+		folio_mark_uptodate(ecryptfs_folio);
-+		folio_unlock(ecryptfs_folio);
- 		if (crypt_stat->flags & ECRYPTFS_ENCRYPTED)
--			rc = ecryptfs_encrypt_page(ecryptfs_page);
-+			rc = ecryptfs_encrypt_page(&ecryptfs_folio->page);
- 		else
- 			rc = ecryptfs_write_lower_page_segment(ecryptfs_inode,
--						ecryptfs_page,
-+						&ecryptfs_folio->page,
- 						start_offset_in_page,
- 						data_offset);
--		put_page(ecryptfs_page);
-+		folio_put(ecryptfs_folio);
- 		if (rc) {
- 			printk(KERN_ERR "%s: Error encrypting "
- 			       "page; rc = [%d]\n", __func__, rc);
+diff --git a/fs/ecryptfs/Kconfig b/fs/ecryptfs/Kconfig
+index 1bdeaa6d5790..b3c603c4f808 100644
+--- a/fs/ecryptfs/Kconfig
++++ b/fs/ecryptfs/Kconfig
+@@ -2,6 +2,7 @@
+ config ECRYPT_FS
+ 	tristate "eCrypt filesystem layer support"
+ 	depends on KEYS && CRYPTO && (ENCRYPTED_KEYS || ENCRYPTED_KEYS=n)
++	select BUFFER_HEAD if BLOCK
+ 	select CRYPTO_ECB
+ 	select CRYPTO_CBC
+ 	select CRYPTO_MD5
 -- 
-2.43.0
+2.39.5
 
