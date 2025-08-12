@@ -1,54 +1,146 @@
-Received: from mail.taskurio.pl (mail.taskurio.pl [80.211.129.137])
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 096ED2475CB
-	for <ecryptfs@vger.kernel.org>; Tue, 12 Aug 2025 07:58:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.211.129.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFE162D4B6D;
+	Tue, 12 Aug 2025 23:53:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754985541; cv=none; b=ToREo2eogHQN86osJB77LcQgk8OnYsiUqMujJCxrDJkHwSLowozWKvrOMN8ZZfo6tGLP+136bnEk25i/x+Nlm3cNsj7z4wLYg5WNe3a2Nw5jtphc0vUOBQOmxzBcIte0ZnKJY1k+LQ+ApLoQ81bNrUVSS0x7MObswUb5i+Nh6hk=
+	t=1755042784; cv=none; b=iV05z4v0d3gnUvprKJzocxpd0r2v/x7bR9Mh9jt0ryGYbLmOdoHJov/5avMIRmdJVJHHPhrhQSOA+DAWbLBugJ6pahtgJ0P7xSSUUMKfBOnWaWNiLMqkN+jbUW2QuJ/SJK6jB1zYwt4BFy+KzAZZJb825e4kNy7uL4wEoVmkOkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754985541; c=relaxed/simple;
-	bh=Aw0yGG1/aGYZr4XZRi2/umJ0FUyryTuHactiAkbmaLw=;
-	h=Message-ID:Date:From:To:Subject:MIME-Version:Content-Type; b=Y9eDA44i9zQo6tYZ/QKQFlRo4wjf9JKTJ5xOC1lItIq+MyALdNB5T+XuoWIvHmhb978141IusCBH8q0Dn9D/8Gfa6MM4p7pMtFuqCaZ/IiscSd/9PMPq++cqkeoFi3g5vjQdwx6ejDYg+VySIvazAjWEh/HWDrOeZq00ZQb9naA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=taskurio.pl; spf=pass smtp.mailfrom=taskurio.pl; arc=none smtp.client-ip=80.211.129.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=taskurio.pl
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=taskurio.pl
-Received: by mail.taskurio.pl (Postfix, from userid 1002)
-	id 15CF282C7D; Tue, 12 Aug 2025 09:51:11 +0200 (CEST)
-Received: by mail.taskurio.pl for <ecryptfs@vger.kernel.org>; Tue, 12 Aug 2025 07:50:33 GMT
-Message-ID: <20250812084501-0.1.gu.1apcq.0.c8no05l9ap@VentureMakers.pl>
-Date: Tue, 12 Aug 2025 07:50:33 GMT
-From: "Tomasz Cybula" <tomasz.cybula@taskurio.pl>
-To: <ecryptfs@vger.kernel.org>
-Subject: Google Ads - termin spotkania 
-X-Mailer: mail.VentureMakers.pl
+	s=arc-20240116; t=1755042784; c=relaxed/simple;
+	bh=wY0rj6H9uNX526KJkK3oQKoJg0U9wk/QJcI6qW2yVlg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rcoyDzD/BnJxPRfGx/DD2XPnTaNox/xWGCU137RLX0x7YyI6s/OxVQCkjLycdkjRTW9GfijiVUVyyYMCanZa6tM0qlyrnsdgftyGc3ra0dmSdbGBiE0b6XEdLZe/4NzfWnmQh/XmvybfrPFUXdDY7O8w3ERFsOTluHYDgAUeWp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1ulynK-005Y1y-Ic;
+	Tue, 12 Aug 2025 23:52:44 +0000
+From: NeilBrown <neil@brown.name>
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>
+Cc: David Howells <dhowells@redhat.com>,
+	Marc Dionne <marc.dionne@auristor.com>,
+	Xiubo Li <xiubli@redhat.com>,
+	Ilya Dryomov <idryomov@gmail.com>,
+	Tyler Hicks <code@tyhicks.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Richard Weinberger <richard@nod.at>,
+	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Trond Myklebust <trondmy@kernel.org>,
+	Anna Schumaker <anna@kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Jeff Layton <jlayton@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Steve French <sfrench@samba.org>,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	Carlos Maiolino <cem@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	linux-afs@lists.infradead.org,
+	netfs@lists.linux.dev,
+	ceph-devel@vger.kernel.org,
+	ecryptfs@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	linux-nfs@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-cifs@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 03/11] VFS: add dentry_lookup_killable()
+Date: Tue, 12 Aug 2025 12:25:06 +1000
+Message-ID: <20250812235228.3072318-4-neil@brown.name>
+X-Mailer: git-send-email 2.50.0.107.gf914562f5916.dirty
+In-Reply-To: <20250812235228.3072318-1-neil@brown.name>
+References: <20250812235228.3072318-1-neil@brown.name>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Dzie=C5=84 dobry,
+btrfs/ioctl.c uses a "killable" lock on the directory when creating an
+destroying subvols.  overlayfs also does this.
 
-czy rozwa=C5=BCaj=C4=85 Pa=C5=84stwo zwi=C4=99kszenie skuteczno=C5=9Bci k=
-ampanii Google Ads i lepsze wykorzystanie bud=C5=BCetu reklamowego?
+This patch adds dentry_lookup_killable() for these users.
 
-Jako certyfikowany zesp=C3=B3=C5=82 specjalist=C3=B3w Google Ads i Analyt=
-ics, wspieramy sklepy internetowe w tworzeniu strategii, kt=C3=B3re realn=
-ie zwi=C4=99kszaj=C4=85 sprzeda=C5=BC i przewag=C4=99 nad konkurencj=C4=85=
-=2E
+Possibly all dentry_lookup should be killable as there is no down-side,
+but that can come in a later patch.
 
-Oferujemy elastyczne warunki wsp=C3=B3=C5=82pracy, pe=C5=82n=C4=85 transp=
-arentno=C5=9B=C4=87 (dost=C4=99p do kont, raporty), a nasze kampanie s=C4=
-=85 stale optymalizowane na podstawie danych i trend=C3=B3w.
+Signed-off-by: NeilBrown <neil@brown.name>
+---
+ fs/namei.c            | 37 +++++++++++++++++++++++++++++++++++++
+ include/linux/namei.h |  3 +++
+ 2 files changed, 40 insertions(+)
 
-Ch=C4=99tnie zaproponuj=C4=99 konkretny pomys=C5=82 dopasowany do Pa=C5=84=
-stwa bran=C5=BCy - mo=C5=BCemy um=C3=B3wi=C4=87 si=C4=99 na kr=C3=B3tk=C4=
-=85 rozmow=C4=99?
+diff --git a/fs/namei.c b/fs/namei.c
+index 85b981248a90..7af9b464886a 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1837,6 +1837,43 @@ struct dentry *dentry_lookup(struct mnt_idmap *idmap,
+ }
+ EXPORT_SYMBOL(dentry_lookup);
+ 
++/**
++ * dentry_lookup_killable - lookup and lock a name prior to dir ops
++ * @last: the name in the given directory
++ * @base: the directory in which the name is to be found
++ * @lookup_flags: %LOOKUP_xxx flags
++ *
++ * The name is looked up and necessary locks are taken so that
++ * the name can be created or removed.
++ * The "necessary locks" are currently the inode lock on @base.
++ * If a fatal signal arrives, or is already pending, the operation is aborted.
++ * The name @last is NOT expected to already have the hash calculated.
++ * Permission checks are performed to ensure %MAY_EXEC access to @base.
++ * Returns: the dentry, suitably locked, or an ERR_PTR().
++ */
++struct dentry *dentry_lookup_killable(struct mnt_idmap *idmap,
++				      struct qstr *last,
++				      struct dentry *base,
++				      unsigned int lookup_flags)
++{
++	struct dentry *dentry;
++	int err;
++
++	err = lookup_one_common(idmap, last, base);
++	if (err < 0)
++		return ERR_PTR(err);
++
++	err = down_write_killable_nested(&base->d_inode->i_rwsem, I_MUTEX_PARENT);
++	if (err)
++		return ERR_PTR(err);
++
++	dentry = lookup_one_qstr_excl(last, base, lookup_flags);
++	if (IS_ERR(dentry))
++		inode_unlock(base->d_inode);
++	return dentry;
++}
++EXPORT_SYMBOL(dentry_lookup_killable);
++
+ /**
+  * done_dentry_lookup - finish a lookup used for create/delete
+  * @dentry:  the target dentry
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 932cb94c3538..facb5852afa9 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -83,6 +83,9 @@ struct dentry *lookup_one_positive_unlocked(struct mnt_idmap *idmap,
+ struct dentry *dentry_lookup(struct mnt_idmap *idmap,
+ 			       struct qstr *last, struct dentry *base,
+ 			       unsigned int lookup_flags);
++struct dentry *dentry_lookup_killable(struct mnt_idmap *idmap,
++				      struct qstr *last, struct dentry *base,
++				      unsigned int lookup_flags);
+ struct dentry *dentry_lookup_noperm(struct qstr *name, struct dentry *base,
+ 				      unsigned int lookup_flags);
+ void done_dentry_lookup(struct dentry *dentry);
+-- 
+2.50.0.107.gf914562f5916.dirty
 
-
-Pozdrawiam
-Tomasz Cybula
