@@ -1,90 +1,85 @@
 Received: from fout-b8-smtp.messagingengine.com (fout-b8-smtp.messagingengine.com [202.12.124.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1B18FC0A;
-	Thu, 26 Mar 2026 05:01:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DDF19C540;
+	Thu, 26 Mar 2026 05:01:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.151
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774501265; cv=none; b=cqffRgWHJtxZQgvxjF1O2J1QY0mzAjpmUFMB6DM6hLKkH+MabAFG88QFKahDloVAFGgtyEh9qybRKe8dI8O9WcqNdO36JI2Xd5kFOzBbH2iZlVqENjlZcGkI9urjYY/ULBvmqT8aD23t9VA/Zars9OW7SSnb/S8FDB/pYoLRVaY=
+	t=1774501294; cv=none; b=UzNuL/s8W1zP6U7fCIQ2msK8ih28m1idBaYpuxaYeU2r2kYzqzBv9+6Sy7xCp4dRhH1hVTLX9tPBjprDhPhHM34cLZchOPAW+x9s6xC6lc2/mukJeDApYgSxss/v/JNaVtJlWREDHSdB1s7kXwzCw9LSHdnosq1tyYc2L4C5E2w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774501265; c=relaxed/simple;
-	bh=Wj0KY45LJasoVSjEwjYIzd5evDmSVXadfdzS23CYwEk=;
+	s=arc-20240116; t=1774501294; c=relaxed/simple;
+	bh=geSwXrdQXNuKO5UWbey8+GgTLnjJJnLQPNIoSosRm7Y=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mDPbUfeOlc6epeBKKbGUVZyXLc034LXNan9cUQnAZeQ2m1TheBeGJrx6BLWeAppo4wSfJ+timcdGYFAxR6JuTA1ykFzKspTTSLJBv+NHwmCeYrVySDDYP4rKc3dDUefkaQtLobzFSxRXUztebHqa24gkcxZSp19tW3ky8PDodJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=iKouh6yZ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=MCj9yGMB; arc=none smtp.client-ip=202.12.124.151
+	 Content-Type:Content-Disposition:In-Reply-To; b=f+QXZeDJUVML72gXr/PEzAOF9VnOVojtLfnMrjJT+EH6OEVRNrDPZKciMFyLqkjkw3Rx8x/Dpzir/riabuuDvJ8WkpT7+qaQxohgpGvCSojygxq+SiIlbaIjriOr84BaLR2uQ4sR4WI7yBAQQpv1vBLWQhI0865+Qw7SOhFbjcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=Sk5XaeEx; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=lxXLx+Yk; arc=none smtp.client-ip=202.12.124.151
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="iKouh6yZ";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="MCj9yGMB"
+	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="Sk5XaeEx";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="lxXLx+Yk"
 Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
-	by mailfout.stl.internal (Postfix) with ESMTP id A485E1D00051;
-	Thu, 26 Mar 2026 01:01:02 -0400 (EDT)
+	by mailfout.stl.internal (Postfix) with ESMTP id 46D5D1D001A6;
+	Thu, 26 Mar 2026 01:01:32 -0400 (EDT)
 Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-01.internal (MEProxy); Thu, 26 Mar 2026 01:01:02 -0400
+  by phl-compute-01.internal (MEProxy); Thu, 26 Mar 2026 01:01:32 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tyhicks.com; h=
 	cc:cc:content-type:content-type:date:date:from:from:in-reply-to
 	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm3; t=1774501262; x=1774587662; bh=hStv+x4N1p
-	dKVa/iqOUqGeplsbU7lqjqoXPtBwTcYoU=; b=iKouh6yZ5uLCjdvlN7paFL70qS
-	6fOJ9BcifqAWof+eysq77mh/ZOKmJZzdlLWjAG745DJcvXPiEjPN7G0CUQbUALWk
-	wWTYPQVtVua3gi3nEI8ZlHopOXqrCYHoD1AL1nory84ZhtQwcITsD/+NDDonS0oo
-	VDGl8s97FfBZJGvb66Gb8DF/lFIoLakRPSZD5AzPjht2O9gN+fHP6wYF7F2w9m1y
-	1i/lpveLWJm3MXoH60aPURSHYdkNlAXxyHEAvnWRoTINDmoCarKIiuf+Av4Ltef0
-	foJjH5EHKN3ijsu2o/RgHQXle8IoN2QfzHvnNbE/3H8FWjRH7m1+DPR0Ea5Q==
+	:subject:to:to; s=fm3; t=1774501292; x=1774587692; bh=n9FYWhiau2
+	vON1o8Jtbi0bVJHg4pfh6nY9TkKsOjDKk=; b=Sk5XaeExWvLuf/e/GtxtLl8fIC
+	KZUd6l4VgRXYMqlJCmiO8gh8R0bdqLFZCGYOxbXFNq5f+k9dTmX0qy4WMnmWPMJ3
+	NivxAmpcUNzHQNATJD6Kt7zDu6FFYZ04XWfDaNDQqaYSSwxoIdX5uHewQ3zVqsDV
+	tNWjuruwWKgtRFJG41WhJkJSu/Y8bEAcBL1h01Hn2uG3Xda52DZH9A3K4FD7nnU7
+	5hYotuBSs/s+chI3oJurmmanZcxD/tgyKE6fpJkoeOt4jQG3qiHzN646smDl0HyN
+	qyRNyRm7JGJu0oND4He9t2eV8N4Lb8vz/F+Bjp/q0WxXiJSij7gmltYKdpjg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-type:content-type:date:date
 	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
 	:message-id:mime-version:references:reply-to:subject:subject:to
 	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
-	1774501262; x=1774587662; bh=hStv+x4N1pdKVa/iqOUqGeplsbU7lqjqoXP
-	tBwTcYoU=; b=MCj9yGMBwMlRG2Sf8JvMiBQi7zG2QvHE5QgS7RElzQFQFuWVMNj
-	Ghq0v72aQdOuRnqb7znuW4b+YENIJAR77prJp6NZ5fKL/WhJypkiS9NQFee7TveR
-	5oHAEoEJikxH+u4G84I7vSSwjOZ0eyVwZITdM/Mee5RriFS8nbARvaIHOwDh+DJ1
-	skJo1X629EnOlpp+rG8XVX7Z9i00Smz7iggBxwJBeulNls9KErRj+SxxdG1LusoQ
-	Rgx+SA2Zdr95OgWqAWAdB6hA8uURqp6SfEr7BFIwYRa4uQBobGZBtIH09Om1oCYz
-	oH70qCg1IGWu1PIUNptSzVSvY6nM+aoy+VQ==
-X-ME-Sender: <xms:jr3EaV0cTshgYBTMYUO9aRCv3zTudd89FQk97tMUmHHuVNSkpE3FdA>
-    <xme:jr3EaRQwuGozofjGvKKS73GMW1MdzhStze8qdC0EcMOZFhzH50OZDSuYQZb0f9v_o
-    5RP0oIJClPkapIAbYO0gd7F0GUoXuMUoA9kMQoAtXfpb2uFnwI-P2k>
-X-ME-Received: <xmr:jr3EaWxuxnbefPgUAv9VptJGK978PBrq-boxcdwtHyFoEHD0BlcjAd0>
+	1774501292; x=1774587692; bh=n9FYWhiau2vON1o8Jtbi0bVJHg4pfh6nY9T
+	kKsOjDKk=; b=lxXLx+Yk3FjnB94Ow2YUuUuhEXk5+BohvcdMkirCU9N9yGWvPKK
+	vhO13rc8qpMF2v9CGb0Ff9OOaNlNzgP19G3IQeYIC5c3n6D2Ccs3uyE0xNxC/m/M
+	Z3Ne9+nbbzrzs6ConvqmRqGvuO1bhvqqEq4Yp8J0Ax/riqK27zQO5D4CndDnELbS
+	nEgxiUiMD4slDh6249+Al8/jOtIC5TYKYs0QijAoL8+Xlo1/X3zDWinxvRF1JZP0
+	7zHp+W1b0/XMAkZiaTSditGLKIOQihglnNPU96jt67RfmALiyUk58lTglU9fpo7W
+	Y0J+cQcTvXgx51ESwO0UA8lsXMKyZjXT4Dw==
+X-ME-Sender: <xms:q73EaXEiUshNT0Ub36USyxjslIJr1hjnjYbXEt7Ob3v5I5lOi5Zugw>
+    <xme:q73EadqfA7gw_IlNSFPgdf7JToLq7fT4PURF9R6cKZAADLVn4KM0Upyw_JRe0AJJd
+    gmt5qTzYZQTnVgMdDZ1ELLqCwcf6hFNONfn04AdlAJBwfN6ZULLJ-8>
+X-ME-Received: <xmr:q73EaQa7lmogJ9AWF6icQCXPrP6dyq2iw1B0xyKUK7URu-Wh44AHUVc>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdefvdeigeehucetufdoteggodetrf
     dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
     rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
     gurhepfffhvfevuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepvfihlhgvrhcu
     jfhitghkshcuoegtohguvgesthihhhhitghkshdrtghomheqnecuggftrfgrthhtvghrnh
     epgfegkeeiffethefgteffudfhfeejhedvjefhjeekudelffdulefhfeekieeludejnecu
-    ffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurf
+    ffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedunecurf
     grrhgrmhepmhgrihhlfhhrohhmpegtohguvgesthihhhhitghkshdrtghomhdpnhgspghr
-    tghpthhtohepkedpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepthhhohhrshhtvg
-    hnrdgslhhumheslhhinhhugidruggvvhdprhgtphhtthhopegsrhgruhhnvghrsehkvghr
-    nhgvlhdrohhrghdprhgtphhtthhopegvsghighhgvghrsheskhgvrhhnvghlrdhorhhgpd
-    hrtghpthhtoheprghmihhrjeefihhlsehgmhgrihhlrdgtohhmpdhrtghpthhtohepiihh
-    rghnghiiihhpvghnghdtsehfohigmhgrihhlrdgtohhmpdhrtghpthhtohepkhgvvghsse
-    hkvghrnhgvlhdrohhrghdprhgtphhtthhopegvtghrhihpthhfshesvhhgvghrrdhkvghr
-    nhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvg
-    hrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:jr3EaZBcBdCA_PDgYHaLYe2jTuGaOP8B7nsICqCXPnyz-cog9ySyOw>
-    <xmx:jr3EaaGp5cpI4VbaKdjYK-wvr-W-qmBIKEoIY7hCPhFJrkB92U6Upw>
-    <xmx:jr3EaYO0uT_ODzi26ftARXTjI1SIYTBOkTqk-CnG_lMmNKXrIvvezg>
-    <xmx:jr3EaT5DkAqJ6cIe-XpGk9CfJcDYsc-Eu1VXxFcIM3bXB5-jZhqx8g>
-    <xmx:jr3Eabs237ARX2jW9gh68yZqIYDQcEBGxaEpQofVS45hy26YP-Dq66R1>
+    tghpthhtohepiedpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepthhhohhrshhtvg
+    hnrdgslhhumheslhhinhhugidruggvvhdprhgtphhtthhopegvsghighhgvghrsheskhgv
+    rhhnvghlrdhorhhgpdhrtghpthhtoheprghruggssehkvghrnhgvlhdrohhrghdprhgtph
+    htthhopegsrhgruhhnvghrsehkvghrnhgvlhdrohhrghdprhgtphhtthhopegvtghrhihp
+    thhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvg
+    hrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
+X-ME-Proxy: <xmx:rL3EaWUk7forl1dbqDCy_KJVpEM9ABMoz1O1C3ckXbmjGFKHPvGYrA>
+    <xmx:rL3EaZ-zzxZHI5j-QHFVbi5LaOqGVKLu-4dZhXSZnUMrouuU8rkAAA>
+    <xmx:rL3Eaf9YMsmzHw8MH8AU0g2QWNdbuWPikuz3r7AikOmrEGYkTLS84g>
+    <xmx:rL3EaZTavP6smILGgR_gtq95ldRNQQyvHN3d8mF3s4QQN_lTk2vsDQ>
+    <xmx:rL3EaQruzpT3QJKmropIMje5mNK1mMG_NmspNSUkPYWyYwUNXwbQ-d3->
 Feedback-ID: i78e14604:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 26 Mar 2026 01:01:01 -0400 (EDT)
-Date: Thu, 26 Mar 2026 00:00:55 -0500
+ 26 Mar 2026 01:01:31 -0400 (EDT)
+Date: Thu, 26 Mar 2026 00:01:26 -0500
 From: Tyler Hicks <code@tyhicks.com>
 To: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Eric Biggers <ebiggers@kernel.org>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Zipeng Zhang <zhangzipeng0@foxmail.com>,
-	Kees Cook <kees@kernel.org>, ecryptfs@vger.kernel.org,
+Cc: Eric Biggers <ebiggers@kernel.org>, Ard Biesheuvel <ardb@kernel.org>,
+	Christian Brauner <brauner@kernel.org>, ecryptfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RESEND] ecryptfs: Log function name only once in
- decode_and_decrypt_filename
-Message-ID: <177450083114.1953525.16480662200050715487.b4-ty@b4>
-References: <20260310102654.209016-2-thorsten.blum@linux.dev>
+Subject: Re: [PATCH RESEND] ecryptfs: Replace memcpy + manual NUL termination
+ with strscpy
+Message-ID: <177450083115.1953525.17155877442789981964.b4-ty@b4>
+References: <20260205125104.1010945-1-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -93,18 +88,19 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260310102654.209016-2-thorsten.blum@linux.dev>
+In-Reply-To: <20260205125104.1010945-1-thorsten.blum@linux.dev>
 
-On Tue, 10 Mar 2026 11:26:53 +0100, Thorsten Blum wrote:
-> ecryptfs_printk() already prints the function name using %s and
-> __func__. Drop the redundant function name from the debug log message.
+On Thu, 05 Feb 2026 13:51:00 +0100, Thorsten Blum wrote:
+> Use strscpy() to copy the NUL-terminated '->token.password.signature'
+> and 'sig' to the destination buffers instead of using memcpy() followed
+> by manual NUL terminations.
 
 Thank you! This has been applied to the next branch of the tyhicks/ecryptfs.git tree.
 
 You can find a direct link below but please be aware that the commit hash is
 unstable and, therefore, the URL may not be valid in the future.
 
-[1/1] ecryptfs: Log function name only once in decode_and_decrypt_filename
-      https://git.kernel.org/tyhicks/ecryptfs/c/1601fe9e0423d813b1158a52e051bd3059f74197
+[1/1] ecryptfs: Replace memcpy + manual NUL termination with strscpy
+      https://git.kernel.org/tyhicks/ecryptfs/c/f7a1c0283f135833db164cc0fac8d422fed2079e
 
 Tyler
