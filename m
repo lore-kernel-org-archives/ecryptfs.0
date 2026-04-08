@@ -1,42 +1,42 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A12F35CB8B;
-	Wed,  8 Apr 2026 06:07:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2000634DB59;
+	Wed,  8 Apr 2026 06:07:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775628459; cv=none; b=QCFwE8NFEv0jL2uojxK4Ri7+xFsAickn1Pgl8NeT6iVn3qtIS8FIY6qzsBo+0cI9LgJfnvt+8lgqVl6FrZ82BzzAsMN/4MBXZsnf1/Sbnt+OIU7jYu3YKMU0UzWc924wlJ3JQ8KMxLBwQwIJcu3vNdsJQbP6YUeq2B7uuZJuUdc=
+	t=1775628463; cv=none; b=ufEnlRYeXArBvRvS6lBf1nk5eyNsLIUhU5MKah8cdETIC3FMmUsb+ujK1rD+KmAPzsspXYYkeADxaByS1uKnQglX1Urwa5Oe7BcOQsBZJsRs0KBdc0jQK/f2V1VGk9rmiO/r2e4FdWtLpNcraXbIwNLWkgb0GoHvw3jvKXbRjnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775628459; c=relaxed/simple;
-	bh=DpLR+JYR7iEftVwaO1mTLNukv4rP/pYTY8B4qA9kOyI=;
+	s=arc-20240116; t=1775628463; c=relaxed/simple;
+	bh=hJ6RI8ax4j0F2GmUrznL5Ylfc9mFG9oW9MNBqhytwXE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dDqzegB88BCAhohwE0vuPBdDBYGaBq8kPJPUG4SmRdgG6JQ4a2i14uWIv8AW2CShpUA5nQ05hF2WMAksACENAnJhNKXLldwNIVSQtECJ1CHHaAmomj9m5PP0kJCc/STVgrLXHU9z7w1JqfwH8IOlqKDwntsD185f7pLUkPZqpfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Cuezb69E; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=OT1/b5lEJ6K0Dq9Qpbkf5Igs/pff4auj0e/Fb3+5+ivwwrQ8+iMiKS8rQI1hLkwzRGJtpZaNFWy/RdnOKHVN4OVesvhXrE2N9KaOjyY6gcoiLQYtR1wfQl6VxUBkCbbbhw7UXng3VG43HUOEE9e7dy//zEbE6nno+u5qNyX+nDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=r5tv3zCe; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Cuezb69E"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="r5tv3zCe"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=x8wHx/06Nif4EID+jlc04LMDvl7rXMKGmefrgkj3IYc=; b=Cuezb69EkLuw5WYLxnNbkdZdHz
-	LXNjL/HAjcxW7Qbe4WiQPQm45TU7VSPlLEG8fpIOV4ijI3rz6H9+rTq1P/6/yqJMKHyKaTqJOTW/D
-	dBJ4dgCsJ8+V1XAwF9P0rnxDI9aLOancC8UgRJ/+keCugyctOsA0Fq0XRQSNVjh2WxWQCK4TKRG4W
-	NtnW8oeCZvqXaQckjaGe0XO8a4HRRz772MH/eAJCwRJz0nQdrrEGPkJt7remqpIewLiNZQvmjxN5h
-	37bD6sxLyA7ZyU5yJsBgkdXfAi5kVQxzWnTCRCcBuT5GVcibsDfO7zfJzTug44taEyvr5dCVnFPBt
-	lAv3/JGw==;
+	bh=Q32HvKzhUL7QRhZoruzNFN4HU7AOSdxP5mhg5WxmuDY=; b=r5tv3zCePQVpH1sAtBRFtoTVJb
+	s9bbz2LEd9jfmkYijakaxN2u/p+IvJ3A9QJO6X9G7yaReDAWf1aYWaLtoR8TjeRa1bGHluV73ZJaF
+	bEWdyxF5+b3a/DeDJnbLXlkbn+eHqOwmAic5g3ZoU06c4HX2FMz3E/k4I8e7FdmblhlttGnHhWGsg
+	bfW6s1p9ai21Kxn8YJ6of2Y8WUH78bvunUh64/5/xehlhKm24Tc3mW5kEvzw5QcEJeDBgqloQgTT0
+	jQayzBJ57SAsMbEv3fU8oDnPe9SitS1UelzamJ7rZXMc0VH+8fdH5GMHeSiwjFHNwlyOAWpuTdFon
+	/jxuEyJw==;
 Received: from [2001:4bb8:2d1:6f42:152:6810:a349:3502] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1wAM4f-00000008JyQ-2c7F;
-	Wed, 08 Apr 2026 06:07:38 +0000
+	id 1wAM4j-00000008Jyq-0xad;
+	Wed, 08 Apr 2026 06:07:41 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Tyler Hicks <code@tyhicks.com>
 Cc: ecryptfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 4/7] ecryptfs: combine the two ATTR_SIZE blocks in ecryptfs_setattr
-Date: Wed,  8 Apr 2026 08:06:39 +0200
-Message-ID: <20260408060719.714317-5-hch@lst.de>
+Subject: [PATCH 5/7] ecryptfs: merge ecryptfs_inode_newsize_ok into truncate_upper
+Date: Wed,  8 Apr 2026 08:06:40 +0200
+Message-ID: <20260408060719.714317-6-hch@lst.de>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260408060719.714317-1-hch@lst.de>
 References: <20260408060719.714317-1-hch@lst.de>
@@ -49,37 +49,110 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Simplify the logic in ecryptfs_setattr by combining the two ATTR_SIZE
-blocks.  This initializes lower_ia before the size check, which is
-obviously correct as the size check doesn't look at it.
+Both callers of ecryptfs_inode_newsize_ok call truncate_upper right
+after.  Merge ecryptfs_inode_newsize_ok into truncate_upper to simplify
+the logic.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/ecryptfs/inode.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/ecryptfs/inode.c | 52 +++++++++++++++------------------------------
+ 1 file changed, 17 insertions(+), 35 deletions(-)
 
 diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index daa63b7dd015..ec6aae5af1f8 100644
+index ec6aae5af1f8..4ec3e76f0562 100644
 --- a/fs/ecryptfs/inode.c
 +++ b/fs/ecryptfs/inode.c
-@@ -934,16 +934,15 @@ static int ecryptfs_setattr(struct mnt_idmap *idmap,
- 	rc = setattr_prepare(&nop_mnt_idmap, dentry, ia);
- 	if (rc)
- 		goto out;
--	if (ia->ia_valid & ATTR_SIZE) {
--		rc = ecryptfs_inode_newsize_ok(inode, ia->ia_size);
--		if (rc)
--			goto out;
--	}
+@@ -738,6 +738,23 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
+ 		return 0;
+ 	}
  
- 	memcpy(&lower_ia, ia, sizeof(lower_ia));
++	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
++	lower_size_before_truncate =
++		upper_size_to_lower_size(crypt_stat, i_size);
++	lower_size_after_truncate =
++		upper_size_to_lower_size(crypt_stat, ia->ia_size);
++	if (lower_size_after_truncate > lower_size_before_truncate) {
++		/*
++		 * The eCryptfs inode and the new *lower* size are mixed here
++		 * because we may not have the lower i_mutex held and/or it may
++		 * not be appropriate to call inode_newsize_ok() with inodes
++		 * from other filesystems.
++		 */
++		rc = inode_newsize_ok(inode, lower_size_after_truncate);
++		if (rc)
++			return rc;
++	}
++
+ 	rc = ecryptfs_get_lower_file(dentry, inode);
+ 	if (rc)
+ 		return rc;
+@@ -756,7 +773,6 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
+ 		goto out;
+ 	}
+ 
+-	crypt_stat = &ecryptfs_inode_to_private(d_inode(dentry))->crypt_stat;
+ 	if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
+ 		truncate_setsize(inode, ia->ia_size);
+ 		lower_ia->ia_size = ia->ia_size;
+@@ -791,10 +807,6 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
+ 	 * We are reducing the size of the ecryptfs file, and need to know if we
+ 	 * need to reduce the size of the lower file.
+ 	 */
+-	lower_size_before_truncate =
+-		upper_size_to_lower_size(crypt_stat, i_size);
+-	lower_size_after_truncate =
+-		upper_size_to_lower_size(crypt_stat, ia->ia_size);
+ 	if (lower_size_after_truncate < lower_size_before_truncate) {
+ 		lower_ia->ia_size = lower_size_after_truncate;
+ 		lower_ia->ia_valid |= ATTR_SIZE;
+@@ -806,28 +818,6 @@ static int truncate_upper(struct dentry *dentry, struct iattr *ia,
+ 	return rc;
+ }
+ 
+-static int ecryptfs_inode_newsize_ok(struct inode *inode, loff_t offset)
+-{
+-	struct ecryptfs_crypt_stat *crypt_stat;
+-	loff_t lower_oldsize, lower_newsize;
+-
+-	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
+-	lower_oldsize = upper_size_to_lower_size(crypt_stat,
+-						 i_size_read(inode));
+-	lower_newsize = upper_size_to_lower_size(crypt_stat, offset);
+-	if (lower_newsize > lower_oldsize) {
+-		/*
+-		 * The eCryptfs inode and the new *lower* size are mixed here
+-		 * because we may not have the lower i_mutex held and/or it may
+-		 * not be appropriate to call inode_newsize_ok() with inodes
+-		 * from other filesystems.
+-		 */
+-		return inode_newsize_ok(inode, lower_newsize);
+-	}
+-
+-	return 0;
+-}
+-
+ /**
+  * ecryptfs_truncate
+  * @dentry: The ecryptfs layer dentry
+@@ -844,10 +834,6 @@ int ecryptfs_truncate(struct dentry *dentry, loff_t new_length)
+ 	struct iattr lower_ia = { .ia_valid = 0 };
+ 	int rc;
+ 
+-	rc = ecryptfs_inode_newsize_ok(d_inode(dentry), new_length);
+-	if (rc)
+-		return rc;
+-
+ 	rc = truncate_upper(dentry, &ia, &lower_ia);
+ 	if (!rc && lower_ia.ia_valid & ATTR_SIZE) {
+ 		struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
+@@ -939,10 +925,6 @@ static int ecryptfs_setattr(struct mnt_idmap *idmap,
  	if (ia->ia_valid & ATTR_FILE)
  		lower_ia.ia_file = ecryptfs_file_to_lower(ia->ia_file);
  	if (ia->ia_valid & ATTR_SIZE) {
-+		rc = ecryptfs_inode_newsize_ok(inode, ia->ia_size);
-+		if (rc)
-+			goto out;
-+
+-		rc = ecryptfs_inode_newsize_ok(inode, ia->ia_size);
+-		if (rc)
+-			goto out;
+-
  		rc = truncate_upper(dentry, ia, &lower_ia);
  		if (rc < 0)
  			goto out;
