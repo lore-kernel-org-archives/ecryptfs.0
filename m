@@ -1,63 +1,111 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from smtpbgau1.qq.com (smtpbgau1.qq.com [54.206.16.166])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E2C72617;
-	Fri, 26 Jun 2026 15:45:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21BB481ACD;
+	Sat, 27 Jun 2026 09:02:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.206.16.166
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1782488756; cv=none; b=l05++obeKrZ789mgZS5/AzjP9/s4XJv9T+boO4jAwKd2agf2ULS1z5WjC0UzpAqpsMDf/qyZNqUvygkqAI2lSfNf6+YjL/3ENLYZB8+bWvlq+nQUBM14FrDLEqEI9iNLOw4HPE1VK0xlZk7a4yZulwA2qE9jy2kAOi2HNj7joTI=
+	t=1782550933; cv=none; b=VojWgFj+05GuRcCTM9+7mzPJoaE2icWkF0SGO1A0AFmsl/gO71/duJrMa44Jj3eahg32FSADih/x+Ac4p3D3VdzTWzleD+yQeel6G2Qmvnc2/uB6sjpQf0bBl8BmEVqWaPOmly08rkn9vJ3xKNfgTk8iYmrZ4orcBlKlpVL1cAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1782488756; c=relaxed/simple;
-	bh=lZ0qGT8ycdrerRQQyPFM2rLjJgpkPORXxs5kFP0mVyE=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=EFx0IFX3A4Wb69MOFJh5rbz863r1cZHDzlmq73ktgJJSG3mB2T/NfYMifDjUcgXKg8t6ulsMkbyU1YFQwkNIRORQNIitgc1QDE4QusyLoS8qxaknPI+wH26kINJLVCpHBwJG74NMwriFpKUdwsoWAJ8bhE/zcqoOjTSzbOEsOKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NsRCvcpT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1782550933; c=relaxed/simple;
+	bh=CoYce0p7V2+QDPR0QInWeOvhDko7rTxUoMmEFQ3wf7M=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=L5LfNExquqEl8ALiACONajJ47+2QCtdAm6ARqvFoJFS2v4nr9gjPN9AhUuRdQTc/xi+NdBGakHL8pKwSlimmI9YC/2JpIgSMUwwviLk/9ia+P6SZS+6YtwLzzH+ofgOSb9Z+UlAodT+Qnqoz0a4bUAn0zgPvB82Og1rXifSy9ik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=Jtty+i7A; arc=none smtp.client-ip=54.206.16.166
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NsRCvcpT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 167211F00A3A;
-	Fri, 26 Jun 2026 15:45:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1782488751;
-	bh=8hSbtc28PUOiQrnJlOpaCH8H9EVFwcp777PmMYdmODk=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=NsRCvcpTH/7goJl91Mo1ZQKeDYEBE+Jws7KYMZls5efl0LHMgRA0c98g5uSaFmG3w
-	 osxJP2dD74VLb8ytJ2G+Sv3kCHLaDIQ9YA077Bh9bqNmoHkeGKKNLoR61/u7VTEHhx
-	 glTcLPXMYrdmG4IESsOTrYJq2AFHTOiqdYnsKPqZZFc1QCHXG2Fk1Ld2LIRVHWQdxn
-	 5YnBEDX9EOAuq04JDKZhbZg10SEhjOwUVZUBWL3PwilhhcT2UF5F52MbqnjHXdBSmC
-	 /Qn2zmboZ9pjCGlyL+CJzJi16gCiN6htxB1J0VGnCYGCjuiWqWTgQ/J0rLwrJE6rUt
-	 SOVAGxFMZN5cA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 198603938C49;
-	Fri, 26 Jun 2026 15:45:39 +0000 (UTC)
-Subject: Re: [GIT PULL] eCryptfs updates for 7.2-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <aj3p8nYWZPTbkUWW@yaupon>
-References: <aj3p8nYWZPTbkUWW@yaupon>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <aj3p8nYWZPTbkUWW@yaupon>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-7.2-rc1-updates
-X-PR-Tracked-Commit-Id: 95ce5ffd54cf66098f91892f98606c3bd33846fe
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: c292ea294dde77ae442d3d764f53c251d2d6df90
-Message-Id: <178248873773.1001923.6407573170334196525.pr-tracker-bot@kernel.org>
-Date: Fri, 26 Jun 2026 15:45:37 +0000
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="Jtty+i7A"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1782550895;
+	bh=BjqUJ7SBZabq8bhqtodTaaaYsaiSKy8G6gLc1SmBMUE=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version;
+	b=Jtty+i7AcFaeJ4a8jL+bRA+086HgS5uj2Y+nl7OglK8PHuhn6zSSb3Vtw1b7aMLnn
+	 me/s3DkwtEAgf8OJczwjvC7kUGISz9hNQoXa8625NrEANFCwu4TJ/jAm147n7hpCDV
+	 RIeAxjGNrmF/bNvD9D62f8XfAcV+Rfsyk1HEh5dc=
+X-QQ-mid: esmtpsz17t1782550890te8b73551
+X-QQ-Originating-IP: DTHyUKLRkw8ztzFU+he5hzHs27RSby6zyDRct44tlio=
+Received: from uniontech.com ( [113.57.152.160])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Sat, 27 Jun 2026 17:01:28 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 157958484755876001
+EX-QQ-RecipientCnt: 6
+From: Yichong Chen <chenyichong@uniontech.com>
 To: Tyler Hicks <code@tyhicks.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Christian Brauner <brauner@kernel.org>, linux-kernel@vger.kernel.org, ecryptfs@vger.kernel.org
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	Kees Cook <kees@kernel.org>,
+	Yichong Chen <chenyichong@uniontech.com>,
+	ecryptfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] ecryptfs: release message context on send failure
+Date: Sat, 27 Jun 2026 17:01:26 +0800
+Message-Id: <20260627090126.27607-1-chenyichong@uniontech.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: esmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz3a-0
+X-QQ-XMAILINFO: NWth7vBa++Gd6mfcxCMtAhrESC/+P5NPU+VKwFQ+bnhguuVq6tB6hGKj
+	yMuMhfsMZ7eXmeWmXlN8Q7dy601BVoxcRjK7DGlcdii6mwdw1dtAb5ix1LpovD6f47IqoEX
+	EX1VVCUN1AEZozU8IzaNqDp9O3Ub6ZqGmwUhUT4vGa18ZrAEcShwJKcAgLKHFoVnFEdPn7I
+	rWoOYHDEngKiBVgSiOH1LVK3wrKhqCxQU++6GogPAgpbM1oj24AhGS6MMHUKQeskmW/sinx
+	4ri9/0QWIoe5XHJl3vQhBE3jMOo1bd+4a9W8pVyyhjyoqHu4Sp0K0FeG2ZP+I/nkus6gPXu
+	JG6AJlFskIF0XdqvE4dxfikLP7hfm6NB5Cxbh4Mdsx1afnnPuImNWsDEJ3Vgol+YUZhJKkD
+	sy1Xe4S40dFcjqy22d56Wr1VeZNnr1CvyPAknXvN5SpG2hHSmxQGOQSgK8cpwXifjc2bDte
+	kBOEHhueRWA3IZLEebubM20cjj4APX2qdl4UmzNKrDYuIAqYNKODV8/KqHSqYdE3J9PxR3m
+	JqaakulIL4FMOCw4vODEn8/MPCsEzQ5UCYq+Q26NwBAOv4YyRbpFJ3qBxPpzuo4Ljzznv4p
+	t804pRDkz7ce47DpX1gDZfDE1COhU2Y2cuNMaJ3ZtRSRvZt9Y8LYAegwlfP0pO/xhXsGEPp
+	EpTYZ2E9/fMFQmQVwTuBwsriOyr9+rSNbxUErmdMWgZyqDB0IowAWYtiRFs6tNnIAgeSxCb
+	JhJNyx7qGrd6OyoN04XpzukZC/vY9VImPWxiIDIZpZYEfmdzLP+ynIRZWE9rG45bRBWb5Nw
+	XNJ6LTl3tucq3xk8Dct1olcas2tqg2I7zZTCkA2g+tzSytTIvRtuqoSK5X+idWzMq0tK351
+	IrHQMHrZxvbzJXatWk0sRbaZTeYDe5w14qzfbNUKvAoDKi1JOhDv8t4mWNfeJBuzhTdlBgG
+	V13+h7t5AMKYVPYINuRZWaxzywPy/RH+bFb2RxKfCJ11UJOzSfmPaOVxIiR58uNDMLKXFB2
+	gGA95kjqeLXFlApsaq8k6Ai/1HrA6Xf5J4b070Tw==
+X-QQ-XMRINFO: Nq+8W0+stu50tPAe92KXseR0ZZmBTk3gLg==
+X-QQ-RECHKSPAM: 0
 
-The pull request you sent on Thu, 25 Jun 2026 21:54:42 -0500:
+ecryptfs_send_message_locked() moves a message context from the free
+list to the allocated list before sending the request to the userspace
+daemon.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git tags/ecryptfs-7.2-rc1-updates
+If ecryptfs_send_miscdev() fails, the context is left on the
+allocated list and cannot be reused. Move it back to the free list on
+failure and clear the caller's pointer.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/c292ea294dde77ae442d3d764f53c251d2d6df90
+Fixes: 624ae5284516 ("eCryptfs: remove netlink transport")
+Signed-off-by: Yichong Chen <chenyichong@uniontech.com>
+---
+ fs/ecryptfs/messaging.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Thank you!
-
+diff --git a/fs/ecryptfs/messaging.c b/fs/ecryptfs/messaging.c
+index 03c60f0850ca..d53c21e82365 100644
+--- a/fs/ecryptfs/messaging.c
++++ b/fs/ecryptfs/messaging.c
+@@ -284,9 +284,16 @@ ecryptfs_send_message_locked(char *data, int data_len, u8 msg_type,
+ 	mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
+ 	rc = ecryptfs_send_miscdev(data, data_len, *msg_ctx, msg_type, 0,
+ 				   daemon);
+-	if (rc)
++	if (rc) {
+ 		printk(KERN_ERR "%s: Error attempting to send message to "
+ 		       "userspace daemon; rc = [%d]\n", __func__, rc);
++		mutex_lock(&ecryptfs_msg_ctx_lists_mux);
++		mutex_lock(&(*msg_ctx)->mux);
++		ecryptfs_msg_ctx_alloc_to_free(*msg_ctx);
++		mutex_unlock(&(*msg_ctx)->mux);
++		mutex_unlock(&ecryptfs_msg_ctx_lists_mux);
++		*msg_ctx = NULL;
++	}
+ out:
+ 	return rc;
+ }
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.51.0
+
