@@ -1,32 +1,69 @@
-Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from mail-pg1-f172.google.com (mail-pg1-f172.google.com [209.85.215.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4564071CA;
-	Mon, 20 Jul 2026 11:56:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B553B6362
+	for <ecryptfs@vger.kernel.org>; Mon, 20 Jul 2026 18:11:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784548590; cv=none; b=PdcmBspG4HOjh+zFvWOx3SYBfHgpPtyPSXCcegVQbhpyTBCw13/8Z6n9+fPGfSmBpMIPhaUyazYaNd5czjySwslpOg1v9krxYCz5WKcmlHET9kzLT6Avrtpe130l4tCTPVS4g962JQ5lQrVeDS0eyXOmUV815yH4h+0+Y8Yhgmg=
+	t=1784571105; cv=none; b=mwOM5p2Oj90wtiY9ui0cgv6fejV16DYJDPcIO8QuNl95E2r6hKu/RMzxj1Y8Qsa7oYYXCEsL3FpqiFEqDuAxzWU+oJM1O3gSeSaeP/OwaaUMUEImtV6LCTTld4tKwd9lK7v+M/Czsb1nDGHEp8WQ9QPl329nRa7DtauiAr4MZus=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784548590; c=relaxed/simple;
-	bh=MWtnJZ1NiFv1kc36EpYZBpO+qly1+Vg1gFwrxTtEOC4=;
-	h=From:To:Cc:Subject:Date:Message-ID:Content-Type:MIME-Version; b=VUqKK96P70BpWPRq74RVNQx11SPsuuVgKbcVJoIuDdKX3ecEpVXWOs79V3rAGbuHzHzkNdlNBCJ059ozKA35ekmWCQDKHrY7Rrp8zFvRlAZCx2nMIeFsdnn6o0s4tBfVM7MKIinbss330TycUSMewUjshkmpX2Q9DuNNE/hPI+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn; spf=pass smtp.mailfrom=iscas.ac.cn; arc=none smtp.client-ip=159.226.251.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iscas.ac.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iscas.ac.cn
-Received: from localhost.localdomain (unknown [111.196.245.140])
-	by APP-05 (Coremail) with SMTP id zQCowAB35T_oDF5qodaIAA--.63033S2;
-	Mon, 20 Jul 2026 19:56:24 +0800 (CST)
-From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+	s=arc-20240116; t=1784571105; c=relaxed/simple;
+	bh=nvpseMWWNvqBqQA/visskGijBjdrLlgLlu1zMoYPPUk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qteF+Qj9g05Ngqo5yWmbJDdZbMoS/hIDLyuhPERDF7duyXtque7GFu2tLshhjmX70H7FtCuUbcar15b1nNqiOmDH38f6hzy6QN2fIkK64qM1nXX/c9dzXBh+eSl5X75lbaJMRtxl85P4Y27ARkNs8iJ2gRPx1hNSkJDeZdA5d/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=artiphishell.com; spf=pass smtp.mailfrom=artiphishell.com; dkim=pass (2048-bit key) header.d=artiphishell.com header.i=@artiphishell.com header.b=LmHfse/W; arc=none smtp.client-ip=209.85.215.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=artiphishell.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=artiphishell.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=artiphishell.com header.i=@artiphishell.com header.b="LmHfse/W"
+Received: by mail-pg1-f172.google.com with SMTP id 41be03b00d2f7-ca965de53baso3822472a12.0
+        for <ecryptfs@vger.kernel.org>; Mon, 20 Jul 2026 11:11:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=artiphishell.com; s=google; t=1784571104; x=1785175904; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=cnXpA5gX0T/aWSVJgbbvan8lTs+4lAWEeczKmMO+XEc=;
+        b=LmHfse/WECvPIGomIlv2lFbVVtXZS2IFmo5X+Ff/AQlJG7PrUKpBW4o59cHFcSCaBc
+         xSTACRvqLogrfkiXV22Cb9ruq9rnObkv2bD10BY/d48RqPfx+2gy1B+ZJbo3rzZodBPc
+         wPSuQJq9cFpiNUQblTgdlUjQJsAhYy+BdPQRhoGgdATP1kE5g84bHToI+SEYxXFS3+B3
+         M91yYr8BwWBgz2bry1DwzB2utyKnqRH9x1W+GTwTgRigPSUvOwY4fY/g8ZgjYHWpDUA/
+         zVFG4pTWNyrhK9OkscRAHEgXOvdf/ybdYxuvn4QysIb+LxUcuX6mSXZiXlb5LIhO6fLL
+         EFGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1784571104; x=1785175904;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cnXpA5gX0T/aWSVJgbbvan8lTs+4lAWEeczKmMO+XEc=;
+        b=cdJxO0Tyyt0aBxADKWxK6ruEK+mbQl0LGZvem9lwYcc/49+aff24Ab8D/MpqVJuvkC
+         FbhP0EUSJWxY2JLh3QDp6xL9AnJ1Z0ukEm1WkrerXH5Q5a/zviNfgxqcaeQSrZs2POUM
+         XDrpH3smGEQQYzRQmjy03Y+RViXl49P5oDchCT9djvkdLOMB8hpzz/ecstWApDD9fvSS
+         4DLZcKf3dLcGdLWSA0CpyRI42VCHu3Mhq/qsZ07d1ecEUXTRHYjjz1QAMfZS955vLZhB
+         ovh3kcVdPOsYojfFsZbia+nsANyOnEBTyoJr4sUqconCdhWv+K48rfMCIdtm2W2beqKb
+         rXhQ==
+X-Gm-Message-State: AOJu0YwxdkVNHziShxJQXJgd/UO5iqeGDnTM1lLFFn51ItrGfsqqnos3
+	Wzn+ysH5OkjDRyeQ04u0j3OrgSGJJJR295E8Evra3DKNt1OM8ZrPG54TvEWPOPv6Mvzg
+X-Gm-Gg: AfdE7clU49yUmiWxd9GjZG6RaOTe+pzXlC7FFSk3F2VjPoSjwNiQrcbyQx4ATIG/sBQ
+	YeOmkgFlmMzmf8dyuW+1tm8xDgoNGs3jD/aZQHd4BAZp6gEqys7i3qPGQi8r2Sqcb+n1jeuS3kX
+	6TNbAHUhH3RSeCeh8iVsm8yr8F4vumKUTSO6FJEtGr1x0RaekRn/Y1FHlHINLXp5ejNDa5dhrRM
+	YyQipkWWFBYkK8uKVv2OtkfUFJs7JveUkZNVQ/l9KoGBEJSHPSL8BNWeVRNdm29vusKTkcA7fSU
+	o6AuDB9Kxa1VaEdrOvXwi3k5O91BrZFwAddp04JiLO63VMB43Qk3YORwti/kz7YLyyPMc+G1iTG
+	/4v62NdffZPAnNbtyG4UheOHpQmIlqSwlK7OJSCGR6VHV0AN7W8DcSiBzgVPEKzom2Z9QtxJw1h
+	f1zfVG
+X-Received: by 2002:a05:6a20:4310:b0:3bf:bde7:d679 with SMTP id adf61e73a8af0-3c3ada190aemr15930906637.40.1784571103675;
+        Mon, 20 Jul 2026 11:11:43 -0700 (PDT)
+Received: from nixos ([2001:579:62a8:47:a62e:8055:eada:6f4c])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-31429cf22b3sm39506222eec.0.2026.07.20.11.11.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Jul 2026 11:11:43 -0700 (PDT)
+From: Jay Vadayath <jay@artiphishell.com>
 To: Tyler Hicks <code@tyhicks.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>,
-	ecryptfs@vger.kernel.org,
+Cc: ecryptfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Pengpeng Hou <pengpeng@iscas.ac.cn>
-Subject: [PATCH v2] eCryptfs: bound the packet-length peek to the user buffer
-Date: Mon, 20 Jul 2026 19:56:24 +0800
-Message-ID: <20260720115624.5426-1-pengpeng@iscas.ac.cn>
-X-Mailer: git-send-email 2.50.1
-Content-Type: text/plain; charset="utf-8"
+	Jay Vadayath <jay@artiphishell.com>
+Subject: [PATCH] fs/ecryptfs: fix slab-out-of-bounds write when decrypting session key
+Date: Mon, 20 Jul 2026 11:11:39 -0700
+Message-ID: <20260720181140.8512-1-jay@artiphishell.com>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -34,66 +71,71 @@ List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowAB35T_oDF5qodaIAA--.63033S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7Aw48urWxJw1fGr15urWfKrg_yoW8Cr4DpF
-	1Fka43Xwn8tw4UCF4UC3Z5XF4UWa9xJw18GrZ7Zw10kwsrZFyfKFWa93yqga4rCFW8J34U
-	trZ8KrWFkF1ayaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUkC14x267AKxVWUJVW8JwAFc2x0x2IEx4CE42xK8VAvwI8IcIk0
-	rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII0Yj41l84x0c7CEw4AK67xGY2AK02
-	1l84ACjcxK6xIIjxv20xvE14v26ryj6F1UM28EF7xvwVC0I7IYx2IY6xkF7I0E14v26F4j
-	6r4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUtVWrXwAv7VC2z280aVAFwI0_Gr0_Cr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY1x0262kKe7AKxVWU
-	AVWUtwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14
-	v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkG
-	c2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVW8JVW5JwCI42IY6xIIjxv20xvEc7CjxVAFwI
-	0_Cr0_Gr1UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVW8JVWx
-	JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfU8-B_UU
-	UUU
-X-CM-SenderInfo: pshqw1xhqjqxpvfd2hldfou0/
 
-ecryptfs_miscdev_write() accepts the minimum one-byte packet-length
-encoding, but always copies the maximum two-byte encoding from userspace
-before parsing it. A six-byte message therefore reads one byte beyond the
-submitted user buffer.
+parse_tag_3_packet() only bounds the Tag 3 encrypted key size against
+ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES (512), but
+decrypt_passphrase_encrypted_session_key() decrypts that many bytes
+straight into the fixed-size auth_tok->session_key.decrypted_key buffer,
+which is only ECRYPTFS_MAX_KEY_BYTES (64) bytes long. A crafted lower
+file whose Tag 3 packet advertises an encrypted key larger than 64 bytes
+therefore causes the cipher to write past the end of the decrypted_key
+buffer (and past the ecryptfs_auth_tok_list_item slab object).
 
-Zero-initialize the peek buffer and copy only the packet-length bytes
-present. The existing exact packet-size check still rejects truncated
-two-byte encodings after the parser determines their encoded length.
+KASAN report from opening a crafted eCryptfs file as an unprivileged
+user:
 
-Fixes: 8bf2debd5f7b ("eCryptfs: introduce device handle for userspace daemon communications")
-Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
+  BUG: KASAN: slab-out-of-bounds in aes_decrypt+0x1587/0x1640
+  Write of size 4 at addr ffff88800616af38 by task poc/115
+  Call Trace:
+   dump_stack_lvl+0x64/0x80
+   print_report+0xce/0x620
+   kasan_report+0xec/0x120
+   aes_decrypt+0x1587/0x1640
+   crypto_ecb_decrypt2+0xe9/0x150
+   crypto_lskcipher_crypt_sg+0x233/0x360
+   decrypt_passphrase_encrypted_session_key+0x4b9/0xb00
+   ecryptfs_parse_packet_set+0x5d6/0x1d70
+   ecryptfs_read_metadata+0x102/0x430
+   ecryptfs_open+0x274/0x5f0
+   do_dentry_open+0x401/0x1280
+   vfs_open+0x74/0x350
+   path_openat+0x23e7/0x3eb0
+   do_file_open+0x1ef/0x450
+   do_sys_openat2+0xd7/0x170
+   __x64_sys_openat+0x133/0x1d0
+   do_syscall_64+0x107/0x5a0
+   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Reject encrypted key sizes that exceed the size of the decrypted_key
+buffer before performing the decryption.
+
+This bug was discovered by Artiphishell's vTriage pipeline, which
+generated a userspace reproducer (opening a crafted lower file) that
+reliably triggers the KASAN report on an unpatched kernel. The fix
+below was drafted with the Claude coding assistant; a userspace
+reproducer is available on request.
+
+Assisted-by: Claude:claude-opus-4-7
+Signed-off-by: Jay Vadayath <jay@artiphishell.com>
+
 ---
-Changes since v1: https://lore.kernel.org/all/20260715083702.29471-1-pengpeng@iscas.ac.cn/
-- drop the redundant explicit two-byte encoding check
-- retain only the bounded pre-parse copy identified by the reviewer
-- rebase onto v7.2-rc4
+ fs/ecryptfs/keystore.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
- fs/ecryptfs/miscdev.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -1615,6 +1615,14 @@ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
+ 	struct skcipher_request *req = NULL;
+ 	int rc = 0;
 
-diff --git a/fs/ecryptfs/miscdev.c b/fs/ecryptfs/miscdev.c
-index 5a7d08149922..68804399a5df 100644
---- a/fs/ecryptfs/miscdev.c
-+++ b/fs/ecryptfs/miscdev.c
-@@ -360,7 +360,7 @@ ecryptfs_miscdev_write(struct file *file, const char __user *buf,
- 	u32 seq;
- 	size_t packet_size, packet_size_length;
- 	char *data;
--	unsigned char packet_size_peek[ECRYPTFS_MAX_PKT_LEN_SIZE];
-+	unsigned char packet_size_peek[ECRYPTFS_MAX_PKT_LEN_SIZE] = { };
- 	ssize_t rc;
- 
- 	if (count == 0) {
-@@ -376,7 +376,8 @@ ecryptfs_miscdev_write(struct file *file, const char __user *buf,
- 	}
- 
- 	if (copy_from_user(packet_size_peek, &buf[PKT_LEN_OFFSET],
--			   sizeof(packet_size_peek))) {
-+			   min_t(size_t, count - PKT_LEN_OFFSET,
-+				 sizeof(packet_size_peek)))) {
- 		printk(KERN_WARNING "%s: Error while inspecting packet size\n",
- 		       __func__);
- 		return -EFAULT;
-
++	if (auth_tok->session_key.encrypted_key_size > ECRYPTFS_MAX_KEY_BYTES) {
++		printk(KERN_WARNING "%s: Encrypted key size [%d] is larger than "
++		       "the maximum decrypted key size [%d]\n", __func__,
++		       auth_tok->session_key.encrypted_key_size,
++		       ECRYPTFS_MAX_KEY_BYTES);
++		rc = -EINVAL;
++		goto out;
++	}
+ 	if (unlikely(ecryptfs_verbosity > 0)) {
+ 		ecryptfs_printk(
+ 			KERN_DEBUG, "Session key encryption key (size [%d]):\n",
