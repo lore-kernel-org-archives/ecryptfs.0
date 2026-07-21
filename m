@@ -1,81 +1,81 @@
-Received: from fout-b4-smtp.messagingengine.com (fout-b4-smtp.messagingengine.com [202.12.124.147])
+Received: from fhigh-b4-smtp.messagingengine.com (fhigh-b4-smtp.messagingengine.com [202.12.124.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C6F9433043;
-	Tue, 21 Jul 2026 07:28:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FC011CBA;
+	Tue, 21 Jul 2026 07:28:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.155
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784618913; cv=none; b=JpBg8J+rIoPGmGhySMLdk7ff482TMcgnu8jIv501a7aZsTmYT52yVzOOz3agSIbfrlmpl/qOhCxuY9xZT4dY0nTfqc6O1A0oovSRP9mp6/4VI8cm29yXwrr4ePYw6c//Z1gEU7+MSM7AuieIYFDs8Oz6De6OGY2yxp7rcn+qKUw=
+	t=1784618936; cv=none; b=QsY5l0PA1QaRLhZphII6Ee2u1MvSEvv0Tjsy3Bx+ScTkrgmTr6bcthaid/Fe8lmHE1yEx2EiTd0IjOY1Q4I/31okmQvzKNyZHiHaXWZj1kR+vIgf7XR1Ms20MVXUf7XO9yOyehO1WCFumTwVXkGvdNAuKjquh0GuTcbo7sgpLj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784618913; c=relaxed/simple;
-	bh=uPVTUHPjM22KYRUb5TClQpDMxWCCa1MFz1SRvW7v9o8=;
+	s=arc-20240116; t=1784618936; c=relaxed/simple;
+	bh=kJZfKs4gw9+VCz0VWE3wPi7bx8DEF1Tvp7yzWfdQ4ag=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IbhFA7oJiGQRyySY3thsIw7ZkgjYWsD06kCUts5HvkD+kOFMsy5WLcDp/za8SoitffU3jVnE+aceoAWXAAcfqybhoeHpUvQkmKolYiRQq5EDyq3oN2p8KN7hq/TWMO21+RnfvhPmaUl+0s7DbNpJ0sZodJ2znNlDkxYijkKsovo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=XJ2vNHPg; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=DHwN/yXv; arc=none smtp.client-ip=202.12.124.147
+	 Content-Type:Content-Disposition:In-Reply-To; b=gafClqPX7C5Gntxx4S4teFSb41SJLgQ7VINbvG7NV9BKC8HS0mjFNhHysQ/4ZFkfk97my6woE2DyB1kb6q60OKmXsjx3WwihmA8OsUfXIxzpiE7GsY2eF8knZUrkMdMF5qwRUjNHMdvvueg7PbRHCgMkoQ+P8sTrMRWADpBcW2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=OARgqWnf; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=RQQGVkAv; arc=none smtp.client-ip=202.12.124.155
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="XJ2vNHPg";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="DHwN/yXv"
-Received: from phl-compute-06.internal (phl-compute-06.internal [10.202.2.46])
-	by mailfout.stl.internal (Postfix) with ESMTP id 6C7801D0008A;
-	Tue, 21 Jul 2026 03:28:31 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="OARgqWnf";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="RQQGVkAv"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id 1D8867A0074;
+	Tue, 21 Jul 2026 03:28:54 -0400 (EDT)
 Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-06.internal (MEProxy); Tue, 21 Jul 2026 03:28:31 -0400
+  by phl-compute-05.internal (MEProxy); Tue, 21 Jul 2026 03:28:54 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tyhicks.com; h=
 	cc:cc:content-type:content-type:date:date:from:from:in-reply-to
 	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1784618911; x=1784705311; bh=te9JZOOZrz
-	ZM2rg7/DYIiZfwM+ajKAA5d3IVs91lMfU=; b=XJ2vNHPgrm/CmXWB5YxyVfckzd
-	1cp/stk8QxcQrsXJ3q5jXT8/VTuEmp0vSv1Ltvb2E+mMQ0RAf7og9hEk3UJeXN7C
-	RNjVymdtJl+SUPeiZae4XMwYuFRP4KAXLYbrTcE6pKUorA3GeeFWkAwOIzg078nE
-	TLhT83YZKJHCwuUaEmzxBrUD4qNXJ0zmE490VCcBWb/gJJJDF6ygZRw8aADLmGYV
-	ahgsrehA1xndTLMfzLEelv/ViX+C0aWuh0kTg7MVbn3znulxJ/Ep/03t+XwLSbPg
-	FTgvU4qbAxR/Eo9n3QhrutENpU7WXHQ4jdW3H7ASgseb1NwgHye5v1B5tqkg==
+	:subject:to:to; s=fm1; t=1784618933; x=1784705333; bh=czV0Z7+/Lg
+	i6q4ZL+Du1qxOSsIXSAGYl8G6qL8S6Sgw=; b=OARgqWnf+iw2aa8EFyExPcICW8
+	zMUKgpAlkL251AtYGmTQ/6O+/TpBa25aR5JuOjqibmqv85Ri3HUGaoGfwWFy/9ay
+	KFVMwp74jfwhbX8iPlyi/5/q6MarARLOgdegW5g9plCN7YbQutnCsyiDrDilXAys
+	KDTlT2kMQ2t9wq7b3/3D8mlq2llqlWfd1LPFDWrL7x3O+l7Fw+Hnke1PKK6KmrMr
+	En8NlV1grUj3zbzMIUyr9hx2pX9eMK/iuSvtExr+uKZGWxcykauMcELYtDIlHhTP
+	VRmRAHn9XeYkzRPY354OM8hzxLLEN7v7qGcyLwI6t//4UMF8+mLebolgkbXw==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-type:content-type:date:date
 	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
 	:message-id:mime-version:references:reply-to:subject:subject:to
 	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-	1784618911; x=1784705311; bh=te9JZOOZrzZM2rg7/DYIiZfwM+ajKAA5d3I
-	Vs91lMfU=; b=DHwN/yXvYi2Rmv1W7TSofKtr0aR0JDq5kTxhOKZUTrEuYFfeBio
-	UUUiNt547WjsgCsRdlatEyjC7zsU3B6vz9uJOebM/oyDj9xPZqHFPQpRA8mfT+WI
-	QFf6z8gWXWAeDw+7NW0EVFXYmEzQXVQgUcYRw8yub42bW4DwNqAIN2O0ImaLNy67
-	P5XV2AjciKqs51//mSJI32t8Xd5xE8db8c/MnoIwifOiocmah+HsE3iue/eiOVjR
-	gb7exeFeHsvQ5woQ4euJ5ph7sVY+TEg1hxfI4D1db8fyUv+bg0PcZC3+nOL2rqvG
-	PhU7BAtbjrpMgNSdpXHnpeQXFTPDuCGQ2mw==
-X-ME-Sender: <xms:nh9fanwOykWeNjEAQvnZxQPp9LyZj7VjEfTbqpQaJzg71GvFRJLRKA>
-    <xme:nh9faokCSQYF809R8rmeFTo5y_obI_KBW1q3Jaf4vukn2esSwANoG4T7fvERRLbim
-    mvTAmrw-m7LcJVnGCXwmh1HBfN_x4oDvFYYM6Ys-6mG5wtkVsQbbKU>
-X-ME-Received: <xmr:nh9faon5HtA_kpdB0CTbizhXe9tWM1jeuCyWz5fiZehZ39Qw8Y_mJQ>
-X-ME-Proxy-Cause: dmFkZTEidRHxNBULUoaY8jfmeclLe5V1rxIgIYDxJEUcZf8/JSyTj0LvGKglZRv58g4suq
-    8bBxD/QU/Vq1+VsBK8uBwbYuK5kF2U2QFdtv4ecXVIQ8DlgybKr0aD9rFq4fg2Xuc9l2GB
-    dUtbKD7c/SZzBgW2eDPoKfaYm/8YN6xvcFOhDEt2RmvO7HTXUPUh6vx63PQ3vTdpQ1n2rY
-    ukG1FaKUvKpnhKKmg1Dm0TrZ14cWIGuNJqJlc1E4+KB3XXAPIJlbd/Kuu0sBrOJZmBOaf+
-    Abmk0weDrc7Bquqa29SShUfJMZV3CYYweJdkWGGZgwMIsrFR7VQA5/x3lb8J1L88XWbps1
-    XlnupAj/N+hogufqWRG6mqZ0nGwUy18OeKEoNidY5juV29/qFjggfi2dX9CB/OJOL2yNh6
-    e1kKrrzvloboSPS8tPFqQw7xBCl25WRXT0qfbAEhSk1df9zJT1F1ZAQDpOYRyjQthZbmh9
-    WaZDckeZICMxf/sHKpPO5YoBqgfqZaver0OxjE4JYIENGoVPiSsTLrFd4CbxlMLvpnEgnn
-    2MSLLdxyqusqy5K4Z72ffI6z0TJthFbUifnLjgoo8f2AFxX9YiYW02cTK9qmDEmoXlAA98
-    6cldQ8m4OtQMD5kXnj4osyc8fScaJo6HJdvtET7kjqspQ21AztzbGz3c8QfQ
-X-ME-Proxy: <xmx:nh9faix03dh68VgKFbOvybPIGXpMjv9euMjlK4OPmuYAWL-LCYNaxQ>
-    <xmx:nh9falp1QpshSdebeaTurlgi0wpOD73NpqotfT9_zlQLjT-OMadsxg>
-    <xmx:nh9fap7XgApCucb0-59jwN2ePK60VUysxJv4c0DAJb5YtGzCDME_0Q>
-    <xmx:nh9fakeef-8zC18Eqff8mas2DbxepAn2mBkE3gavokaGNmSfsCrPMA>
-    <xmx:nx9fakDUZTkH-yYZ_sKC1gIuUPFgGixrIhEtaXaaImlbL41sm8CdFiuN>
+	1784618933; x=1784705333; bh=czV0Z7+/Lgi6q4ZL+Du1qxOSsIXSAGYl8G6
+	qL8S6Sgw=; b=RQQGVkAvO5bsVnvHjemoFwbZBP2aIFYVRx84uwQgwbHn0D18BFB
+	/hQBI6LJdTE1luIbsE+myfWtdHPLTD9ZoUxEasV2jFG1FP9f8Q30AAnjOwzYUA+f
+	NPQO9/glnGs5py9H4oHs/2EpcssP2dfVEztSYZi7/2dfuy3nsdzwlxZOxcI40G3z
+	5esBbOO7oMzGcJGLECfEj/EF3locPLovwUY6rorw5ExteD4KSo7771DFqyA6vk3g
+	3nSMGXIFPuLHO3VJ717u6VbB+Sgp7yXHBF66dJMQUEFmLkMIpYeX4kZ44fsr1MMI
+	Hjv9L4L4VopvoXCOhAArk5VrqumIALdBv9g==
+X-ME-Sender: <xms:tR9fapCCQhtHiMBqa9LT0M2dTRmeZn5TSJpdH8r25drfSraK9-9gEg>
+    <xme:tR9faoNlDihHotiES0YW5r1HDwbueYIL4-Hd5VdATVDxjYCVXf-XtF1Q-QUTIr_Qp
+    zw2p55jARPdRQjqz-Ry73YT0Z7f4KTeACW071tzJ8Cgg6MjgwSa1lc>
+X-ME-Received: <xmr:tR9faiy_zXMOS0UEPgr9hNRvu5escHx3v4cSX8JdZQ83EDeYgVqgzQ>
+X-ME-Proxy-Cause: dmFkZTF4LoQZb/f7XxUR+qWHzxVmn+nyt5XHlYoAYYEwe48QJzV1/+Yo/s2QKqJJgTB7iR
+    DotN7te2kw3CmNQqXe+3Su6bsIgMy5BPKy9EE1M91wkMsyYLMjmFqntUmafRivrLVrie1v
+    iBEOj4oF0MnpJ3MeIJKtNGqCRBOQJF62JaMn9LlSd9j6QUEWpDtpTX5UKZiWWXJm46VVrL
+    xMj44Prx+jB/Svsal7sK/TrvwLETh9Naskr+x6iw8oAnc7Ohfqi8qmEepCQnIsSRU0H/RI
+    MuWPtrfpObVt9SMmJCpi+NU9VFq04n9zv8oVr08o74OZEmb6Kx5KRkgqPIZUryQRPgEtpD
+    TQHnhGHp3v4jcN8CPxQY6DQwWdG2vpkp400Q8kZ4IGVlkKKwlPcS/dSypM5CqlMYMxLv8J
+    jfMUdenJPdPw6XRjgqx+UPbov2LzfuyRFTg6dGcVlAsIiKu4TugzYygqrwCAHD02JcIGQW
+    qW7kZxCGxxpbtQkfEKzacoH5qVGDQ1mYIS7k+wUqWu5ambXKBqsTXDNm+hPoXVYTZQMHNu
+    msd0zlKbvpHcL3ydaFsmcxQIPD5KEeOlG3PhFYpMmcDIgpFuAZ+WzALzOTDGaX0y8X9t2+
+    g7gd9oR4ybqhdE2SBxYMRzNY6Dba9EOPYUD6lUL8UcInEhaAM1WStMri2uUw
+X-ME-Proxy: <xmx:tR9faoVNOd93pK2i-MbVRLPthHzhNao2_mSRp9nZ3SnT6vHZMaA6uw>
+    <xmx:tR9fakPbgcc-ZaWIgTZdm0R3r6KGORztt1drkf3_hVmFOkNe0hcY1w>
+    <xmx:tR9faqCIdWej4RSWZaJr0QJC3DPEy-qRdaLV3TTUOLGu4bUDRGs6yg>
+    <xmx:tR9faheq1-zg14gFvazodPL5t12j9WxkgAifYse0Ft56x95UbsiCsg>
+    <xmx:tR9fauAEB2uofDCteyPGp3CgPGhHeO0p2kZl6Z6pcnllRVuy1jJeIHek>
 Feedback-ID: i78e14604:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 21 Jul 2026 03:28:29 -0400 (EDT)
-Date: Tue, 21 Jul 2026 02:28:25 -0500
+ 21 Jul 2026 03:28:53 -0400 (EDT)
+Date: Tue, 21 Jul 2026 02:28:49 -0500
 From: Tyler Hicks <code@tyhicks.com>
 To: Yichong Chen <chenyichong@uniontech.com>
-Cc: Kees Cook <kees@kernel.org>, Thorsten Blum <thorsten.blum@linux.dev>,
+Cc: Ard Biesheuvel <ardb@kernel.org>, Eric Biggers <ebiggers@kernel.org>,
+	Christian Brauner <brauner@kernel.org>,
 	Andrew Morton <akpm@linux-foundation.org>, ecryptfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ecryptfs: hold msg ctx list lock when cleaning daemon
- queue
-Message-ID: <178461834999.30963.8777218643183392058.b4-ty@b4>
-References: <4C38E7F6BF114337+20260628033725.11296-1-chenyichong@uniontech.com>
+Subject: Re: [PATCH] ecryptfs: show filename encryption options
+Message-ID: <178461835003.30963.6380516143059079780.b4-ty@b4>
+References: <20260702052958.313951-1-chenyichong@uniontech.com>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -84,15 +84,15 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4C38E7F6BF114337+20260628033725.11296-1-chenyichong@uniontech.com>
+In-Reply-To: <20260702052958.313951-1-chenyichong@uniontech.com>
 
-On Sun, 28 Jun 2026 11:37:25 +0800, Yichong Chen wrote:
-> ecryptfs_exorcise_daemon() drops queued messages from a dying daemon
-> without holding ecryptfs_msg_ctx_lists_mux, but
-> ecryptfs_msg_ctx_alloc_to_free() requires that lock.
+On Thu, 02 Jul 2026 13:29:58 +0800, Yichong Chen wrote:
+> ecryptfs_show_options() prints most user-visible mount options but
+> omits the filename encryption cipher and key size.
 > 
-> Take the list lock while moving the queued contexts back to the free
-> list to avoid racing with other global msg ctx list users.
+> Print ecryptfs_fn_cipher and ecryptfs_fn_key_bytes when filename
+> encryption is enabled so that the displayed mount options reflect the
+> active filename encryption settings.
 > 
 > [...]
 
@@ -101,7 +101,7 @@ Thank you! This has been applied to the next branch of the tyhicks/ecryptfs.git 
 You can find a direct link below but please be aware that the commit hash is
 unstable and, therefore, the URL may not be valid in the future.
 
-[1/1] ecryptfs: hold msg ctx list lock when cleaning daemon queue
-      https://git.kernel.org/tyhicks/ecryptfs/c/779972513c2fa8c7938e54976f686091dafff22f
+[1/1] ecryptfs: show filename encryption options
+      https://git.kernel.org/tyhicks/ecryptfs/c/496ec2d0852a02d2e631771b5c439130b9c7dce7
 
 Tyler
