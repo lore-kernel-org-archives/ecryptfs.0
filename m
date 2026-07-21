@@ -1,79 +1,79 @@
 Received: from fhigh-b4-smtp.messagingengine.com (fhigh-b4-smtp.messagingengine.com [202.12.124.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3D4F3AE19C;
-	Tue, 21 Jul 2026 07:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 473F42C11CA;
+	Tue, 21 Jul 2026 07:30:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.155
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1784619004; cv=none; b=HFmhRnf0y5jKQAuiFZUt2xzs9k23ZazoYJeUq/v5wSBdWzXsCCCfdIgAVbJgXK8LMSWo+ZGUADXZHayUgOiN1gNm5eazE3euklGZl2W7N5MylMTtywPph9fLwHkmZxuzYgaMuxOH/uxr2mGCSCpm19bvP1k8uvbULlYvUHnsiLw=
+	t=1784619026; cv=none; b=rC0WOEKHpvgHHAP/Ts51/VYGM+Ct0HHfkr5K8UBmF6jMVwnr+v+764Y/cirxbTlT89R09XPCk3tSMWa1yQr7HaG12HjDV9Nul5Ife/OteHvbQoip3biOug9clfxDo4C354SwIJ0geDwgchJJSgUdJ0sFgO6ljoxXsQlbEDXtoNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1784619004; c=relaxed/simple;
-	bh=gO54gaLGMY1ciVWK1G7c0Gs+BLB8519C4cFqlE+8zqo=;
+	s=arc-20240116; t=1784619026; c=relaxed/simple;
+	bh=eqjsugyxsqdEZ5rY3UZb7lSzGgyUvIj2h9mV1bUpUIk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l7ablywTcnMDob0esrqnKXY17eOq8Q4ZQZ2uDJIJc2/itgeZjBTECZFtAIIxZkM7TwOaWaq4+Krpu8gUK3Wrdp50xAhx+eXPGAFSQA1ANGLdjnCBKEfLrKbYP0St0lIU8YJjPoCzTMpISgIQkKuWVCmVuBWLcogxExTCt+TXH9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=8zEnlfm4; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=k14Ak8LP; arc=none smtp.client-ip=202.12.124.155
+	 Content-Type:Content-Disposition:In-Reply-To; b=BG5qc+9ccZBKMGp0zihhh3QUrHTMgaNhYt0wPDyw9ADK1UrXdeGFQhWMb6vg1cMhwolrdrBPnhxTay80VhUlHKWMDV9lu2q2M4JXxovY+3hxgohaWKgRXlT8w0j6cqa0BJtvNvgqsw+gTjag054Io4qWfoF68Dt2rS3JywcfLrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=ZrhBoBb6; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=phYhoCSZ; arc=none smtp.client-ip=202.12.124.155
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="8zEnlfm4";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="k14Ak8LP"
-Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 195F37A0074;
-	Tue, 21 Jul 2026 03:30:02 -0400 (EDT)
-Received: from phl-frontend-04 ([10.202.2.163])
-  by phl-compute-05.internal (MEProxy); Tue, 21 Jul 2026 03:30:02 -0400
+	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="ZrhBoBb6";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="phYhoCSZ"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id 6FDBF7A0074;
+	Tue, 21 Jul 2026 03:30:24 -0400 (EDT)
+Received: from phl-frontend-03 ([10.202.2.162])
+  by phl-compute-04.internal (MEProxy); Tue, 21 Jul 2026 03:30:24 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tyhicks.com; h=
 	cc:cc:content-type:content-type:date:date:from:from:in-reply-to
 	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1784619001; x=1784705401; bh=JkfmDu5rf3
-	jnNl1dw02bkI5vDdf9f5ZMbQrLt0LTcGE=; b=8zEnlfm4mH5dXsvsYJW3KhvJPc
-	8yai7NI1TF+5v2SGUGZWEpwdfFko1dw1vtc1KaS5+P1ZLoymXVfm900g3bOCaimC
-	6bWs0NMiRK0IWRd1Z6n/xwxoN9qdYyw+iV8BsRR4ZpNvAHeM7UTbMLRdDUuTxtuT
-	TEohzVdGSg+0IoaSzVGEaAtuPPJtf5Bq5ySm4aXK4cyTTnFIDCvUAhi1QSBF/+Mf
-	19wt5braGE3lzqcUjcESyjO1CzSm8XVdwz9d19usJ3vJYHS5BFJx1MMjiiBVTH7H
-	AkYt63bC/KMFSJmx/0ydqJEICarw4kU/O1N2eLnLy9A8gngyEHdcfGcdBy9A==
+	:subject:to:to; s=fm1; t=1784619024; x=1784705424; bh=fOTN5IZDLR
+	YryjdwZxBRp5ZMOFvyKaTtee0cnXQuFzU=; b=ZrhBoBb6sq3mAw5jZbcPVTjlcU
+	hJ5V9N2SvS2glnjoIj5wEhJA5Xk00ZUd76wrATMTbDmGv/Bx6LUuXQC2CVv9qb6q
+	LUIGYRZqVFIpjr1IWqilEHcGx5Vi+0nwCC0fyOL+PLmSxB5pqu6zK2Tl+sYt2Mt+
+	tGH6FRZDUJfcZLuf0u86SJBU2QW4O9HgFSEWwvG5VsflIcBo/X2M6YOe3XC2ElM5
+	QBS5ecQVhrRYRVFPpNhRjz//8Cr58eNXKiS4mXKDP4e3guHi0Nj+yUkFzygPduz3
+	ToNN9NxXwLcpFuJMrwG12Ve2P6NB7KU9w8rpOqpUOHBBrUNGBfP2kWlXJFiQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-type:content-type:date:date
 	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
 	:message-id:mime-version:references:reply-to:subject:subject:to
 	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-	1784619001; x=1784705401; bh=JkfmDu5rf3jnNl1dw02bkI5vDdf9f5ZMbQr
-	Lt0LTcGE=; b=k14Ak8LP1WfBRdKa8OIEncEK4xIp8H79fqGJkmGW9OHk5Wyn8xh
-	X58v/wNJjvE6/Qq/ePd/SOE75dAdw5pxMeng6gs06X1e5uK3kF+D4SlTtIzvwOxh
-	+MpnxgfGQdSE8OskKhgTgsgY86Vd/3rX9lmIp+XPgR7AviwiLpKKSiN1Jzq2C/Gb
-	oMm8HG7J/30WHe5c4r6RvH8UYq+WX1RkV7whlf3e+EIxB+2gfted+Vq54BC/d/LK
-	I9i8EI47LlkqHsU8SywRf2+9X+ll3Kg14M9qmyMIrwq+SbiML9lQea+pPAl3tPfj
-	Qj3Zw8QKVmYahtPKeW5mXdDrE5eDWDc0DVg==
-X-ME-Sender: <xms:-R9faoHfEUudDeQXCWuiJ6rML7qGcKgdzLtWWzre9WLORh9PuwXk4g>
-    <xme:-R9fai0693MasJQOhHBis30RLN1xg0ocvomo-iGP4h4LfmiQWAZuPDQHjiiPFt2NS
-    VValTkjMWY6xK7Ezwv1qoRtHu2yQy-L1WPhYi6GFvT_bfoLy0mu7Ms>
-X-ME-Received: <xmr:-R9faiPwGVukwbjh-aLDJQxmVhG8LiVLthmC8yDvL-acXQgEuc2KMA>
-X-ME-Proxy-Cause: dmFkZTGqHE7cTw57xOxUP4PVEx2HC1w3ZAOc5NM8QNlBEzip7kqpgiUa0sSJWsZwfE0F6f
-    T5bFQfDLlj2MvaWjcvCRCPAH9VDCzlG5K4PBt7tasGlH8f+A/bCPtO+ZYnQAbdV1+4CnPn
-    R4r4KDnBxks9YV1/VLGTyGaeAm8Cf/GzfgTZshFHN3A/TQ+lJ6KJOuvLAE0TsIKoVRJ7+e
-    t0VFCI9ZCC7ZnYa9IdoqPR7OqryMKObhNc5whdbW2NhOyzJok1K6vz/shv22XLO/NkvVhN
-    vh7xgtIS6S4lPGKZhIhCdnSC7hCE9TA/6bDXdcEee/4f65qpKJype6hIhUSLwkbizdxvq5
-    RsDHxdNJ0Lw9xGyzIzEhM+k9k8lEghAk04U+135I7J1UYZCkPv1XN9NEXp4XsAH2h+R4L/
-    /Zlc6MCnBVhGnxgloiI/EhrcQxOTlSkdTo0fw76w0Px343DJHor5M9XKyPPoP2Zpy2G8pb
-    Cj/eui8wPEUQmPyMzt9ajmkdgtA8gXK96LlsOobNVG37f9FARlHGRefcg4EJ5Gps54Ruw2
-    7QVTDsDJHKtosY6Ag9XdlZBp5BoAiuWfXHjlE+g+776yxYHpsK90m2FOpqTwxg5F9tGCNH
-    QgczKQvyHy0kCmScvLp/nKlnMvaYPQELzDWNd/F9XdbT4PnF2udyNBXNzODQ
-X-ME-Proxy: <xmx:-R9fap4KC9Z-6fzK14T8UVWLM4eVG5Ij-mVieUClOvAfQVYXg__pVg>
-    <xmx:-R9fak3BHjJLETTPxGBjAC8qK0Z4MRBeM1DK2nrpzeoRJdnN-GqW6w>
-    <xmx:-R9faiy9MOmZ1g_4RuRIh-ro7uz2E6kOmuEa6xtfRTjk6wToAAHY6A>
-    <xmx:-R9famtuCemu6K3fTGdXVGwIowRMBSKSBKgjPF7y6eSUMzK3gI5sKw>
-    <xmx:-R9faiw_Xz3ejAVnIkWf4Uzlz58mSPb95b1Z5k-uoEQf0tWXIbt2TY40>
+	1784619024; x=1784705424; bh=fOTN5IZDLRYryjdwZxBRp5ZMOFvyKaTtee0
+	cnXQuFzU=; b=phYhoCSZylITDRDrFWSjvSgbzbdvYKSnt5mNSQmCCAjFRp6CzvK
+	1pXP6SirH4xDMCIusTtwsB6VIsNLKp3guhbvzvv8cbiNEzxZdbVIvtivFPjNV+L2
+	ZHTBDEeNUM33o7Ypepx+Z9RgRtDEz5sqLTJ4Nha4o6vvuOxMc9As+zk2VEILlzdY
+	V8Xv8VzME5k5x2gOyEcaSHM1qgnP0KGcXgMnRxMP99s63pu8LjmVmFbVLI+wsdis
+	MRh69d4tGa5amsQBEiMjcsyN6mHUkwhstcAisVvdc8X43bI6mAuyJuQVPtdbrjZt
+	6OSg5aYJmgo6RvoonBEz5vva9nizqlPqLBA==
+X-ME-Sender: <xms:DyBfap9y5TKEnt3_LzDG0NjjZrvzvni3fedMajIpaoiqHNMl02OYzw>
+    <xme:DyBfat0o0mcw2aI0KkCO1EuvSuhSHqPmn75nOCXN-CGKYFWLqLFMlJ3ss_ng6w5Ro
+    ZKuDef_NH6CWDnlfbwwEIDkqliWdFZiHl3UAN0SBFGSMC9pTih-EGw>
+X-ME-Received: <xmr:DyBfau_9wMTzsPmtZNSVCenUOD_txRtg2cwE7OJBiXbAxpeHVgKsbg>
+X-ME-Proxy-Cause: dmFkZTEidRHxNBULUoaY8jfmeclLe5V1rxIgIYDxJEUcZf8/JSyTj0LvGKglZRv58g4suq
+    8bBxD/QU/Vq1+VsBK8uBwbYuK5kF2U2QFdtv4ecXVIQ8DlgybKr0aD9rFq4fg2Xuc9l2GB
+    dUtbKD7c/SZzBgW2eDPoKfaYm/8YN6xvcFOhDEt2RmvO7HTXUPUh6vx63PQ3vTdpQ1n2rY
+    ukG1FaKUvKpnhKKmg1Dm0TrZ14cWIGuNJqJlc1E4+KB3XXAPIJlbd/Kuu0sBrOJZmBOaf+
+    Abmk0weDrc7Bquqa29SShUfJMZV3CYYweJdkWGGZgwMIsrFR7VQA5/x3lb8J1L88XWbpDr
+    FmcRwfPk5LFSuwfmPewrRzNPwDHME5Gaxve/BzuaGMgkgg86hDLOGXmHqSTAVpYP2HTsO3
+    PWsJ64RLgduRWVJDfFW+wIJfYjTgqDT+hgaotKm417sNPtO8Km1eoQA7uFX7sl4CIOwbMv
+    myO1KgvbgNUXgBQFoK5DbS0r2lNXzTfAHi2RmOE7wFjxUAoBUTv0ruT/Jt5lEc692xnuZi
+    h9Cqtv3zbymiUdm/4BiDPTbYp28d0eS3VZG37pfsXoxBZYBR65T9YQTsG5IqRq8WsRgQBM
+    GHCjpJaauiJRrdEMaX6QVstcdFIp2LpDbudMpI/LJ1xi3ZQdZ5uq9X1KvFgw
+X-ME-Proxy: <xmx:DyBfaluZ0-evrTsNcnoObrz9P79GkSUr_Cc632QNV7y61MM9JSH6Gg>
+    <xmx:DyBfapAbroit60V6ZrqhXbbwgcxe8qGc0La9M5yS5BAMsGWODlUNBw>
+    <xmx:DyBfalUqxcA344yDgHkSCw8OazQBKjeWlOQRu3hOibPcSgMCcqhuPg>
+    <xmx:DyBfavCZmKEYHl9DnrfdtCQn81JHc4Jk7si7DrA98HA6wfUu0Q1-ag>
+    <xmx:ECBfaiQ7K9PgsdDcdgPlnwgErGnnuF6mwjzfMCbdyxU4bwPY5-K8z7Us>
 Feedback-ID: i78e14604:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 21 Jul 2026 03:30:00 -0400 (EDT)
-Date: Tue, 21 Jul 2026 02:29:56 -0500
+ 21 Jul 2026 03:30:23 -0400 (EDT)
+Date: Tue, 21 Jul 2026 02:30:19 -0500
 From: Tyler Hicks <code@tyhicks.com>
-To: Yichong Chen <chenyichong@uniontech.com>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>, Kees Cook <kees@kernel.org>,
-	ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] ecryptfs: release message context on send failure
-Message-ID: <178461834997.30963.3121844491716187512.b4-ty@b4>
-References: <20260701053406.256772-1-chenyichong@uniontech.com>
+To: Pengpeng Hou <pengpeng@iscas.ac.cn>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] eCryptfs: bound the packet-length peek to the user
+ buffer
+Message-ID: <178461835002.30963.2712116522812995858.b4-ty@b4>
+References: <20260720115624.5426-1-pengpeng@iscas.ac.cn>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -82,16 +82,17 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260701053406.256772-1-chenyichong@uniontech.com>
+In-Reply-To: <20260720115624.5426-1-pengpeng@iscas.ac.cn>
 
-On Wed, 01 Jul 2026 13:34:06 +0800, Yichong Chen wrote:
-> ecryptfs_send_message_locked() moves a message context from the free
-> list to the allocated list before sending the request to the userspace
-> daemon.
+On Mon, 20 Jul 2026 19:56:24 +0800, Pengpeng Hou wrote:
+> ecryptfs_miscdev_write() accepts the minimum one-byte packet-length
+> encoding, but always copies the maximum two-byte encoding from userspace
+> before parsing it. A six-byte message therefore reads one byte beyond the
+> submitted user buffer.
 > 
-> If ecryptfs_send_miscdev() fails, the context is left on the
-> allocated list and cannot be reused. Move it back to the free list on
-> failure and clear the caller's pointer.
+> Zero-initialize the peek buffer and copy only the packet-length bytes
+> present. The existing exact packet-size check still rejects truncated
+> two-byte encodings after the parser determines their encoded length.
 > 
 > [...]
 
@@ -100,7 +101,7 @@ Thank you! This has been applied to the next branch of the tyhicks/ecryptfs.git 
 You can find a direct link below but please be aware that the commit hash is
 unstable and, therefore, the URL may not be valid in the future.
 
-[1/1] ecryptfs: release message context on send failure
-      https://git.kernel.org/tyhicks/ecryptfs/c/219644a3ad5518217b2d62cad6d2c36a2308c949
+[1/1] eCryptfs: bound the packet-length peek to the user buffer
+      https://git.kernel.org/tyhicks/ecryptfs/c/95540462e630edbc8504e9537d16453d6942d143
 
 Tyler
