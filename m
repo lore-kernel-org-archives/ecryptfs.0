@@ -1,62 +1,101 @@
-Received: from smtp-190f.mail.infomaniak.ch (smtp-190f.mail.infomaniak.ch [185.125.25.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm2-f13.google.com (mail-wm2-f13.google.com [74.125.225.141])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E875E39733E
-	for <ecryptfs@vger.kernel.org>; Mon, 28 Sep 2026 19:47:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.125.25.15
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AD7D51D528
+	for <ecryptfs@vger.kernel.org>; Tue, 29 Sep 2026 12:12:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.225.141
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790624853; cv=none; b=kJBCrHDZg9CXoN1Jwo/D7RSyK2Ex6p3beEE5Q3CbIDnLg2HMHtTGzbj1UqxQayjyyns3Z9rnDimZmTr76Yw62rx6CvqQa30aPsBFvTInXLJPCQzRSkYARDjVg8PsRVkvkMgWBwEN09OU0UB4SpBTW9imzD75CVop/JKGYcJ/SEw=
+	t=1790683975; cv=none; b=nRQX2s8/zjjtVkr/GCANgJ68uasjZm4lktd/NAOGosOUbYTwdiuiCPuGx/xywhR5hgIV7cPzSgAeI601EEWUpG6kxw6nJKaWBAIUfZlUPvKcF94S+NkN9l5DHXG21sBRKCH/9O/TqZD9YR/9dJVu5Ph9GbJx29uZOD9GImriq/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790624853; c=relaxed/simple;
-	bh=U+kqju76cNoJQVhw6/DyvDJkrDhq+++/O9NLhBaWyAU=;
+	s=arc-20240116; t=1790683975; c=relaxed/simple;
+	bh=aOHR2S9JoDTNHa4EinckRR5sM8LP9tsgVirzxTuKr0g=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bg/bovp8oyAFM3K/jLvWBze0jC5jrG+wv5WoH3EVpFRxVkqxHwSvY7YchLoCdPJebD7FK0pu3yQ5qLXAJDTlIz964pa2wU71SiZjDt+FKiskl4wz7R0D0zfGs7iRiNm7GKfMnVMH9kBh7cmOthKyKiZBts5sJiC13hMOGeywwpo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=kxjEERuW; arc=none smtp.client-ip=185.125.25.15
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=FJRgsyTCwW5RP0sF5MhNVGHcAR+CldKPy9OVHfCH5kKsYtT3untQD/UMj54O8TsvMRrN5HoF2ccYhuw+hn/AYjwxZbF0E5gBZHXw/zLlyZl9exe1NsZwDWLE6yDGqdcOmy14c3bxj5gn9dvo4aqk+zqDIcWFxmmRig3aCOMR1As=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=QyEG82Sm; arc=none smtp.client-ip=74.125.225.141
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="kxjEERuW"
-Received: from smtp-3-0001.mail.infomaniak.ch (smtp-3-0001.mail.infomaniak.ch [10.4.36.108])
-	by smtp-4-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4htsK66KK9zghY;
-	Mon, 28 Sep 2026 21:47:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
-	s=20191114; t=1790624842;
-	bh=+VdTVqBVlfaHaioRFQvSt61ywqOeh3oyx/gpUYheHVw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kxjEERuWtRNOkoKYbnyFMJQOilbAHdkBxlSQMMZMvjbqPrsq2eMZbZvAL/F1Lg8wr
-	 hZmXb9TizZwTXzGEERZSbI2gk8zdZKkYDQsk+a7k5MydGnxkPjmDiTH92dVoV3de77
-	 Dqw46RQmrVe5y7Ys5yBJNPv2q4pSUH00ZdtLOuvg=
-Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4htsJl14b7z2g4;
-	Mon, 28 Sep 2026 21:47:03 +0200 (CEST)
-Date: Mon, 28 Sep 2026 21:46:59 +0200
-From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-To: Cai Xinchen <caixinchen1@huawei.com>
-Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack3000@gmail.com>, 
-	gnoack@google.com, paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com, 
-	corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org, 
-	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, dlemoal@kernel.org, 
-	hch@lst.de, axboe@kernel.dk, viro@zeniv.linux.org.uk, brauner@kernel.org, 
-	jack@suse.cz, dhowells@redhat.com, code@tyhicks.com, linkinjeon@kernel.org, 
-	sj1557.seo@samsung.com, yuezhang.mo@sony.com, hirofumi@mail.parknet.co.jp, 
-	cel@kernel.org, jlayton@kernel.org, neil@brown.name, okorniev@redhat.com, 
-	Dai.Ngo@oracle.com, tom@talpey.com, miklos@szeredi.hu, amir73il@gmail.com, 
-	senozhatsky@chromium.org, chenxiaosong@chenxiaosong.com, zohar@linux.ibm.com, 
-	roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com, eric.snowberg@oracle.com, 
-	stephen.smalley.work@gmail.com, omosnacek@gmail.com, casey@schaufler-ca.com, nanx95726@gmail.com, 
-	djwong@kernel.org, daniel@iogearbox.net, linux-security-module@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, driver-core@lists.linux.dev, 
-	linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, netfs@lists.linux.dev, 
-	ecryptfs@vger.kernel.org, exfat@lists.linux.dev, linux-nfs@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-integrity@vger.kernel.org, 
-	selinux@vger.kernel.org, linux-kselftest@vger.kernel.org, xiujianfeng@huawei.com, 
-	lujialin4@huawei.com, bpf@vger.kernel.org, kpsingh@kernel.org, matt@bobrowski.net, 
-	alexei.starovoitov@gmail.com
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="QyEG82Sm"
+Received: by mail-wm2-f13.google.com with SMTP id 5b1f17b1804b1-49b912df756so32428945e9.3
+        for <ecryptfs@vger.kernel.org>; Tue, 29 Sep 2026 05:12:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1790683970; x=1791288770; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=paQ2/onKT319WLEUhupq6lCWp4YbjzVGMuOnFcHWo94=;
+        b=QyEG82SmuQbhxv/tvt8fWEEJyBx3C/J67V1ppnGriDCnECzwj7IiLhhzdcgcBxymrj
+         kS9Pe6wkinSaUtJwWQtEOU6MUkf9yk/l80tHOztmTsC9qzublESDlQ6H2Hl2vHAxcwEW
+         c84NBPFYN5ZkQmX5Bk7yHpMVlu5WfN98cI7tRIrh4Wfenc0HHl3so+tRXnYHK36oCVoN
+         QLbEnJGJs58Nrq2elz35x/N6B92ykl2YmbFpPzQAgfaoag0Tyv207hHGY9+w0FnJqvxQ
+         u4FeNQ+fwqN0HF3KfGxiicb3NAtmej3V/zUBvciwLUInq5y+YV0oXc2dtc00TH9svvpX
+         nz8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1790683970; x=1791288770;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=paQ2/onKT319WLEUhupq6lCWp4YbjzVGMuOnFcHWo94=;
+        b=uS0U6BHnDiS4Xmm99mfdD4P84dCDoEMuOh4+avIaPxuoD/w/0oahNG8pQsNSpkmv5e
+         wuy0AKtMb0rfXYze24xxCH7c+52TKV8fNXTWsJPz7tN5u3kblnnTelrw4XWWlfiqESKS
+         3lHM55l36lQWy2XRbHVNpcFJob/P/7ZO0skNzPmpsy/OK9ETRxQfcZvFeuywAGHeQ+Zp
+         82jGy09ADMPYVShuBL/k4g7gyemAXd/XxHXCSJ5Juqs1DkLlbSLyraQne6p3XkTlY+zU
+         lIFj1F0Fe/lEUljYkhwVAQKmxqj+SsH9misDprcF6y9Bg80JCo0V6rPqOWsiOatoHNX+
+         LjyA==
+X-Forwarded-Encrypted: i=1; AKwUvBxVMj6lCaQQShOUp6Q9YGIK85IwjOrLBRX3pOv+cGIJpCEF/xLBXgLxlhNspUEexQtxLhjPo8ghSw==@vger.kernel.org
+X-Gm-Message-State: AFuF++l2Wk6JirAJSVscDBKfVA1JHxtqN5I7//NQ3FdkrZgJe96A3NhX
+	o1CLlZbZQ7vZ9+9eDF9uKQ4l/+1aBS7W6KbQImxtJ9WSpDfZn+34kJ6jhbVUhglHjg==
+X-Gm-Gg: AYBFou0ErwPZ8rWSfr8LU7zDf4cSFNaEFVawxEPCTIJ5jvZ/kM7O0jGo9uSObu6InIs
+	c11Y05YysO/a03IcJVRVp1/hdGSvrC6ff1DrLh1Ym7rUgHOhufFuP4V07I+u/5VsNVEP0kmNIV+
+	6Ah+NVpBEcj8iVqCwPb8sg27W3zKII1KoiUX52SYazEhgte9pz96173j6p/98maM4xFAsUgx7Jf
+	h0v4g6WwxvnBqm/SZkmEgVHCn06k67R/oCP79X+KuSdg6XNB+ysLqLmoc1vDgFE1wxznnE8ooLv
+	+KscqDL9yH/Fkk7Wgmb4V4qD44rErUZDCbDPskGTCZSLfnUg3DjQXJo1UOUqYNY0HmzEZ5FLtWK
+	g6GEm5MhhnS4rVRsJvzgvlzyaHlL3187ZKrNKKm0204Pem6oCGLNR5YeNaeUN8OkEF3H18Ggpw/
+	Vpdxrsuwz1B+w1m6iWSLNkHlRwDnEnkYKhwFKW7grJAZNyoFPL5jqU2Nh4verseV5vxJ2Ie+bxN
+	RGA/9pgo8xNXYuZVUCPZQon7J+UAA==
+X-Received: by 2002:a05:600c:1d28:b0:49c:fc6e:8cbd with SMTP id 5b1f17b1804b1-49fe66fc677mr302281505e9.33.1790683968737;
+        Tue, 29 Sep 2026 05:12:48 -0700 (PDT)
+Received: from google.com ([2a00:79e0:288a:8:ce20:1d4f:298a:2070])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a013b8f6f5sm4087715e9.10.2026.09.29.05.12.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 29 Sep 2026 05:12:48 -0700 (PDT)
+Date: Tue, 29 Sep 2026 14:12:42 +0200
+From: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>
+To: Justin Suess <utilityemal77@gmail.com>
+Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack3000@gmail.com>,
+	Cai Xinchen <caixinchen1@huawei.com>, mic@digikod.net,
+	paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+	corbet@lwn.net, skhan@linuxfoundation.org, rdunlap@infradead.org,
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+	dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk,
+	viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz,
+	dhowells@redhat.com, code@tyhicks.com, linkinjeon@kernel.org,
+	sj1557.seo@samsung.com, yuezhang.mo@sony.com,
+	hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org,
+	neil@brown.name, okorniev@redhat.com, Dai.Ngo@oracle.com,
+	tom@talpey.com, miklos@szeredi.hu, amir73il@gmail.com,
+	senozhatsky@chromium.org, chenxiaosong@chenxiaosong.com,
+	zohar@linux.ibm.com, roberto.sassu@huawei.com,
+	dmitry.kasatkin@gmail.com, eric.snowberg@oracle.com,
+	stephen.smalley.work@gmail.com, omosnacek@gmail.com,
+	casey@schaufler-ca.com, nanx95726@gmail.com, djwong@kernel.org,
+	daniel@iogearbox.net, linux-security-module@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-block@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, netfs@lists.linux.dev,
+	ecryptfs@vger.kernel.org, exfat@lists.linux.dev,
+	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+	linux-cifs@vger.kernel.org, linux-integrity@vger.kernel.org,
+	selinux@vger.kernel.org, linux-kselftest@vger.kernel.org,
+	xiujianfeng@huawei.com, lujialin4@huawei.com
 Subject: Re: [PATCH RFC -next 00/12] landlock: Add READ_METADATA and
  WRITE_METADATA access rights
-Message-ID: <20260928.phei6Ohmeiba@digikod.net>
+Message-ID: <arurOphe6QIx2Zr8@google.com>
 References: <20260924104831.1081137-1-caixinchen1@huawei.com>
- <20260926.e0135fe7712f@gnoack.org>
- <a6a40c38-0e1c-4a3f-a705-e4a38c575c25@huawei.com>
+ <araxO4ze0KZBz756@suesslenovo>
+ <20260926.255b951d3013@gnoack.org>
+ <arqcbjWLN1CLkL_Y@suesslenovo>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -66,173 +105,136 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <a6a40c38-0e1c-4a3f-a705-e4a38c575c25@huawei.com>
-X-Infomaniak-Routing: alpha
+In-Reply-To: <arqcbjWLN1CLkL_Y@suesslenovo>
 
-Thank for this patch series!
-
-I'll send more reviews tomorrow, but in the meantime here are some
-answers:
-
-On Mon, Sep 28, 2026 at 02:52:02PM +0800, Cai Xinchen wrote:
-> Thank you for review!
-> 
-> I will link the feature request
-> (https://github.com/landlock-lsm/linux/issues/11) in the v2 cover letter.
-> 
-> For https://github.com/landlock-lsm/linux/issues/18, the current
-> READ_METADATA cannot solve this problem, and I don't have a good idea for
-> now.
-> 
-> For path_* rename, I'd rather keep the inode_* names:
-> 
-> * There is precedent for the mismatch: the inode_getattr hook
->   upstream already takes a "const struct path *" (this series just
->   aligns the other metadata hooks with it).
-> 
-> * The path_* prefix has an established meaning in the LSM hook
->   interface: it denotes the pathname-based (TOMOYO/AppArmor-style)
->   hooks that are invoked at the VFS path level *before* the
->   corresponding inode_* hook, as a paired, duplicate check
->   serving a different class of LSMs.  For example, a chmod(2)
->   currently runs security_path_chmod() (fs/open.c, for TOMOYO and
->   AppArmor) and then, via notify_change(),
->   security_inode_setattr() (for SELinux, Smack and now Landlock);
->   vfs_mknod() similarly calls both security_path_mknod() and
->   security_inode_mknod().  Renaming inode_setattr to
->   path_setattr would put two path_-prefixed hooks with different
->   call contracts into the same syscall, and path_chown(path,
->   uid, gid) next to a path_setattr(path, attr) would read as a
->   redundant pair, even though they belong to different hook
->   families.  Landlock itself already uses the path_* family for
->   its real path-level hooks (e.g. path_truncate for the TRUNCATE
->   right), so mixing renamed inode hooks into that prefix would
->   also blur its own hook table.
-
-I had the same though as Günther on this, but I'll leave that up to
-Paul.
-
-Regarding the BPF LSM use case, I don't think it would make a big
-difference.  Anyway, some BPF selftests need to be updated at the same
-time, which will also make the changes clear to the BPF folks.
-
-> 
-> * If the consensus is that these hooks should be renamed, I think
->   that should be a standalone, tree-wide rename series (including
->   inode_getattr), so that BPF programs only break once instead of
->   twice.
-
-As a general rule, please create bisectable patches (e.g. any patch must
-pass BPF and Landlock selftests; all dependent kernel code must build).
-But new tests still deserve their own patches.
-
-> 
-> On 9/26/2026 4:27 PM, Günther Noack wrote:
-> > On Thu, Sep 24, 2026 at 06:48:19PM +0800, Cai Xinchen wrote:
-> > > This series adds two new Landlock filesystem access rights,
-> > > LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
-> > > which control access to file and directory metadata such as inode
-> > > attributes (mode, ownership, timestamps), extended attributes and POSIX
-> > > ACLs.  It picks up the work from the "landlock: add chmod and chown
-> > > support" series [1] and follows the coarse-grained grouping discussed in
-> > > that thread [2]: instead of separate chmod/chown rights, metadata
-> > > operations are grouped into one read and one write right.
-> > > 
-> > > Landlock evaluates access rights on a per-path basis, but the metadata
-> > > related LSM hooks (inode_getattr, inode_setattr, inode_setxattr,
-> > > inode_getxattr, inode_listxattr, inode_removexattr, inode_set_acl,
-> > > inode_get_acl, inode_remove_acl) only receive the dentry of the accessed
-> > > object.  Patches 1-7 therefore first pass struct path instead of dentry
-> > > through the metadata-related VFS helpers and LSM hooks.  This is a pure
-> > > refactoring with no behavior change, split so that every patch builds
-> > > and works on its own:
-> > > 
-> > >    1: notify_change() and its callers
-> > >    2: inode_setsecctx hook (must come before 3: the SELinux and Smack
-> > >       implementations call __vfs_setxattr_locked internally)
-> > >    3: xattr helpers, which also drops a redundant EVM xattr size sanity
-> > >       check whose vfs_getxattr() call only has a dentry and therefore
-> > >       cannot be migrated to the new path-based signature
-> > >    4: POSIX ACL helpers
-> > >    5: inode_setattr hook
-> > >    6: inode xattr hooks
-> > >    7: inode POSIX ACL hooks
-> > > 
-> > > Two deliberate scoping decisions for this refactor:
-> > > 
-> > > - The hooks consistently take struct path rather than struct file.  The
-> > >    VFS call sites involved (chmod(2), chown(2), utimensat(2), xattr(2)
-> > >    and ACL syscalls) operate on paths, and several of them (lstat(2),
-> > >    lchown(2), llistxattr(2), ...) have no struct file to begin with.
-> > > 
-> > > - struct inode_operations->setattr still receives (idmap, dentry, attr).
-> > >    Only the VFS boundary (notify_change()) and the LSM hook layer see the
-> > >    path, which keeps the refactor contained to fs/attr.c and the LSM
-> > >    infrastructure instead of touching every filesystem.
-> > > 
-> > > Patches 8-12 then implement the new rights, their tests, the sandboxer
-> > > sample and the documentation.  Semantics:
-> > > 
-> > > - READ_METADATA covers stat(2) and friends, getxattr(2) and friends,
-> > >    listxattr(2) and friends, and POSIX ACL reads.
-> > > - WRITE_METADATA covers chmod(2), chown(2), utimensat(2), setxattr(2),
-> > >    removexattr(2) and friends, and POSIX ACL set and remove.
-> > > - Only explicit metadata changes requested by user space are restricted.
-> > >    Implicit changes performed by the kernel (e.g. timestamp updates on
-> > >    write(2), size changes on truncate(2)) are not, and neither are
-> > >    chmod(2)/chown(2) calls that change nothing (e.g. chown(2) with
-> > >    (-1, -1), which never reaches the hook), matching the SELinux
-> > >    inode_setattr behavior.
-> > > - Kernel-internal accesses performed with override_creds() (e.g.
-> > >    overlayfs, cachefiles) and kernel threads without a Landlock domain
-> > >    (e.g. nfsd, ksmbd) are not restricted.
-> > > 
-> > > The Landlock ABI version is incremented from 11 to 12.
-> > > 
-> > > The series is based on linux-next commit 5c4d4169604b ("Add linux-next
-> > > specific files for 20260921").
-> > > 
-> > > Testing: each patch has been built for aarch64 (gcc, -Werror) and the
-> > > landlock selftests (445 tests, including the new ones) pass in QEMU on
-> > > aarch64; base_test reports ABI v12.
-> > > 
-> > > [1] https://lore.kernel.org/all/20220827111215.131442-1-xiujianfeng@huawei.com/
-> > > [2] https://lore.kernel.org/all/abc960a1-e66e-792e-6869-cfd201c29dbe@digikod.net/
-> > Thank you for sending this patch set!
+On Mon, Sep 28, 2026 at 01:13:35PM -0400, Justin Suess wrote:
+> On Sat, Sep 26, 2026 at 09:56:28AM +0200, Günther Noack wrote:
+> > Hello!
 > > 
-> > Some meta-remarks at the beginning:
+> > On Fri, Sep 25, 2026 at 02:03:05PM -0400, Justin Suess wrote:
+> > > On Thu, Sep 24, 2026 at 06:48:19PM +0800, Cai Xinchen wrote:
+> > > > This series adds two new Landlock filesystem access rights,
+> > > > LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
+> > > > which control access to file and directory metadata such as inode
+> > > > attributes (mode, ownership, timestamps), extended attributes and POSIX
+> > > > ACLs.  It picks up the work from the "landlock: add chmod and chown
+> > > > support" series [1] and follows the coarse-grained grouping discussed in
+> > > > that thread [2]: instead of separate chmod/chown rights, metadata
+> > > > operations are grouped into one read and one write right.
+> > > > 
+> > > > Landlock evaluates access rights on a per-path basis, but the metadata
+> > > > related LSM hooks (inode_getattr, inode_setattr, inode_setxattr,
+> > > > inode_getxattr, inode_listxattr, inode_removexattr, inode_set_acl,
+> > > > inode_get_acl, inode_remove_acl) only receive the dentry of the accessed
+> > > > object.  Patches 1-7 therefore first pass struct path instead of dentry
+> > > > through the metadata-related VFS helpers and LSM hooks.  This is a pure
+> > > > refactoring with no behavior change, split so that every patch builds
+> > > > and works on its own:
+> > > >
+> > > I like these patches, but is the ability to read metadata already
+> > > sorta controlled by LANDLOCK_ACCESS_FS_READ_DIR on the parent
+> > > directory?
+> > > 
+> > > The one case I see this being different is:
+> > > 
+> > > 1. if you wanted to grant read access to the file, but not metadata
+> > > read access, but I can't think of any usecase for being able to read
+> > > the contents of a file, but not the metadata. (see below)
+> > > 
+> > > 2. If you had the absolute path already and didn't need READ_DIR.
+> > > 
+> > > I see introducing this READ_METADATA as causing potential
+> > > hard-to-diagnose issues.
+> > > 
+> > > Say you handle READ_METADATA and READ_FILE, but only grant READ_FILE.
+> > > 
+> > > The program can technically open the file with the READ_FILE permission,
+> > > but it may error out because the stat() on it beforehand failed.
+> > > It's pretty common for programs to do that kind of thing (stat before
+> > > open), like for checking for config files (strace bash and you see it
+> > > stat .profile, /etc/profile)
+> > > 
+> > > There may be other bugs, because being able to set permissions to read
+> > > a file *but not read it's metadata* isn't possible currently in posix
+> > > acl and userspace may not work well if that assumption no longer holds.
+> > >
+> * posix acl and linux DAC.
+> 
+> > > So maybe WRITE_METADATA is good enough?
 > > 
-> > * You might want to link the bugtracker feature request:
-> >    https://github.com/landlock-lsm/linux/issues/11
-> > * In the final version, I think it's preferred to merge patches 8
-> >    (adding the access right enums) and 9 (adding the LSM hooks that use
-> >    them).  Having the feature as an atomic commit makes it harder to
-> >    accidentally mess it up during a backport, because you can't patch 8
-> >    without 9.
-> > * As Paul alluded to, the changes to the LSM hook interface and to the
-> >    existing callers in VFS are likely the hardest part of this patch
-> >    set.  Alexei from the BPF subsystem has also reiterated recently
-> >    that he wants BPF to be looped into such changes.  BPF hooks do not
-> >    give the same backwards compatibility guarantees as the syscall
-> >    layer, but there are existing users of LSM hooks specifically
-> >    through the BPF LSM.
+> > The existing use cases are the combinations of (a) READ_DIR
+> > allowed/denied and (b) READ_METADATA allowed/denied.  Because these
+> > two access rights overlap slightly, it seems likely that for a given
+> > directory or file, users will want to either grant both, or deny both.
 > > 
-> > * In https://github.com/landlock-lsm/linux/issues/18, we came across
-> >    statfs(), which returns file system meta-information based for the
-> >    file system that a given file belongs to.  I have weak confidence
-> >    that READ_METADATA would be the right access right to protect this
-> >    with, but it's a somewhat related operation.  Maybe you have some
-> >    thoughts on this?
+> > At the moment, where the (not yet existing) READ_METADATA is
+> > implicitly always allowed, the problematic case is the one where the
+> > Landlock user wants to deny READ_DIR, but where much of the same
+> > metadata is still available through stat() and the various
+> > get-attribute syscalls.  (c.f. the warning box in the Landlock docs
+> > [1])
 > > 
-> > More concrete questions:
-> > 
-> > * If a "inode" LSM hook gets a "path" argument now, should it be
-> >    renamed from "inode_..." to "path_..."?
-> > 
-> >    (Maybe the BPF people can chime in about to what extent that would
-> >    cause additional churn for BPF users, in a situation where they
-> >    anyway already need to make a change due to the changing function
-> >    signature?)
+> > In my view the READ_METADATA right closes a gap that READ_DIR left
+> > open (which is also potentially surprising to callers if they did not
+> > read the docs closely).  Also, if its implementation is symmetric to
+> > WRITE_METADATA, I feel that it's worth having it in the same patch
+> > set.
 > > 
 > > –Günther
+> > 
+> > P.S.: I know, even after we can control stat(), there are likely ways
+> > to infer the presence of a file by observing Landlock error codes.
+> > This would be nice to fix as well, but is harder to do without
+> > controlling the path walk itself [2].  But also, the fact that this is
+> > currently not controllable is not an excuse for leaving READ_METADATA
+> > open IMHO.
+> >
+> I'm still sort of concerned about the case where read access is allowed,
+> but metadata isn't, due to how many applications will not cleanly handle
+> such an unexpected condition. You can reproduce this with a seccomp
+> policy forbidding stat().
 > 
+> Would it make sense to have the existing READ rights
+> (READ_DIR/READ_FILE) imply READ_METADATA on the files/directories 
+> if READ_METADATA is handled? Reading a file's contents should always
+> imply that you can read the metadata.
+
+I am wary of situations where the handling of access rights implicity
+implies other access rights.  We have discussed such schemes in the
+past (e.g. we considered a design for RESOLVE_UNIX where we'd have
+both a "scoped" and a "access_fs" right that would interact with each
+other), but in the end we always settled for approaches where such
+interactions would not be necessary.  One of the concerns was that it
+would complicate "best effort" fallback logic in all Landlock
+libraries and in the countless places where people use the syscalls
+directly.
+
+To throw another option in the mix.  (To be clear, I have only 70%
+confidence, so feel free to push back, but it feels like it might
+work?):
+
+Is this similar to the "truncate" right?
+----------------------------------------
+
+With "truncate", there was an existing common operation (open(2) with
+O_TRUNC, a.k.a. creat(2)) which called the truncation hook and checked
+for the truncation access right.  But that was in fact OK.  The way we
+resolved it at the time was by documenting very loudly that WRITE_FILE
+and TRUNCATE access rights should always be requested in lockstep, if
+TRUNCATE is handled.
+
+If READ_DIR and READ_FILE do in fact read and return metadata to the
+user, maybe the right thing would be to do it the same way here and
+*require* that we have READ_METADATA to do these operations?
+
+(READ_METADATA is automatically allowed as long as it's not handled,
+so that approach does not break existing programs.  Programs who
+consciously start handling READ_METADATA must simply take into account
+that reading directories and opening files for reading requires
+READ_METADATA.)
+
+(BTW, I can see it for reading directories, but I am not sure I fully
+follow the argument why opening files for reading means that you can
+read the metadata?  Can't that be guarded on fstat()-like operations?)
+
+—Günther
