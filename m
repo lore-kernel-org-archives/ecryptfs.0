@@ -1,308 +1,255 @@
-Received: from mail-yx2-f12.google.com (mail-yx2-f12.google.com [74.125.224.140])
+Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8758D515989
-	for <ecryptfs@vger.kernel.org>; Thu,  1 Oct 2026 13:47:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 590153D45F7
+	for <ecryptfs@vger.kernel.org>; Thu,  1 Oct 2026 20:09:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790862476; cv=none; b=rM1G0SOhU4/knJb0MadWGRXvGPXgbo4YH6VLPOKaTySp4zjaVX5zVeniD5llOTlmLHWf6l8VO7QVSXXFg62Ax99I6z+vkyDqqJkkmLAHx1bpd9NXkOxeYk9yyoN4zOyeHis2wQ6FEEDAk8ruAXD2JDRestEk9sib70VN3UJEwBk=
+	t=1790885377; cv=none; b=b5A/9fArasqIsGvPNM8t6U4LzXjaQ6T539dMlo7+FlFpF4iRGA3gJi7yKixYq7M1LYeVNi/f46QahNTT7igFjv3rDMTHMQJ+nwAAGmVrAPDsvDAis+fJ0xX3eiZmg1oL78N8s/zveqamvlXUQUKi6afkvwhJFiwWdUv2V35deCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790862476; c=relaxed/simple;
-	bh=gA8S2Zv1xNNyDX4iYS17032tJpE3+n+24wFdKWnzALg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=swYBUmD+5fYK4+OUpduxt/bCNr5j2n1QkQp4rVPBb9OAdPdd3kwKzDz5S1XWFCOk0tRvKMSLC7K7eC5RIcUeMl6Uh7f3X4kgn4dkvl9LwMPOy7FqJgddSGj+NYGyJ4nCqBp2+s1m1s75m7gjP4ffUBdXDzw2pGD+BcdhGF1SJfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EhaW2OzD; arc=none smtp.client-ip=74.125.224.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EhaW2OzD"
-Received: by mail-yx2-f12.google.com with SMTP id 956f58d0204a3-66e4aa8d881so6911184d50.1
-        for <ecryptfs@vger.kernel.org>; Thu, 01 Oct 2026 06:47:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790862470; x=1791467270; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=CEmshy0XDjhpiyv3Dhm414kHwT2h52SJeHo7PfDF82c=;
-        b=EhaW2OzDDRUOCWgEZSKXKYeN+XbP9miocHDfmLQBqGxwkbY7vqDj1q453KkeaWr0eM
-         oFPM0Li3SYb6xHlAUiHqk/3UuTgQcZycggAkwMkBP+I+B9YOlraFKXoJlOwt/O4GDamO
-         gcnqyHxplgfNNsj0eAt0WP8wOe/3woxe574P6mPYjZq1EHEuXEHazW2qqXgE5g7ROA7x
-         /9f4vPvPnNqA1t0UWSirK8Q5M9slbhPNAdZYE3cJnEPmBUGvtOioJjEYp01N8G77E3gJ
-         63IjFzZ4F4yI39412ugz0sTPwwEu4RgVdy49ERdhexc9XgYqs37+hWYrpxaeG7FcT5uR
-         pvVw==
+	s=arc-20240116; t=1790885377; c=relaxed/simple;
+	bh=VahqGADbt5fuK3JlL4oEwwlE+u4deUseRKS0PGeHNoM=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=j9srG8IKjAS4v8b3wIbQwCLFi0xkediwsm8CK+Jgz4Z+qWiwVP5jX7bfUWSnGgyn9WwKhOXlxFOlpuiuKWtYBhz+MgsUBcG56/mCIo7jCTi1n2/ccMADrGYzTvLKzCKBSiNwOxPfZyDK7tKHakrAHMNz2L9HxrThOh+ODfxYPJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f198.google.com with SMTP id 5614622812f47-4f4612a1a5cso983487b6e.0
+        for <ecryptfs@vger.kernel.org>; Thu, 01 Oct 2026 13:09:35 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790862470; x=1791467270;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :content-type:mime-version:references:message-id:subject:cc:to:from
-         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=CEmshy0XDjhpiyv3Dhm414kHwT2h52SJeHo7PfDF82c=;
-        b=nYM/bKPb8ACPgd/fOj2UVpFCbPWCHfZzJ1GQQGlzgELbNdaLhWmqndZ7qNlqbJSHd+
-         JjclekAkow3ForvSDgydm0JzyEAbpO3ysLVRtCpYorR3GNSleHxbKgVF3BKyoH4c9DEf
-         rhJZTRCa6R2VWLiIHCMwq9IsQpx7iXal9n6a9xxoeSwOp50d6nW3NzfKe9azf55DMvxj
-         7MY6bpxqxpb90QD8lcsgc5sLcgb+hXm4c0l/KvuVeK/zk0wgJ7hRkOOgEPoJdLSR8B2l
-         IzZicToXSEYOjvg9h3cfjszwFj+IQVZLy4m9r/Cn7gmXCV4Sy04kgKSdEMzbn4TC6IEO
-         0guw==
-X-Forwarded-Encrypted: i=1; AKwUvBwJV4sfcDQZGpr2Db851ItscRQ7RmleDGqfOUhR8OuW7WTfpPiKV+53YqlqlcTOyladyphSXe/0mw==@vger.kernel.org
-X-Gm-Message-State: AFuF++mSV5As0BiNjcuk3/l/Qfe+OCxkYj4tNgtth34A/HjyXEXYkKwX
-	g7Nq/cIU0muwHMT3UHHtAOJ2DkFQXx95PqXV1lUflsvVnDwlr1EW+eXK
-X-Gm-Gg: AYBFou2WQUfyOMyPQJ7LKtvL6EQQT0MRMWKwOIwFEvwuDOZmTbg+J/0m5U+PiJY2JrN
-	DmyeqLIeUXZTGeKai231UplcX0sBHinjJOzyfDVT1rHvgnNtxJt4MUP7Du9aigFtD8r4Qdmj4ED
-	lCCBmhl/2ta0KAO5zc+Gk7hk3fj2i3bMn7jKi8H8cCJyGCFo5PBppcaPwKY0ai6Iye+TRFJrJr5
-	8tX4Pfcl8QUMy6/w65375rL+pvBXl13YpOHcHR4x8NyBv/mntApP/Ne1Z57Hg1Cd578/1P+l3jM
-	PUAGcmp3QJD4f2u2/cKomCCF2ziVezJEWIK3s1p3RRIEC/5nv57aoH5DcN86A4B9pP+ysLgVyVD
-	PAYKVq7SF+KiraJrmHcxm+fCOSdgFSW0UJRV70ImtGKQff9BrxX6Yc5cAEEf9K8gj1jOsDLI0R2
-	PhhXO36GLc1wtO4NhabDiV7BiAKF0xoj5KrSke643R/8Ksd+PdElInGM6VjXK0RvrJW61h2uj4x
-	/Rk
-X-Received: by 2002:a05:690e:ca:b0:675:6e73:fbdd with SMTP id 956f58d0204a3-67683572f34mr1849533d50.88.1790862470241;
-        Thu, 01 Oct 2026 06:47:50 -0700 (PDT)
-Received: from suesslenovo ([71.132.185.69])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-8acdab5665fsm10834727b3.6.2026.10.01.06.47.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2026 06:47:49 -0700 (PDT)
-Date: Thu, 1 Oct 2026 09:47:18 -0400
-From: Justin Suess <utilityemal77@gmail.com>
-To: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
-Cc: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
-	=?utf-8?Q?G=C3=BCnther?= Noack <gnoack3000@gmail.com>, Cai Xinchen <caixinchen1@huawei.com>, paul@paul-moore.com, 
-	jmorris@namei.org, serge@hallyn.com, corbet@lwn.net, skhan@linuxfoundation.org, 
-	rdunlap@infradead.org, gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org, 
-	dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk, viro@zeniv.linux.org.uk, 
-	brauner@kernel.org, jack@suse.cz, dhowells@redhat.com, code@tyhicks.com, 
-	linkinjeon@kernel.org, sj1557.seo@samsung.com, yuezhang.mo@sony.com, 
-	hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org, neil@brown.name, 
-	okorniev@redhat.com, Dai.Ngo@oracle.com, tom@talpey.com, miklos@szeredi.hu, 
-	amir73il@gmail.com, senozhatsky@chromium.org, chenxiaosong@chenxiaosong.com, 
-	zohar@linux.ibm.com, roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com, 
-	eric.snowberg@oracle.com, stephen.smalley.work@gmail.com, omosnacek@gmail.com, 
-	casey@schaufler-ca.com, nanx95726@gmail.com, djwong@kernel.org, daniel@iogearbox.net, 
-	linux-security-module@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	driver-core@lists.linux.dev, linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	netfs@lists.linux.dev, ecryptfs@vger.kernel.org, exfat@lists.linux.dev, 
-	linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
-	linux-integrity@vger.kernel.org, selinux@vger.kernel.org, linux-kselftest@vger.kernel.org, 
-	xiujianfeng@huawei.com, lujialin4@huawei.com
-Subject: Re: [PATCH RFC -next 00/12] landlock: Add READ_METADATA and
- WRITE_METADATA access rights
-Message-ID: <ar5hdxmv2Ohqqxqj@suesslenovo>
-References: <20260924104831.1081137-1-caixinchen1@huawei.com>
- <araxO4ze0KZBz756@suesslenovo>
- <20260926.255b951d3013@gnoack.org>
- <arqcbjWLN1CLkL_Y@suesslenovo>
- <arurOphe6QIx2Zr8@google.com>
- <arvjb0HJYh1KyEBB@suesslenovo>
- <20260929.Ahgoo4yeetai@digikod.net>
+        d=1e100.net; s=20260707; t=1790885374; x=1791490174;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=+Mg3Z0ilu9klqB8OJi0Z+pxt4D4ewmjhUamshblmHZY=;
+        b=e0ya+g05siOWg0VyKMkoVatzSPI2jVGsQwMWLGncaSNjl/0fAl/9TGmGPOxYMwXfy6
+         25zPIKCHkNuRQp8/IrpDq1IMNxfOAQj9bYMqEInUFRjUmrPRqYlBvxHLee14aINdiEwV
+         hyqzzvVIW+x6Fji+zPbapJN0IR4Ist1V2WkqDgHFb27YI+58hAc2ErHokfVcU3FxMBea
+         RXMUZq8iQ8P6WKoWHRYHEiDVB5Q8ddaqyCVLQWdSWggvR7Ks8ceKZe2+3PFykH0S71eI
+         lV2AmbMyY8YEAVudYBuogzzbo3oHIY/IwfUywRcj+X5UrV9+0PyaV7hZWZQwVFTZlKbe
+         pP7w==
+X-Forwarded-Encrypted: i=1; AKwUvBzJumneSsQrcDAaiMi6VsRwIzyX2ZynsRQmpIJfIhJy3IoLsmoBjr+owPKPASjOSOgnvM7oQhgw4g==@vger.kernel.org
+X-Gm-Message-State: AFuF++l+34StxmdWjEDqTcFOEUvUrMB0n3CfPFaB4v0tqlfHfZMV8WNj
+	ag/bRZc5W0NPe3NOhW+wReHYpIC1C2uFeWszyNxvnps7dQ1zyfav4dFTR69U7zs0meZsfjdMCta
+	HXZ59ULoq/U24sw0KHcsyTEia54Y/LyEzuzU1/+6mvbw829X6ucsNElYVfNk=
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260929.Ahgoo4yeetai@digikod.net>
+X-Received: by 2002:a05:6808:1648:b0:4d6:9133:cfdf with SMTP id
+ 5614622812f47-4f30b02378fmr3239079b6e.36.1790885374315; Thu, 01 Oct 2026
+ 13:09:34 -0700 (PDT)
+Date: Thu, 01 Oct 2026 13:09:34 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6abebdfe.7503fbd6.2d3f6.0009.GAE@google.com>
+Subject: [syzbot] [ecryptfs?] KASAN: slab-out-of-bounds Read in md5_block
+From: syzbot <syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com>
+To: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Sep 29, 2026 at 08:51:47PM +0200, Mickaël Salaün wrote:
-> On Tue, Sep 29, 2026 at 01:27:44PM -0400, Justin Suess wrote:
-> > On Tue, Sep 29, 2026 at 02:12:42PM +0200, Günther Noack wrote:
-> > > On Mon, Sep 28, 2026 at 01:13:35PM -0400, Justin Suess wrote:
-> > > > On Sat, Sep 26, 2026 at 09:56:28AM +0200, Günther Noack wrote:
-> > > > > Hello!
-> > > > > 
-> > > > > On Fri, Sep 25, 2026 at 02:03:05PM -0400, Justin Suess wrote:
-> > > > > > On Thu, Sep 24, 2026 at 06:48:19PM +0800, Cai Xinchen wrote:
-> > > > > > > This series adds two new Landlock filesystem access rights,
-> > > > > > > LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
-> > > > > > > which control access to file and directory metadata such as inode
-> > > > > > > attributes (mode, ownership, timestamps), extended attributes and POSIX
-> > > > > > > ACLs.  It picks up the work from the "landlock: add chmod and chown
-> > > > > > > support" series [1] and follows the coarse-grained grouping discussed in
-> > > > > > > that thread [2]: instead of separate chmod/chown rights, metadata
-> > > > > > > operations are grouped into one read and one write right.
-> > > > > > > 
-> > > > > > > Landlock evaluates access rights on a per-path basis, but the metadata
-> > > > > > > related LSM hooks (inode_getattr, inode_setattr, inode_setxattr,
-> > > > > > > inode_getxattr, inode_listxattr, inode_removexattr, inode_set_acl,
-> > > > > > > inode_get_acl, inode_remove_acl) only receive the dentry of the accessed
-> > > > > > > object.  Patches 1-7 therefore first pass struct path instead of dentry
-> > > > > > > through the metadata-related VFS helpers and LSM hooks.  This is a pure
-> > > > > > > refactoring with no behavior change, split so that every patch builds
-> > > > > > > and works on its own:
-> > > > > > >
-> > > > > > I like these patches, but is the ability to read metadata already
-> > > > > > sorta controlled by LANDLOCK_ACCESS_FS_READ_DIR on the parent
-> > > > > > directory?
-> > > > > > 
-> > > > > > The one case I see this being different is:
-> > > > > > 
-> > > > > > 1. if you wanted to grant read access to the file, but not metadata
-> > > > > > read access, but I can't think of any usecase for being able to read
-> > > > > > the contents of a file, but not the metadata. (see below)
-> > > > > > 
-> > > > > > 2. If you had the absolute path already and didn't need READ_DIR.
-> > > > > > 
-> > > > > > I see introducing this READ_METADATA as causing potential
-> > > > > > hard-to-diagnose issues.
-> > > > > > 
-> > > > > > Say you handle READ_METADATA and READ_FILE, but only grant READ_FILE.
-> > > > > > 
-> > > > > > The program can technically open the file with the READ_FILE permission,
-> > > > > > but it may error out because the stat() on it beforehand failed.
-> > > > > > It's pretty common for programs to do that kind of thing (stat before
-> > > > > > open), like for checking for config files (strace bash and you see it
-> > > > > > stat .profile, /etc/profile)
-> > > > > > 
-> > > > > > There may be other bugs, because being able to set permissions to read
-> > > > > > a file *but not read it's metadata* isn't possible currently in posix
-> > > > > > acl and userspace may not work well if that assumption no longer holds.
-> > > > > >
-> > > > * posix acl and linux DAC.
-> > > > 
-> > > > > > So maybe WRITE_METADATA is good enough?
-> > > > > 
-> > > > > The existing use cases are the combinations of (a) READ_DIR
-> > > > > allowed/denied and (b) READ_METADATA allowed/denied.  Because these
-> > > > > two access rights overlap slightly, it seems likely that for a given
-> > > > > directory or file, users will want to either grant both, or deny both.
-> > > > > 
-> > > > > At the moment, where the (not yet existing) READ_METADATA is
-> > > > > implicitly always allowed, the problematic case is the one where the
-> > > > > Landlock user wants to deny READ_DIR, but where much of the same
-> > > > > metadata is still available through stat() and the various
-> > > > > get-attribute syscalls.  (c.f. the warning box in the Landlock docs
-> > > > > [1])
-> > > > > 
-> > > > > In my view the READ_METADATA right closes a gap that READ_DIR left
-> > > > > open (which is also potentially surprising to callers if they did not
-> > > > > read the docs closely).  Also, if its implementation is symmetric to
-> > > > > WRITE_METADATA, I feel that it's worth having it in the same patch
-> > > > > set.
-> > > > > 
-> > > > > –Günther
-> > > > > 
-> > > > > P.S.: I know, even after we can control stat(), there are likely ways
-> > > > > to infer the presence of a file by observing Landlock error codes.
-> > > > > This would be nice to fix as well, but is harder to do without
-> > > > > controlling the path walk itself [2].  But also, the fact that this is
-> > > > > currently not controllable is not an excuse for leaving READ_METADATA
-> > > > > open IMHO.
-> > > > >
-> > > > I'm still sort of concerned about the case where read access is allowed,
-> > > > but metadata isn't, due to how many applications will not cleanly handle
-> > > > such an unexpected condition. You can reproduce this with a seccomp
-> > > > policy forbidding stat().
-> > > > 
-> > > > Would it make sense to have the existing READ rights
-> > > > (READ_DIR/READ_FILE) imply READ_METADATA on the files/directories 
-> > > > if READ_METADATA is handled? Reading a file's contents should always
-> > > > imply that you can read the metadata.
-> > > 
-> > > I am wary of situations where the handling of access rights implicity
-> > > implies other access rights.  We have discussed such schemes in the
-> > > past (e.g. we considered a design for RESOLVE_UNIX where we'd have
-> > > both a "scoped" and a "access_fs" right that would interact with each
-> > > other), but in the end we always settled for approaches where such
-> > > interactions would not be necessary.  One of the concerns was that it
-> > > would complicate "best effort" fallback logic in all Landlock
-> > > libraries and in the countless places where people use the syscalls
-> > > directly.
-> > > 
-> > > To throw another option in the mix.  (To be clear, I have only 70%
-> > > confidence, so feel free to push back, but it feels like it might
-> > > work?):
-> > > 
-> > > Is this similar to the "truncate" right?
-> > > ----------------------------------------
-> > > 
-> > > With "truncate", there was an existing common operation (open(2) with
-> > > O_TRUNC, a.k.a. creat(2)) which called the truncation hook and checked
-> > > for the truncation access right.  But that was in fact OK.  The way we
-> > > resolved it at the time was by documenting very loudly that WRITE_FILE
-> > > and TRUNCATE access rights should always be requested in lockstep, if
-> > > TRUNCATE is handled.
-> > > 
-> > > If READ_DIR and READ_FILE do in fact read and return metadata to the
-> > > user, maybe the right thing would be to do it the same way here and
-> > > *require* that we have READ_METADATA to do these operations?
-> > > 
-> > > (READ_METADATA is automatically allowed as long as it's not handled,
-> > > so that approach does not break existing programs.  Programs who
-> > > consciously start handling READ_METADATA must simply take into account
-> > > that reading directories and opening files for reading requires
-> > > READ_METADATA.)
-> > > 
-> > > (BTW, I can see it for reading directories, but I am not sure I fully
-> > > follow the argument why opening files for reading means that you can
-> > > read the metadata?  Can't that be guarded on fstat()-like operations?)
-> > >
-> > Many standard libraries will call stat before / after opening a file to
-> > allocate a buffer matching the file size. Or to figure out if mmap
-> > is more efficient than opening it directly.
-> > 
-> > So Python's open().read() or Go's os.ReadFile they may throw an error
-> > when opening the file, making it look as if the file is inaccessible
-> > when its contents are. They make the assumption that if a file is
-> > readable, the metadata is too.
-> > 
-> > There's also a lot of metadata that is already leaked by just having
-> > READ_FILE. FS_IOC_GETFLAGS/FS_IOC_FSGETXATTR ioctl / fileattr_get are
-> > unrestrictable and allow you to see inode attributes. There's also
-> > access(2) which isn't restricted here and allows you to see your rights
-> > on the file. The size can be found by simply seeking to the beginning
-> > and end. So much of the metadata is obtainable with just READ_DIR/READ_FILE.
-> > 
-> > ...
-> > 
-> > Another problem I'm just realizing is that this READ_METADATA
-> > right is inconsistent with open file descriptor behavior. With most
-> > rights, already open file descriptors are exempted, but here, fstat,
-> > (and the other stat-family calls which takes a file descriptor) become
-> > denied even on already open files. It's a catch 22 here, if you change
-> > the fstat to not apply to opened files, then READ_FILE becomes a bypass
-> > for READ_METADATA. But if you leave it as is, then it's inconsistent with
-> > the other Landlock rights wrt already opened files.
-> 
-> Indeed, these access rights should follow the
-> LANDLOCK_ACCESS_FS_TRUNCATE mechanic.
->
-Ahh good idea. Forgot about that! So associate the
-READ_METADATA right with the fd at open time like with truncate.
-> > 
-> > Which isn't the end of the world, but just shows that either
-> > approach is going to have it's quirks. 
-> > 
-> > I think it would be better to just avoid the cat and mouse game here
-> > of trying to seperate READ_FILE/READ_METADATA and either require
-> > READ_METADATA be specified with READ_FILE if READ_METADATA is handled
-> > like Gunther proposed, or have READ_FILE imply READ_METADATA.
-> > 
-> > Documenting it strongly is OK too, but really there are really zero
-> > usecases where you'd want to grant READ_FILE without READ_METADATA
-> > so it would need to be made extremely clear.
-> 
-> What about a program that just need to read files? We can think about
-> sanboxes such as those used in web browsers, but that applies to other
-> tailored processes that don't need/want to access metadata e.g., for
-> confidentiality or personal information (UID, timestamp) concerns.
-> 
-> This is similar to FILE_WRITE vs. TRUNCATE: most of the time we want
-> them to be grouped.
-> 
-Your argument is persuasive :)
+Hello,
 
-I still have open questions about file_getattr(2)
-and the FS_* ioctls above, which I don't think are handled by this
-READ_METADATA right. access(2) is a seperate question, but I'm
-unsure if that's worth it/in scope for restricting.
+syzbot found the following issue on:
 
-(I think WRITE_METADTA also doesn't handle file_setattr(2) and
-the FS_IOC_FSSETFLAGS ioctls)
+HEAD commit:    551c722f4080 Merge tag 'rtc-7.3-fixes' of git://git.kernel..
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+console output: https://syzkaller.appspot.com/x/log.txt?x=15154035580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7d012d9c67977ee4
+dashboard link: https://syzkaller.appspot.com/bug?extid=03c68e42ce4b33f7ce9b
+compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13154035580000
 
-Justin
-> > 
-> > Thanks,
-> > Justin
-> > 
-> > > —Günther
-> > 
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: slab-out-of-bounds in md5_block+0x95/0x8d0 lib/crypto/md5.c:40
+Read of size 64 at addr ffff8880310c0ce0 by task syz-executor265/6033
+
+CPU: 1 UID: 0 PID: 6033 Comm: syz-executor265 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
+ print_address_description mm/kasan/report.c:378 [inline]
+ print_report+0x13d/0x4b0 mm/kasan/report.c:482
+ kasan_report+0xdf/0x1c0 mm/kasan/report.c:595
+ check_region_inline mm/kasan/generic.c:186 [inline]
+ kasan_check_range+0x10f/0x1e0 mm/kasan/generic.c:200
+ __asan_memcpy+0x23/0x60 mm/kasan/shadow.c:105
+ md5_block+0x95/0x8d0 lib/crypto/md5.c:40
+ md5_blocks lib/crypto/md5.c:126 [inline]
+ md5_update+0xf7/0x210 lib/crypto/md5.c:161
+ md5+0xc7/0x120 lib/crypto/md5.c:202
+ ecryptfs_write_tag_70_packet+0x880/0x1410 fs/ecryptfs/keystore.c:741
+ ecryptfs_encrypt_filename fs/ecryptfs/crypto.c:1378 [inline]
+ ecryptfs_encrypt_and_encode_filename+0x428/0xa60 fs/ecryptfs/crypto.c:1789
+ ecryptfs_lookup+0x1f7/0x830 fs/ecryptfs/inode.c:402
+ __lookup_slow+0x155/0x320 fs/namei.c:1919
+ lookup_slow+0x50/0x70 fs/namei.c:1936
+ walk_component fs/namei.c:2282 [inline]
+ lookup_last fs/namei.c:2789 [inline]
+ path_lookupat+0x5e8/0xc40 fs/namei.c:2813
+ filename_lookup+0x202/0x590 fs/namei.c:2842
+ __do_sys_chdir fs/open.c:557 [inline]
+ __se_sys_chdir fs/open.c:550 [inline]
+ __x64_sys_chdir+0xc8/0x280 fs/open.c:550
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x123/0x790 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f62183c3537
+Code: 00 00 75 14 48 83 c4 28 5b 5d c3 0f 1f 84 00 00 00 00 00 8b 04 24 eb dc e8 c6 14 00 00 66 0f 1f 44 00 00 b8 50 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 d8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc52514f68 EFLAGS: 00000206 ORIG_RAX: 0000000000000050
+RAX: ffffffffffffffda RBX: 00007f621841c0a9 RCX: 00007f62183c3537
+RDX: 0000000000000000 RSI: 00007f621841e348 RDI: 00007f621841c0bd
+RBP: 00007f621841c09e R08: 00007f621841e2b8 R09: 66615f7961727073
+R10: 0000000000000000 R11: 0000000000000206 R12: 00007ffc52514f90
+R13: 00007f621841c049 R14: 00007f621841c08f R15: 0000000000000002
+ </TASK>
+
+Allocated by task 5567:
+ kasan_save_stack+0x30/0x50 mm/kasan/common.c:57
+ kasan_save_track+0x14/0x30 mm/kasan/common.c:78
+ poison_kmalloc_redzone mm/kasan/common.c:409 [inline]
+ __kasan_kmalloc+0xaa/0xb0 mm/kasan/common.c:426
+ kasan_kmalloc include/linux/kasan.h:263 [inline]
+ __do_kmalloc_node mm/slub.c:5414 [inline]
+ __kmalloc_flags_noprof+0x370/0x8e0 mm/slub.c:5602
+ _kmalloc_flags_noprof mm/slab.h:55 [inline]
+ __alloc_empty_sheaf mm/slub.c:2822 [inline]
+ alloc_empty_sheaf mm/slub.c:2842 [inline]
+ __pcs_replace_empty_main+0x3fa/0x650 mm/slub.c:4769
+ alloc_from_pcs mm/slub.c:4850 [inline]
+ slab_alloc_node mm/slub.c:4984 [inline]
+ kmem_cache_alloc_noprof+0x4c4/0x6a0 mm/slub.c:5010
+ __skb_ext_alloc+0x1a/0x80 net/core/skbuff.c:7152
+ skb_ext_add+0x40b/0x810 net/core/skbuff.c:7256
+ nf_bridge_alloc include/net/netfilter/br_netfilter.h:12 [inline]
+ br_nf_pre_routing_ipv6+0xc7/0x8b0 net/bridge/br_netfilter_ipv6.c:171
+ br_nf_pre_routing+0x90f/0x1560 net/bridge/br_netfilter_hooks.c:513
+ nf_hook_entry_hookfn include/linux/netfilter.h:165 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:291 [inline]
+ br_handle_frame+0xd59/0x1670 net/bridge/br_input.c:451
+ __netif_receive_skb_core.constprop.0+0x6c5/0x3530 net/core/dev.c:6152
+ __netif_receive_skb_one_core+0xb0/0x1e0 net/core/dev.c:6263
+ __netif_receive_skb+0x1f/0x120 net/core/dev.c:6378
+ process_backlog+0x487/0x1600 net/core/dev.c:6729
+ __napi_poll.constprop.0+0xaf/0x450 net/core/dev.c:7798
+ napi_poll net/core/dev.c:7861 [inline]
+ net_rx_action+0xa40/0xf20 net/core/dev.c:8018
+ handle_softirqs+0x1e6/0x9d0 kernel/softirq.c:645
+ do_softirq kernel/softirq.c:546 [inline]
+ do_softirq+0xaf/0xf0 kernel/softirq.c:533
+ __local_bh_enable_ip+0xff/0x120 kernel/softirq.c:473
+ local_bh_enable include/linux/bottom_half.h:33 [inline]
+ rcu_read_unlock_bh include/linux/rcupdate.h:923 [inline]
+ __dev_queue_xmit+0xa27/0x4970 net/core/dev.c:4961
+ dev_queue_xmit include/linux/netdevice.h:3461 [inline]
+ neigh_hh_output include/net/neighbour.h:544 [inline]
+ neigh_output include/net/neighbour.h:558 [inline]
+ ip6_finish_output2+0x102d/0x1d50 net/ipv6/ip6_output.c:138
+ __ip6_finish_output+0x357/0xdf0 net/ipv6/ip6_output.c:210
+ ip6_finish_output net/ipv6/ip6_output.c:221 [inline]
+ NF_HOOK_COND include/linux/netfilter.h:314 [inline]
+ ip6_output+0x2aa/0xa60 net/ipv6/ip6_output.c:248
+ dst_output include/net/dst.h:471 [inline]
+ NF_HOOK include/linux/netfilter.h:325 [inline]
+ NF_HOOK.constprop.0+0x115/0x5a0 include/linux/netfilter.h:319
+ mld_sendpack+0x8f7/0xec0 net/ipv6/mcast.c:1890
+ mld_send_initial_cr+0x219/0x320 net/ipv6/mcast.c:2308
+ ipv6_mc_dad_complete+0xa7/0x1d0 net/ipv6/mcast.c:2316
+ addrconf_dad_completed+0xd91/0xff0 net/ipv6/addrconf.c:4376
+ addrconf_dad_work+0x83c/0x1360 net/ipv6/addrconf.c:4304
+ process_one_work+0xac7/0x1b10 kernel/workqueue.c:3396
+ process_scheduled_works kernel/workqueue.c:3479 [inline]
+ worker_thread+0x5ef/0xe50 kernel/workqueue.c:3560
+ kthread+0x373/0x450 kernel/kthread.c:436
+ ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+The buggy address belongs to the object at ffff8880310c0c00
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 224 bytes inside of
+ allocated 256-byte region [ffff8880310c0c00, ffff8880310c0d00)
+
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x310c0
+head: order:1 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+flags: 0xfff00000000040(head|node=0|zone=1|lastcpupid=0x7ff)
+page_type: f5(slab)
+raw: 00fff00000000040 ffff88801c042b40 dead000000000100 dead000000000122
+raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+head: 00fff00000000040 ffff88801c042b40 dead000000000100 dead000000000122
+head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+head: 00fff00000000001 ffffffffffffff81 00000000ffffffff 00000000ffffffff
+head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000002
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 1, migratetype Unmovable, gfp_mask 0xd2040(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 39, tgid 39 (kdevtmpfs), ts 10593768918
+ set_page_owner include/linux/page_owner.h:33 [inline]
+ post_alloc_hook+0xfd/0x120 mm/page_alloc.c:1871
+ prep_new_page mm/page_alloc.c:1879 [inline]
+ get_page_from_freelist+0x110d/0x35d0 mm/page_alloc.c:3943
+ __alloc_frozen_pages_noprof+0x2eb/0x3300 mm/page_alloc.c:5436
+ alloc_slab_page mm/slub.c:3347 [inline]
+ allocate_slab mm/slub.c:3462 [inline]
+ new_slab+0xa9/0x6e0 mm/slub.c:3513
+ refill_objects+0xe3/0x410 mm/slub.c:7417
+ refill_sheaf mm/slub.c:2885 [inline]
+ __pcs_replace_empty_main+0x35e/0x650 mm/slub.c:4774
+ alloc_from_pcs mm/slub.c:4850 [inline]
+ slab_alloc_node mm/slub.c:4984 [inline]
+ __do_kmalloc_node mm/slub.c:5413 [inline]
+ __kmalloc_noprof+0x67c/0x840 mm/slub.c:5439
+ _kmalloc_noprof include/linux/slab.h:995 [inline]
+ _kmalloc_array_noprof include/linux/slab.h:1211 [inline]
+ security_inode_init_security+0x113/0x370 security/security.c:1347
+ shmem_mknod+0x2ce/0x480 mm/shmem.c:3841
+ vfs_mknod+0x3a5/0x7f0 fs/namei.c:5269
+ handle_create drivers/base/devtmpfs.c:232 [inline]
+ handle drivers/base/devtmpfs.c:384 [inline]
+ devtmpfs_work_loop+0x48d/0xae4 drivers/base/devtmpfs.c:399
+ devtmpfsd+0x3f/0x50 drivers/base/devtmpfs.c:441
+ kthread+0x373/0x450 kernel/kthread.c:436
+ ret_from_fork+0x730/0xd60 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff8880310c0c00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff8880310c0c80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff8880310c0d00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff8880310c0d80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff8880310c0e00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
