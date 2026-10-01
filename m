@@ -1,137 +1,225 @@
-Received: from mail-dl2-f43.google.com (mail-dl2-f43.google.com [74.125.229.171])
+Received: from mail-oi1-f200.google.com (mail-oi1-f200.google.com [209.85.167.200])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474874825A0
-	for <ecryptfs@vger.kernel.org>; Thu,  1 Oct 2026 21:39:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.229.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C843C9890
+	for <ecryptfs@vger.kernel.org>; Thu,  1 Oct 2026 23:29:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1790890772; cv=none; b=umXregvlrGiPOwAoLLbB3IPVyMLaorpd4VxKCKAlrl1w8qCZ3PzCp8knkg/oecLDnXhOY1PjVQwGDiW3D7CpgehLyLO+p0mVnhkmugrH1A13U/G0LLoWlMg2TWNtSA9sFpK3AhqfEx2KsUOhODdmtWLz+s5ScPXMSuhAoujNKes=
+	t=1790897375; cv=none; b=PXw9qyJ7vl4G/IG700Hh3s+d/99h66XRuVEzGD80Rh5YwZtgiHrM9oBxUFvm95mTCvo1GqyUtZU69WGe30X2LnGpmcb61QA8e1cG7Mr0zCylZLMlSRhfMsVUteT+dMtpjaT1l3L0ILVvtEiTUJspBG1UpAUjeefbVf+ZX7iEC8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1790890772; c=relaxed/simple;
-	bh=gDKKtoRgOc2mwHpU67r3CAZFBnZ509JPuMOdDP4lW4E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hoB96FwfASYpp9At00Vi/1e8OWrHrgCOreXF8YX06DRzkqdkpZCuKHk0w4R1SeEzJqrecbBEeohcM97KwEyw6aPYJWQFf9o3vS+SzISNpUj21wJ4KguqfC4WYgoAQLWL3qmb2jmGW9qdUwXbHI8rrT2yXOd5GhCDI1JHQ7Qs/fg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jgmJkqJw; arc=none smtp.client-ip=74.125.229.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jgmJkqJw"
-Received: by mail-dl2-f43.google.com with SMTP id a92af1059eb24-145047ad220so2406611c88.3
-        for <ecryptfs@vger.kernel.org>; Thu, 01 Oct 2026 14:39:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1790890768; x=1791495568; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=vjoKekcwBJNkR4L4zqB/WIDVT2DDhiDC9WEOFL1a4lY=;
-        b=jgmJkqJwIykmr8oaHDYAREDlheCOemdpErGkQMKNFY53bqpVHw1M7w53wuir83jFa6
-         EIeBErp5KDX6fYiup3r9ry3AyOiF0chOUv4akgcWoUy+SCegt945fChJmdrptB9XZeho
-         tm0HzBfvZoSKd4xuUJKVmbKRKTOvzHaNGDu4AUE7qhndSlHrCnhzgoT5PV7YZeei2amx
-         JUoeDu17QCbk0SP1+NRAMIdHCTh8FqD/83OLiNlr+TLubIs7OGb4lfwpBEb/z1J9lB9t
-         cKQIOePZZmRTFu2jE8/IEaWO9REUl0CUA3W+U0xtQKNCuM4IGby60kb2M1zzZrXjCGOJ
-         2+vA==
+	s=arc-20240116; t=1790897375; c=relaxed/simple;
+	bh=lulebXRJYgCMf2sepGhL7uwJpGuNxICxTGjtx3e9IlI=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=rDZEVJi3HoH8T8/IJivO8ZuIlzxBCp120Cy4K45T5sqXAV1Oe3XEKcY/VGaTdPdBe6TFrqPKPnYjW2CR5M7MTtzrNrQ9PHqUFyzMvwKJ8QumM+oQRJeur+LvnEo+ilKvUHn/4aHl+Qy3AoEj7CG9OQoRSBVPa5DaksT9saKShkc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f200.google.com with SMTP id 5614622812f47-4b28d7ffab1so2231227b6e.1
+        for <ecryptfs@vger.kernel.org>; Thu, 01 Oct 2026 16:29:33 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1790890768; x=1791495568;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=vjoKekcwBJNkR4L4zqB/WIDVT2DDhiDC9WEOFL1a4lY=;
-        b=MOHFp3Ku3dyct+MRltk5VEwakzaHdH9OnAIfC52+8TUcrm13Yk489bHYWZqUli45K0
-         EWuZ3dqvIyXTQ+MIVkjDdCxAj3GDirOz8g2z4BAvHQm4qXsP2Yxl+N+7Ab6MvzhvJMvk
-         JJ8LUdACempROWpIyudhJMIJlJvOAv8hlC1jK9gX8b9yPlBi3y2r5tqY1T0Fm+pscs9J
-         oUffxWSyyydwIO3o9zX/HnflCxpUOfihiJQvHW+aSA7oHW0EdHv6m5KYt9mtwSNdfWi8
-         dGazjYzGa4Tvmnk6qUD5+qDOjCqIHWnGCCA6PiK1WDVkxZGqrfmcvk/20Tyd4tb/guSu
-         0cSA==
-X-Gm-Message-State: AFuF++mx4gJB016HbnHhIHAN8syyj8VG54yrFpOM+W7YwaQbU1BoX+Tj
-	R2GKNjOI4fRiYx/3hOTqzIfk8H9XruhHqvyNWKNxm06zD71VUBpkVU3l
-X-Gm-Gg: AYBFou0gJsRMoEjbFziQpLCWRF91V+Udap1fA+qpWleZ3WvSOmy7N76l5FSlEHPbB6R
-	4MvV5ItG/CHmFi5I/Pzve0MV+69D22tVT2Its0A/kE4zf8mNPYq6da1CfjnV8hfeJW78ZopMcCH
-	vCqJY1ikI6JHMP5HsO6MtYHHzTCLLxjbaC/+UEsGA4fJDHnE7rzrefN8ZWMO5wGwWahQH0C9eXp
-	Z7HmEAj15EJqczU/7rraDkHbcbr/CTre/3DH4jJ927e+0+hp96lBp1EtpwASYdVbNHjXpteClvF
-	qs+6XXKP6KSWBwavGKRTsNl3lhC0q/vTvDPg2J9yKgzM1oaJ+TRvL+vwIxrBtLWGGshQLx3efqT
-	Na1QKYL4f1blz0ySpG0Z5JG8Ws2DdJ1ihDEtHDNOdsl4A1KNJBb1FBz1J8Xa2QqyYE/4BzRGRxm
-	WH+CscaqBYmb9pTm7nxCCFKZzAgliWpH7u1lDb0h7WC1Wg8QgV4anWnI19AHQGivqk1k7V8bksP
-	g==
-X-Received: by 2002:a05:7022:f90a:b0:143:33de:978f with SMTP id a92af1059eb24-14f5d5b569emr444638c88.43.1790890768146;
-        Thu, 01 Oct 2026 14:39:28 -0700 (PDT)
-Received: from adriano.lan ([2803:9810:3d22:1608:1620:60f3:83ff:8ca9])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-34f14f660f1sm951950eec.13.2026.10.01.14.39.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 01 Oct 2026 14:39:27 -0700 (PDT)
-From: Adriano Cordova <adrianox@gmail.com>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Adriano Cordova <adrianox@gmail.com>,
-	stable@vger.kernel.org,
-	syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Subject: [PATCH] ecryptfs: validate auth tok payload size
-Date: Thu,  1 Oct 2026 18:39:15 -0300
-Message-ID: <20261001213915.1326602-1-adrianox@gmail.com>
-X-Mailer: git-send-email 2.51.0
+        d=1e100.net; s=20260707; t=1790897372; x=1791502172;
+        h=content-type:to:from:subject:message-id:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=Jm8A7dbfF6HWsE7A81+LRliaab1wzvv5kbVtrXeQkyk=;
+        b=daVu5k1hDT0322MwSzeKe1g4VsC6xHSVTdOV9RW9i+bOkO98Jb22zUr+KJ8zs8r5Vb
+         dkddMZm4wuHOLF5wqWwCZEMJuvEfmXJnGE5fxxvgqyPRE8Z9lkP3pArx7hUh9XpMBVhB
+         WzRBMIsGNdE9HfglGcWDeqLoEDsR6PRklHS6dr5CloeB6HvEnt/bUHQJPFMrv2NPxjtM
+         zWU+wMzce4Zv8qD3U5vTW00qNPiS9UOIbZKLIw/ZnWkOLrp2Xa0SrpQn5wl0TUgoIiYW
+         PsFd+4wIywG3pZEZY8eJ4DMab8w4hu4KPXSeUImW//eejvX2umUGeanVL6xPh0zOQK4W
+         //tw==
+X-Forwarded-Encrypted: i=1; AKwUvBym9tADRj5GUIuoLGIBguQ57lqDVi8a1ETZr4+RnCJzuiogx+lmMWO/9+JD3zSlDZmzsFKFX9V/bg==@vger.kernel.org
+X-Gm-Message-State: AFuF++lV3F8P/8OJAL6S/kFvOc4GeKePWatKRM9iBGIiFWsxl19nvMZj
+	KYOmMqYIQ9yHMNd10+e5MJYp0xueVrJrZm1td4KYfzdQ6Cs8wp2hsWcCJfDly1zsGhAkfvlotDN
+	4saWGjZEJJmWtQrjiEWUzOkR6OfEJhihBo9he4NrEptvjXOuj69lYtwNTvKM=
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6808:16a5:b0:4d6:9133:cfe6 with SMTP id
+ 5614622812f47-4f30bcdf81amr3861437b6e.43.1790897372471; Thu, 01 Oct 2026
+ 16:29:32 -0700 (PDT)
+Date: Thu, 01 Oct 2026 16:29:32 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6abeecdc.7503fbd6.2d3f6.0010.GAE@google.com>
+Subject: [syzbot] [ecryptfs?] KASAN: slab-out-of-bounds Read in md5_blocks
+From: syzbot <syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com>
+To: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Validate that a key payload is large enough to hold a struct
-ecryptfs_auth_tok, and that the password token's
-session_key_encryption_key_bytes fits within
-session_key_encryption_key[], before the payload is dereferenced.
+Hello,
 
-Cc: <stable@vger.kernel.org>
-Reported-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Tested-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Link: https://syzkaller.appspot.com/bug?extid=03c68e42ce4b33f7ce9b
-Signed-off-by: Adriano Cordova <adrianox@gmail.com>
+syzbot found the following issue on:
+
+HEAD commit:    6375e61c01e9 Add linux-next specific files for 20260928
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=17231325580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=1dae85014253be90
+dashboard link: https://syzkaller.appspot.com/bug?extid=46bbbe175b7eea8036b8
+compiler:       Debian clang version 22.1.8 (++20260613092233+e80beda6e255-1~exp1~20260613092250.77), Debian LLD 22.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=138ff605580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13d21ac9580000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/dac817cfa9ca/disk-6375e61c.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/e503a06f8d7e/vmlinux-6375e61c.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/6a6051b849cb/bzImage-6375e61c.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: slab-out-of-bounds in md5_block lib/crypto/md5.c:40 [inline]
+BUG: KASAN: slab-out-of-bounds in md5_blocks+0x120/0xbd0 lib/crypto/md5.c:126
+Read of size 64 at addr ffff88803236dce0 by task syz.1.18/5953
+
+CPU: 0 UID: 0 PID: 5953 Comm: syz.1.18 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/16/2026
+Call Trac
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ print_address_description+0x55/0x1e0 mm/kasan/report.c:378
+ print_report+0x58/0x70 mm/kasan/report.c:482
+ kasan_report+0x117/0x150 mm/kasan/report.c:595
+ check_region_inline mm/kasan/generic.c:-1 [inline]
+ kasan_check_range+0x264/0x2c0 mm/kasan/generic.c:200
+ __asan_memcpy+0x29/0x70 mm/kasan/shadow.c:105
+ md5_block lib/crypto/md5.c:40 [inline]
+ md5_blocks+0x120/0xbd0 lib/crypto/md5.c:126
+ md5_update+0xef/0x150 lib/crypto/md5.c:161
+ md5+0xed/0x180 lib/crypto/md5.c:202
+ ecryptfs_write_tag_70_packet+0x820/0x12e0 fs/ecryptfs/keystore.c:741
+ ecryptfs_encrypt_filename fs/ecryptfs/crypto.c:1378 [inline]
+ ecryptfs_encrypt_and_encode_filename+0x576/0x1580 fs/ecryptfs/crypto.c:1789
+ ecryptfs_lookup+0x20e/0x780 fs/ecryptfs/inode.c:402
+ lookup_one_qstr_excl+0x12d/0x360 fs/namei.c:1810
+ __start_dirop fs/namei.c:2920 [inline]
+ start_dirop fs/namei.c:2942 [inline]
+ filename_create+0x20e/0x370 fs/namei.c:5103
+ filename_mkdirat+0xd2/0x510 fs/namei.c:5449
+ __do_sys_mkdirat fs/namei.c:5477 [inline]
+ __se_sys_mkdirat+0x35/0x150 fs/namei.c:5474
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fe5ba99e159
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffeb47b2408 EFLAGS: 00000246 ORIG_RAX: 0000000000000102
+RAX: ffffffffffffffda RBX: 00007fe5bac25fa0 RCX: 00007fe5ba99e159
+RDX: 0000000000000080 RSI: 0000200000000100 RDI: 0000000000000003
+RBP: 00007fe5baa3506b R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fe5bac25fac R14: 00007fe5bac25fa0 R15: 00007fe5bac25fa0
+ </TASK>
+
+Allocated by task 5953:
+ kasan_save_stack mm/kasan/common.c:57 [inline]
+ kasan_save_track+0x3e/0x80 mm/kasan/common.c:78
+ poison_kmalloc_redzone mm/kasan/common.c:409 [inline]
+ __kasan_kmalloc+0x93/0xb0 mm/kasan/common.c:426
+ kasan_kmalloc include/linux/kasan.h:263 [inline]
+ __do_kmalloc_node mm/slub.c:5531 [inline]
+ __kmalloc_flags_noprof+0x52d/0x790 mm/slub.c:5719
+ _kmalloc_flags_noprof mm/slab.h:55 [inline]
+ __alloc_empty_sheaf+0x28/0x40 mm/slub.c:2854
+ alloc_empty_sheaf mm/slub.c:2874 [inline]
+ __pcs_replace_empty_main+0x43b/0x6c0 mm/slub.c:4806
+ alloc_from_pcs mm/slub.c:4887 [inline]
+ slab_alloc_node mm/slub.c:5021 [inline]
+ kmem_cache_alloc_noprof+0x394/0x600 mm/slub.c:5047
+ ecryptfs_init_fs_context+0x70/0x1b0 fs/ecryptfs/main.c:617
+ alloc_fs_context+0x99e/0xd00 fs/fs_context.c:295
+ do_new_mount+0x17f/0xdc0 fs/namespace.c:3841
+ do_mount fs/namespace.c:4194 [inline]
+ __do_sys_mount fs/namespace.c:4407 [inline]
+ __se_sys_mount+0x31d/0x420 fs/namespace.c:4384
+ do_syscall_x64 arch/x86/entry/syscall_64.c:61 [inline]
+ do_syscall_64+0x166/0x520 arch/x86/entry/syscall_64.c:84
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+The buggy address belongs to the object at ffff88803236dc00
+ which belongs to the cache kmalloc-256 of size 256
+The buggy address is located 224 bytes inside of
+ allocated 256-byte region [ffff88803236dc00, ffff88803236dd00)
+
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3236c
+head: order:1 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+flags: 0xfff00000000040(head|node=0|zone=1|lastcpupid=0x7ff)
+page_type: f5(slab)
+raw: 00fff00000000040 ffff88813ff22b40 dead000000000100 dead000000000122
+raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+head: 00fff00000000040 ffff88813ff22b40 dead000000000100 dead000000000122
+head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
+head: 00fff00000000001 ffffffffffffff81 00000000ffffffff 00000000ffffffff
+head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000002
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 1, migratetype Unmovable, gfp_mask 0xd2040(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 29, tgid 29 (kdevtmpfs), ts 16571924726
+ set_page_owner include/linux/page_owner.h:33 [inline]
+ post_alloc_hook+0x1f9/0x250 mm/page_alloc.c:1854
+ prep_new_page mm/page_alloc.c:1862 [inline]
+ get_page_from_freelist+0x220f/0x2280 mm/page_alloc.c:3933
+ __alloc_frozen_pages_noprof+0x1fc/0x400 mm/page_alloc.c:5441
+ alloc_slab_page mm/slub.c:3384 [inline]
+ allocate_slab+0x7d/0x5e0 mm/slub.c:3499
+ new_slab mm/slub.c:3550 [inline]
+ refill_objects+0x2d5/0x350 mm/slub.c:7539
+ refill_sheaf mm/slub.c:2917 [inline]
+ __pcs_replace_empty_main+0x2c8/0x6c0 mm/slub.c:4811
+ alloc_from_pcs mm/slub.c:4887 [inline]
+ slab_alloc_node mm/slub.c:5021 [inline]
+ __do_kmalloc_node mm/slub.c:5530 [inline]
+ __kmalloc_noprof+0x476/0x710 mm/slub.c:5556
+ _kmalloc_noprof include/linux/slab.h:995 [inline]
+ _kmalloc_array_noprof include/linux/slab.h:1211 [inline]
+ security_inode_init_security+0x102/0x3e0 security/security.c:1386
+ shmem_mknod+0x1ea/0x340 mm/shmem.c:4042
+ vfs_mknod+0x448/0x610 fs/namei.c:5282
+ handle_create drivers/base/devtmpfs.c:283 [inline]
+ handle drivers/base/devtmpfs.c:435 [inline]
+ devtmpfs_work_loop+0x861/0xdf0 drivers/base/devtmpfs.c:450
+ devtmpfsd+0x4d/0x50 drivers/base/devtmpfs.c:492
+ kthread+0x38b/0x480 kernel/kthread.c:436
+ ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff88803236dc00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88803236dc80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>ffff88803236dd00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+                   ^
+ ffff88803236dd80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88803236de00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+
 ---
- fs/ecryptfs/ecryptfs_kernel.h | 6 ++++++
- fs/ecryptfs/keystore.c        | 7 +++++++
- 2 files changed, 13 insertions(+)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 58165928ed1e..4315c18ba1cd 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -88,6 +88,9 @@ ecryptfs_get_encrypted_key_payload_data(struct key *key)
- 	if (!payload)
- 		return ERR_PTR(-EKEYREVOKED);
- 
-+	if (payload->payload_datalen < sizeof(struct ecryptfs_auth_tok))
-+		return ERR_PTR(-EINVAL);
-+
- 	return (struct ecryptfs_auth_tok *)payload->payload_data;
- }
- 
-@@ -124,6 +127,9 @@ ecryptfs_get_key_payload_data(struct key *key)
- 	if (!ukp)
- 		return ERR_PTR(-EKEYREVOKED);
- 
-+	if (ukp->datalen < sizeof(struct ecryptfs_auth_tok))
-+		return ERR_PTR(-EINVAL);
-+
- 	return (struct ecryptfs_auth_tok *)ukp->data;
- }
- 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 51651314b7a6..7f2dbc81fcbc 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -477,6 +477,13 @@ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
- 		rc = -EINVAL;
- 		goto out;
- 	}
-+	if ((*auth_tok)->token_type == ECRYPTFS_PASSWORD
-+	    && (*auth_tok)->token.password.session_key_encryption_key_bytes
-+	       > ECRYPTFS_MAX_KEY_BYTES) {
-+		printk(KERN_ERR "Invalid password auth_tok sKEK size\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
- out:
- 	return rc;
- }
--- 
-2.51.0
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
