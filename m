@@ -1,153 +1,116 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-pz2-f38.google.com (mail-pz2-f38.google.com [74.125.228.38])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E69351C0B
-	for <ecryptfs@vger.kernel.org>; Sat,  3 Oct 2026 17:46:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791049602; cv=none; b=KID11rKlMku/fNFYLuKp9pGl+vux6D135chvQGvoGhRFj589Vrct8KfH2CrMob60+0aSZWftKtsdDnTcSUIGuuREcgYAG+xpccOpTTBTaL1YkZS7ySZ4JfT+9+WZArlEF6pNBaAIDErkUIo1fBpTs8N4t+1xVqhHujVbOe/2nY8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791049602; c=relaxed/simple;
-	bh=kGwbGAS53FdH0sXmbn3xnwx4Ym7V3BLVw8M55PwAbOs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=k12aKYUn5tTJc06b+EcahM1jrt71mRIfePWtqdTk/YGJUk73ChRsXcUqFYuNzp7xednipEJKoaSmJAUMVWU2XwcITEu/onIL1BrNTY38eG1K5y5+lqYwzrQqLfa6whc+Y3hTdms/vG8Jl/A55mSSdBwD6MOgqcKlpfcL3BbjXoU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gVxUak9e; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C643BCD15
+	for <ecryptfs@vger.kernel.org>; Sun,  4 Oct 2026 12:31:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.228.38
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1791117100; cv=pass; b=dNJQ3yBKB0abI/HbATx/kry6vlildLe9eHK+o10mlhEiEGfbCvRz+nbVuN1Ne+KY88ULdnqDhZw3eVuWWEPBWfWPYP6LPiXRCSGKmLuzpjJ723reIZhEtX4XeKXDOvKFkz4K1naoLMqA0yRFvTZR7SYm4NkfZNovNybFU3S8q1Q=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1791117100; c=relaxed/simple;
+	bh=GXfjk93rqVjkEm8QtrTGYzEWMYxFujv0Lq5SqSgVimE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=cOssdOm007Kc4viEnC2zcia7P+2GbToB0K7+o7uNHw4oQSmsiVkTBThe8HqkgGYCGaEvKfETpfBQ4PHNaUueNupnmpE3isAcp7FtaqUTmkgaMT0UV1havTI9cVZAdVb3grBUSS81UYWH9T6Wefzb9pWstuQs056YylUz1ZE2FwM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=oItSJmc5; arc=pass smtp.client-ip=74.125.228.38
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gVxUak9e"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-c2dc8cb0decso68606266b.2
-        for <ecryptfs@vger.kernel.org>; Sat, 03 Oct 2026 10:46:40 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="oItSJmc5"
+Received: by mail-pz2-f38.google.com with SMTP id 41be03b00d2f7-cc79a5bdf9fso171713a12.1
+        for <ecryptfs@vger.kernel.org>; Sun, 04 Oct 2026 05:31:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1791117099; cv=none;
+        d=google.com; s=arc-20260327;
+        b=gw4hHgDIFa90lXjKpxPctbr6nib97g4cjF0lZN0wweYcAKU/JT26zjSPrkmcsvicUj
+         NMkrFKxmkgPJ7PT5Bawdnu8cspZ5tHJQG34wwEtB63/+26rNnwuunyl5PNu4tIYiVA5f
+         SbTzPlXaPZoXDEuNw7ufUV8aNQ8OSxnelb1JibH8SkOq/VZ9VkVzD546TpMQm92oINBf
+         w8E92WYGHSiOTwWe5mbBnopzrHe69qAtx72SSTN7JTrvV2aO99NkcXuxyGha0e1xIJuH
+         9wMCqnWshrl+XOCzb+dLYalGYorj+ih/0al5DekqDqyrZC2P1dACShvP2BxGXjKpH8ZV
+         jcoA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20260327;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=GXfjk93rqVjkEm8QtrTGYzEWMYxFujv0Lq5SqSgVimE=;
+        fh=nghn267776b72EYWbPAr32LecUC2fBvJI2LSp9JRpPM=;
+        b=ZPQFlWYxykpQYYuzikG2EL8MBfI3LfHcSotLVRKia0rWoBMfvjIQk7/HlNZ1y8lA/j
+         pzZXd2IajZzrjivv/f7yqRCS1E5G8E9kcLnN18+FfPBkPGcLHKKrLDDfbq2mrdqAFquJ
+         NshyFIlxGWHtTXKVeD7NEWEDqLfu3onn5C+tmRE1xdjLZWiqVHFD1e4Huqrg2KOPPOkN
+         d0R1WX6RrK6fJGh2xq87vaGYJfyyIWaTKqeQvvwy/z0C+i/w8rNmFtMqECgvJZaLCxkU
+         hJZmIghyDwJaluAQBhZ6lC1uQqwzqg0wblXmwmhU/hDbRcaVh01/TgUMfLjJIkdu56TW
+         D9bQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791049599; x=1791654399; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=98g+KQuWq0F2GGahW0f/vDtlyZeObmh8xnn+HTlcro8=;
-        b=gVxUak9e0jD8OJXHJdTk0UyEM2s+ddTgQmB411fNGKiC7hVi/D/rb9qZLYdGuE60JG
-         NtLQkQDmvi6d25S85M5EwbChVVy7eYflfT0TC//aB/nt+L0jyjNYZYX/6MuimY6I478E
-         Jr1UlK+jxyldAJke8CnnvJ7U10bQd21big/IKsNzMCApyGke+6i+ix36ciLLlHECF3VW
-         IOtXWy60tznIPcQjt9AizW7VpCA234T3AaSFlv2VwtV5EjINRVjc5Dd97tA8ox3keyyY
-         BGHcbzYHo2dvwf9Y4COBHR/+zTqGmvKkxdhhKnAdC0CXAA/UCZmUVBhLHFdi6By7S9jr
-         RTKg==
+        d=gmail.com; s=20251104; t=1791117099; x=1791721899; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=GXfjk93rqVjkEm8QtrTGYzEWMYxFujv0Lq5SqSgVimE=;
+        b=oItSJmc5gplGn+GwGiz/D479gTHCHpP74bE0H2I+RO8okuiDd85BMkhj7l7edgbp19
+         hIwPIhWIXeb08HAt6AqvoSq1VbFPcYa2os5RElxw4TBIleXKGKJ5PD7MQzEBZpUIOoov
+         zO+OGA1EYRuLkGaNwgxDIKChUpYgwHgYLwszFPfmsfG5Z/S3HuyeKNI/ozl/o3ofUHSf
+         vgAU/ps4ydoV+8w1FYlr6Fi6y3mNaQ+Z7a52yrH+vGtqGWRHOWPjNFyGTGfGOK0YJMsp
+         ofD6bcZP96QzcziVT2nIsLY29w67wXHxPIYZO5JQIL6lqMeryxilSBdKuw++Y49uSgB/
+         I8+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791049599; x=1791654399;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=98g+KQuWq0F2GGahW0f/vDtlyZeObmh8xnn+HTlcro8=;
-        b=HaRB3xisKapoZnPEKGm3YgsBcfrANTQitzc1Ho5i7Fjq7GXsPe+/KwYoLGGBWP+M10
-         XbWUG8243e2Y6Co0MOYu588pWQzyNMREl2VwxqelzDfpMIpVxrTbZX5ayGEbesi+E0XH
-         sZu61EEoeWcAS/39wuwanAvW2L++wqMB0GCn+6Bj/8csLFxrfr14mNACleZQhc47aTtu
-         hgQzUMZc6MXU4j3kJ2nbBBp6Fzii+5GhvT3n1XaTvdOFy60nz8/wCT1BtJRV4rhB8XJk
-         8U+0aAj0+C+SICwnzhbLf/TCqpmNggr8ycMvH+uC3zM4yE53O57Yus/yQSASJ46HasFr
-         4Klw==
-X-Forwarded-Encrypted: i=1; AKwUvBzQI/tA8SQNwAYU1R3QsUtxT3UOP0Woete4l8Ee/IAuyevmSCtoZ95PCZ8N7xEHPbbEY+jjOWbJkA==@vger.kernel.org
-X-Gm-Message-State: AFq9FYKgPRQob2okAiyJPosRUS7P+tT9HfINngPDe0uINpkXX3fboyJd
-	ZOZ6zlVuzrzqdY1AAH9WO73FaAzAm1hBjE1z9MI0AR99L0L/kpJt/V5Y
-X-Gm-Gg: AYBFou33PCrLLiThNqjKtiU5AU62EKHcj57zIPcsZrhm5p3yXJG02etkHnG12/OE/zW
-	2PSJaT7xBwqbw9BTZDP2fG+KX7mIg0TvPV3qK8pRmQfsAy+xuJifjPYWVB3xtuykJ+u3yMzj/j+
-	6DKQTq9VqtyvLLzj7gte/Ry8mrW+yy5UgrNS1bZvNMMEuy2pPrbT53daKHS9M+Q32MoYH5kGrbR
-	bKH5e3mnczhsqmvjwG1Tp2DwGcpjLM3cRLfaUVGsn/oYTVD+1soR9ul5doSFoENCY6z2ntQFSHS
-	PPb0KyoIVaKQRw+ZpfEuHT2dyfqIzDc/AL2liLRc36x5atlLooWULqAlPtpRemQVwx0Ek3gHdgT
-	EgatKPJKEX0vvcH0925VNnaUW8EMsbJxWZ2WwldyKeyo5uV3RDcJVNBIfG3cgpYi3Wog/nChO/F
-	Y3iKu3aZHS6TZfVBnQ92QypqW9ipZ3ws6iVwP0zi6GdB2XyNd1m+s5Y0q5B55JK04r4OJFmTHdQ
-	GpxWqmysKhXTmwM
-X-Received: by 2002:a17:906:f586:b0:c2d:c8be:4e71 with SMTP id a640c23a62f3a-c2e6ed46571mr232518966b.19.1791049599021;
-        Sat, 03 Oct 2026 10:46:39 -0700 (PDT)
-Received: from localhost.localdomain ([94.240.182.136])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-c2e4cd25986sm224625066b.27.2026.10.03.10.46.36
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 03 Oct 2026 10:46:38 -0700 (PDT)
-From: Svyatoslav Nikolenko <nsvatoslav515@gmail.com>
-To: code@tyhicks.com
-Cc: blum@kernel.org,
-	chenyichong@uniontech.com,
-	liubaolin@kylinos.cn,
-	slark_xiao@163.com,
-	eilaimemedsnaimel@gmail.com,
-	ebiggers@kernel.org,
-	a.velichayshiy@ispras.ru,
-	brauner@kernel.org,
-	ardb@kernel.org,
-	ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Svyatoslav Nikolenko <nsvatoslav515@gmail.com>,
-	syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-Subject: [PATCH v1] ecryptfs: validate key payload size and session key length
-Date: Sat,  3 Oct 2026 20:46:08 +0300
-Message-ID: <20261003174609.2834-1-nsvatoslav515@gmail.com>
-X-Mailer: git-send-email 2.47.3
+        d=1e100.net; s=20260707; t=1791117099; x=1791721899;
+        h=content-transfer-encoding:content-type:cc:to:subject:message-id
+         :date:from:in-reply-to:references:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=GXfjk93rqVjkEm8QtrTGYzEWMYxFujv0Lq5SqSgVimE=;
+        b=ucCKnHL0XcAQ3tFx7hJR9+YXmt9eJLgdaz5wLsJ1jKuHqCs/fRhjso1ex2kEvIyVuw
+         8+SXUS7Txd5p/tH9+SE40kI2o9li6H3UiX5y2gFyP0rjH03e6CaPlpjMFtY0z3daFxzR
+         zmdzCiNKATADjxpGyxbIIETUHnbyfiZwItwLDtyrNJX2DY95NhBENR4u5wWVUdI6DOjM
+         RWLbMRZZN6aKvv5oIbM3xu+N9MFD283eXf8eAuX0Xsr9OOlhuDDlYolacOLmAGdpj+aZ
+         LGq3w7iOpaJtE8K65VcPploH3ahcgOotVGH/4QPNevAJQpthQyLfiG/Qkc2LTs7ojFXa
+         hw9w==
+X-Forwarded-Encrypted: i=1; AKwUvByw2NCKYus2zbEDPMzaOw2qTlGpXymy+h07xkRAToDrRWA0tm8qsw/BxQTPZhwC2OzKuuoX/7V73A==@vger.kernel.org
+X-Gm-Message-State: AFq9FYKnjw8ogdUD0cTQBWGa9075mtKkAJjx/rmtsEC233h8Fe1+cvc3
+	GPYBqPNVvVP7dfctylrN2KC1L9xDqoDbQPMJOeAwxexGov8OnQK6AII5TRxZX/S86wW3Jaz0dj8
+	52JoHD487AvmKqVKjrLkgzYJHMnEsElQ=
+X-Gm-Gg: AYBFou1LdqAsBa8nA4XkJxhBzPIKPfZGBA5WJAcrhDCUsd2yof1tKRBRijNlj2RNGoE
+	7N20PmKx1//ZNWCLs3wxOhcMlCpVqKFNr0ANtfzZfpGuOg04hu4QbsHI50U7wlycWEB39CmdquB
+	BsJN3fVghIK4dYhriVeA2y03ORpH/8a5+FN4Jbd0ARiaN/QKSg9fYFDpiYIaavGXSKBFgoVjs+/
+	3dU+YBR5ma7UcUA0B5XcKVX8hjj0b9YqP7x/8JfEa4BnI2ilIXUDZveJDdR56W7Bize6DKW+wI2
+	OSTBkPLyPhmAgWoePHL5FERPPAD5KW7m4cGDJUBrpTRD0Ci5xC+d3Qqm
+X-Received: by 2002:a17:90b:268f:b0:3a4:e735:b3a3 with SMTP id
+ 98e67ed59e1d1-3a6cec8cd26mr4508237a91.40.1791117098607; Sun, 04 Oct 2026
+ 05:31:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20261001213915.1326602-1-adrianox@gmail.com> <20261003171352.10244-1-neganhat@gmail.com>
+In-Reply-To: <20261003171352.10244-1-neganhat@gmail.com>
+From: =?UTF-8?Q?Adriano_C=C3=B3rdova?= <adrianox@gmail.com>
+Date: Sun, 4 Oct 2026 09:31:26 -0300
+X-Gm-Features: AclHuK8R9Jo3-68_DE9TmeC3aACV1AZP1ZEQoMrqadGoXULvBmqZTbxMVHejPuU
+Message-ID: <CAMGU2hUmzd1i0mpLG0M2sj1Ki+2Esz5vFQjqJ6F6RnJM3RafyA@mail.gmail.com>
+Subject: Re: ecryptfs: validate auth tok payload size
+To: Nguyen Duy Nhat Anh <neganhat@gmail.com>
+Cc: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	stable@vger.kernel.org, syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Syzkaller reported an out-of-bounds read, which sometimes manifests as a
-slab-use-after-free, in ecryptfs_write_tag_70_packet(). This is caused by
-two structural validation failures when handling malformed user keys.
+El s=C3=A1b, 3 oct 2026 a las 14:15, Nguyen Duy Nhat Anh
+(<neganhat@gmail.com>) escribi=C3=B3:
+>
+> Hi Adriano,
+>
+> I noticed this patch touches the exact same lines as a bug fix I submitte=
+d
+> earlier for ecryptfs (the ecryptfs_get_key_payload_data fix):
+> https://lore.kernel.org/all/20260917044558.41677-1-neganhat@gmail.com/T/
+>
+> Since your patch expands on this area, could you please add my
+> Co-developed-by or Reported-by tag to this series?
+>
+> Thanks,
+> Anh
 
-First, eCryptfs blindly casts the user key payload into a
-`struct ecryptfs_auth_tok` without verifying the physical size of the
-allocation. If a user provides a key that is significantly smaller than
-sizeof(struct ecryptfs_auth_tok), accessing struct fields located deep
-within the memory layout (such as `session_key_encryption_key_bytes`)
-forces the kernel to read past the end of the allocated slab object. If
-the adjacent slab object was recently freed, KASAN reports this as a
-use-after-free.
+Hi Anh,
 
-Second, eCryptfs does not validate the internal length field
-`session_key_encryption_key_bytes` before passing it to md5().
-A maliciously large value causes md5() to read out of bounds.
-
-Fix this by explicitly checking the user_key_payload `datalen` to ensure
-the physical memory is large enough to hold the expected structure, and
-subsequently bounding `session_key_encryption_key_bytes` to the actual
-size of the `session_key_encryption_key` array.
-
-Reported-by: syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=46bbbe175b7eea8036b8
-Tested-by: syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-Fixes: 0bbb838f385a ("ecryptfs: Use MD5 library instead of crypto_shash")
-Signed-off-by: Svyatoslav Nikolenko <nsvatoslav515@gmail.com>
----
- fs/ecryptfs/keystore.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 51651314b7a6..b2fd238bcd97 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -621,6 +621,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
- {
- 	struct ecryptfs_write_tag_70_packet_silly_stack *s;
- 	struct key *auth_tok_key = NULL;
-+	struct user_key_payload *ukp;
- 	int rc = 0;
- 
- 	s = kzalloc_obj(*s);
-@@ -738,6 +739,20 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
- 		goto out_free_unlock;
- 	}
- 
-+	ukp = user_key_payload_locked(auth_tok_key);
-+	if (!ukp || ukp->datalen < sizeof(struct ecryptfs_auth_tok)) {
-+		printk(KERN_ERR "Error key payload too small\n");
-+		rc = -EINVAL;
-+		goto out_free_unlock;
-+	}
-+
-+	if (s->auth_tok->token.password.session_key_encryption_key_bytes >
-+			sizeof(s->auth_tok->token.password.session_key_encryption_key)) {
-+		printk(KERN_ERR "Error FNEK key size too large\n");
-+		rc = -EINVAL;
-+		goto out_free_unlock;
-+	}
-+
- 	md5(s->auth_tok->token.password.session_key_encryption_key,
- 	    s->auth_tok->token.password.session_key_encryption_key_bytes,
- 	    s->hash);
--- 
-2.47.3
-
+Sure, I will send a v2
