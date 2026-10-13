@@ -1,72 +1,61 @@
-Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E7349B5DE
-	for <ecryptfs@vger.kernel.org>; Tue, 13 Oct 2026 06:37:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D313539CCEB;
+	Tue, 13 Oct 2026 07:38:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791873424; cv=none; b=WoocnWWLYaNeAZjEzsj9BSsBE6Qjg+Kmfpeprb4o7DNArBr7K7vW7i+SBnhl86mmX6Sl9uviB8i0PsTFSXqh1GOsXT3SVICnp3eLcSmVd1sedt1KVHb7DhmRBcbh/pwYdFcxs9zqZfAOl5wyzH1pM2oIHoY7PJZOh8GGh9gEGOo=
+	t=1791877111; cv=none; b=e4F4Svw5qOKY5hkCH3NHMllufXhcGt+Vf2zMPa77j+gVXWIXwkIoDikJoF8SlUJyXk1BqLybtqKmO7+DQ61QxCDTo2Mqor03hhFQQAEv2B9yfwAWmm90xzxegrfPYi2uHJQME88p7eJrfJphD8Ze7L/1/QLRVKSlaOXi4DE8lUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791873424; c=relaxed/simple;
-	bh=fHc2Q0USSLR7X5lIdzbcjImzdolgs9s8wtMnHdQGYjQ=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=L7DugO5TOXwvPi9ecD3uH5pKGef0QqlwVKKi8+jlnLcjbNJNulw5xDG5xAAlWoKhgbV21IJszhVqE8atmcLDPkKd3KTKOHo+SJOR9S12cAwTUulGfssghWCCXPlMph1xPYUXyWnGQnsKsAnKCaglJbwAQpsJQzvxLeu0KEAi9DE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4ab8b4887d4so2307268b6e.1
-        for <ecryptfs@vger.kernel.org>; Mon, 12 Oct 2026 23:37:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791873422; x=1792478222;
-        h=content-type:to:from:subject:message-id:in-reply-to:date
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to:content-type;
-        bh=7jMOGzvjse0E5buDgO3IAeKziCTmYcrSQXFlnRLZmLU=;
-        b=MEhh4K0J6f1yGcLrEvRTQnF4Y+Hp6VQ7/f/Bm7hLTwL///oS1Btbxu5swOwulwpyaM
-         xJSe5+dxw4YmRYpfaFGNTvmjkMWhJVHcwoqhVfdbNV7I5cw1cCv4WA5QvHNa3XTj24yH
-         PM00NrVFLM/n7nc+KNqllgl2N/osmTA+x8kbbyVdq3JKFwmpVxKALf4FV/wyu7Bz2LgO
-         vp1wJ3bOecPfJMh8rel5Iekgjd57rYmBHykzA/uVTW35QoL4X7ViZlVEiCuPfYJH0Qxq
-         wysC//h4Yl2gwIu+odK/a5nXGl/aG0HfBhoUo06V6IqxZiDvV+JsRWLoPz0JnCdPb0HD
-         hcbw==
-X-Forwarded-Encrypted: i=1; AKwUvBwwyMb6Tgw2CmW6BURKuArCruQcI+elfSGEz9gnmQl/q31xjF+iZSK3rimlFhMVN0WcmfFoSdDlCA==@vger.kernel.org
-X-Gm-Message-State: AFq9FYLHTtOey6+Y3B1JDcESuxgvcSuxQT4i2mogIptff/K+P5Hj7xLr
-	GWKakZiN+l9Xh2dZPtcAS/C4UEXPof54Jt4pQNNlBdwiDKYRKR6nxxUgvOtMnVKRtO3MT6NaETY
-	bQuF5RY22Xxfwceyfl3q513gLaV6TQc544ue6On7lvHcy6Z5zv2N57mWDxL4=
+	s=arc-20240116; t=1791877111; c=relaxed/simple;
+	bh=J8ZpJ7IEUIssWYiGn4JUZV8YSFiAwMHHgkpgEGYWdV8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KvP2U2NpSpzzQETOeVajckH0Nywz2R2QgQj1krApRoZTORjKHMwQzI9hpegAvwkX0QTaWLhKaXjoR656KlleeQWUkqpZi38OQZ+nKK5+qyBlGg4MgaqY6nyZnzmE/j06mAXV8CHAREbDQN0JJnYga6HEfbN0SosHHakPiSY9zME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=lfgaW4Hq; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="lfgaW4Hq"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=J8ZpJ7IEUIssWYiGn4JUZV8YSFiAwMHHgkpgEGYWdV8=; b=lfgaW4HqHZr2OMCoLERfsnEWNQ
+	bNkTC7v2h25if/yQTTGP8EOcwDNaRtE7J2vtlmKWo/ylvBK1TPcetmDvS7pLHQ34m5ZiSPIrMPhZH
+	+9L6t2gZzpI97FHHDAgxJ0GQ9NjCJznJbRZiCdJELf4BMNa2mMh5W8d7we4Qhud3wAzxvZ9ij66kH
+	87L3pqLvhdKJHmFI8LB0FeQKFsu6v0ZGsxwakuoWyOSkHMJyAKqoqyTaMPQslS1mi/Ix+LqGeNUXF
+	w59Q2r0MpqI6Xm2vz42aha+kDcpO2tFCkB6UCGDuyRYcTfQfEM/TWrt64Bs63VCiavr1T/OgcrPLK
+	OKh6EHxw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.99.1 #2 (Red Hat Linux))
+	id 1xGX5h-0000000CESs-37gO;
+	Tue, 13 Oct 2026 07:38:29 +0000
+Date: Tue, 13 Oct 2026 00:38:29 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
+	ecryptfs@vger.kernel.org, linux-ext4@vger.kernel.org,
+	jfs-discussion@lists.sourceforge.net, linux-nilfs@vger.kernel.org,
+	exfat@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+	ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+	linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev,
+	linux-efi@vger.kernel.org, linux-mtd@lists.infradead.org,
+	linux-xfs@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 27/28] xfs: allow remounting read-only after a
+ shutdown
+Message-ID: <as3f9WNZ1nB_lLvV@infradead.org>
+References: <20261012-work-fs-sb_rdonly-v1-0-60743a3dc326@kernel.org>
+ <20261012-work-fs-sb_rdonly-v1-27-60743a3dc326@kernel.org>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:508c:b0:4b9:e5fa:8a14 with SMTP id
- 5614622812f47-50c509541b4mr13781757b6e.25.1791873421973; Mon, 12 Oct 2026
- 23:37:01 -0700 (PDT)
-Date: Mon, 12 Oct 2026 23:37:01 -0700
-In-Reply-To: <as3KCmgfQJQnPIkK@elm>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6acdd18d.8cdf6287.1eb53.0154.GAE@google.com>
-Subject: Re: [syzbot] [ecryptfs?] KASAN: slab-out-of-bounds Read in ecryptfs_from_hex
-From: syzbot <syzbot+dc50906b100ac7a1c34d@syzkaller.appspotmail.com>
-To: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261012-work-fs-sb_rdonly-v1-27-60743a3dc326@kernel.org>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Hello,
+Looks fine:
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
-
-Reported-by: syzbot+dc50906b100ac7a1c34d@syzkaller.appspotmail.com
-Tested-by: syzbot+dc50906b100ac7a1c34d@syzkaller.appspotmail.com
-
-Tested on:
-
-commit:         5b00bf0f fs/ecryptfs: fix slab-out-of-bounds read in e..
-git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git next
-console output: https://syzkaller.appspot.com/x/log.txt?x=142791d1580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=b0a4310419d2cd7c
-dashboard link: https://syzkaller.appspot.com/bug?extid=dc50906b100ac7a1c34d
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
+Reviewed-by: Christoph Hellwig <hch@lst.de>
