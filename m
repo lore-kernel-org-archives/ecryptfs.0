@@ -1,191 +1,257 @@
-Received: from fout-b6-smtp.messagingengine.com (fout-b6-smtp.messagingengine.com [202.12.124.149])
+Received: from fhigh-b7-smtp.messagingengine.com (fhigh-b7-smtp.messagingengine.com [202.12.124.158])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 898F7155C97
-	for <ecryptfs@vger.kernel.org>; Tue, 13 Oct 2026 05:26:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.149
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AFA48423D
+	for <ecryptfs@vger.kernel.org>; Tue, 13 Oct 2026 05:45:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791869191; cv=none; b=qlA7412w9NkCmxA0n+9Ip+EyWmfxg5WYp0pgP3pRDPSTaW0tJh5MthVldmFFprC9fS8FfxDP0crVXR8saEJZGeGrN07VGXj3z8GEtgmH7p56BXbIk0v6dFe6aE5IK+j9saHqx7jt+Gt47+fK1VsonMec5K/znpbUgkqEnWCK0h8=
+	t=1791870325; cv=none; b=qJDXg/w8vmXT1pmbJ1KonCR2JeUWTdAsecAERRuLfA70TIWUihGA0YDumE3fue2/IkGLBwsgphrUK/qpTJGV5OizLi11/OY7mNdTLNwKvTsxLP/bRfS/T5dpaSLBAn5l7Tu8LD0dQF4d4cviPtT8bcT22wn/fJZ3R1L36bs/+CA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791869191; c=relaxed/simple;
-	bh=Fj/7Rau5jbwsHnvIEc0kLXj+5yvxtMNia0ExsvNF6Ls=;
+	s=arc-20240116; t=1791870325; c=relaxed/simple;
+	bh=wV7FhRlEjhTf3ISX54Fesi0bceDxrcfOuLUheo4X1fA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jon1pYdxFFkkZkDFT2DAhVjkgKOaFHnD6fJqZv2IMdDMZYcWk8XbUpevcSrhiW9w2N9eZzVFGoj6UwsoGXgP3Fy9/mxux/C918J+C6rqRXij0WZODuv5DpDNqgCKtzzdW1+OyYIQV3mxUZG5dxighBBUEqlkajcbYXc9gggLrK4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=bIQ+wEix; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=RdTQmrRS; arc=none smtp.client-ip=202.12.124.149
+	 Content-Type:Content-Disposition:In-Reply-To; b=lRLDVMIAiXj37WoAsDh5gacMj8SESK55IH9H//AT6XgWE75bVQ+7GT6in2mzL1cGXyKDDdHlTABZ1zukQV4u3J20bjnK6IhCYCsnmRTBae/DNfTq663ALfsY1Sij04ZLfozdAm2hoLO8AALLUZTj6KYyIyLa4eov93Yn/yQogBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com; spf=pass smtp.mailfrom=tyhicks.com; dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b=bXzBIRgG; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=E6MAvCJb; arc=none smtp.client-ip=202.12.124.158
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=tyhicks.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="bIQ+wEix";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="RdTQmrRS"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfout.stl.internal (Postfix) with ESMTP id E109E1D0011A
-	for <ecryptfs@vger.kernel.org>; Tue, 13 Oct 2026 01:26:29 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=tyhicks.com header.i=@tyhicks.com header.b="bXzBIRgG";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="E6MAvCJb"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.stl.internal (Postfix) with ESMTP id E16797A016B
+	for <ecryptfs@vger.kernel.org>; Tue, 13 Oct 2026 01:45:21 -0400 (EDT)
 Received: from phl-frontend-03 ([10.202.2.162])
-  by phl-compute-02.internal (MEProxy); Tue, 13 Oct 2026 01:26:29 -0400
+  by phl-compute-04.internal (MEProxy); Tue, 13 Oct 2026 01:45:21 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tyhicks.com; h=
-	cc:cc:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm1; t=1791869188; x=1791955588; bh=HxHiT242ry
-	B+neHrDHoZM7GXKE+Q1by0dpdtYnNYS4U=; b=bIQ+wEixgneiE4t/YwBHgNDBpq
-	TG03Rr1dnIyl/gqKLkmeGu4fO4SLIAGtUwX5fANZb0qR3PZh/DGXlPZvGa4xEb02
-	n2QX6wDWMsTBNDX5nZPpJsDyQ7o1ths7icvbumCjMuHXjd07PgTT1z/9Nze0/CVm
-	sO+qm6bl/c9cLvKwkNz+mjpTZFDftG1gzlrA0tNqAmg6CAzk8uxQoCvrbrIU2oUr
-	lHB/OFwUsrCiW9LsvExGW+ARzxoq7czfCZx7py1SUCjSS5QZxETud9IqUpM2Odd1
-	Mo4lWD1JmeuLhFXhoU5RelyjfO64omgEQuR82dAZfCbqZfXZqsAbAjqxwUUQ==
+	cc:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm1; t=1791870321;
+	 x=1791956721; bh=NoaNV0nM/PsGcw4H0EAUZvKAAmwB0FknruDGkw3KrU4=; b=
+	bXzBIRgGCLCS8SNlmCM9PmfCUH7FUDPxh81Sctt/5D3vyLn7bP9IBRHwyAr6qemt
+	MwrQS6+/tISFuu7EN7DUrQ5qwjhtsN+VOUhAK+q8/umzxIYJ0GSk4wHjLnyunAjY
+	8mgvVHU1ge34690Cq4M2/4qgSCMu+6xzrKwApQVZgQTuN6IoKkMPDPyFZgk0+EpL
+	ie8QWW4DuGICoR0iki79y6/OiM8rO+4zS5amWRF6Mlo1D8n7KvqcZGFwbt3m0cI/
+	cm4tiLCImprmifeRUeq7iIJ/ve9NaYNjRCXSxW1ME7qJESJwyOtP6xWEgkKbX+6C
+	LQB04MXy37XFf/JcQaQGNg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-	1791869188; x=1791955588; bh=HxHiT242ryB+neHrDHoZM7GXKE+Q1by0dpd
-	tYnNYS4U=; b=RdTQmrRSO5l4ZYcZbf4uuF+QyZYzhHNpZ02iq1HAZnUxxV0ahk/
-	Ji5R15sZZMbijDAy6J1YvuSbQtZZYsUmsPQH0qMAu2NeV9Q9vztKgvyVqzipwkNZ
-	50W6AUJAH2pjM1/wFw87TT3c4ZglOcI0Pb1MDuw3R6QyAbHWCPVeTRqIJ0cM6Z8T
-	4eoEDmaexNhG853Valkjn0/DXd2yyNXfry71Ix9q+piIvLDEaSIY5wNQ2P/ckxmK
-	WUEVK08Q1YnaS/aumIyCe4eaLVo3s7cOjmC23rNLvGhhOOxU7uSTNN5diPHRVgGQ
-	Ls5r7XO9uE9ODgG5ydwR6q5Ael+m6cuFfGQ==
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1791870321; x=
+	1791956721; bh=NoaNV0nM/PsGcw4H0EAUZvKAAmwB0FknruDGkw3KrU4=; b=E
+	6MAvCJbdNwUM7zwYRJFsDzJQujftbV8mDScwCxl4rDBOT61isLcbb0L+3WXOh1CW
+	822bt3GesWyh1iyQTuPG2XNM35qQyueRP1fLQRR9k29A3dD70WJtY0rbbe1DxCi4
+	B3+dkq/RE3l5tDIS570axG5ECzakhLJYtPgzuipaUOftekdxibUmPzHCKsqlf4jn
+	98GT7ptG/HGAmNMxLJtCHZ2DfSkFUVnBwSV31sdEpagCs91Mx7fbT+ifqji5KSNb
+	InqaLdq1cBQibkqCslsuWW1EWnvqCGY8C+7cyc52ibbkzi7hzBYrYyddh9JqaTtS
+	a4KjOnRm/ArwJF6v+sR9Q==
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-06;
 	repo=github.com/dkim2wg/interop; date=2026-10-04; sw=lmtpprox;
 	action=sign d=tyhicks.com a=rsa-sha256;
-DKIM2-Signature: i=1; m=1; t=1791869188; d=tyhicks.com;
+DKIM2-Signature: i=1; m=1; t=1791870321; d=tyhicks.com;
 	mf=PGNvZGVAdHloaWNrcy5jb20+;
 	rt=PGVjcnlwdGZzQHZnZXIua2VybmVsLm9yZz4=;
-	s=fm1:rsa-sha256:lOSKdde0DLGAtDNxZ9hpAL0iUv+x7JaP3fWGdLy4xhTkL+J
-	N4pWQuLSDoNbRNKQTGN4P/LXW9UvqFF2zjABN27zyqNY764GUcaxJQVSVSuyfVXh
-	LjxL7ypKFLqdlY1//oPRlhFppzBWjezNocIhzKU8UTkeimaMXks73phr3XRgk3QL
-	RmAD1ePOGe2IpTg43Zl4rr9Jvzy7oJdo3DZ6KyQ7ENHqN9H3ntQTRVJWJUpfzl8/
-	ViYjqWRJmRZ1T1cxO0bIwiodVb32XHd6Y6XkXU2gtvs4xpcxMJEfYTIQpYt2/WE/
-	4IwQ41U5vhq5j+NKs/XRO6GOB/KkeXrXvSD5d5A==;
+	s=fm1:rsa-sha256:SWttSDlBeUc2SIha4YI/edz0FwCicyn17lWBikDCUxPw0CR
+	lovFUyRvemhYCLNpReR/NlVV9YDCVKt8MAfdH2Yt1V6pSUXBW7z55lJiqMQWbX3k
+	wkg3QUnQ966l/pKk7b2lDHWuYAfeM1yyl0Ltfm8ne104aiYwXZ6GL1cbDDRZWi03
+	PQV+dHXv0i1mKL7Zj7KHEUV2hib+mjTJ7lbtGaojwMWiZ3Rlmujc8bqgS7Lx0T7W
+	YBtgGwITnee2//7g/y5jHAwVEAdhwYsoiUkTxKkZR5kmfChGqv7kagpCygB6om06
+	VYXqZbog+/PmC7xLkn7d9w/xmsaz0GTH5cJqo9Q==;
 X-DKIM2-Info: draft=ietf-dkim-dkim2-spec-06;
 	repo=github.com/dkim2wg/interop; date=2026-10-04; sw=lmtpprox;
-	action=mi-m=1; hc=12;
-	hn=cc,content-disposition,content-type,date,feedback-id,from,
-	in-reply-to,message-id,mime-version,references,subject,to;
-Message-Instance: m=1; h=sha256:L7Ap2vi4MBTf6/6U3jDncGdIwM6YoD5s3gYQ2E8fr6Q=:Fj/7Rau5jbwsHnvIEc0kLXj+5yvxtMNia0ExsvNF6Ls=;
-X-ME-Sender: <xms:AsHNar2DTF71n9kwMD2Sc95L8DDILKCATQd4AZJWpjCn3JMdEKxvvA>
-    <xme:AsHNamwx1kqvNX2NbOKxf4p94klxdIL2v4YVPsLklX2UYVhPYF1fxL8X48dciUtYj
-    eF_J3YH2A9FzF0UKFN4g-FgwDpn_vLNjVBg0554f4kQtXN9FDQVM44e>
-X-ME-Received: <xmr:AsHNavz1F__jX1M8wgVCf08KQXkCQwJJTm2R96I4HAREwaaXZeax7w>
-X-ME-Proxy-Cause: dmFkZTEU8cOu75UOGJa3dXc99dwCB9/WXFzyrFPclruqkG21GWxn5JNdhO5upaOJoYEZON
-    6C2eE61gUf6re+invMPZuC4lbZHc5J3q738kiDXgP1UrRvandh75j7bL58i7U6I04dsePe
-    LUyHnNYuG+SwGWtBWeoOWy6s+IJdRYnYrIhXDz6ORbCMhDQy9D35LmxlqzcbVuIVDbI4cc
-    kCQrYjYE6M+SObfkwFQ2xh2vvYcTMbQqI/iSiiJN78myf+48+XHgpMdmRGqQgH+pugjs8D
-    gVZtICRQIbwZzKhlz5G1M134P+6ER7WMToFla9R/iCamECJTaSce6EvwTzV/H4pjguDdpJ
-    0Nk/H2wzRoLmyZtxq515tpwa+3dPMyQ/bpkSUKRCwsiumURPeMrfpVEZkS9V6dw1m4GVAP
-    I44rABDCWIqHpszeRvm6t8FG9Fp357kM1T2SQimScg0m2rapQ7mD85O354yC58ij4UxOt2
-    Q4VAvyUxZZ6WVtTb9A77TbUdxH7zuE5w5HFt7crZO4USF0ey/Q+SUcy4E3tLy2zHGxRTqQ
-    uxBsH8XUSZ8IvNRokf4AjutW+2T/FFPnQ758AvCsEGz9Fj1foMfhjRgABRaFKFiniN8K9a
-    hNSxYqfIvK012IMjMbXDANFr7xlT14SLo9WqHxzykCZRKla+2USiMY0zWIgA
-X-ME-Proxy: <xmx:AsHNaq8XSg6cZFMpO8ZUtWNvTib_IN7R8SV65-1DulqrKNk1hNEJiQ>
-    <xmx:AsHNah-dngWL7GuhiXMx7-RsRWs5dvqBYWOxy3wLTAGetxjVimnDIw>
-    <xmx:AsHNaq4Hx9D-tixK-xNsH_71SLdTVzpAFjV6RFyPhb5LkhgEUMOwzg>
-    <xmx:AsHNaiYhd82oqsQOSaiR8QPsfLHwEnjnT3BRgWrkUde8S44uth62lQ>
-    <xmx:BMHNauY04xsB0m_wCw2MXYFDIrLHyJX2I3BJwV0O-bKStb4NqKMDTAcU>
+	action=mi-m=1; hc=13;
+	hn=cc,content-disposition,content-transfer-encoding,
+	content-type,date,feedback-id,from,in-reply-to,message-id,
+	mime-version,references,subject,to;
+Message-Instance: m=1; h=sha256:2vrpf0zd9oFJZTU95fOScM7nUGhLDbYykYev7yVJm4w=:wV7FhRlEjhTf3ISX54Fesi0bceDxrcfOuLUheo4X1fA=;
+X-ME-Sender: <xms:ccXNak8NHpwuv4qnGOn5LtBaTt04bQTyUMxBlRBflmSyVu9r-4UT9w>
+    <xme:ccXNamAUgiP8qDmHYtoiFNnzhkH8nsgh_GmQK6nVekNW-_dpb_iwoCZ9gyJQmzTo_
+    FbEpovbnbZAYlGvpPIO17nnjMbOQdRQfvLs8xuVUElqmrU0gS54JYA>
+X-ME-Received: <xmr:ccXNahS8pmt26cOrLGeg1iBZ0_RixHWPIcDRLxtFcPSQe5sA_1_a1w>
+X-ME-Proxy-Cause: dmFkZTFQMmnHYPkDcZKHQ4Z7CKfzl9J4sCnLdeM6pyEMXn3c9PjPdV9qbUkJL5TAcho++b
+    X7OkBDR1MlIDSrq2fHqEyjVyiwBzDUJVCb6xY878fivlR0lWSjXZZJyAHe3JIBKsSEuw8B
+    8F0UwXFXAbytWOiaYJw98X7Vx20e+bIUsRXMw8crc8c80UTLwtdeU4KUMlLKuq66wvSp6j
+    7C/wlKZoZ6ZGdxE502tqePcVTjZgF9KtYubpaPmqhw+hQmG1Wz9fyzVxbOPbDK5jNNBolg
+    5VIBw6lEg9/xLh0ERzh23E+l1jStw6Vf/7JOGzvoqXyLaC5Vu/gvOvR51Z32e0dGGYO6m7
+    S8Jwk7v3hDaV6oTvFz6UGE6TRThfz1FI961jfMQVe5I64RnRBjDrcc+DcfRXhL6g2bDseF
+    bT1OAgMqTeUBUVLD0024GhuUdZ2t+EUuo2gGuJUYxgH2RN/j9oObccxrqahHeabWEdHBxE
+    GxxJFTN6EbjZbblVZ3qeKASFJeLTrXhDHRZnx+KcSVfIj6a9oiNRsflDBU2+R8Pee8MrZN
+    mW8bX3eCBPkXsngW22CLu7I+0GF04oC6cIpUWuBI3RlUEYpYscGhqAxd8QOOav66b8XoHT
+    CXJYZZb+cHwsGmWL7YizmRHrBA4loEjm2COWh6VHnKGm7/GoY8oHt+ddRhqA
+X-ME-Proxy: <xmx:ccXNalsrmOxrhWacRG5mni5bVkS3l5Z2hFUOcvM3Gcw6I_4HV0F5CA>
+    <xmx:ccXNal2uqmMPqeI-XjBusCk6uBI4zFWesLBOsxZIEj20DeId6Hwqhg>
+    <xmx:ccXNauXP3SopfoFBPgsWgO-odWwX_HdjWPkFFrvGc1t-jypaLnhUtQ>
+    <xmx:ccXNaoIembHCecBNla4mhWzrI_B5MdLZOZPZzb1vq8LAU2Tm4P1xyA>
+    <xmx:ccXNav0_jWSm5DTEkKEbfgbFZpcEnmJmgCRkCPXHNOt730Z6BpHujwp7>
 Feedback-ID: i78e14604:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 13 Oct 2026 01:26:25 -0400 (EDT)
-Date: Tue, 13 Oct 2026 00:26:24 -0500
+ 13 Oct 2026 01:45:20 -0400 (EDT)
+Date: Tue, 13 Oct 2026 00:45:13 -0500
 From: Tyler Hicks <code@tyhicks.com>
-To: Svyatoslav Nikolenko <nsvatoslav515@gmail.com>
-Cc: blum@kernel.org, chenyichong@uniontech.com, liubaolin@kylinos.cn,
-	slark_xiao@163.com, eilaimemedsnaimel@gmail.com,
-	ebiggers@kernel.org, a.velichayshiy@ispras.ru, brauner@kernel.org,
-	ardb@kernel.org, ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-Subject: Re: [PATCH v1] ecryptfs: validate key payload size and session key
- length
-Message-ID: <as3BAJj0HOKQNjWG@elm>
-References: <20261003174609.2834-1-nsvatoslav515@gmail.com>
+To: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
+Cc: Thorsten Blum <blum@kernel.org>, Eric Biggers <ebiggers@kernel.org>,
+	Christian Brauner <brauner@kernel.org>, ecryptfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] ecryptfs: replace ecryptfs_from_hex() with hex2bin()
+Message-ID: <as3FaQ8JLWmxrj6T@elm>
+References: <20260829194528.5652-1-drifabdelmalekmohamedsaid@gmail.com>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261003174609.2834-1-nsvatoslav515@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260829194528.5652-1-drifabdelmalekmohamedsaid@gmail.com>
 
-On 2026-10-03 20:46:08, Svyatoslav Nikolenko wrote:
-> Syzkaller reported an out-of-bounds read, which sometimes manifests as a
-> slab-use-after-free, in ecryptfs_write_tag_70_packet(). This is caused by
-> two structural validation failures when handling malformed user keys.
-> 
-> First, eCryptfs blindly casts the user key payload into a
-> `struct ecryptfs_auth_tok` without verifying the physical size of the
-> allocation. If a user provides a key that is significantly smaller than
-> sizeof(struct ecryptfs_auth_tok), accessing struct fields located deep
-> within the memory layout (such as `session_key_encryption_key_bytes`)
-> forces the kernel to read past the end of the allocated slab object. If
-> the adjacent slab object was recently freed, KASAN reports this as a
-> use-after-free.
-> 
-> Second, eCryptfs does not validate the internal length field
-> `session_key_encryption_key_bytes` before passing it to md5().
-> A maliciously large value causes md5() to read out of bounds.
-> 
-> Fix this by explicitly checking the user_key_payload `datalen` to ensure
-> the physical memory is large enough to hold the expected structure, and
-> subsequently bounding `session_key_encryption_key_bytes` to the actual
-> size of the `session_key_encryption_key` array.
-> 
-> Reported-by: syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=46bbbe175b7eea8036b8
-> Tested-by: syzbot+46bbbe175b7eea8036b8@syzkaller.appspotmail.com
-> Fixes: 0bbb838f385a ("ecryptfs: Use MD5 library instead of crypto_shash")
-> Signed-off-by: Svyatoslav Nikolenko <nsvatoslav515@gmail.com>
+Hello - Thanks for the patch!
 
-Hello and thank you for the patch! Unfortunately, these checks are added
-in the wrong place to protect other packet types (like tag 3). I've
-already taken the user key payload fix from another contributor and will
-take the session key encryption key check from a separate contributor.
-You can find the links here:
+On 2026-08-29 20:45:28, Drif Abdelmalek Mohamed Said wrote:
+> ecryptfs_from_hex() relied on the deprecated simple_strtoul(). Rather
+> than patching it to use kstrtoul(), its intended replacement, remove it
+> entirely and switch all call sites to the generic hex2bin() helper
+> from <linux/hex.h>, which already provides the same functionality.
 
- * https://lore.kernel.org/ecryptfs/20260917044558.41677-1-neganhat@gmail.com/
- * https://lore.kernel.org/ecryptfs/20261004123755.14642-1-adrianox@gmail.com/
+This breaks the build, as none of the callers check the return code yet
+hex2bin() is marked as __must_check in include/linux/hex.h:
 
-Thanks again for taking the time to submit a patch!
+  CC [M]  keystore.o
+keystore.c: In function ‘ecryptfs_write_tag_70_packet’:
+keystore.c:717:9: error: ignoring return value of ‘hex2bin’ declared with attribute ‘warn_unused_result’ [-Werror=unused-result]
+  717 |         hex2bin((u8 *)&dest[s->i],
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~
+  718 |                           mount_crypt_stat->global_default_fnek_sig,
+      |                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  719 |                           ECRYPTFS_SIG_SIZE);
+      |                           ~~~~~~~~~~~~~~~~~~
+keystore.c: In function ‘write_tag_3_packet’:
+keystore.c:2183:9: error: ignoring return value of ‘hex2bin’ declared with attribute ‘warn_unused_result’ [-Werror=unused-result]
+ 2183 |         hex2bin((u8 *)key_rec->sig, auth_tok->token.password.signature,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2184 |                           ECRYPTFS_SIG_SIZE);
+      |                           ~~~~~~~~~~~~~~~~~~
+keystore.c: In function ‘write_tag_1_packet’:
+keystore.c:2019:9: error: ignoring return value of ‘hex2bin’ declared with attribute ‘warn_unused_result’ [-Werror=unused-result]
+ 2019 |         hex2bin((u8 *)key_rec->sig, auth_tok->token.private_key.signature,
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 2020 |                           ECRYPTFS_SIG_SIZE);
+      |                           ~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors
+
+> 
+> Update call sites with the (u8 *) casts required by hex2bin()'s
+> signature.
+> 
+> All call sites guarantee src is composed only of valid hex characters
+
+I don't think that's true. The first call site I looked at,
+ecryptfs_write_tag_70_packet(), is using a src of global_default_fnek_sig
+that's initialized from a mount option that ecryptfs_parse_param() only
+verifies is a string. There's no hex character check that I could see.
+
+I didn't look at the other call sites.
+
+> and that src is at least 2*dst_size bytes, so hex2bin()'s stricter
+> error handling is never triggered here.
+> 
+> Signed-off-by: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
+> ---
+>  fs/ecryptfs/crypto.c          | 18 ------------------
+>  fs/ecryptfs/ecryptfs_kernel.h |  1 -
+>  fs/ecryptfs/keystore.c        |  7 ++++---
+>  3 files changed, 4 insertions(+), 22 deletions(-)
+> 
+> diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+> index e67119b6029c..7e802fd631a6 100644
+> --- a/fs/ecryptfs/crypto.c
+> +++ b/fs/ecryptfs/crypto.c
+> @@ -29,24 +29,6 @@
+>  #define DECRYPT		0
+>  #define ENCRYPT		1
+>  
+> -/**
+> - * ecryptfs_from_hex
+> - * @dst: Buffer to take the bytes from src hex; must be at least of
+> - *       size (src_size / 2)
+> - * @src: Buffer to be converted from a hex string representation to raw value
+> - * @dst_size: size of dst buffer, or number of hex characters pairs to convert
+> - */
+> -void ecryptfs_from_hex(char *dst, char *src, int dst_size)
+> -{
+> -	int x;
+> -	char tmp[3] = { 0, };
+> -
+> -	for (x = 0; x < dst_size; x++) {
+> -		tmp[0] = src[x * 2];
+> -		tmp[1] = src[x * 2 + 1];
+> -		dst[x] = (unsigned char)simple_strtol(tmp, NULL, 16);
+> -	}
+> -}
+>  
+
+Please don't leave two empty lines next to each other.
+
+>  static int ecryptfs_crypto_api_algify_cipher_name(char **algified_name,
+>  						  const char *cipher_name,
+> diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+> index 58165928ed1e..be91f7c3fc58 100644
+> --- a/fs/ecryptfs/ecryptfs_kernel.h
+> +++ b/fs/ecryptfs/ecryptfs_kernel.h
+> @@ -47,7 +47,6 @@ ecryptfs_to_hex(char *dst, char *src, size_t src_size)
+>  	*end = '\0';
+>  }
+>  
+> -extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
+>  
+
+Same here.
 
 Tyler
 
-> ---
->  fs/ecryptfs/keystore.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
-> 
+>  struct ecryptfs_key_record {
+>  	unsigned char type;
 > diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-> index 51651314b7a6..b2fd238bcd97 100644
+> index 51651314b7a6..dcfb2e5fa88e 100644
 > --- a/fs/ecryptfs/keystore.c
 > +++ b/fs/ecryptfs/keystore.c
-> @@ -621,6 +621,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
->  {
->  	struct ecryptfs_write_tag_70_packet_silly_stack *s;
->  	struct key *auth_tok_key = NULL;
-> +	struct user_key_payload *ukp;
->  	int rc = 0;
+> @@ -18,6 +18,7 @@
+>  #include <linux/random.h>
+>  #include <linux/scatterlist.h>
+>  #include <linux/slab.h>
+> +#include <linux/hex.h>
+>  #include "ecryptfs_kernel.h"
 >  
->  	s = kzalloc_obj(*s);
-> @@ -738,6 +739,20 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
+>  /*
+> @@ -713,7 +714,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
 >  		goto out_free_unlock;
 >  	}
+>  	s->i += s->packet_size_len;
+> -	ecryptfs_from_hex(&dest[s->i],
+> +	hex2bin((u8 *)&dest[s->i],
+>  			  mount_crypt_stat->global_default_fnek_sig,
+>  			  ECRYPTFS_SIG_SIZE);
+>  	s->i += ECRYPTFS_SIG_SIZE;
+> @@ -2015,7 +2016,7 @@ write_tag_1_packet(char *dest, size_t *remaining_bytes,
+>  	int rc = 0;
 >  
-> +	ukp = user_key_payload_locked(auth_tok_key);
-> +	if (!ukp || ukp->datalen < sizeof(struct ecryptfs_auth_tok)) {
-> +		printk(KERN_ERR "Error key payload too small\n");
-> +		rc = -EINVAL;
-> +		goto out_free_unlock;
-> +	}
-> +
-> +	if (s->auth_tok->token.password.session_key_encryption_key_bytes >
-> +			sizeof(s->auth_tok->token.password.session_key_encryption_key)) {
-> +		printk(KERN_ERR "Error FNEK key size too large\n");
-> +		rc = -EINVAL;
-> +		goto out_free_unlock;
-> +	}
-> +
->  	md5(s->auth_tok->token.password.session_key_encryption_key,
->  	    s->auth_tok->token.password.session_key_encryption_key_bytes,
->  	    s->hash);
+>  	(*packet_size) = 0;
+> -	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signature,
+> +	hex2bin((u8 *)key_rec->sig, auth_tok->token.private_key.signature,
+>  			  ECRYPTFS_SIG_SIZE);
+>  	encrypted_session_key_valid = 0;
+>  	for (i = 0; i < crypt_stat->key_size; i++)
+> @@ -2179,7 +2180,7 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
+>  	int rc = 0;
+>  
+>  	(*packet_size) = 0;
+> -	ecryptfs_from_hex(key_rec->sig, auth_tok->token.password.signature,
+> +	hex2bin((u8 *)key_rec->sig, auth_tok->token.password.signature,
+>  			  ECRYPTFS_SIG_SIZE);
+>  	rc = ecryptfs_get_tfm_and_mutex_for_cipher_name(&tfm, &tfm_mutex,
+>  							crypt_stat->cipher);
 > -- 
-> 2.47.3
+> 2.43.0
 > 
