@@ -1,204 +1,605 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E53BC3BA237
-	for <ecryptfs@vger.kernel.org>; Wed, 14 Oct 2026 10:56:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD99D4E36D4;
+	Wed, 14 Oct 2026 13:42:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1791975398; cv=none; b=po14augDLlAIoxkj1gq3SVlqP4mxy0RKpPRYd+hrZ/sWw2axzmNWbV3qCRzfPfuZ7j/XW8tuxIPleTYQJ5Ymv71IhuWklzne1hK2K+lns6j9Qu6fKIggAI5W4MmyvmvbEbZmdmtdXOZTiyjepOqraFC5ARJAykSykn6h/C9SF+8=
+	t=1791985324; cv=none; b=DZbAAZI1hMwRKFvkpSgZ6QpOuPH4DZ8co0FR8q3m7izP/b4TYrPqotpPcb5qfmQ7pwkwt/jf0IdcTsQlq2Hc3EDkGtYWTbjQQtQ+qbX8xztevutmixxoSBL6wLtkeZ6AvXFVnu0WOrRnP5wjipE4R0DX8+CA98qM9PlUNb5/IVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1791975398; c=relaxed/simple;
-	bh=I4W1oBOW70rZbETdibQfUVo4ly3sAm3uCSUKq0yd3EA=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LvOGMxZhoX/a2QVnwVsg7ca565HuO6uncpqFjo4hoOqwRNcVXpAcIKPyIdEK8Nh1/i/Vd/LUHzOJOdurFg8xFYwKp4f/rUj0oIs5cdNdCfXJ+Zts1U9cYgfEZw+qx//jwbDRGpZntt1dTW8YjSEPyysh4i8RSS+JyX8F1d9upP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WmSTpbJ/; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1791985324; c=relaxed/simple;
+	bh=bGE3m2Vk4ssAbH2dDglQRQtFIKk9iZ+4bQVahhhHqrc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GOosU3C2eY4LgiZi81Jd7j4fh+6k9nKSzY6hWjEvr8dYhhfulGZOlbpuzpAH77O5FPo8Lo4aIuzElLsoBPcSdEse2dDCc8Lgo/KYxx6PZfBGVZjW3g0OCKLHkZqBZp73zSqk2N8LNenPCjs34vrritRyX39HnPhCtXEFjU68B1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=PjuHRlI9; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Y3TBkuhA; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=PjuHRlI9; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Y3TBkuhA; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WmSTpbJ/"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-48afcfc4bf5so296021f8f.1
-        for <ecryptfs@vger.kernel.org>; Wed, 14 Oct 2026 03:56:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1791975395; x=1792580195; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=zPHEdS90glsg1krHN0zA7UOVAf+2NQvXNCjI6VwnN5A=;
-        b=WmSTpbJ/v8qxlupDB4sx6pMYDNLPjFOW1hE8hjxNefOe8HX1Zm0V5Nz1WGxtn8OP/l
-         wNDc/jYp0dkcKFFCvD5VinVnrxiiTceIVTQMjOvHuuLehxgUkamy1xB0PzoKfViU37TQ
-         0DWSGNBz374Qcn3cNVRJOY/Dww/OyVbGt/5ZN3d/5rc+UfuXqrqBB2T3N+30N/bseRra
-         /NAx0Mw0OusM9yVTo1iApHh+RUh1lBhvXXHs5q/CfcRKS3ZyqPSNicFf/rpz5mW5mlwJ
-         JUOBecsPqghIV85RHox9HwqJXpY/XVET8N8gIOkCj7e/wYL6XPI76vvVc8LrHykxN1RB
-         kQ3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1791975395; x=1792580195;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=zPHEdS90glsg1krHN0zA7UOVAf+2NQvXNCjI6VwnN5A=;
-        b=VaVa9bhK6uxQJnMAkOFSa0Mth+WvuK7Qq5F//seaQH3VtGVjMmyEZ3wWNiVz/wgZ5x
-         aTPQAL6teahyRcs8+zGxwJTzOHep7k1J4wHxU/V5T21AJYb/1eqGwTjWxJvHpC7xd9of
-         zicaK6Qyat7KM/jl+DKWPoJFZa3YB5tCHvGbDA1qr/fCijQBvRc0mwugmonsYyNkMa4Q
-         FElpbJiSzQ5siYZSV0jGDZBAWXxahxZEHBBDjUa9Wd/XyTEXJpDQWQjmVZSX8hzlLt7K
-         QfF5Xkeq32rWyAI/KMO/sTqfONH1Jzsxn3thzl1fFQN1aSJtPXO+09G459GIJ2FN4r52
-         pGMg==
-X-Forwarded-Encrypted: i=1; AKwUvBwJFGrkw0B6n7AdN4jK5Tg/KDk5//q2sT2TFhyFOV9Ixs46wJrxYA7/GsPvrQeq4131Mkc/LmumbA==@vger.kernel.org
-X-Gm-Message-State: AFq9FYJtHLM+A5L+kXM1NPBHsuYsPL9fUjk3+3tAbdVusDdhyp8CRKLa
-	sdH4cl14LB0+iu2kX9AhWq5Fa3BBmG4I+zvv29FFhBF07YJZJZec8EJY
-X-Gm-Gg: AYBFou0LzeXt1ZvGF31gaaGHB0l597AU2m6DjAP17f3qWI3H7ZOsdn8eZVpDVMangAr
-	h6uPULkrmqJzf7RRYdjkzpGmCWHfkuM5+ScfAVI5Chw5Liag3PE2wYHd4Zc+XijXRDcD6QXA8Gs
-	vS0kU0iSnMb0C7qZ5a0LvClZhhS4+yT+YWXKUi3tXpIcX1Nf4qautBUOn+8NaAOj+UXKEFzLUqB
-	zsluZ2iN/O9NzRCdeuamHC/5PA35bZZt6BiGiDc5s3yP6inBUTvMclk7mzr6UEeHGGNHFmd1UVe
-	qK9TfRtNuwt6IOnoUBC8muP6/HG/EU/LOlqOAU7XQdv/Tp4leWGOC2bc3pvRWleok8s6V4t0Pgq
-	ftOPHII8thC0XG0+fHjRzTDQ2GEQagNruk/GLxeWE8DnLFofsdz2d7sl5WLTsn9U5dfbTZpKfUP
-	R1G1BAZW0FOIldhGl0I0xWvCKskgHUZbzNybWwIQcKMOpR9biKsU5ExZ0Mr8irFIl1DJdTfw9VA
-	kKqO4aH54kKM9KZuICiHI7FpdRhsd+Gz9rCHCc+gxSYdZG+6rc=
-X-Received: by 2002:a05:600c:46cc:b0:4a1:688d:a41c with SMTP id 5b1f17b1804b1-4a18e4c06a8mr290167455e9.25.1791975394835;
-        Wed, 14 Oct 2026 03:56:34 -0700 (PDT)
-Received: from DESKTOP-IR7J1S9.localdomain ([154.121.24.176])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-48de0aaa9f9sm11281588f8f.19.2026.10.14.03.56.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 03:56:34 -0700 (PDT)
-From: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: Thorsten Blum <blum@kernel.org>,
-	Eric Biggers <ebiggers@kernel.org>,
-	Christian Brauner <brauner@kernel.org>,
-	ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
-Subject: [PATCH v2] ecryptfs: replace ecryptfs_from_hex() with hex2bin()
-Date: Wed, 14 Oct 2026 11:56:34 +0100
-Message-ID: <20261014105634.2858-1-drifabdelmalekmohamedsaid@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="PjuHRlI9";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Y3TBkuhA";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="PjuHRlI9";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Y3TBkuhA"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id BE9C91F7D0;
+	Wed, 14 Oct 2026 13:41:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1791985318; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=f19/QIY9j/MqIl5EnsNW1d2MiP1n9Lf+IObDaDAeoKQ=;
+	b=PjuHRlI9F0AJm72pskskb41wJWSPYCEy7gWDuTwW3J7X8wO3xkl4NVMID2ebQf3hAZ4Vk8
+	X7t8yba4tdWBFTvAZQF00kQ38QQSQ+LdJS4XnMK05SvAFCyGZ2j0hoIaVoBn3FWQJnYuWM
+	vie9APGBEv3mnEal2eITC/ELWhlH17o=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1791985318;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=f19/QIY9j/MqIl5EnsNW1d2MiP1n9Lf+IObDaDAeoKQ=;
+	b=Y3TBkuhAy97wGLcIuOX6CLGs5KytaeuYwMUwzFb32xk3t/cHA5r8RyE1ukAl9jZGSK2b/h
+	E1Wm2/NBNJCxYwBQ==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1791985318; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=f19/QIY9j/MqIl5EnsNW1d2MiP1n9Lf+IObDaDAeoKQ=;
+	b=PjuHRlI9F0AJm72pskskb41wJWSPYCEy7gWDuTwW3J7X8wO3xkl4NVMID2ebQf3hAZ4Vk8
+	X7t8yba4tdWBFTvAZQF00kQ38QQSQ+LdJS4XnMK05SvAFCyGZ2j0hoIaVoBn3FWQJnYuWM
+	vie9APGBEv3mnEal2eITC/ELWhlH17o=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1791985318;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=f19/QIY9j/MqIl5EnsNW1d2MiP1n9Lf+IObDaDAeoKQ=;
+	b=Y3TBkuhAy97wGLcIuOX6CLGs5KytaeuYwMUwzFb32xk3t/cHA5r8RyE1ukAl9jZGSK2b/h
+	E1Wm2/NBNJCxYwBQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 85A4B133F1;
+	Wed, 14 Oct 2026 13:41:58 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id l0N+E6aGz2pkSwAAD6G6ig
+	(envelope-from <jack@suse.cz>); Wed, 14 Oct 2026 13:41:58 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 3E43AA140F; Wed, 14 Oct 2026 15:41:57 +0200 (CEST)
+Date: Wed, 14 Oct 2026 15:41:57 +0200
+From: Jan Kara <jack@suse.cz>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, Jan Kara <jack@suse.com>, 
+	Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
+	jfs-discussion@lists.sourceforge.net, linux-nilfs@vger.kernel.org, exfat@lists.linux.dev, 
+	linux-fsdevel@vger.kernel.org, ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev, 
+	linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev, linux-efi@vger.kernel.org, 
+	linux-mtd@lists.infradead.org, linux-xfs@vger.kernel.org, stable@vger.kernel.org, 
+	Karl Mehltretter <kmehltretter@gmail.com>
+Subject: Re: [PATCH RFC 00/28] fs: don't set SB_RDONLY after filesystem errors
+Message-ID: <5hhsm5lltulo3u33gvaouhnmnjbzk3relgqv5ke52bmf76hchj@qbaok3ecv37c>
+References: <20261012-work-fs-sb_rdonly-v1-0-60743a3dc326@kernel.org>
+ <my2k7257m265fp5ad77n5hfndl23i56gsog3jwnsyocp3yxbnj@aphfqdiej2hs>
+ <20261013-forsten-ammoniak-geknackt-fefec366cc97@brauner>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20261013-forsten-ammoniak-geknackt-fefec366cc97@brauner>
+X-Spam-Flag: NO
+X-Spam-Score: -3.80
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	MISSING_XM_UA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[19];
+	RCVD_COUNT_THREE(0.00)[3];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_TLS_LAST(0.00)[];
+	FREEMAIL_CC(0.00)[suse.cz,suse.com,zeniv.linux.org.uk,vger.kernel.org,lists.sourceforge.net,lists.linux.dev,lists.infradead.org,gmail.com];
+	TO_DN_SOME(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.cz:email,suse.com:email]
 
-ecryptfs_from_hex() relied on the deprecated simple_strtoul(). Rather
-than patching it to use kstrtoul(), its intended replacement, remove it
-entirely and switch all call sites to the generic hex2bin() helper
-from <linux/hex.h>, which already provides the same functionality.
+On Tue 13-10-26 21:39:05, Christian Brauner wrote:
+> > I'm in favor of this. Just after checking couple of filesystem changes -
+> > won't we be better off by using a generic flag in super_block for this so
+> > that VFS can check for it? Then each filesystem won't have to implement
+> > its own wrapper for simple_fsync(), quota operations, and whatever other
+> > generic operations that need to bail on shutdown filesystem...
+> 
+> Do you mean something like?:
+> 
+> From 28c97f2142e255eb835d26deb97b00afccfb7c4a Mon Sep 17 00:00:00 2001
+> From: Christian Brauner <brauner@kernel.org>
+> Date: Tue, 13 Oct 2026 21:15:36 +0200
+> Subject: [PATCH] fs: add a generic emergency read-only state
+> 
+> The filesystems that stopped setting SB_RDONLY after an error refuse
+> modifications themselves now. Each of them grew the same checks in
+> ->open, ->setattr, ->fsync, ->write_inode, the directory operations, the
+> quota operations and ->reconfigure. Jan suggested a generic flag so the
+> VFS can do that once (cf. [1]).
+> 
+> So add SB_STATE_EMERGENCY_RO in a new sb->s_state word. It is only ever
+> set with set_bit() and never cleared so it can be tested anywhere
+> without any ordering against the setter. A filesystem calls
+> sb_set_emergency_ro() where it used to set SB_RDONLY. SB_RDONLY itself
+> stays untouched so freeze_super() and thaw_super() keep seeing a
+> consistent superblock.
+> 
+> The VFS then checks it wherever sb_rdonly() gates a write:
+> 
+> - __mnt_is_readonly() so mnt_want_write(), opening files for writing,
+>   access(W_OK), nfsd and overlayfs see a read-only superblock
+> - sb_permission() for vfs_create(), vfs_unlink() and friends
+> - notify_change(), rw_verify_area(), vfs_fallocate(), vfs_fsync_range()
+>   and do_page_mkwrite() for files that were opened before the error
+> - reconfigure_super() refuses going read-write
+> - sync_filesystem(), sync(2) and write_inode() don't write anymore
+> - the dquot code doesn't write the quota files anymore and quotactl(2)
+>   refuses to change anything
+> - "emergency_ro" is shown in the mount options, /proc/mounts shows the
+>   superblock as "ro" and statfs() reports ST_RDONLY like they did when
+>   SB_RDONLY was set
+> 
+> What reaches the filesystem without passing through the VFS it still has
+> to refuse itself. That's its allocators, its journal, its own writeback
+> and the deletion of unlinked inodes.
+> 
+> [1]: https://lore.kernel.org/r/my2k7257m265fp5ad77n5hfndl23i56gsog3jwnsyocp3yxbnj@aphfqdiej2hs
+> 
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 
-Update call sites with the (u8 *) casts required by hex2bin()'s
-signature.
+Yes, this looks like what I wanted! Thanks! Feel free to add:
 
-All call sites guarantee that src is at least 2*dst_size bytes,
-but nothing guarantees that src is valid hex, and also hex2bin's return
-value needs to be checked, so we add a fail early check to call sites.
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
----
-v2:
- - Added fail early check for hex2bin's return value
- - Fixed doubline empty lines
-v1:https://lore.kernel.org/ecryptfs/20260829194528.5652-1-drifabdelmalekmohamedsaid@gmail.com/
- fs/ecryptfs/crypto.c          | 19 -------------------
- fs/ecryptfs/ecryptfs_kernel.h |  2 --
- fs/ecryptfs/keystore.c        | 20 +++++++++++++++++---
- 3 files changed, 17 insertions(+), 24 deletions(-)
+								Honza
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index e67119b6029c..059294df4b38 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -29,25 +29,6 @@
- #define DECRYPT		0
- #define ENCRYPT		1
- 
--/**
-- * ecryptfs_from_hex
-- * @dst: Buffer to take the bytes from src hex; must be at least of
-- *       size (src_size / 2)
-- * @src: Buffer to be converted from a hex string representation to raw value
-- * @dst_size: size of dst buffer, or number of hex characters pairs to convert
-- */
--void ecryptfs_from_hex(char *dst, char *src, int dst_size)
--{
--	int x;
--	char tmp[3] = { 0, };
--
--	for (x = 0; x < dst_size; x++) {
--		tmp[0] = src[x * 2];
--		tmp[1] = src[x * 2 + 1];
--		dst[x] = (unsigned char)simple_strtol(tmp, NULL, 16);
--	}
--}
--
- static int ecryptfs_crypto_api_algify_cipher_name(char **algified_name,
- 						  const char *cipher_name,
- 						  const char *chaining_modifier)
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 58165928ed1e..0efda4cea71d 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -47,8 +47,6 @@ ecryptfs_to_hex(char *dst, char *src, size_t src_size)
- 	*end = '\0';
- }
- 
--extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
--
- struct ecryptfs_key_record {
- 	unsigned char type;
- 	size_t enc_key_size;
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 51651314b7a6..4aaf62e61f3a 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -18,6 +18,7 @@
- #include <linux/random.h>
- #include <linux/scatterlist.h>
- #include <linux/slab.h>
-+#include <linux/hex.h>
- #include "ecryptfs_kernel.h"
- 
- /*
-@@ -713,9 +714,14 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
- 		goto out_free_unlock;
- 	}
- 	s->i += s->packet_size_len;
--	ecryptfs_from_hex(&dest[s->i],
-+	rc = hex2bin((u8 *)&dest[s->i],
- 			  mount_crypt_stat->global_default_fnek_sig,
- 			  ECRYPTFS_SIG_SIZE);
-+	if (rc) {
-+		printk(KERN_ERR "%s: Invalid fnek sig [%s]; rc = [%d]\n",
-+			   __func__, mount_crypt_stat->global_default_fnek_sig, rc);
-+		goto out_free_unlock;
-+	}
- 	s->i += ECRYPTFS_SIG_SIZE;
- 	s->cipher_code = ecryptfs_code_for_cipher_string(
- 		mount_crypt_stat->global_default_fn_cipher_name,
-@@ -2015,8 +2021,12 @@ write_tag_1_packet(char *dest, size_t *remaining_bytes,
- 	int rc = 0;
- 
- 	(*packet_size) = 0;
--	ecryptfs_from_hex(key_rec->sig, auth_tok->token.private_key.signature,
-+	rc = hex2bin((u8 *)key_rec->sig, auth_tok->token.private_key.signature,
- 			  ECRYPTFS_SIG_SIZE);
-+	if (rc) {
-+		printk(KERN_ERR "Invalid token private key signature; rc = [%d]\n", rc);
-+		goto out;
-+	}
- 	encrypted_session_key_valid = 0;
- 	for (i = 0; i < crypt_stat->key_size; i++)
- 		encrypted_session_key_valid |=
-@@ -2179,8 +2189,12 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 	int rc = 0;
- 
- 	(*packet_size) = 0;
--	ecryptfs_from_hex(key_rec->sig, auth_tok->token.password.signature,
-+	rc = hex2bin((u8 *)key_rec->sig, auth_tok->token.password.signature,
- 			  ECRYPTFS_SIG_SIZE);
-+	if (rc) {
-+		printk(KERN_ERR "Invalid token password signature; rc = [%d]\n", rc);
-+		goto out;
-+	}
- 	rc = ecryptfs_get_tfm_and_mutex_for_cipher_name(&tfm, &tfm_mutex,
- 							crypt_stat->cipher);
- 	if (unlikely(rc)) {
+> ---
+>  Documentation/filesystems/porting.rst | 16 ++++++++++++++++
+>  fs/attr.c                             |  4 ++++
+>  fs/fs-writeback.c                     |  3 +++
+>  fs/namei.c                            |  3 ++-
+>  fs/namespace.c                        |  3 ++-
+>  fs/open.c                             |  4 ++++
+>  fs/proc_namespace.c                   |  4 +++-
+>  fs/quota/dquot.c                      | 23 +++++++++++++++++------
+>  fs/quota/quota.c                      | 13 +++++++++++++
+>  fs/read_write.c                       |  5 +++++
+>  fs/statfs.c                           |  9 +++++++--
+>  fs/super.c                            |  4 ++++
+>  fs/sync.c                             | 18 +++++++++++++-----
+>  include/linux/fs/super.h              | 18 ++++++++++++++++++
+>  include/linux/fs/super_types.h        | 21 +++++++++++++++++++++
+>  mm/memory.c                           |  6 ++++++
+>  16 files changed, 138 insertions(+), 16 deletions(-)
+> 
+> diff --git a/Documentation/filesystems/porting.rst b/Documentation/filesystems/porting.rst
+> index 60880eb0c49d..c60f74a99568 100644
+> --- a/Documentation/filesystems/porting.rst
+> +++ b/Documentation/filesystems/porting.rst
+> @@ -1409,3 +1409,19 @@ use only if you have no alternative.
+>  The .create inode_operation no longer receives the 'excl' arg.  It must
+>  always assume the file does not already exist.  If the filesystem needs
+>  to be involved in non-exclusive create, it should provide atomic_open.
+> +
+> +---
+> +
+> +**recommended**
+> +
+> +Filesystems that set SB_RDONLY on the superblock after an error
+> +(errors=remount-ro) must not do that anymore. SB_RDONLY only changes under
+> +sb->s_umount through reconfigure_super() and freeze_super() and thaw_super()
+> +rely on that. Call sb_set_emergency_ro() instead. The VFS then refuses
+> +modifications with EROFS, refuses a remount to read-write, shows
+> +"emergency_ro" in the mount options and stops syncing the filesystem and
+> +writing back its inodes. The filesystem still has to refuse what reaches it
+> +without passing through the VFS: its own allocation, journal and writeback
+> +paths and the deletion of unlinked inodes in ->evict_inode(). Test
+> +sb_emergency_ro() for that. A remount to read-only must not write anything
+> +in that state either, in particular it must not mark the filesystem clean.
+> diff --git a/fs/attr.c b/fs/attr.c
+> index 71888ac903c2..e4973f68b6c6 100644
+> --- a/fs/attr.c
+> +++ b/fs/attr.c
+> @@ -435,6 +435,10 @@ int notify_change(struct mnt_idmap *idmap, struct dentry *dentry,
+>  
+>  	WARN_ON_ONCE(!inode_is_locked(inode));
+>  
+> +	/* Nothing can be changed after an error made the filesystem read-only. */
+> +	if (sb_emergency_ro(inode->i_sb))
+> +		return -EROFS;
+> +
+>  	error = may_setattr(idmap, inode, ia_valid);
+>  	if (error)
+>  		return error;
+> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+> index ea3eb40bf828..bd095a911620 100644
+> --- a/fs/fs-writeback.c
+> +++ b/fs/fs-writeback.c
+> @@ -1618,6 +1618,9 @@ static int write_inode(struct inode *inode, struct writeback_control *wbc)
+>  {
+>  	int ret;
+>  
+> +	/* Nothing may be written after an error made the filesystem read-only. */
+> +	if (sb_emergency_ro(inode->i_sb))
+> +		return -EROFS;
+>  	if (inode->i_sb->s_op->write_inode && !is_bad_inode(inode)) {
+>  		trace_writeback_write_inode_start(inode, wbc);
+>  		ret = inode->i_sb->s_op->write_inode(inode, wbc);
+> diff --git a/fs/namei.c b/fs/namei.c
+> index c87c14ee1a25..902a2e998ed4 100644
+> --- a/fs/namei.c
+> +++ b/fs/namei.c
+> @@ -607,7 +607,8 @@ static int sb_permission(struct super_block *sb, struct inode *inode, int mask)
+>  		umode_t mode = inode->i_mode;
+>  
+>  		/* Nobody gets write access to a read-only fs. */
+> -		if (sb_rdonly(sb) && (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
+> +		if ((sb_rdonly(sb) || sb_emergency_ro(sb)) &&
+> +		    (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
+>  			return -EROFS;
+>  	}
+>  	return 0;
+> diff --git a/fs/namespace.c b/fs/namespace.c
+> index 3ed3766f3a18..5e172cf70e71 100644
+> --- a/fs/namespace.c
+> +++ b/fs/namespace.c
+> @@ -392,7 +392,8 @@ static struct mount *alloc_vfsmnt(const char *name)
+>   */
+>  bool __mnt_is_readonly(const struct vfsmount *mnt)
+>  {
+> -	return (mnt->mnt_flags & MNT_READONLY) || sb_rdonly(mnt->mnt_sb);
+> +	return (mnt->mnt_flags & MNT_READONLY) || sb_rdonly(mnt->mnt_sb) ||
+> +	       sb_emergency_ro(mnt->mnt_sb);
+>  }
+>  EXPORT_SYMBOL_GPL(__mnt_is_readonly);
+>  
+> diff --git a/fs/open.c b/fs/open.c
+> index 6b1c14e684a9..d7698c4bc8d5 100644
+> --- a/fs/open.c
+> +++ b/fs/open.c
+> @@ -324,6 +324,10 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+>  	if (!S_ISREG(inode->i_mode) && !S_ISBLK(inode->i_mode))
+>  		return -ENODEV;
+>  
+> +	/* Files can't be written after an error made the filesystem read-only. */
+> +	if (S_ISREG(inode->i_mode) && sb_emergency_ro(inode->i_sb))
+> +		return -EROFS;
+> +
+>  	/* Check for wraparound */
+>  	if (check_add_overflow(offset, len, &sum))
+>  		return -EFBIG;
+> diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
+> index 036356c0a55b..85da3f6865c7 100644
+> --- a/fs/proc_namespace.c
+> +++ b/fs/proc_namespace.c
+> @@ -57,6 +57,8 @@ static int show_sb_opts(struct seq_file *m, struct super_block *sb)
+>  		if (sb->s_flags & fs_infop->flag)
+>  			seq_puts(m, fs_infop->str);
+>  	}
+> +	if (sb_emergency_ro(sb))
+> +		seq_puts(m, ",emergency_ro");
+>  
+>  	return security_sb_show_options(m, sb);
+>  }
+> @@ -179,7 +181,7 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
+>  	} else {
+>  		mangle(m, r->mnt_devname);
+>  	}
+> -	seq_puts(m, sb_rdonly(sb) ? " ro" : " rw");
+> +	seq_puts(m, sb_rdonly(sb) || sb_emergency_ro(sb) ? " ro" : " rw");
+>  	err = show_sb_opts(m, sb);
+>  	if (err)
+>  		goto out;
+> diff --git a/fs/quota/dquot.c b/fs/quota/dquot.c
+> index 1c78c695d0dd..56c54d437c38 100644
+> --- a/fs/quota/dquot.c
+> +++ b/fs/quota/dquot.c
+> @@ -495,6 +495,11 @@ int dquot_acquire(struct dquot *dquot)
+>  	set_bit(DQ_READ_B, &dquot->dq_flags);
+>  	/* Instantiate dquot if needed */
+>  	if (!dquot_active(dquot) && !dquot->dq_off) {
+> +		/* Nothing may be written after an error made the fs read-only. */
+> +		if (sb_emergency_ro(dquot->dq_sb)) {
+> +			ret = -EROFS;
+> +			goto out_iolock;
+> +		}
+>  		ret = dqopt->ops[dquot->dq_id.type]->commit_dqblk(dquot);
+>  		/* Write the info if needed */
+>  		if (info_dirty(&dqopt->info[dquot->dq_id.type])) {
+> @@ -536,10 +541,12 @@ int dquot_commit(struct dquot *dquot)
+>  		goto out_lock;
+>  	/* Inactive dquot can be only if there was error during read/init
+>  	 * => we have better not writing it */
+> -	if (dquot_active(dquot))
+> -		ret = dqopt->ops[dquot->dq_id.type]->commit_dqblk(dquot);
+> -	else
+> +	if (!dquot_active(dquot))
+>  		ret = -EIO;
+> +	else if (sb_emergency_ro(dquot->dq_sb))
+> +		ret = -EROFS;
+> +	else
+> +		ret = dqopt->ops[dquot->dq_id.type]->commit_dqblk(dquot);
+>  out_lock:
+>  	memalloc_nofs_restore(memalloc);
+>  	mutex_unlock(&dquot->dq_lock);
+> @@ -561,7 +568,8 @@ int dquot_release(struct dquot *dquot)
+>  	/* Check whether we are not racing with some other dqget() */
+>  	if (dquot_is_busy(dquot))
+>  		goto out_dqlock;
+> -	if (dqopt->ops[dquot->dq_id.type]->release_dqblk) {
+> +	if (dqopt->ops[dquot->dq_id.type]->release_dqblk &&
+> +	    !sb_emergency_ro(dquot->dq_sb)) {
+>  		ret = dqopt->ops[dquot->dq_id.type]->release_dqblk(dquot);
+>  		/* Write the info */
+>  		if (info_dirty(&dqopt->info[dquot->dq_id.type])) {
+> @@ -2132,6 +2140,9 @@ int dquot_commit_info(struct super_block *sb, int type)
+>  {
+>  	struct quota_info *dqopt = sb_dqopt(sb);
+>  
+> +	/* Nothing may be written after an error made the fs read-only. */
+> +	if (sb_emergency_ro(sb))
+> +		return -EROFS;
+>  	return dqopt->ops[type]->write_file_info(sb, type);
+>  }
+>  EXPORT_SYMBOL(dquot_commit_info);
+> @@ -2255,7 +2266,7 @@ int dquot_disable(struct super_block *sb, int type, unsigned int flags)
+>  		 * Now all dquots should be invalidated, all writes done so we
+>  		 * should be only users of the info. No locks needed.
+>  		 */
+> -		if (info_dirty(&dqopt->info[cnt]))
+> +		if (info_dirty(&dqopt->info[cnt]) && !sb_emergency_ro(sb))
+>  			sb->dq_op->write_info(sb, cnt);
+>  		if (dqopt->ops[cnt]->free_file_info)
+>  			dqopt->ops[cnt]->free_file_info(sb, cnt);
+> @@ -2272,7 +2283,7 @@ int dquot_disable(struct super_block *sb, int type, unsigned int flags)
+>  
+>  	/* Sync the superblock so that buffers with quota data are written to
+>  	 * disk (and so userspace sees correct data afterwards). */
+> -	if (sb->s_op->sync_fs)
+> +	if (sb->s_op->sync_fs && !sb_emergency_ro(sb))
+>  		sb->s_op->sync_fs(sb, 1);
+>  	sync_blockdev(sb->s_bdev);
+>  	/* Now the quota files are just ordinary files and we can set the
+> diff --git a/fs/quota/quota.c b/fs/quota/quota.c
+> index 33bacd707580..7612c96493d1 100644
+> --- a/fs/quota/quota.c
+> +++ b/fs/quota/quota.c
+> @@ -783,6 +783,19 @@ static int do_quotactl(struct super_block *sb, int type, int cmd, qid_t id,
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	/* Nothing can be changed after an error made the filesystem read-only. */
+> +	if (sb_emergency_ro(sb)) {
+> +		switch (cmd) {
+> +		case Q_QUOTAON:
+> +		case Q_SETINFO:
+> +		case Q_SETQUOTA:
+> +		case Q_XQUOTAON:
+> +		case Q_XQUOTARM:
+> +		case Q_XSETQLIM:
+> +			return -EROFS;
+> +		}
+> +	}
+> +
+>  	switch (cmd) {
+>  	case Q_QUOTAON:
+>  		return quota_quotaon(sb, type, id, path);
+> diff --git a/fs/read_write.c b/fs/read_write.c
+> index e8c14e2760b2..4b587ba084bf 100644
+> --- a/fs/read_write.c
+> +++ b/fs/read_write.c
+> @@ -472,6 +472,11 @@ int rw_verify_area(int read_write, struct file *file, const loff_t *ppos, size_t
+>  		}
+>  	}
+>  
+> +	/* Files can't be written after an error made the filesystem read-only. */
+> +	if (read_write == WRITE && S_ISREG(file_inode(file)->i_mode) &&
+> +	    sb_emergency_ro(file_inode(file)->i_sb))
+> +		return -EROFS;
+> +
+>  	ret = security_file_permission(file, mask);
+>  	if (ret)
+>  		return ret;
+> diff --git a/fs/statfs.c b/fs/statfs.c
+> index 377bcef7a561..05a90d5a3310 100644
+> --- a/fs/statfs.c
+> +++ b/fs/statfs.c
+> @@ -48,8 +48,13 @@ static int flags_by_sb(int s_flags)
+>  
+>  static int calculate_f_flags(struct vfsmount *mnt)
+>  {
+> -	return ST_VALID | flags_by_mnt(mnt->mnt_flags) |
+> -		flags_by_sb(mnt->mnt_sb->s_flags);
+> +	int flags = ST_VALID | flags_by_mnt(mnt->mnt_flags) |
+> +		    flags_by_sb(mnt->mnt_sb->s_flags);
+> +
+> +	/* An error made the filesystem read-only, SB_RDONLY stays clear. */
+> +	if (sb_emergency_ro(mnt->mnt_sb))
+> +		flags |= ST_RDONLY;
+> +	return flags;
+>  }
+>  
+>  static int statfs_by_dentry(struct dentry *dentry, struct kstatfs *buf)
+> diff --git a/fs/super.c b/fs/super.c
+> index 1d5ccf540a9b..74cde61e8d71 100644
+> --- a/fs/super.c
+> +++ b/fs/super.c
+> @@ -1091,6 +1091,10 @@ int reconfigure_super(struct fs_context *fc)
+>  		remount_ro = (fc->sb_flags & SB_RDONLY) && !sb_rdonly(sb);
+>  	}
+>  
+> +	/* An error made the filesystem read-only until it is unmounted. */
+> +	if (remount_rw && sb_emergency_ro(sb))
+> +		return -EROFS;
+> +
+>  	if (remount_ro) {
+>  		if (!hlist_empty(&sb->s_pins)) {
+>  			super_unlock_excl(sb);
+> diff --git a/fs/sync.c b/fs/sync.c
+> index 4a84dd837b86..f183c364815c 100644
+> --- a/fs/sync.c
+> +++ b/fs/sync.c
+> @@ -38,9 +38,10 @@ int sync_filesystem(struct super_block *sb)
+>  	WARN_ON(!rwsem_is_locked(&sb->s_umount));
+>  
+>  	/*
+> -	 * No point in syncing out anything if the filesystem is read-only.
+> +	 * No point in syncing out anything if the filesystem is read-only, and
+> +	 * nothing may be written after an error made it read-only.
+>  	 */
+> -	if (sb_rdonly(sb))
+> +	if (sb_rdonly(sb) || sb_emergency_ro(sb))
+>  		return 0;
+>  
+>  	/*
+> @@ -73,14 +74,14 @@ EXPORT_SYMBOL(sync_filesystem);
+>  
+>  static void sync_inodes_one_sb(struct super_block *sb, void *arg)
+>  {
+> -	if (!sb_rdonly(sb))
+> +	if (!sb_rdonly(sb) && !sb_emergency_ro(sb))
+>  		sync_inodes_sb(sb);
+>  }
+>  
+>  static void sync_fs_one_sb(struct super_block *sb, void *arg)
+>  {
+> -	if (!sb_rdonly(sb) && !(sb->s_iflags & SB_I_SKIP_SYNC) &&
+> -	    sb->s_op->sync_fs)
+> +	if (!sb_rdonly(sb) && !sb_emergency_ro(sb) &&
+> +	    !(sb->s_iflags & SB_I_SKIP_SYNC) && sb->s_op->sync_fs)
+>  		sb->s_op->sync_fs(sb, *(int *)arg);
+>  }
+>  
+> @@ -181,6 +182,13 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
+>  
+>  	if (!file->f_op->fsync)
+>  		return -EINVAL;
+> +	/*
+> +	 * Inodes aren't written back after an error made the filesystem
+> +	 * read-only, don't claim they're on disk.
+> +	 */
+> +	if (!special_file(file_inode(file)->i_mode) &&
+> +	    sb_emergency_ro(file_inode(file)->i_sb))
+> +		return -EROFS;
+>  	if (!datasync)
+>  		sync_lazytime(inode);
+>  	return file->f_op->fsync(file, start, end, datasync);
+> diff --git a/include/linux/fs/super.h b/include/linux/fs/super.h
+> index 733d439f01ed..346f52047999 100644
+> --- a/include/linux/fs/super.h
+> +++ b/include/linux/fs/super.h
+> @@ -2,6 +2,7 @@
+>  #ifndef _LINUX_FS_SUPER_H
+>  #define _LINUX_FS_SUPER_H
+>  
+> +#include <linux/bitops.h>
+>  #include <linux/fs/super_types.h>
+>  #include <linux/unicode.h>
+>  
+> @@ -187,6 +188,23 @@ static inline bool sb_rdonly(const struct super_block *sb)
+>  	return sb->s_flags & SB_RDONLY;
+>  }
+>  
+> +/*
+> + * True once an error made the filesystem read-only. SB_RDONLY stays clear, so
+> + * this is checked wherever sb_rdonly() gates a write. It must not be checked
+> + * where sb_rdonly() describes the mount, i.e. by freeze_super() and
+> + * thaw_super(), because it can be set while the superblock is frozen.
+> + */
+> +static inline bool sb_emergency_ro(const struct super_block *sb)
+> +{
+> +	return test_bit(SB_STATE_EMERGENCY_RO, &sb->s_state);
+> +}
+> +
+> +/* Returns true for the caller that made the filesystem read-only. */
+> +static inline bool sb_set_emergency_ro(struct super_block *sb)
+> +{
+> +	return !test_and_set_bit(SB_STATE_EMERGENCY_RO, &sb->s_state);
+> +}
+> +
+>  static inline bool sb_is_blkdev_sb(struct super_block *sb)
+>  {
+>  	return IS_ENABLED(CONFIG_BLOCK) && sb == blockdev_superblock;
+> diff --git a/include/linux/fs/super_types.h b/include/linux/fs/super_types.h
+> index ecd96aeb1cee..efd924474062 100644
+> --- a/include/linux/fs/super_types.h
+> +++ b/include/linux/fs/super_types.h
+> @@ -238,6 +238,9 @@ struct super_block {
+>  	/* Read-only state of the superblock is being changed */
+>  	int					s_readonly_remount;
+>  
+> +	/* Runtime state bits, see SB_STATE_*. Set with set_bit(), never cleared. */
+> +	unsigned long				s_state;
+> +
+>  	/* per-sb errseq_t for reporting writeback errors via syncfs */
+>  	errseq_t s_wb_err;
+>  
+> @@ -353,4 +356,22 @@ struct super_block {
+>  #define SB_I_ALLOW_HSM	0x00004000	/* Allow HSM events on this superblock */
+>  #define SB_I_NO_DATA_INTEGRITY	0x00008000 /* fs cannot guarantee data persistence on sync */
+>  
+> +/*
+> + * sb->s_state. These are set with set_bit() from whatever context found the
+> + * condition, without s_umount, and are never cleared. So they can be tested
+> + * anywhere without any ordering against the setter. That's deliberately not
+> + * true for SB_RDONLY: freeze_super() and thaw_super() key off it and it must
+> + * only change under s_umount through reconfigure_super().
+> + */
+> +enum {
+> +	/*
+> +	 * An error made the filesystem read-only, errors=remount-ro style. The
+> +	 * VFS refuses modifications with EROFS, refuses a remount to read-write
+> +	 * and stops syncing the filesystem and writing back its inodes. Lasts
+> +	 * until umount. The filesystem still has to refuse whatever reaches it
+> +	 * without going through the VFS, see sb_emergency_ro().
+> +	 */
+> +	SB_STATE_EMERGENCY_RO,
+> +};
+> +
+>  #endif /* _LINUX_FS_SUPER_TYPES_H */
+> diff --git a/mm/memory.c b/mm/memory.c
+> index 8b0c2c735d3d..f4030571d972 100644
+> --- a/mm/memory.c
+> +++ b/mm/memory.c
+> @@ -3813,6 +3813,12 @@ static vm_fault_t do_page_mkwrite(struct vm_fault *vmf, struct folio *folio)
+>  	    IS_SWAPFILE(vmf->vma->vm_file->f_mapping->host))
+>  		return VM_FAULT_SIGBUS;
+>  
+> +	/* Files can't be written after an error made the filesystem read-only. */
+> +	if (vmf->vma->vm_file &&
+> +	    S_ISREG(file_inode(vmf->vma->vm_file)->i_mode) &&
+> +	    sb_emergency_ro(file_inode(vmf->vma->vm_file)->i_sb))
+> +		return VM_FAULT_SIGBUS;
+> +
+>  	ret = vmf->vma->vm_ops->page_mkwrite(vmf);
+>  	/* Restore original flags so that caller is not surprised */
+>  	vmf->flags = old_flags;
+> -- 
+> 2.53.0
+> 
 -- 
-2.43.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
