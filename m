@@ -1,386 +1,302 @@
-Received: from mx0a-00364e01.pphosted.com (mx0a-00364e01.pphosted.com [148.163.135.74])
+Received: from canpmsgout03.his.huawei.com (canpmsgout03.his.huawei.com [113.46.200.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58FF376BC1
-	for <ecryptfs@vger.kernel.org>; Thu, 15 Oct 2026 01:36:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.135.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD01851DDEE;
+	Thu, 15 Oct 2026 12:19:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=113.46.200.218
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792028178; cv=none; b=GkoYIu+69M2ob99QWmOSiByhtU7vRtvyS+2me53OO5+G/boOgVOzBn6PlIvDhwQBV6v85mN3b9sDQr93QduqNT8UYSUb9oDIp6nnKKlKE4c0TjT6N4nCzndgImqXEpaTKgJAQm8TWL/vYpLSm9cdXCNDwVi0Hu4QphGieM1th4o=
+	t=1792066794; cv=none; b=t3z3CfHDHdpnVhfEQ5qPO3/pdjMKrJpyL1VSixLLbpZJQZos+rkryRln71fxi6V3XZ9tBJ28RImdaGSZxXa9xVyK/gDxoF4KnSngR/a8P+GBW/2AYrljMxdocr7aiR2LCLMRr06ekuoNtQzrGlO2WbuRUY1FmqJMcMufVe+VOWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792028178; c=relaxed/simple;
-	bh=6PcH1Ets7fX231wFfBtuXYP4Cc7vyT3z7PrZWJpJABQ=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=KbwX3crppXruqmj77LSvBNtdGQPNqV4SOhckmgJbcCVv3ie6HSIs8U+cPSkymw73uP5+8Ov4hem1yVsGdduM9OPgzG05DYpRhwqmiWrhVMiLG2nO/AQV/xkwZL9kP1esY3BNUHmYgJjpCIkQLfstbcbX99Is2fSUkiUoeRNvIU0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu; spf=pass smtp.mailfrom=columbia.edu; dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.b=N+/4d9M6; dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.b=TIRMWw4+; arc=none smtp.client-ip=148.163.135.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
+	s=arc-20240116; t=1792066794; c=relaxed/simple;
+	bh=FSJuhELEP9BBphk1HG7ReW9hYZ7Ctz/v8OyQMbPSEnU=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=fz0Sn6BGekfFQQMpoWatzKG4WnpRq6TWSVxTRtctX5O2NPYguLVedMYLf2ERIoUGlUjU4lxEv6+l7LSNgG5lejjNEqhuYg+6CVba/aZ9DFez96Jt/B3A1RtvXqLHiI2m0qTfql0X/osPjL/XpuKlhS18Qh+ZC0WGBzLixa99sIU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b=mkH2HjGO; arc=none smtp.client-ip=113.46.200.218
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.b="N+/4d9M6";
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.b="TIRMWw4+"
-Received: from pps.filterd (m0499199.ppops.net [127.0.0.1])
-	by mx0a-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69F0YC0u3488534
-	for <ecryptfs@vger.kernel.org>; Wed, 14 Oct 2026 21:36:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps01; bh=j+lf
-	0GVqDtMILeKjsssb4awbeFEUGRe4e2YBARUs3gM=; b=N+/4d9M6Rf6MLpdtZ6mT
-	EgKG2UOHojZAZW70l0tBlCmpQNc/f7ClU7uwPAzxF86XmT5EMB0oYhL/3pvG1kTg
-	IIatWWoUFispV9z0PoitEO84VXvp/ikyIiyuaDWzjLYYagGxa9o3rk1KCMq920n4
-	k0VbfEA+ogGUtFV1yLYGHyc5ovd+NS0gqYu9FuPnZ6OmLEQYewIQCnPI3T56dWaw
-	bIWKCn9f8XbJm19hZ8Zd45RqpcQqaeEhYjOIw5wNUaS9xx7cKDmEmqW9NDXGHoaJ
-	xcyLSiX07mRW+qVyofil2ywpCOEKxo8rJzKPgJQeTBHhbXaC9lKq1POu6RE0YMaV
-	bA==
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
-	by mx0a-00364e01.pphosted.com (PPS) with ESMTPS id 4haerutxk2-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <ecryptfs@vger.kernel.org>; Wed, 14 Oct 2026 21:36:14 -0400 (EDT)
-Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-5339253dc3fso104950941cf.0
-        for <ecryptfs@vger.kernel.org>; Wed, 14 Oct 2026 18:36:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=columbia.edu; s=lionmail; t=1792028174; x=1792632974; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=j+lf0GVqDtMILeKjsssb4awbeFEUGRe4e2YBARUs3gM=;
-        b=TIRMWw4+0kJPg+VNUATRNZZ/uPvP0WZi3enfE3VKixearw7E6CyWZbyoRWESD/i5Yw
-         dts5NSdWMdc4lhUb5lQtz8lJ10Pf2DI0djIiI7SWJwyCIekPWDNhGTIZCtQMgSB/VbrQ
-         CYSO+d/iFQbH5eEw8Vmz/Lo0CHZf/EME/Yun5iNHZt3hftiHWS68kxfAo57hJi6boYG6
-         VYXBJzRLZZfHWAzUyYK+5N7lJT7+ctHxPvc6XaFVuTZG5aDq8JUPHYcXm6SzKR9RQ/Yn
-         3LcwRVsbI+bjAhu3ceg7c10fI58ZsJHAKTQkiITmv4E/b0JmtJIC80dzbJNGl7P9a57z
-         RgFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792028174; x=1792632974;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=j+lf0GVqDtMILeKjsssb4awbeFEUGRe4e2YBARUs3gM=;
-        b=JNNTpJQtZZHIuVjHuhM6ym1JN9BUMI+qmx9YWHyEmnRc9ouodf3b3iTl/nzPfnUyfh
-         Epxqg//6dsxU3VtggAXG1lzfkTveCdAi99+WUWxasTYoDHl7/gm0r+DIx0TNmNlEBpDV
-         Cs1IYluNZS8Q5U+mD9D3Wy3QfceVAGkEBFdFzb0Yk1Z7wwiFQVrV21Xsw7+3iWFguSJl
-         bWW6o8QUcNybT4Vymr8h8zrgQm1430qeQs7tDMREsSUA6KsNfQC0SzMZ1tFrQ0OCI8Qo
-         PYxArw8RnXk9XdMW1CtY9txTd1aKpI0EpYAGIZ4vGTyT+7Eq+QW7eF+uDM5eGeGZ1pGc
-         N+Rg==
-X-Gm-Message-State: AFq9FYK1BQO+IOs1AsaASEoLWdgRVYQVQMLtsIS1Bo2y0JXsXBezblgN
-	O53+zU4kygGJDq0y0EgDytYZxzOszFqiw//lMbbz/Ma00yR/SQXieC8/hPIhP3bcQx+1Yr7eCUi
-	oCFz7SxQRBBTbvOSzL9lSVl+wVGT2JqKQkK+2FEv32qbJmTot7Epk2qB0
-X-Gm-Gg: AYBFou0rlsjhAdY/hCsOHZCV3caSyBfTcFgS2/niogY6QQTjUH7Botc9JOLxZmhrqEy
-	923P2BwA5t5LMuR83fwqkliM0scVK/tK9BiURvBRTwjotovsSxmBN6Y9tGwoLOLdJBi5b17qQ3p
-	ev6kqDr/yBKLZ+5Vp/AXAfPMfN4ezj5XZAfeh8rbuabdvDUueUaBWb6PSjhTbtyhPZhozylcUH2
-	vbb4fG/bmJeNWkaoma31BDbk+tZUZi0Y96Qijo4kdf6RSfNc6ASPWUtipZ4hV1wBrflgoPo/Dba
-	xAX2ZOYoQU+5oyPqjVK5eb2e23W/sbj5PCFTbQptLBapnVLArrnig2h8/ssG47qOdISjvdzCgcw
-	DNB499CDfBFKJLM7dz4n6r5QpvuvWa3DdXZP4XXF3gUJA
-X-Received: by 2002:ac8:5a16:0:b0:535:2c46:19bb with SMTP id d75a77b69052e-5359fb5a498mr309884481cf.41.1792028173862;
-        Wed, 14 Oct 2026 18:36:13 -0700 (PDT)
-X-Received: by 2002:ac8:5a16:0:b0:535:2c46:19bb with SMTP id d75a77b69052e-5359fb5a498mr309884301cf.41.1792028173414;
-        Wed, 14 Oct 2026 18:36:13 -0700 (PDT)
-Received: from [127.0.1.1] (dyn-160-39-33-242.dyn.columbia.edu. [160.39.33.242])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5361279a933sm12657661cf.6.2026.10.14.18.36.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 Oct 2026 18:36:12 -0700 (PDT)
-From: Tal Zussman <tz2294@columbia.edu>
-Date: Wed, 14 Oct 2026 21:35:51 -0400
-Subject: [PATCH 7/7] ecryptfs: refer to folios in comments and printk
- strings
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.b="mkH2HjGO"
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=E17YEsFh6XSH2r7pXJNy8yLvPwELwbsMQXYgrv/NATk=;
+	b=mkH2HjGO1yRj5ZEhDW16E+gYaC3mINE9PCQdk6b4emrFZjqLatLCDbD6VcNWEucDEMgg7fjDm
+	efRkpsabNJluFnsTPasFB40sF9aZvT70s0fXCNyw96mK+ZjjvMvweP8fYjFjgmFM9TARqnDPP+Z
+	two6/q/99KzFphsg8KnLHt4=
+Received: from mail.maildlp.com (unknown [172.19.163.0])
+	by canpmsgout03.his.huawei.com (SkyGuard) with ESMTPS id 4j56JF5BPpzpT0F;
+	Thu, 15 Oct 2026 20:07:09 +0800 (CST)
+Received: from whupemk100010.china.huawei.com (unknown [7.152.184.41])
+	by mail.maildlp.com (Postfix) with ESMTPS id E20DE40537;
+	Thu, 15 Oct 2026 20:19:46 +0800 (CST)
+Received: from octopus.huawei.com (10.67.174.191) by
+ whupemk100010.china.huawei.com (7.152.184.41) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Thu, 15 Oct 2026 20:19:41 +0800
+From: Cai Xinchen <caixinchen1@huawei.com>
+To: <mic@digikod.net>, <gnoack@google.com>, <paul@paul-moore.com>,
+	<jmorris@namei.org>, <serge@hallyn.com>, <corbet@lwn.net>,
+	<skhan@linuxfoundation.org>
+CC: <ast@kernel.org>, <daniel@iogearbox.net>, <andrii@kernel.org>,
+	<eddyz87@gmail.com>, <memxor@gmail.com>, <martin.lau@linux.dev>,
+	<song@kernel.org>, <yonghong.song@linux.dev>, <jolsa@kernel.org>,
+	<emil@etsalapatis.com>, <ihor.solodrai@linux.dev>, <rdunlap@infradead.org>,
+	<gregkh@linuxfoundation.org>, <rafael@kernel.org>, <dakr@kernel.org>,
+	<johan@kernel.org>, <dlemoal@kernel.org>, <hch@lst.de>, <axboe@kernel.dk>,
+	<viro@zeniv.linux.org.uk>, <brauner@kernel.org>, <jack@suse.cz>,
+	<dhowells@redhat.com>, <code@tyhicks.com>, <linkinjeon@kernel.org>,
+	<sj1557.seo@samsung.com>, <yuezhang.mo@sony.com>,
+	<hirofumi@mail.parknet.co.jp>, <cel@kernel.org>, <jlayton@kernel.org>,
+	<neil@brown.name>, <okorniev@redhat.com>, <Dai.Ngo@oracle.com>,
+	<tom@talpey.com>, <hyc.lee@gmail.com>, <miklos@szeredi.hu>,
+	<amir73il@gmail.com>, <senozhatsky@chromium.org>,
+	<chenxiaosong@chenxiaosong.com>, <kpsingh@kernel.org>, <matt@bobrowski.net>,
+	<rostedt@goodmis.org>, <mhiramat@kernel.org>,
+	<mathieu.desnoyers@efficios.com>, <john.johansen@canonical.com>,
+	<georgia.garcia@canonical.com>, <zohar@linux.ibm.com>,
+	<roberto.sassu@huawei.com>, <dmitry.kasatkin@gmail.com>,
+	<eric.snowberg@oracle.com>, <stephen.smalley.work@gmail.com>,
+	<omosnacek@gmail.com>, <casey@schaufler-ca.com>, <takedakn@nttdata.co.jp>,
+	<penguin-kernel@I-love.SAKURA.ne.jp>, <xiujianfeng@huawei.com>,
+	<nanx95726@gmail.com>, <djwong@kernel.org>, <lujialin4@huawei.com>,
+	<bpf@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
+	<driver-core@lists.linux.dev>, <linux-block@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <netfs@lists.linux.dev>,
+	<ecryptfs@vger.kernel.org>, <exfat@lists.linux.dev>,
+	<linux-nfs@vger.kernel.org>, <ntfs@lists.linux.dev>,
+	<linux-unionfs@vger.kernel.org>, <linux-cifs@vger.kernel.org>,
+	<linux-trace-kernel@vger.kernel.org>, <apparmor@lists.ubuntu.com>,
+	<linux-integrity@vger.kernel.org>, <selinux@vger.kernel.org>,
+	<linux-kselftest@vger.kernel.org>
+Subject: [PATCH v2 -next 00/18] landlock: Add READ_METADATA and WRITE_METADATA access rights
+Date: Thu, 15 Oct 2026 20:54:06 +0800
+Message-ID: <20261015125425.3246251-1-caixinchen1@huawei.com>
+X-Mailer: git-send-email 2.18.0.huawei.25
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261014-ecryptfs-folio-v1-7-f4412187b1d3@columbia.edu>
-References: <20261014-ecryptfs-folio-v1-0-f4412187b1d3@columbia.edu>
-In-Reply-To: <20261014-ecryptfs-folio-v1-0-f4412187b1d3@columbia.edu>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Tal Zussman <tz2294@columbia.edu>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1792028164; l=11248;
- i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
- bh=6PcH1Ets7fX231wFfBtuXYP4Cc7vyT3z7PrZWJpJABQ=;
- b=2TOT/8RbFwmnZfnjenU+Q5wxDo1ENE28Y68xuVlXAucNsS97OlfUehUPZbHG/i30JloQWRXqF
- ZIdry0G8SFgDvZbyjNQLFgSKRuFL9c0rP+UYpTzC5KdSi+CWIWPiC2h
-X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
- pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
-X-Proofpoint-ORIG-GUID: MxWgJWP-L8Y0bdrEUPZFtX7nTAzbuA5H
-X-Proofpoint-GUID: MxWgJWP-L8Y0bdrEUPZFtX7nTAzbuA5H
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDE1MDAwNiBTYWx0ZWRfX1l1ruS4Ts8Dj
- KCWFXBBv6/e3VDR6/zaYNXscPUDj2gP3BlSxomsX2kBifj05UulHtZ/Ce7r2DKU4xT4t0IN2kkO
- AZfwjJx5r5OFdy4DEs9ocqzQbShtPwKfZxoRCg1mnqRgoMkNxVJAWmGYq0bIAZymspMPJ814TTM
- px6YICxk+yTXQvnB44MyC/cP6aXob/b62N5dBQm7y21ffy7zqXonenpCrOj8K+UDx8NO2TTRbDz
- O3930L0PI0rSO/O3TwsiEU1QYxk8OouxHcVjhDQrYqH48sRs1h7AHfwXl7NKROLFqOS6tHD7Wce
- Uaii0SzxpUi44aPujQ0k9YI7ORr3l8N2kIJYpW6qjeE4XDom4Et5sVvQjJEDBblarz5Rjj+V9I9
- DS6KVIsYlVEOzZY07qwrqw6JnBJr5xgxVrntYsNVfk5ijSPsOT0UMXopU8xV642M9yKs410BIa3
- rifWSWjzF2s30U5vS/g==
-X-Authority-Analysis: v=2.4 cv=E5xYNqdl c=1 sm=1 tr=0 ts=6ad02e0f cx=c_pps
- a=JbAStetqSzwMeJznSMzCyw==:117 a=GaPK54s0Se3oFqK5NkZy0g==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=G--0XuH5328wxK7v7Suf:22
- a=grxN3znV8bAwAY1ShfsA:9 a=QEXdDO2ut3YA:10 a=uxP6HrT_eTzRwkO_Te1X:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDE1MDAwNiBTYWx0ZWRfXzpFND4VqU+sr
- NAR6VGZ6201gx4p7rBKo8Nw3AjVpWuSoaxsGm55kXqvelb3ie7hLRuKP/pz1cmy5ZSCSfl3wJ5E
- SX+cYt6U1DIQT+r2T58kluPGc56ObsDztCLnJJ9dYO7Oxr9X4fYo
-X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11935
- signatures=596817
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 impostorscore=10 adultscore=0 spamscore=0 lowpriorityscore=10
- priorityscore=1501 phishscore=0 suspectscore=0 bulkscore=10 malwarescore=0
- classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
- reason=mlx scancount=1 engine=8.22.0-2610080000 definitions=main-2610150006
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems500001.china.huawei.com (7.221.188.70) To
+ whupemk100010.china.huawei.com (7.152.184.41)
 
-Update the comments and printk strings to refer to folios instead of
-pages. While at it, join the strings that were split across lines, use
-pr_err() for the printk(KERN_ERR) calls among them, and fix the block
-comment style.
+This series adds two new Landlock filesystem access rights,
+LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
+which control access to file and directory metadata such as inode
+attributes (mode, ownership, timestamps), extended attributes, POSIX
+ACLs and chattr(1)-style flags.  It picks up the work from the
+"landlock: add chmod and chown support" series [1] and follows the
+coarse-grained grouping discussed in that thread [2]: instead of
+separate chmod/chown rights, metadata operations are grouped into one
+read and one write right.
 
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
----
- fs/ecryptfs/crypto.c     | 17 ++++++++---------
- fs/ecryptfs/mmap.c       | 36 +++++++++++++++++-------------------
- fs/ecryptfs/read_write.c | 36 ++++++++++++++++++------------------
- 3 files changed, 43 insertions(+), 46 deletions(-)
+Landlock evaluates access rights on a per-path basis, but the
+metadata related LSM hooks (inode_setattr, inode_setsecctx, the inode
+xattr, POSIX ACL and fileattr hooks) only receive the dentry of the
+accessed object.  Patches 1-8 therefore first pass struct path
+instead of dentry through the metadata-related VFS helpers and LSM
+hooks.  This is a pure refactoring with no behavior change, split so
+that every patch builds on its own:
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index bbaeb9a38db0..d426dc95517c 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -214,7 +214,7 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- /*
-  * lower_offset_for_folio
-  *
-- * Convert an eCryptfs page index into a lower byte offset
-+ * Convert an eCryptfs folio index into a lower byte offset
-  */
- static loff_t lower_offset_for_folio(struct ecryptfs_crypt_stat *crypt_stat,
- 				    struct folio *folio)
-@@ -263,9 +263,8 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
- 	rc = crypt_scatterlist(crypt_stat, dst_sgp, &src_sg, extent_size,
- 			       extent_iv, op);
- 	if (rc < 0) {
--		printk(KERN_ERR "%s: Error attempting to crypt page with "
--		       "page_index = [%ld], extent_offset = [%ld]; "
--		       "rc = [%d]\n", __func__, page_index, extent_offset, rc);
-+		pr_err("%s: Error attempting to crypt folio with page_index = [%ld], extent_offset = [%ld]; rc = [%d]\n",
-+		       __func__, page_index, extent_offset, rc);
- 		goto out;
- 	}
- 	rc = 0;
-@@ -279,8 +278,8 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
-  *        decrypted content that needs to be encrypted (to a temporary
-  *        buffer; not in place) and written out to the lower file
-  *
-- * Encrypt an eCryptfs page. This is done on a per-extent basis. Note
-- * that eCryptfs pages may straddle the lower pages -- for instance,
-+ * Encrypt an eCryptfs folio. This is done on a per-extent basis. Note
-+ * that eCryptfs folios may straddle the lower pages -- for instance,
-  * if the file was created on a machine with an 8K page size
-  * (resulting in an 8K header), and then the file is copied onto a
-  * host with a 32K page size, then when reading page 0 of the eCryptfs
-@@ -341,10 +340,10 @@ int ecryptfs_encrypt_folio(struct folio *folio)
-  * ecryptfs_decrypt_folio
-  * @folio: Folio mapped from the eCryptfs inode for the file; data read
-  *        and decrypted from the lower file will be written into this
-- *        page
-+ *        folio
-  *
-- * Decrypt an eCryptfs page. This is done on a per-extent basis. Note
-- * that eCryptfs pages may straddle the lower pages -- for instance,
-+ * Decrypt an eCryptfs folio. This is done on a per-extent basis. Note
-+ * that eCryptfs folios may straddle the lower pages -- for instance,
-  * if the file was created on a machine with an 8K page size
-  * (resulting in an 8K header), and then the file is copied onto a
-  * host with a 32K page size, then when reading page 0 of the eCryptfs
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index d841610644ed..305231cd5336 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -188,16 +188,16 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 					folio->index, 0, folio_size(folio),
- 					inode);
- 			if (err) {
--				printk(KERN_ERR "Error reading page; err = "
--				       "[%d]\n", err);
-+				pr_err("Error reading folio; err = [%d]\n",
-+				       err);
- 				goto out;
- 			}
- 		}
- 	} else {
- 		err = ecryptfs_decrypt_folio(folio);
- 		if (err) {
--			ecryptfs_printk(KERN_ERR, "Error decrypting page; "
--					"err = [%d]\n", err);
-+			ecryptfs_printk(KERN_ERR, "Error decrypting folio; err = [%d]\n",
-+					err);
- 			goto out;
- 		}
- 	}
-@@ -264,8 +264,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 			rc = ecryptfs_read_lower_folio_segment(
- 				folio, index, 0, PAGE_SIZE, mapping->host);
- 			if (rc) {
--				printk(KERN_ERR "%s: Error attempting to read "
--				       "lower page segment; rc = [%d]\n",
-+				pr_err("%s: Error attempting to read lower folio segment; rc = [%d]\n",
- 				       __func__, rc);
- 				folio_clear_uptodate(folio);
- 				goto out;
-@@ -291,8 +290,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 					folio, index, 0, PAGE_SIZE,
- 					mapping->host);
- 				if (rc) {
--					printk(KERN_ERR "%s: Error reading "
--					       "page; rc = [%d]\n",
-+					pr_err("%s: Error reading folio; rc = [%d]\n",
- 					       __func__, rc);
- 					folio_clear_uptodate(folio);
- 					goto out;
-@@ -307,9 +305,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 			} else if (len < PAGE_SIZE) {
- 				rc = ecryptfs_decrypt_folio(folio);
- 				if (rc) {
--					printk(KERN_ERR "%s: Error decrypting "
--					       "page at index [%ld]; "
--					       "rc = [%d]\n",
-+					pr_err("%s: Error decrypting folio at index [%ld]; rc = [%d]\n",
- 					       __func__, folio->index, rc);
- 					folio_clear_uptodate(folio);
- 					goto out;
-@@ -333,8 +329,10 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 			}
- 		}
- 	}
--	/* Writing to a new page, and creating a small hole from start
--	 * of page?  Zero it out. */
-+	/*
-+	 * Writing to a new folio, and creating a small hole from start
-+	 * of folio? Zero it out.
-+	 */
- 	if ((i_size_read(mapping->host) == prev_page_end_size)
- 	    && (pos != 0))
- 		folio_zero_range(folio, 0, PAGE_SIZE);
-@@ -443,8 +441,8 @@ static int ecryptfs_write_end(const struct kiocb *iocb,
- 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
- 	int rc;
- 
--	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_folio"
--			"(page w/ index = [0x%.16lx], to = [%d])\n", index, to);
-+	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_folio(folio w/ index = [0x%.16lx], to = [%d])\n",
-+			index, to);
- 	if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
- 		rc = ecryptfs_write_lower_folio_segment(ecryptfs_inode,
- 				folio, 0, to);
-@@ -465,14 +463,14 @@ static int ecryptfs_write_end(const struct kiocb *iocb,
- 	/* Fills in zeros if 'to' goes beyond inode size */
- 	rc = fill_zeros_to_end_of_folio(folio, to);
- 	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "Error attempting to fill "
--			"zeros in page with index = [0x%.16lx]\n", index);
-+		ecryptfs_printk(KERN_WARNING, "Error attempting to fill zeros in folio with index = [0x%.16lx]\n",
-+				index);
- 		goto out;
- 	}
- 	rc = ecryptfs_encrypt_folio(folio);
- 	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
--				"index [0x%.16lx])\n", index);
-+		ecryptfs_printk(KERN_WARNING, "Error encrypting folio (upper index [0x%.16lx])\n",
-+				index);
- 		goto out;
- 	}
- 	if (pos + copied > i_size_read(ecryptfs_inode)) {
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 611f74061441..a1949c769225 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -48,8 +48,8 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
-  * @size: The amount of data from @folio_for_lower to write to the
-  *        lower file
-  *
-- * Determines the byte offset in the file for the given page and
-- * offset within the page, maps the page, and makes the call to write
-+ * Determines the byte offset in the file for the given folio and
-+ * offset within the folio, maps the folio, and makes the call to write
-  * the contents of @folio_for_lower to the lower inode.
-  *
-  * Returns zero on success; non-zero otherwise
-@@ -80,7 +80,7 @@ int ecryptfs_write_lower_folio_segment(struct inode *ecryptfs_inode,
-  * @size: The number of bytes to write from @data
-  *
-  * Write an arbitrary amount of data to an arbitrary location in the
-- * eCryptfs inode page cache. This is done on a page-by-page, and then
-+ * eCryptfs inode page cache. This is done on a folio-by-folio, and then
-  * by an extent-by-extent, basis; individual extents are encrypted and
-  * written to the lower page cache (via VFS writes). This function
-  * takes care of all the address translation to locations in the lower
-@@ -133,10 +133,8 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 				ecryptfs_page_idx, NULL);
- 		if (IS_ERR(ecryptfs_folio)) {
- 			rc = PTR_ERR(ecryptfs_folio);
--			printk(KERN_ERR "%s: Error getting page at "
--			       "index [%ld] from eCryptfs inode "
--			       "mapping; rc = [%d]\n", __func__,
--			       ecryptfs_page_idx, rc);
-+			pr_err("%s: Error getting folio at index [%ld] from eCryptfs inode mapping; rc = [%d]\n",
-+			       __func__, ecryptfs_page_idx, rc);
- 			goto out;
- 		}
- 		folio_lock(ecryptfs_folio);
-@@ -146,11 +144,13 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 		 * pos: where we're now writing, offset: where the request was
- 		 * If current pos is before request, we are filling zeros
- 		 * If we are at or beyond request, we are writing the *data*
--		 * If we're in a fresh page beyond eof, zero it in either case
-+		 * If we're in a fresh folio beyond eof, zero it in either case
- 		 */
- 		if (pos < offset || !start_offset_in_page) {
--			/* We are extending past the previous end of the file.
--			 * Fill in zero values to the end of the page */
-+			/*
-+			 * We are extending past the previous end of the file.
-+			 * Fill in zero values to the end of the folio.
-+			 */
- 			memset(((char *)ecryptfs_page_virt
- 				+ start_offset_in_page), 0,
- 				PAGE_SIZE - start_offset_in_page);
-@@ -176,8 +176,8 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 						data_offset);
- 		folio_put(ecryptfs_folio);
- 		if (rc) {
--			printk(KERN_ERR "%s: Error encrypting "
--			       "page; rc = [%d]\n", __func__, rc);
-+			pr_err("%s: Error encrypting folio; rc = [%d]\n",
-+			       __func__, rc);
- 			goto out;
- 		}
- 		pos += num_bytes;
-@@ -230,16 +230,16 @@ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
-  * ecryptfs_read_lower_folio_segment
-  * @folio_for_ecryptfs: The folio into which data for eCryptfs will be
-  *                     written
-- * @page_index: Page index in @page_for_ecryptfs from which to start
-+ * @page_index: Page index in @folio_for_ecryptfs from which to start
-  *		writing
-- * @offset_in_page: Offset in @page_for_ecryptfs from which to start
-+ * @offset_in_page: Offset in @folio_for_ecryptfs from which to start
-  *                  writing
-- * @size: The number of bytes to write into @page_for_ecryptfs
-+ * @size: The number of bytes to write into @folio_for_ecryptfs
-  * @ecryptfs_inode: The eCryptfs inode
-  *
-- * Determines the byte offset in the file for the given page and
-- * offset within the page, maps the page, and makes the call to read
-- * the contents of @page_for_ecryptfs from the lower inode.
-+ * Determines the byte offset in the file for the given folio and
-+ * offset within the folio, maps the folio, and makes the call to read
-+ * the contents of @folio_for_ecryptfs from the lower inode.
-  *
-  * Returns zero on success; non-zero otherwise
-  */
+  1: notify_change() and its callers
+  2: inode_setsecctx hook (must come before 3: the SELinux and Smack
+     implementations call __vfs_setxattr_locked internally)
+  3: xattr helpers, which also drops a redundant EVM xattr size sanity
+     check whose vfs_getxattr() call only has a dentry and therefore
+     cannot be migrated to the new path-based signature
+  4: POSIX ACL helpers
+  5: inode_setattr hook
+  6: inode xattr hooks
+  7: inode POSIX ACL hooks
+  8: inode fileattr hooks (FS_IOC_[GS]ETFLAGS, FS_IOC_FS[SG]ETXATTR,
+     file_[gs]etattr(2)), which also adds __vfs_fileattr_[gs]et()
+     counterparts without security checks for the fileattr forwards
+     of ecryptfs and overlayfs, following the __vfs_setxattr_noperm()
+     precedent, and removes the ovl_security_fileattr() hack
+
+Two deliberate scoping decisions for this refactor:
+
+- The hooks consistently take struct path rather than struct file.  The
+  VFS call sites involved (chmod(2), chown(2), utimensat(2), xattr(2)
+  and ACL syscalls) operate on paths, and several of them (lstat(2),
+  lchown(2), llistxattr(2), ...) have no struct file to begin with.
+
+- struct inode_operations->setattr still receives (idmap, dentry, attr).
+  Only the VFS boundary (notify_change()) and the LSM hook layer see the
+  path, which keeps the refactor contained to fs/attr.c and the LSM
+  infrastructure instead of touching every filesystem.
+
+Since these hooks now operate on paths rather than inodes, patches
+10-15 rename them to the path_* naming convention used by the other
+hooks that take a struct path (path_chmod, path_chown, path_link,
+...).  The inode_getattr hook, which already received a struct path,
+is renamed to path_getattr for consistency as well.  These renames
+are purely mechanical and can be reviewed, or dropped, independently.
+
+Patch 9 then adds the access rights and implements the hooks, and
+patches 16-18 add the selftests, the sandboxer sample update and the
+documentation.  Semantics:
+
+- READ_METADATA covers stat(2) and friends, getxattr(2) and friends,
+  listxattr(2) and friends, POSIX ACL reads, and the chattr(1)-style
+  reads ioctl(FS_IOC_GETFLAGS), ioctl(FS_IOC_FSGETXATTR) and
+  file_getattr(2).
+- WRITE_METADATA covers chmod(2) and friends, chown(2) and friends,
+  utimensat(2) and friends, setxattr(2) and friends, removexattr(2)
+  and friends, POSIX ACL set and remove, and the chattr(1)-style
+  writes ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSSETXATTR) and
+  file_setattr(2).
+- Only explicit metadata changes requested by user space are
+  restricted.  Implicit changes performed by the kernel (e.g.
+  timestamp updates and size changes on write(2) or truncate(2)) are
+  not, and neither are chmod(2)/chown(2) calls that change nothing
+  (e.g. chown(2) with (-1, -1), which never reaches the hook),
+  matching the SELinux inode_setattr behavior.
+- Clearing the set-user-ID and set-group-ID bits after write(2) or
+  truncate(2) does not require WRITE_METADATA either: the mode
+  change that the kernel synthesizes from ATTR_KILL_S[UG]ID is
+  ignored, like SELinux and Smack do.
+- Kernel-internal accesses performed with override_creds() (e.g.
+  overlayfs, cachefiles) and kernel threads without a Landlock
+  domain (e.g. nfsd, ksmbd) are not restricted.
+
+The Landlock ABI version is incremented from 12 to 13; ABI 12 was
+taken by the capability and namespace use restrictions that are
+already in linux-next.
+
+The series is based on linux-next commit d419d682257d ("Add linux-next
+specific files for 20261014").
+
+Testing: each of the 19 trees (the base plus one per patch) builds
+for aarch64 (gcc), with the sandboxer sample cross-compiled at every
+step, and the landlock selftests (including the new ones) pass in
+QEMU on aarch64 with a kernel built from this series; base_test
+reports ABI v13.
+
+Changes since v1 [3]:
+
+- Rebased onto next-20261014; the Landlock ABI version is now 13
+  (12 was taken upstream, see above).
+- New fileattr coverage: ioctl(FS_IOC_GETFLAGS),
+  ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSGETXATTR) and
+  ioctl(FS_IOC_FSSETXATTR) are now controlled as well, through the
+  inode_file_getattr and inode_file_setattr hooks, with the ecryptfs
+  and overlayfs fileattr forwards taken into account (new patch 8),
+  and new selftests: fileattr, fileattr_write_only,
+  layout2_overlay.fileattr and overlay_mount_denied.
+- Clearing the set-user-ID and set-group-ID bits on write(2) or
+  truncate(2) no longer requires WRITE_METADATA (see above); the
+  write_metadata selftest now checks it.
+- v1 patches 8 ("Add READ_METADATA and WRITE_METADATA access rights")
+  and 9 ("Implement the metadata access hooks") are folded into one
+  patch (now patch 9).
+- New patches 10-15: rename the updated hooks to the path_*
+  convention (see above).
+- The sandboxer sample and the documentation are updated accordingly.
+
+[1]https://lore.kernel.org/all/20220827111215.131442-1-xiujianfeng@huawei.com/
+[2]https://lore.kernel.org/all/abc960a1-e66e-792e-6869-cfd201c29dbe@digikod.net/
+[3]https://lore.kernel.org/all/20260924104831.1081137-1-caixinchen1@huawei.com/
+
+Link: https://github.com/landlock-lsm/linux/issues/11
+
+Cai Xinchen (18):
+  fs: pass struct path to notify_change()
+  LSM: pass struct path to the inode_setsecctx hook
+  fs: pass struct path to xattr helpers
+  fs: pass struct path to POSIX ACL helpers
+  LSM: pass struct path to the inode_setattr hook
+  LSM: pass struct path to the inode xattr hooks
+  LSM: pass struct path to the inode posix acl hooks
+  LSM: pass struct path to the inode fileattr hooks
+  landlock: Add READ_METADATA and WRITE_METADATA access rights
+  LSM: rename inode_getattr to path_getattr
+  LSM: rename inode_setattr to path_setattr
+  LSM: rename the inode xattr hooks to path_xattr hooks
+  LSM: rename the inode posix acl hooks to path_*_acl hooks
+  LSM: rename the inode fileattr hooks to path_file_* hooks
+  LSM: rename inode_setsecctx to path_setsecctx
+  selftests/landlock: Add tests for metadata access rights
+  samples/landlock: Add metadata rights to sandboxer
+  Documentation: Update landlock doc for metadata rights
+
+ Documentation/bpf/fs_kfuncs.rst               |   2 +-
+ Documentation/userspace-api/landlock.rst      |  47 +-
+ drivers/base/devtmpfs.c                       |   6 +-
+ drivers/block/zloop.c                         |   4 +-
+ fs/attr.c                                     | 107 +++-
+ fs/bpf_fs_kfuncs.c                            |   6 +-
+ fs/cachefiles/xattr.c                         |  35 +-
+ fs/coredump.c                                 |   2 +-
+ fs/ecryptfs/inode.c                           |  38 +-
+ fs/exfat/file.c                               |   3 +-
+ fs/fat/file.c                                 |   3 +-
+ fs/file_attr.c                                | 128 ++--
+ fs/inode.c                                    |   7 +-
+ fs/internal.h                                 |  17 +-
+ fs/namei.c                                    |   7 +-
+ fs/nfsd/nfs4ctl.h                             |   4 +-
+ fs/nfsd/nfs4state.c                           |  14 +-
+ fs/nfsd/nfs4xdr.c                             |   2 +-
+ fs/nfsd/state.h                               |   2 +-
+ fs/nfsd/vfs.c                                 |  75 ++-
+ fs/ntfs/named_stream.c                        |   2 +-
+ fs/open.c                                     |  18 +-
+ fs/overlayfs/copy_up.c                        |   4 +-
+ fs/overlayfs/inode.c                          |  53 +-
+ fs/overlayfs/overlayfs.h                      |  39 +-
+ fs/overlayfs/xattrs.c                         |  10 +-
+ fs/posix_acl.c                                |  46 +-
+ fs/smb/server/smb2pdu.c                       |  83 +--
+ fs/smb/server/smb_common.c                    |   2 -
+ fs/smb/server/smbacl.c                        |  21 +-
+ fs/smb/server/tests/smbacl_kunit.c            |   6 +-
+ fs/smb/server/vfs.c                           | 128 ++--
+ fs/smb/server/vfs.h                           |  41 +-
+ fs/smb/server/vfs_cache.c                     |   3 +-
+ fs/stat.c                                     |   4 +-
+ fs/utimes.c                                   |   3 +-
+ fs/xattr.c                                    |  96 +--
+ include/linux/fileattr.h                      |   8 +-
+ include/linux/fs.h                            |   8 +-
+ include/linux/landlock.h                      |   4 +-
+ include/linux/lsm_hook_defs.h                 |  37 +-
+ include/linux/posix_acl.h                     |  21 +-
+ include/linux/security.h                      |  77 +--
+ include/linux/xattr.h                         |  22 +-
+ include/uapi/linux/landlock.h                 |  25 +-
+ kernel/bpf/bpf_lsm.c                          |  10 +-
+ kernel/trace/bpf_trace.c                      |   2 +-
+ samples/landlock/sandboxer.c                  |  16 +-
+ security/apparmor/lsm.c                       |   4 +-
+ security/commoncap.c                          |  22 +-
+ security/integrity/evm/evm_crypto.c           |   8 +-
+ security/integrity/evm/evm_main.c             |  60 +-
+ security/integrity/ima/ima_appraise.c         |  25 +-
+ security/landlock/fs.c                        | 126 ++++
+ security/landlock/limits.h                    |   2 +-
+ security/landlock/syscalls.c                  |   2 +-
+ security/security.c                           | 143 ++---
+ security/selinux/hooks.c                      |  85 +--
+ security/smack/smack_lsm.c                    |  98 +--
+ security/tomoyo/tomoyo.c                      |   6 +-
+ .../testing/selftests/bpf/prog_tests/d_path.c |   2 +-
+ .../selftests/bpf/prog_tests/fs_kfuncs.c      |  10 +-
+ .../testing/selftests/bpf/progs/test_d_path.c |   2 +-
+ .../bpf/progs/test_d_path_check_rdonly_mem.c  |   2 +-
+ .../bpf/progs/test_d_path_check_types.c       |   2 +-
+ .../selftests/bpf/progs/test_get_xattr.c      |   6 +-
+ .../bpf/progs/test_set_remove_xattr.c         |  31 +-
+ .../bpf/progs/verifier_lsm_init_xattr.c       |   4 +-
+ .../selftests/bpf/progs/verifier_vfs_accept.c |   2 +-
+ .../selftests/bpf/progs/verifier_vfs_reject.c |   2 +-
+ tools/testing/selftests/landlock/base_test.c  |   2 +-
+ tools/testing/selftests/landlock/fs_test.c    | 606 +++++++++++++++++-
+ .../selftests/landlock/trace_fs_test.c        |   3 +-
+ 73 files changed, 1683 insertions(+), 870 deletions(-)
 
 -- 
-2.39.5
+2.18.0.huawei.25
 
