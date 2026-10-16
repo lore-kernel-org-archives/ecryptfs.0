@@ -1,72 +1,77 @@
-Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D984F5476D1
-	for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 17:06:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94F3542805
+	for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 17:06:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792170404; cv=none; b=HYorOIwriR1AT6OzTWPcFj6lplhWvpGL5n9csAUPe8Ux+YYQSyY/PxXTX2iyDsO9EntLbc5WfpuL8xy2bSWPUYgnYTgTjrqDxM1FrIA0pXhdr+UTtH6PFn5v02nhqB03Tl+uuXUf0wbZHh/tfcPk37ZfKkhdjLxRaLUPbQ0vTcc=
+	t=1792170407; cv=none; b=KbGAgWrSX6U6qjNXS+gXBTm6WFbiaG7EUyrKhBqgdHFZ0ySwuqLOwTtzjIMH2F6kq20hC2EPLW70aFjbusVft+2CxSQyvDL4/ifMBe3y317jiadr6mX+JmeT1zrYasLIKi3pSMb5Bd/O2IepNhd8tIRrRToAI9o4pF5PeHydO6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792170404; c=relaxed/simple;
-	bh=jBWZwIMiOxyxYojRsXD6S4nvuQkHBu+rSMXSXxQ5PZQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bnnxruylVC8kaVhfwyWGFsD7GPqcXazfAFoBOcDO3WarUdVfKbKoN7dlK4w/cW5m/cDVNCOBICRcgK/Cxt5AttLWKbOcerFruMO9wBar6qUBijDqsSz3/4JmYlA5kf7iWjVCo12vXuQzagTp43+BxIdQB7E4y5j3qJACe5Cs5g8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=okRFUC9a; arc=none smtp.client-ip=74.125.82.180
+	s=arc-20240116; t=1792170407; c=relaxed/simple;
+	bh=jtdF2NbRO9Tk+EJfzWagLec3dR6hkcpuqPZZnpc2Vvg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BfuX4TTZOlG/WodMM+TsuDn+Qca7pW+XHWH6MuvoQtOruZq3BxPPdAJ5nG6NDHyhT5Gh9ByfmfzDQYI7Xm3rbZNAlWPFDopJ72sL3elROeA2mZe9ffWaWJ+CCSZIxAz+59BXiGd2KQi4F6oexWa61pT9cXO45rSg0g7QMjfP7as=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U/MuoAAR; arc=none smtp.client-ip=74.125.82.178
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="okRFUC9a"
-Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-35ef6b49813so199220eec.0
-        for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 10:06:42 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U/MuoAAR"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-3514b90bb89so222446eec.1
+        for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 10:06:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792170402; x=1792775202; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to:content-type;
-        bh=gl1azP5WKss8k1lh9wXiZ7oCRnOGPPksswe4Q0rIdDg=;
-        b=okRFUC9aYG6Qz37SVSCvJDn1mV25j1sTnenL1GEtSwRJX5foGTU54BDlWzEqM7RBDK
-         M34/3s3smRzjVHKzlqyZC5/Fsv3qKVXltWO5KztHqhclRjNmTZ1pQBFlzSOIQsGszorm
-         RvJJluIHmS/HoyySL9TidEzz//YJFPxWOLKenIo1DGj2a9TlBGXEdnbycusbAPvrAgpe
-         HVlYNZ359sD9I5dKZx0PH2ZSAZuaPVDpRocXc8OH2l8+PDdp6FGm8VaL9R+CgCu0Rsfk
-         +5uUzVUD5r/I9M0MAMD+vXfp6Kgd3qMG0x8BtePbgOCAXJMLhGAm2LlR9i60gS7E4Ssh
-         4PUw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792170402; x=1792775202;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20251104; t=1792170405; x=1792775205; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=gl1azP5WKss8k1lh9wXiZ7oCRnOGPPksswe4Q0rIdDg=;
-        b=rebQP/3ZR60Wu7+qbo9o4L3EcgR+adt/ZYvbca9Sghc0VQiIr+nDv7+cKrzNLRDXFv
-         1RZnkpS7GOoOkqvTVqXKWeBgmt+jdJ4AVrrgD+Ho11HWq82i9TebgPqYcqVmNAkajeZ7
-         JD+4qyIEaLFMW9UfuRQv9VRdhIGwDCQg7azMi/lcB6XcjIKcda5FMaBIMF5ulxR2dJRs
-         yvhNgfSw8ztBWW15CoOnvcS1joXt9c9/+C8NCxkaWzP6c4Z95pdUcZmBEqZkNACJPKsT
-         KbF0j6o5xQS822ebtIkxicIYJ1VuuGJmm7kYuDE8TzEU3pv7GdZ+RbhsVYGOb1o0ddaQ
-         T4zw==
-X-Forwarded-Encrypted: i=1; AKwUvBzFG2/VX1EkVqHss+D7mk16Z+Gi+N9mt2BiVUjMC2hlG8Z1C5O9GV8cqUb8kxpNG61VCLO0M4IqKg==@vger.kernel.org
-X-Gm-Message-State: AFq9FYLE5Suqeyud6dN3mTFxHfHCezMPBc3RZ5D664yGU5d4VEdhCNyi
-	zwalYJ3FUhZttjfT/ET3sHxsuhLBT2sHysiJt0EZr3YYr47xo099dB9h
-X-Gm-Gg: AYBFou0/cba2+yIRzXD1SMzzTayYW/j67yi+bgCcRa7mG1vw8lnNc8zrhUTOo4wbE3+
-	4l62LpOcIhn9CZcY14NGVehu38hKb/5qF07yB2rzZHQxc9K8EuYNHWAC75tE0AobZBk0Wlt7OM6
-	kRhY+uOiepGV8pz0EJQwJcoXxRr3qrLvuqAGwWb2TP1mSGAPF64CweymDToj20BgfqzQtdxr5aJ
-	9M602uGhPT4yDUsh9Sl9k+J+U3vJpvBsqRStK5PdYKwVS4elcdbnYnIlUrO2c8EZVRqUgQTsfrc
-	ziIKwBbFoQVdVVZYroe/QgFxKwB8vYEPYSWv5VqmYCBVw6Gj9URcunhSK4l1ZhrcMHYjSLpfU9H
-	Ow62Sr6gCOyKHocZIVCPVM86Bq3Ansj89b9C4rZ4sYwO3avYxkZ6vMZVPzQ8vdNj/Am05RsGfyz
-	thRCV/FMI/OntAJHK596yvX29My2X1B12zxUxPNdJT6xvcnDARwRJ9ZE0NpgxM
-X-Received: by 2002:a05:701b:4291:10b0:166:9e0d:3b56 with SMTP id a92af1059eb24-18513e7c690mr599794c88.38.1792170401713;
-        Fri, 16 Oct 2026 10:06:41 -0700 (PDT)
+        bh=GxIjjfxwXom2YZho8tvK34GRsgnUG+0wvm+DBzj19gg=;
+        b=U/MuoAAR369u4J5sLi4C/rJPfadtfJUQyKL5XEwcAJ8O/AbVncLqW1gQ6FgyvO+Tju
+         EgNy7V/c37UuALpZ01DGdiDfLRiUkpqsMvO7N2ePUQI/qsh3645d/SjKXOCSxuVOA4uD
+         hZoVA6aZE+eOctU0f1zKXx//Z2sQU1LgtJ/9KSd1ozhhSL9Nt36WuQziF98M4/z9hdXD
+         LVJKQwyExXKKx8kCRLnvi/2wqLCnvsC439xXJX7e+I1ILQbevtV1lUULU0wXatTZSCE7
+         gpburMTWdxo53qf0/JOME2gkufc0L7Szkd+e7TooOjQw+rnio3cg4Ybdkr006IsWkxJu
+         d79w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792170405; x=1792775205;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=GxIjjfxwXom2YZho8tvK34GRsgnUG+0wvm+DBzj19gg=;
+        b=FDs9IckqKdwyYE2bAN4bBBS5ytEdpu69j3mAW9n37Nxjic3TTIvchYEFSWdgmXLOU9
+         Ar7bOQD4wyEF6O7+7BttkxM0xrAsAxo5YqqSjfQmIMUxsYUvMZfnkcOaFQTbigc81uIn
+         ue/x+OtD4DCYzDjXq7uSiIfXEBZkc7iaLByNnukdQ4/o3MlSXb0I+ktsAnH6ataFpSxF
+         0H3pF+/QZuZ9fGuSKCKrdy0hRaei1DlaSoOTjlWWrYAFouVV+2VKPvUBpRS9ZeGwbnUb
+         OtVGfcOg/xCqzG6WEBbmQWgJCGEjPKcoM5FxuysB+8Ajz2LCaGr0X2NVk82Z8/PLBXw7
+         2Cwg==
+X-Forwarded-Encrypted: i=1; AKwUvBxHJ+m9pD54fw0mHrBysewN90BQYeSy1jRIuM5DH9eNA6b+lmmBrxQSDSrdQdYp0BUBVlQHjPe4Kg==@vger.kernel.org
+X-Gm-Message-State: AFq9FYKKq38gdaCX2OCbsu90T0dGTd+ozCLIm/DxhOfUBNugSTzfL9FY
+	qVZ6CDhROyRzSJ1wwa4/v7Jt/bTI3y6r6rD5MUO1WHwpRYW7bxFHVIvS1Oy5RfjS
+X-Gm-Gg: AYBFou24GwwTdHwLtw4bg7X52uRZqobf1KTY3+bjylhi0NgBxno9oDv8D4VLsMFBuwt
+	q1llEnazSi17hPSdd2sgeUEwDQ1Q0O+auaBDHFR/5NusDaiBmO+IrrBAkgGtrFGrrKmEuNVX0rm
+	s8MMcutgcaR8qW8MdDEo4LEBBLUdl58ix1lQIUClh8rjWaYfmYabT4ZYjgQSxrmt+FRzWI7FcKO
+	PxE+5KKT7Z34oN5j22KFE9+c21nTFBrdXHSFMoGnaICo1ruLgMyagA/BlKeeVpcEHuOfxKMazGd
+	BumfK1v8CK77j/Yj3k4lohgz7o2fiI6jvGku6p5elf5ErPNzt10Tb899XUmCvD6lGtTqy7Q1QHB
+	/9EZVI7HZnyAJpbGWXNsyrxdvOZ1AWLrRi6sOdBfS1Gsmgy18HsUkz4b6ujqY+rC5FzSkVJWXt6
+	LjIk/bV0OadGm0qvNQ7+9EgByHK6eLDQNZmC3HA2ZbHvL/aw4HMxq8uLoU6CwI
+X-Received: by 2002:a05:701b:4502:10b0:143:6525:f9f6 with SMTP id a92af1059eb24-185118edabamr606397c88.13.1792170404876;
+        Fri, 16 Oct 2026 10:06:44 -0700 (PDT)
 Received: from adriano ([186.40.6.142])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1831a6f58c2sm11285825c88.11.2026.10.16.10.06.38
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1831a6f58c2sm11285825c88.11.2026.10.16.10.06.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 10:06:41 -0700 (PDT)
+        Fri, 16 Oct 2026 10:06:44 -0700 (PDT)
 From: Adriano Cordova <adrianox@gmail.com>
 To: Tyler Hicks <code@tyhicks.com>
 Cc: Nguyen Duy Nhat Anh <neganhat@gmail.com>,
 	ecryptfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Adriano Cordova <adrianox@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v3 1/2] ecryptfs: reject short encrypted key payloads
-Date: Fri, 16 Oct 2026 14:06:32 -0300
-Message-ID: <20261016170633.1415240-1-adrianox@gmail.com>
+	stable@vger.kernel.org,
+	syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
+Subject: [PATCH v3 2/2] ecryptfs: bound session_key_encryption_key_bytes in auth tok
+Date: Fri, 16 Oct 2026 14:06:33 -0300
+Message-ID: <20261016170633.1415240-2-adrianox@gmail.com>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20261016170633.1415240-1-adrianox@gmail.com>
+References: <20261016170633.1415240-1-adrianox@gmail.com>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -75,38 +80,44 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Reject payloads too short to hold a struct ecryptfs_auth_tok,
-as a key created with a non-ecryptfs format is shorter than
-the struct, so the payload gets dereferenced past its end.
+Let ecryptfs_verify_auth_tok_from_key() validate the password's
+session_key_encryption_key_bytes length. When it is larger than
+ECRYPTFS_MAX_KEY_BYTES, md5() reads past session_key_encryption_key[].
+Reject such auth toks.
 
-Fixes: 1252cc3b232e ("eCryptfs: added support for the encrypted key type")
+Fixes: 9c79f34f7ee7 ("eCryptfs: Filename Encryption: Tag 70 packets")
 Cc: <stable@vger.kernel.org>
+Reported-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=03c68e42ce4b33f7ce9b
+Tested-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
 Signed-off-by: Adriano Cordova <adrianox@gmail.com>
 ---
 Changes in v3:
 - Split the v2 patch.
+- Change the Link: tag to Closes:.
 - Remove Nguyen Duy Nhat Anh change and its Reported-by tag.
 
-Changes in v2:
-- Add Reported-by tag.
+ fs/ecryptfs/keystore.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
- fs/ecryptfs/ecryptfs_kernel.h | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 58165928ed1e..d4fef71738b0 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -88,6 +88,9 @@ ecryptfs_get_encrypted_key_payload_data(struct key *key)
- 	if (!payload)
- 		return ERR_PTR(-EKEYREVOKED);
- 
-+	if (payload->payload_datalen < sizeof(struct ecryptfs_auth_tok))
-+		return ERR_PTR(-EINVAL);
-+
- 	return (struct ecryptfs_auth_tok *)payload->payload_data;
+diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
+index 51651314b7a6..c2ba230c71fd 100644
+--- a/fs/ecryptfs/keystore.c
++++ b/fs/ecryptfs/keystore.c
+@@ -477,6 +477,13 @@ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
++	if ((*auth_tok)->token_type == ECRYPTFS_PASSWORD &&
++	    (*auth_tok)->token.password.session_key_encryption_key_bytes >
++	    ECRYPTFS_MAX_KEY_BYTES) {
++		printk(KERN_ERR "Invalid password auth_tok session key size\n");
++		rc = -EINVAL;
++		goto out;
++	}
+ out:
+ 	return rc;
  }
- 
 -- 
 2.51.0
 
