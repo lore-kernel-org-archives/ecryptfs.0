@@ -1,190 +1,178 @@
-Received: from outgoing2021.csail.mit.edu (outgoing2021.csail.mit.edu [128.30.2.78])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE0231C567;
-	Sun, 18 Oct 2026 02:38:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=128.30.2.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3A833A453B;
+	Sun, 18 Oct 2026 15:48:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792291123; cv=none; b=AemRoi5Ci3HLyH/4DTlUmjMsTfKlRtaHDDDSuWq5Nqg2p1vR9lbBPHqFvSCHbK5AxMnVxcSGvz50PDBICXfSqg0e51QrMhpRIZtRMhoiJ14ltXmiEBzctRBk6o/a+UPR3+Bw46xmyGxbRpc3w8E0DS0kSmWefayG2cDoEqS+/zY=
+	t=1792338522; cv=none; b=mQPBS+o84ndHvbu/QcdVOn1C4GVAz3KkMHOy+po/FHyJ1hA0VwMxGc05BP51inAKwA5NIHPzUfWko9D/iGKa3lou/NNSk+cymGWKFk0m/8bvXZvegGuC4+cljbBj3f9VF5uU83y7IV7IhFFaHC3rjBxnxchZ8u6V6AgcoytMMRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792291123; c=relaxed/simple;
-	bh=jTwpTmodEtB6gZq42D20BcrlywreEvYTF8Fo9a702qc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QCerAK9GwOkxW0wfTLcw3OJOv6Uv2d2pyGTRF+BagRSuxoBy6Ev9YddAedJ96iEKD6MJoUXjCRhCXDOmc+4kQsPaK6U+1xUSfqMVV3RKhj9zXzIewK6O1vcOKU5wQ2Cxy2+lZEC9RLXdRJfsTTl9IujU0I45Jde27kiN9Es4XzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=csail.mit.edu; spf=pass smtp.mailfrom=csail.mit.edu; arc=none smtp.client-ip=128.30.2.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=csail.mit.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csail.mit.edu
-Received: from escalante.csail.mit.edu ([128.52.128.198])
-	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
-	(envelope-from <nickolai@csail.mit.edu>)
-	id 1xIGnI-004O83-6S;
-	Sat, 17 Oct 2026 22:38:40 -0400
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: [PATCH v1] ecryptfs: release the inode when lookup fails to read the file size
-Date: Sat, 17 Oct 2026 22:38:39 -0400
-Message-ID: <20261018023840.798718-1-nickolai@csail.mit.edu>
-X-Mailer: git-send-email 2.53.0
+	s=arc-20240116; t=1792338522; c=relaxed/simple;
+	bh=FaRcLEUs6l15qig9t/5mUVXsio7boF41UEEgpQSRb4g=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=T55XSCI5Bv56z3Hz7iH+q3uCuqzavW/LdzfnBbLbQ+2F21ozj5E0tkJXj1ZPmVDvzuYoL1scaALTOtQ80iK+KwKQZK/ru7MWmriw/gq+yiB8Y9M/K3gqORZouwhMktbG+8pd2rix8Jejv23kJ6tLwNybtIYZvoT83l5E3tSmtZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WVyI2KX3; arc=none smtp.client-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WVyI2KX3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F62E1F000C8;
+	Sun, 18 Oct 2026 15:48:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1792338520;
+	bh=qHr+ZYKSpAzCi10EtcwRrDzJJq6BBKkyzbps+RPUef0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To;
+	b=WVyI2KX3sfSFb7oZBIkg5vyFZX7+LpvwVP7fn4Cty10Z+Y1LmZOfywyVqCXWWjkZk
+	 w0HsKNxrIpDN+fTkwgMX01zxZ9pMY6N/P1LtrU17V8ZUMVAxbiAmgrPDGg7W+Rjs6i
+	 cOUCAgudB6PnoTQaLURK0fj6/ZYFFSlnOyU9KKE/6KmvZiNJKMOPTK8W4Rny4GZZn5
+	 dnzO8E7iP9hzjx0W6bJF+lnhorAfjoibm0p1V0l9L9VW6uVghDWolJvqlzthVu28XZ
+	 /BYjpM8dC6pSBrEBdq8Xis70LV4n4Q0dBgk6Rq7VtYXCr+VagK8d6QqHe7hk60/2QA
+	 1AcOlXaFgMXKQ==
+Date: Sun, 18 Oct 2026 17:48:34 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Jan Kara <jack@suse.com>, Al Viro <viro@zeniv.linux.org.uk>, 
+	ecryptfs@vger.kernel.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, 
+	linux-nilfs@vger.kernel.org, exfat@lists.linux.dev, linux-fsdevel@vger.kernel.org, 
+	ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev, linux-btrfs@vger.kernel.org, 
+	gfs2@lists.linux.dev, linux-efi@vger.kernel.org, linux-mtd@lists.infradead.org, 
+	linux-xfs@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH RFC 20/28] gfs2: wait for a pending withdraw before
+ remounting read-only
+Message-ID: <20261018-ungemacht-sodbrennen-hausordnung-42d33a4f7098@brauner>
+References: <20261012-work-fs-sb_rdonly-v1-0-60743a3dc326@kernel.org>
+ <20261012-work-fs-sb_rdonly-v1-20-60743a3dc326@kernel.org>
+ <CAHc6FU5bdAjABRm=bnH68b2f66TZTDZ8sPdatLB2fS7-55U=yw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHc6FU5bdAjABRm=bnH68b2f66TZTDZ8sPdatLB2fS7-55U=yw@mail.gmail.com>
 
-When eCryptfs cannot open the lower file of a regular file during
-lookup, the lookup fails and leaks the eCryptfs inode it got, together
-with that inode's reference on the lower inode.  Every failed lookup
-leaks one more inode, and unmounting reports "VFS: Busy inodes after
-unmount of ecryptfs" (a BUG with CONFIG_BUG_ON_DATA_CORRUPTION).  The
-lower open fails, for example, with -ETXTBSY while the lower file is
-being executed, or when an LSM or the lower file system's ->open()
-refuses it; any user who can look up the name can repeat it.  A
-concurrent lookup that found the new inode before it was unhashed
-waits for I_NEW forever.
+On Fri, Oct 16, 2026 at 02:32:01AM +0200, Andreas Gruenbacher wrote:
+> Christian,
+> 
+> On Mon, Oct 12, 2026 at 1:27 PM Christian Brauner <brauner@kernel.org> wrote:
+> > Since commit 9c4a3de6cd5b ("gfs2: Asynchronous withdraw") most of a
+> > withdraw happens in do_withdraw() from a work item and SDF_JOURNAL_LIVE
+> > stays set until it ran. A remount to read-only in that window goes
+> > through gfs2_make_fs_ro(). Its log flushes bail out early on the
+> > withdrawn filesystem before FLUSH_SHUTDOWN can clear SDF_JOURNAL_LIVE
+> > and then gfs2_quota_cleanup() hits its BUG_ON():
+> >
+> >   kernel BUG at fs/gfs2/quota.c:1532!
+> >   RIP: 0010:gfs2_quota_cleanup+0x562/0x6b0
+> >    gfs2_make_fs_ro+0xf3/0x2e0
+> >    gfs2_reconfigure+0x42e/0xfd0
+> >    reconfigure_super+0x437/0xb20
+> >
+> > Just flushing the withdraw work before the remount isn't enough.
+> > gfs2_withdraw() sets SDF_WITHDRAWN, calls dump_stack() and only then
+> > queues the work. So a remount can see a withdrawn filesystem while
+> > there's nothing to flush yet. And a withdraw can also start in the
+> > middle of gfs2_make_fs_ro().
+> >
+> > So let do_withdraw() wake up waiters when it clears SDF_JOURNAL_LIVE and
+> > let gfs2_make_fs_ro() wait for the bit after its log flushes, right
+> > before gfs2_quota_cleanup(). On a healthy filesystem the shutdown flush
+> > already cleared it. umount doesn't need to wait. gfs2_put_super() sets
+> > SDF_NORECOVERY first and gfs2_quota_cleanup() only BUGs without it. Once
+> > the bit is clear the journal isn't live anymore and gfs2_make_fs_ro()
+> > doesn't write anything.
+> >
+> > gfs2_make_fs_rw() can leave the bit set on a withdrawn filesystem as
+> > well. It checks for a withdraw and then sets SDF_JOURNAL_LIVE. If
+> > do_withdraw() runs in between it finds the journal not live yet and
+> > returns. Nothing clears the bit then and the next remount to read-only
+> > waits for it forever. So check for the withdraw and set the bit under
+> > sd_log_flush_lock, which do_withdraw() holds while it tests the bit.
+> > Then either the remount sees the withdraw or do_withdraw() sees the live
+> > journal.
+> >
+> > Reproducer, lock_nolock: a SCHED_FIFO task writes 1 to the withdraw
+> > sysfs knob from cpu 1 and keeps cpu 1 busy (RT throttling and cpu 1's
+> > fair server disabled) so do_withdraw() can't run, then from cpu 2:
+> >
+> >   mount -o remount,ro /mnt
+> >
+> > On lock_dlm the window lasts as long as the withdraw helper runs. The
+> > window before the work is queued can be widened with a kprobe on
+> > dump_stack_lvl() that delays the task writing to the withdraw knob by a
+> > few seconds. A remount to read-only or sysrq u in that window hits the
+> > same BUG_ON().
+> >
+> > Fixes: 9c4a3de6cd5b ("gfs2: Asynchronous withdraw")
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+> > ---
+> >  fs/gfs2/super.c | 22 ++++++++++++++++++----
+> >  fs/gfs2/util.c  |  2 +-
+> >  2 files changed, 19 insertions(+), 5 deletions(-)
+> >
+> > diff --git a/fs/gfs2/super.c b/fs/gfs2/super.c
+> > index 06302c29340f..1d7b39354d65 100644
+> > --- a/fs/gfs2/super.c
+> > +++ b/fs/gfs2/super.c
+> > @@ -147,12 +147,23 @@ int gfs2_make_fs_rw(struct gfs2_sbd *sdp)
+> >         }
+> >
+> >         error = gfs2_quota_init(sdp);
+> > -       if (!error && gfs2_withdrawn(sdp)) {
+> > -               gfs2_quota_cleanup(sdp);
+> > +       if (error)
+> > +               return error;
+> > +
+> > +       /*
+> > +        * do_withdraw() only takes a live journal down. Check for a withdraw
+> > +        * under the lock it holds for that so that either we see the withdraw
+> > +        * or it sees the journal live. Otherwise gfs2_make_fs_ro() waits for
+> > +        * the bit forever.
+> > +        */
+> > +       down_write(&sdp->sd_log_flush_lock);
+> > +       if (gfs2_withdrawn(sdp))
+> >                 error = -EIO;
+> > -       }
+> > -       if (!error)
+> > +       else
+> >                 set_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
+> > +       up_write(&sdp->sd_log_flush_lock);
+> > +       if (error)
+> > +               gfs2_quota_cleanup(sdp);
+> >         return error;
+> >  }
+> >
+> > @@ -565,6 +576,9 @@ void gfs2_make_fs_ro(struct gfs2_sbd *sdp)
+> >                                    HZ * 5);
+> >                 gfs2_assert_warn(sdp, gfs2_log_is_empty(sdp));
+> >         }
+> > +       /* A withdraw that do_withdraw() didn't finish yet leaves it live. */
+> > +       if (!test_bit(SDF_NORECOVERY, &sdp->sd_flags))
+> > +               wait_on_bit(&sdp->sd_flags, SDF_JOURNAL_LIVE, TASK_UNINTERRUPTIBLE);
+> >         gfs2_quota_cleanup(sdp);
+> >  }
+> >
+> > diff --git a/fs/gfs2/util.c b/fs/gfs2/util.c
+> > index 83b8bb6446e5..1535ce2b7aa8 100644
+> > --- a/fs/gfs2/util.c
+> > +++ b/fs/gfs2/util.c
+> > @@ -122,7 +122,7 @@ static void do_withdraw(struct gfs2_sbd *sdp)
+> >                 up_write(&sdp->sd_log_flush_lock);
+> >                 return;
+> >         }
+> > -       clear_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
+> > +       clear_and_wake_up_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
+> >         gfs2_ail_drain(sdp); /* frees all transactions */
+> >         up_write(&sdp->sd_log_flush_lock);
+> >
+> >
+> > --
+> > 2.53.0
+> >
+> 
+> this looks good all around, thank you very much. Can I add it to my gfs2 queue?
 
-ecryptfs_lookup_interpose() gets the inode from iget5_locked() and,
-for a regular file, reads the plaintext size with
-ecryptfs_i_size_read() before unlocking a new inode.  On failure it
-marks the inode bad and returns, but it neither clears I_NEW nor drops
-the reference it holds.  The error path came with the deferred
-unlock_new_inode() in commit 3b06b3ebf441 ("eCryptfs: Fix new inode
-race condition").
-
-Unlock a new inode and drop the reference on that path, as
-iget_failed() does for a new inode.
-
-Tested on x86_64 with a lower file on tmpfs that a process is
-executing: 1000 failed stat() calls left 1000 inodes allocated and the
-unmount warned about busy inodes; with the patch no inode is left and
-the unmount is clean.
-
-Fixes: 3b06b3ebf441 ("eCryptfs: Fix new inode race condition")
-Assisted-by: LLM
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
----
-
-Notes:
-    Reproducer (CONFIG_ECRYPT_FS, CONFIG_TMPFS, CONFIG_KEYS; runs as /init
-    in QEMU, root; the key is a dummy auth_tok, nothing gets encrypted):
-    
-      gcc -O2 -static -o init ecryptfs_inew.c   # packed as /init in an initramfs
-      qemu-system-x86_64 -m 1G -nographic -kernel bzImage -initrd initramfs.cpio \
-          -append "console=ttyS0 rdinit=/init"
-    
-    Before:
-      stat: Text file busy
-      inodes left by 1000 failed lookups: 1000
-      VFS: Busy inodes after unmount of ecryptfs (ecryptfs)   (console)
-      unmounted
-    After:
-      stat: Text file busy
-      inodes left by 1000 failed lookups: 0
-      unmounted
-    
-    The same leak was reported on the list as "[BUG] ecryptfs leaks an inode
-    on lookup failure -> kernel BUG in generic_shutdown_super()" (Farhad
-    Alemi, 2026-08-27), with -ETXTBSY from the lower open.
-    
-    /*
-     * Look up a lower file that is being executed through eCryptfs 1000 times,
-     * count the inodes left behind, then unmount.
-     * Runs as /init in QEMU; needs CONFIG_ECRYPT_FS, CONFIG_TMPFS, CONFIG_KEYS.
-     */
-    #include <fcntl.h>
-    #include <linux/keyctl.h>
-    #include <stdio.h>
-    #include <sys/mount.h>
-    #include <sys/reboot.h>
-    #include <sys/stat.h>
-    #include <sys/sendfile.h>
-    #include <sys/syscall.h>
-    #include <unistd.h>
-    
-    static long inodes(void)
-    {
-    	long n = -1;
-    	FILE *f = fopen("/proc/sys/fs/inode-nr", "r");
-    
-    	if (f) {
-    		if (fscanf(f, "%ld", &n) != 1)
-    			n = -1;
-    		fclose(f);
-    	}
-    	return n;
-    }
-    
-    int main(int argc, char **argv)
-    {
-    	static char tok[1024];
-    	int fd, in, i;
-    	long n;
-    	struct stat st;
-    
-    	if (argc > 1) {		/* the copy in the lower directory */
-    		pause();
-    		return 0;
-    	}
-    
-    	mount("proc", "/proc", "proc", 0, NULL);
-    	mkdir("/lower", 0755);
-    	mkdir("/upper", 0755);
-    	mount("tmpfs", "/lower", "tmpfs", 0, NULL);
-    	in = open("/init", O_RDONLY);
-    	fstat(in, &st);
-    	fd = open("/lower/f", O_CREAT | O_WRONLY, 0755);
-    	sendfile(fd, in, NULL, st.st_size);
-    	close(fd);
-    	close(in);
-    	if (!fork()) {
-    		execl("/lower/f", "f", "sleep", NULL);
-    		_exit(1);
-    	}
-    	sleep(1);
-    
-    	tok[0] = 0x04;		/* auth_tok version 0.4, ECRYPTFS_PASSWORD */
-    	if (syscall(SYS_add_key, "user", "0123456789abcdef", tok, sizeof(tok),
-    		    KEY_SPEC_USER_KEYRING) < 0)
-    		perror("add_key");
-    	if (mount("/lower", "/upper", "ecryptfs", 0,
-    		  "ecryptfs_sig=0123456789abcdef,ecryptfs_cipher=aes,ecryptfs_key_bytes=16"))
-    		perror("mount ecryptfs");
-    
-    	n = inodes();
-    	for (i = 0; i < 1000; i++)
-    		if (stat("/upper/f", &st) && i == 0)
-    			printf("stat: %m\n");
-    	printf("inodes left by 1000 failed lookups: %ld\n", inodes() - n);
-    	if (umount("/upper"))
-    		perror("umount");
-    	printf("unmounted\n");
-    	fflush(stdout);
-    	reboot(RB_POWER_OFF);
-    	return 0;
-    }
-
- fs/ecryptfs/inode.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 525297c7ebd8..d7e90192efcf 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -363,6 +363,9 @@ static struct dentry *ecryptfs_lookup_interpose(struct dentry *dentry,
- 		rc = ecryptfs_i_size_read(dentry, inode);
- 		if (rc) {
- 			make_bad_inode(inode);
-+			if (inode_state_read_once(inode) & I_NEW)
-+				unlock_new_inode(inode);
-+			iput(inode);
- 			return ERR_PTR(rc);
- 		}
- 	}
-
-base-commit: 58161ead29e50d70a317ea26b472e0c7508e69da
--- 
-2.53.0
-
+I was planning to just provide a stable branch for everyone to pull post
+-rc1. Then you can just pull that in?
