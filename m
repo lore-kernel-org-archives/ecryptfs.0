@@ -1,77 +1,32 @@
-Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from outgoing2021.csail.mit.edu (outgoing2021.csail.mit.edu [128.30.2.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94F3542805
-	for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 17:06:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE0231C567;
+	Sun, 18 Oct 2026 02:38:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=128.30.2.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792170407; cv=none; b=KbGAgWrSX6U6qjNXS+gXBTm6WFbiaG7EUyrKhBqgdHFZ0ySwuqLOwTtzjIMH2F6kq20hC2EPLW70aFjbusVft+2CxSQyvDL4/ifMBe3y317jiadr6mX+JmeT1zrYasLIKi3pSMb5Bd/O2IepNhd8tIRrRToAI9o4pF5PeHydO6s=
+	t=1792291123; cv=none; b=AemRoi5Ci3HLyH/4DTlUmjMsTfKlRtaHDDDSuWq5Nqg2p1vR9lbBPHqFvSCHbK5AxMnVxcSGvz50PDBICXfSqg0e51QrMhpRIZtRMhoiJ14ltXmiEBzctRBk6o/a+UPR3+Bw46xmyGxbRpc3w8E0DS0kSmWefayG2cDoEqS+/zY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792170407; c=relaxed/simple;
-	bh=jtdF2NbRO9Tk+EJfzWagLec3dR6hkcpuqPZZnpc2Vvg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=BfuX4TTZOlG/WodMM+TsuDn+Qca7pW+XHWH6MuvoQtOruZq3BxPPdAJ5nG6NDHyhT5Gh9ByfmfzDQYI7Xm3rbZNAlWPFDopJ72sL3elROeA2mZe9ffWaWJ+CCSZIxAz+59BXiGd2KQi4F6oexWa61pT9cXO45rSg0g7QMjfP7as=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U/MuoAAR; arc=none smtp.client-ip=74.125.82.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U/MuoAAR"
-Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-3514b90bb89so222446eec.1
-        for <ecryptfs@vger.kernel.org>; Fri, 16 Oct 2026 10:06:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1792170405; x=1792775205; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=GxIjjfxwXom2YZho8tvK34GRsgnUG+0wvm+DBzj19gg=;
-        b=U/MuoAAR369u4J5sLi4C/rJPfadtfJUQyKL5XEwcAJ8O/AbVncLqW1gQ6FgyvO+Tju
-         EgNy7V/c37UuALpZ01DGdiDfLRiUkpqsMvO7N2ePUQI/qsh3645d/SjKXOCSxuVOA4uD
-         hZoVA6aZE+eOctU0f1zKXx//Z2sQU1LgtJ/9KSd1ozhhSL9Nt36WuQziF98M4/z9hdXD
-         LVJKQwyExXKKx8kCRLnvi/2wqLCnvsC439xXJX7e+I1ILQbevtV1lUULU0wXatTZSCE7
-         gpburMTWdxo53qf0/JOME2gkufc0L7Szkd+e7TooOjQw+rnio3cg4Ybdkr006IsWkxJu
-         d79w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1792170405; x=1792775205;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=GxIjjfxwXom2YZho8tvK34GRsgnUG+0wvm+DBzj19gg=;
-        b=FDs9IckqKdwyYE2bAN4bBBS5ytEdpu69j3mAW9n37Nxjic3TTIvchYEFSWdgmXLOU9
-         Ar7bOQD4wyEF6O7+7BttkxM0xrAsAxo5YqqSjfQmIMUxsYUvMZfnkcOaFQTbigc81uIn
-         ue/x+OtD4DCYzDjXq7uSiIfXEBZkc7iaLByNnukdQ4/o3MlSXb0I+ktsAnH6ataFpSxF
-         0H3pF+/QZuZ9fGuSKCKrdy0hRaei1DlaSoOTjlWWrYAFouVV+2VKPvUBpRS9ZeGwbnUb
-         OtVGfcOg/xCqzG6WEBbmQWgJCGEjPKcoM5FxuysB+8Ajz2LCaGr0X2NVk82Z8/PLBXw7
-         2Cwg==
-X-Forwarded-Encrypted: i=1; AKwUvBxHJ+m9pD54fw0mHrBysewN90BQYeSy1jRIuM5DH9eNA6b+lmmBrxQSDSrdQdYp0BUBVlQHjPe4Kg==@vger.kernel.org
-X-Gm-Message-State: AFq9FYKKq38gdaCX2OCbsu90T0dGTd+ozCLIm/DxhOfUBNugSTzfL9FY
-	qVZ6CDhROyRzSJ1wwa4/v7Jt/bTI3y6r6rD5MUO1WHwpRYW7bxFHVIvS1Oy5RfjS
-X-Gm-Gg: AYBFou24GwwTdHwLtw4bg7X52uRZqobf1KTY3+bjylhi0NgBxno9oDv8D4VLsMFBuwt
-	q1llEnazSi17hPSdd2sgeUEwDQ1Q0O+auaBDHFR/5NusDaiBmO+IrrBAkgGtrFGrrKmEuNVX0rm
-	s8MMcutgcaR8qW8MdDEo4LEBBLUdl58ix1lQIUClh8rjWaYfmYabT4ZYjgQSxrmt+FRzWI7FcKO
-	PxE+5KKT7Z34oN5j22KFE9+c21nTFBrdXHSFMoGnaICo1ruLgMyagA/BlKeeVpcEHuOfxKMazGd
-	BumfK1v8CK77j/Yj3k4lohgz7o2fiI6jvGku6p5elf5ErPNzt10Tb899XUmCvD6lGtTqy7Q1QHB
-	/9EZVI7HZnyAJpbGWXNsyrxdvOZ1AWLrRi6sOdBfS1Gsmgy18HsUkz4b6ujqY+rC5FzSkVJWXt6
-	LjIk/bV0OadGm0qvNQ7+9EgByHK6eLDQNZmC3HA2ZbHvL/aw4HMxq8uLoU6CwI
-X-Received: by 2002:a05:701b:4502:10b0:143:6525:f9f6 with SMTP id a92af1059eb24-185118edabamr606397c88.13.1792170404876;
-        Fri, 16 Oct 2026 10:06:44 -0700 (PDT)
-Received: from adriano ([186.40.6.142])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-1831a6f58c2sm11285825c88.11.2026.10.16.10.06.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 16 Oct 2026 10:06:44 -0700 (PDT)
-From: Adriano Cordova <adrianox@gmail.com>
+	s=arc-20240116; t=1792291123; c=relaxed/simple;
+	bh=jTwpTmodEtB6gZq42D20BcrlywreEvYTF8Fo9a702qc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QCerAK9GwOkxW0wfTLcw3OJOv6Uv2d2pyGTRF+BagRSuxoBy6Ev9YddAedJ96iEKD6MJoUXjCRhCXDOmc+4kQsPaK6U+1xUSfqMVV3RKhj9zXzIewK6O1vcOKU5wQ2Cxy2+lZEC9RLXdRJfsTTl9IujU0I45Jde27kiN9Es4XzY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=csail.mit.edu; spf=pass smtp.mailfrom=csail.mit.edu; arc=none smtp.client-ip=128.30.2.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=csail.mit.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=csail.mit.edu
+Received: from escalante.csail.mit.edu ([128.52.128.198])
+	by outgoing2021.csail.mit.edu with esmtp (Exim 4.95)
+	(envelope-from <nickolai@csail.mit.edu>)
+	id 1xIGnI-004O83-6S;
+	Sat, 17 Oct 2026 22:38:40 -0400
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
 To: Tyler Hicks <code@tyhicks.com>
-Cc: Nguyen Duy Nhat Anh <neganhat@gmail.com>,
-	ecryptfs@vger.kernel.org,
+Cc: ecryptfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
-	Adriano Cordova <adrianox@gmail.com>,
-	stable@vger.kernel.org,
-	syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Subject: [PATCH v3 2/2] ecryptfs: bound session_key_encryption_key_bytes in auth tok
-Date: Fri, 16 Oct 2026 14:06:33 -0300
-Message-ID: <20261016170633.1415240-2-adrianox@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20261016170633.1415240-1-adrianox@gmail.com>
-References: <20261016170633.1415240-1-adrianox@gmail.com>
+	Nickolai Zeldovich <nickolai@csail.mit.edu>
+Subject: [PATCH v1] ecryptfs: release the inode when lookup fails to read the file size
+Date: Sat, 17 Oct 2026 22:38:39 -0400
+Message-ID: <20261018023840.798718-1-nickolai@csail.mit.edu>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
@@ -80,44 +35,156 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Let ecryptfs_verify_auth_tok_from_key() validate the password's
-session_key_encryption_key_bytes length. When it is larger than
-ECRYPTFS_MAX_KEY_BYTES, md5() reads past session_key_encryption_key[].
-Reject such auth toks.
+When eCryptfs cannot open the lower file of a regular file during
+lookup, the lookup fails and leaks the eCryptfs inode it got, together
+with that inode's reference on the lower inode.  Every failed lookup
+leaks one more inode, and unmounting reports "VFS: Busy inodes after
+unmount of ecryptfs" (a BUG with CONFIG_BUG_ON_DATA_CORRUPTION).  The
+lower open fails, for example, with -ETXTBSY while the lower file is
+being executed, or when an LSM or the lower file system's ->open()
+refuses it; any user who can look up the name can repeat it.  A
+concurrent lookup that found the new inode before it was unhashed
+waits for I_NEW forever.
 
-Fixes: 9c79f34f7ee7 ("eCryptfs: Filename Encryption: Tag 70 packets")
-Cc: <stable@vger.kernel.org>
-Reported-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=03c68e42ce4b33f7ce9b
-Tested-by: syzbot+03c68e42ce4b33f7ce9b@syzkaller.appspotmail.com
-Signed-off-by: Adriano Cordova <adrianox@gmail.com>
+ecryptfs_lookup_interpose() gets the inode from iget5_locked() and,
+for a regular file, reads the plaintext size with
+ecryptfs_i_size_read() before unlocking a new inode.  On failure it
+marks the inode bad and returns, but it neither clears I_NEW nor drops
+the reference it holds.  The error path came with the deferred
+unlock_new_inode() in commit 3b06b3ebf441 ("eCryptfs: Fix new inode
+race condition").
+
+Unlock a new inode and drop the reference on that path, as
+iget_failed() does for a new inode.
+
+Tested on x86_64 with a lower file on tmpfs that a process is
+executing: 1000 failed stat() calls left 1000 inodes allocated and the
+unmount warned about busy inodes; with the patch no inode is left and
+the unmount is clean.
+
+Fixes: 3b06b3ebf441 ("eCryptfs: Fix new inode race condition")
+Assisted-by: LLM
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
 ---
-Changes in v3:
-- Split the v2 patch.
-- Change the Link: tag to Closes:.
-- Remove Nguyen Duy Nhat Anh change and its Reported-by tag.
 
- fs/ecryptfs/keystore.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+Notes:
+    Reproducer (CONFIG_ECRYPT_FS, CONFIG_TMPFS, CONFIG_KEYS; runs as /init
+    in QEMU, root; the key is a dummy auth_tok, nothing gets encrypted):
+    
+      gcc -O2 -static -o init ecryptfs_inew.c   # packed as /init in an initramfs
+      qemu-system-x86_64 -m 1G -nographic -kernel bzImage -initrd initramfs.cpio \
+          -append "console=ttyS0 rdinit=/init"
+    
+    Before:
+      stat: Text file busy
+      inodes left by 1000 failed lookups: 1000
+      VFS: Busy inodes after unmount of ecryptfs (ecryptfs)   (console)
+      unmounted
+    After:
+      stat: Text file busy
+      inodes left by 1000 failed lookups: 0
+      unmounted
+    
+    The same leak was reported on the list as "[BUG] ecryptfs leaks an inode
+    on lookup failure -> kernel BUG in generic_shutdown_super()" (Farhad
+    Alemi, 2026-08-27), with -ETXTBSY from the lower open.
+    
+    /*
+     * Look up a lower file that is being executed through eCryptfs 1000 times,
+     * count the inodes left behind, then unmount.
+     * Runs as /init in QEMU; needs CONFIG_ECRYPT_FS, CONFIG_TMPFS, CONFIG_KEYS.
+     */
+    #include <fcntl.h>
+    #include <linux/keyctl.h>
+    #include <stdio.h>
+    #include <sys/mount.h>
+    #include <sys/reboot.h>
+    #include <sys/stat.h>
+    #include <sys/sendfile.h>
+    #include <sys/syscall.h>
+    #include <unistd.h>
+    
+    static long inodes(void)
+    {
+    	long n = -1;
+    	FILE *f = fopen("/proc/sys/fs/inode-nr", "r");
+    
+    	if (f) {
+    		if (fscanf(f, "%ld", &n) != 1)
+    			n = -1;
+    		fclose(f);
+    	}
+    	return n;
+    }
+    
+    int main(int argc, char **argv)
+    {
+    	static char tok[1024];
+    	int fd, in, i;
+    	long n;
+    	struct stat st;
+    
+    	if (argc > 1) {		/* the copy in the lower directory */
+    		pause();
+    		return 0;
+    	}
+    
+    	mount("proc", "/proc", "proc", 0, NULL);
+    	mkdir("/lower", 0755);
+    	mkdir("/upper", 0755);
+    	mount("tmpfs", "/lower", "tmpfs", 0, NULL);
+    	in = open("/init", O_RDONLY);
+    	fstat(in, &st);
+    	fd = open("/lower/f", O_CREAT | O_WRONLY, 0755);
+    	sendfile(fd, in, NULL, st.st_size);
+    	close(fd);
+    	close(in);
+    	if (!fork()) {
+    		execl("/lower/f", "f", "sleep", NULL);
+    		_exit(1);
+    	}
+    	sleep(1);
+    
+    	tok[0] = 0x04;		/* auth_tok version 0.4, ECRYPTFS_PASSWORD */
+    	if (syscall(SYS_add_key, "user", "0123456789abcdef", tok, sizeof(tok),
+    		    KEY_SPEC_USER_KEYRING) < 0)
+    		perror("add_key");
+    	if (mount("/lower", "/upper", "ecryptfs", 0,
+    		  "ecryptfs_sig=0123456789abcdef,ecryptfs_cipher=aes,ecryptfs_key_bytes=16"))
+    		perror("mount ecryptfs");
+    
+    	n = inodes();
+    	for (i = 0; i < 1000; i++)
+    		if (stat("/upper/f", &st) && i == 0)
+    			printf("stat: %m\n");
+    	printf("inodes left by 1000 failed lookups: %ld\n", inodes() - n);
+    	if (umount("/upper"))
+    		perror("umount");
+    	printf("unmounted\n");
+    	fflush(stdout);
+    	reboot(RB_POWER_OFF);
+    	return 0;
+    }
 
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index 51651314b7a6..c2ba230c71fd 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -477,6 +477,13 @@ ecryptfs_verify_auth_tok_from_key(struct key *auth_tok_key,
- 		rc = -EINVAL;
- 		goto out;
+ fs/ecryptfs/inode.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 525297c7ebd8..d7e90192efcf 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -363,6 +363,9 @@ static struct dentry *ecryptfs_lookup_interpose(struct dentry *dentry,
+ 		rc = ecryptfs_i_size_read(dentry, inode);
+ 		if (rc) {
+ 			make_bad_inode(inode);
++			if (inode_state_read_once(inode) & I_NEW)
++				unlock_new_inode(inode);
++			iput(inode);
+ 			return ERR_PTR(rc);
+ 		}
  	}
-+	if ((*auth_tok)->token_type == ECRYPTFS_PASSWORD &&
-+	    (*auth_tok)->token.password.session_key_encryption_key_bytes >
-+	    ECRYPTFS_MAX_KEY_BYTES) {
-+		printk(KERN_ERR "Invalid password auth_tok session key size\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
- out:
- 	return rc;
- }
+
+base-commit: 58161ead29e50d70a317ea26b472e0c7508e69da
 -- 
-2.51.0
+2.53.0
 
