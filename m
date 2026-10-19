@@ -1,157 +1,238 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F04133F383;
-	Mon, 19 Oct 2026 09:52:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96A414EC667
+	for <ecryptfs@vger.kernel.org>; Mon, 19 Oct 2026 11:43:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1792403554; cv=none; b=h3tQ1igpdIANRrMuAftjN9Mzbefc/n7blm9qjCwOYcMgJsz+98fsFFffkt0tHrarl8Y5bhk8ItiwWidbgv+fGNsPpYAYFFcn5vn0rFNCHCB0YhFlEexFy6PhP2ukMCTeTUT5Z2H1V7hekFt/IZ2Nr0R1KYOZPpmrCThjGJ8nJc4=
+	t=1792410204; cv=none; b=TxEi4lcEcsmmyhHsJ0fevOXUvG1NmXoNa0q2tyv5sDE4uoqDQ/5XpUqYRtHM9uDolvgaweDeGSo8IASRiXXFBD7q4DebA8PgJ/LHj+/7FKVZK/2ImgrMw+PeWN8bcy8E8r2w2VrjBj9pc2eQaLD6m3BUBVN+rtIrL5G641Csv08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1792403554; c=relaxed/simple;
-	bh=WvTtg8JCOogctn7ZSS15ZrjyvEQJ4j+2UdlxuxFQnTw=;
+	s=arc-20240116; t=1792410204; c=relaxed/simple;
+	bh=0h+fMlcy0nHUgqx0ZgNb3jSrGz0nmItuE/FyNlwIrZ4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CfiBFQvZrR7GyJkM+yMTQuGzCdp0oNMqfmU0ZDeD2Nltxtddj27SaHHVhxlVDfBTA1oj0ZzVyh+la59qopzAdK2yzUk7yicXfN0TB1danUVUEvnAjuq3sMp1C27gQ+kIne9lli9mnBL8KNTbEq/24yr3Jy2qtuo8IYfvLxWSzIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=DapX6O+I; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=HkvNOVKW; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=DapX6O+I; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=HkvNOVKW; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	 Content-Type:Content-Disposition:In-Reply-To; b=SoUv1gwPr/4G/Pk7gHaK1QHyAxOvwy/AcgMnB6PSaOPtMiN79OvyZwnyr5kYzuuDh2zpe0R9yv1TiQOOhj+iw6WMhQRQikdqTlEsvgk9DLh8IBx7QvPnrtlRfw8XX0naaEuz71gHmN5Px+mCYgtzB4q/ZNcv78BJkMcf7y1JiyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=oCnoYDeR; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="DapX6O+I";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="HkvNOVKW";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="DapX6O+I";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="HkvNOVKW"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 6896E1F44E;
-	Mon, 19 Oct 2026 09:52:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1792403550; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Q/XjywU63jHK3zYfOZqk/GFYoCnttMlmfWvXQ5qlU98=;
-	b=DapX6O+Ip4pKRXdlJVwKoYbFSgZmnci+oTZVGWx9N//wk+3Co0A6Gy6VjLwyPbJnXuzAkL
-	nK/2Yk9eDEsEWraU+H6ro4FbaBRxl+xMkoYT76R16fauUCeKeP7bK2SBFwKH5znABsckFq
-	6f8cRPlmgFApKa7bh+P/Y4scW5VQEgI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1792403550;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Q/XjywU63jHK3zYfOZqk/GFYoCnttMlmfWvXQ5qlU98=;
-	b=HkvNOVKWZPcLczlyzJhxbC7tMzVsoibO8LGhYXd0PSctA5J8hm3Rc9LMb4abX/F22nZPqn
-	qBMliAhGPtxMP+Ag==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1792403550; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Q/XjywU63jHK3zYfOZqk/GFYoCnttMlmfWvXQ5qlU98=;
-	b=DapX6O+Ip4pKRXdlJVwKoYbFSgZmnci+oTZVGWx9N//wk+3Co0A6Gy6VjLwyPbJnXuzAkL
-	nK/2Yk9eDEsEWraU+H6ro4FbaBRxl+xMkoYT76R16fauUCeKeP7bK2SBFwKH5znABsckFq
-	6f8cRPlmgFApKa7bh+P/Y4scW5VQEgI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1792403550;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Q/XjywU63jHK3zYfOZqk/GFYoCnttMlmfWvXQ5qlU98=;
-	b=HkvNOVKWZPcLczlyzJhxbC7tMzVsoibO8LGhYXd0PSctA5J8hm3Rc9LMb4abX/F22nZPqn
-	qBMliAhGPtxMP+Ag==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3F3B4134B3;
-	Mon, 19 Oct 2026 09:52:30 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id emzKBV7o1WpYOgAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 19 Oct 2026 09:52:30 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id BB917A1413; Mon, 19 Oct 2026 11:52:25 +0200 (CEST)
-Date: Mon, 19 Oct 2026 11:52:25 +0200
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>, Jan Kara <jack@suse.com>, 
-	Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, linux-ext4@vger.kernel.org, 
-	jfs-discussion@lists.sourceforge.net, linux-nilfs@vger.kernel.org, exfat@lists.linux.dev, 
-	linux-fsdevel@vger.kernel.org, ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev, 
-	linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev, linux-efi@vger.kernel.org, 
-	linux-mtd@lists.infradead.org, linux-xfs@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH RFC 20/28] gfs2: wait for a pending withdraw before
- remounting read-only
-Message-ID: <wauqpgtmmf2beg3pc2kqlbizrigd4ew26do4zqch5ilwdjy4cd@brolwbx25sem>
-References: <20261012-work-fs-sb_rdonly-v1-0-60743a3dc326@kernel.org>
- <20261012-work-fs-sb_rdonly-v1-20-60743a3dc326@kernel.org>
- <CAHc6FU5bdAjABRm=bnH68b2f66TZTDZ8sPdatLB2fS7-55U=yw@mail.gmail.com>
- <20261018-ungemacht-sodbrennen-hausordnung-42d33a4f7098@brauner>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="oCnoYDeR"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4a1cef0439aso21470315e9.0
+        for <ecryptfs@vger.kernel.org>; Mon, 19 Oct 2026 04:43:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1792410195; x=1793014995; darn=vger.kernel.org;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=uPs8kNwzq2ixzAyx8BoNzSjliUbshG+1sbYaMKzI60Q=;
+        b=oCnoYDeRKqohdjoF8yr1PWKPgjlJR2mynK3Kjw0YrYFdWEIOUbtfjYoSGPcg1BAe2H
+         1DY4sGaClDUz5ITMycr6otyeVliHy73RZe1F2S0imQfR//X654PXu+KRRG+qJn+5Imqd
+         AI33Mk3uXVl96Den2MWa9znDNxqIwXe+AS+Vy+TIJmqWia89kcDUkJ+2E7cAHexwmvfU
+         dipwrGtY7YZIj2CluWUoxjLZlVxTJH2o++eXf28eNuPS7eV3ygGea33WzNOs2I2NTARY
+         JPQiuAp0NTayS9tg69d+UFM9ZMAiJawDf3LxW0Jw0iS9e8G4fsWaO6r3/l/MWZdn3ryM
+         Q4ow==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1792410195; x=1793014995;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :content-type:mime-version:references:message-id:subject:cc:to:from
+         :date:x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=uPs8kNwzq2ixzAyx8BoNzSjliUbshG+1sbYaMKzI60Q=;
+        b=ciBnuOK15hs8MG259TZ7s+gywzUrs/tfRfY9XgoFrsCksQnn68P0uoATb2GNbuUu5c
+         d8N1k3SL15os9M2eybt8B9+r4i7vdHdKwYxUHywhfIZ/l4u1IXVZs3rOepuxDmskwc68
+         yt8nHi/Pb7EsvQFk3oos2y/EnR2lndmWTB54FfkRxBZlzoj18vulKqlPp0f007Ve6PNO
+         cWVw1IWG5sMtI+Hrqsuhvw2gE2TfduLIgBccKziKjO71scmNGKLrhu1h2llwuwtVDdzL
+         pNIDJ96qY01EoOG2nGSUNYQuDvx/THnZqPA8Y7u2eaKmb59VL0+PQ2fP6KQQ7L8BcrAO
+         +/Xw==
+X-Forwarded-Encrypted: i=1; AKwUvBzjw1LSi3BcbTFciPVMiQziM06+L0gOBRjbP5f9m/C9lS1wvaFYcAhKSKBAnxwZgbVZAMzO/dwHag==@vger.kernel.org
+X-Gm-Message-State: AFq9FYKZNuhReeVZZ884mZCuD2Swe3y9tcdT07E/t68AhSWoNrX7bHhu
+	Ancw5HWGcmLi/wwrdxGTGb7EnBdAK6LQrNgz6AW7wuRAPT/BlNMgl4V+kgbYR7kDDw==
+X-Gm-Gg: AYBFou0dMwOcFYI1VkZjATdRb86XgGUWuQXo9DPDyGZmrM1Xqfnksq6lR0wmeVxcIj3
+	I5Xf3oRXFZI+ft8Vyz8F2vfpoGXbRWN5ix70GAznUFluQvZm+05CRYuHyzYJ+OqijG9sl7lUQEb
+	VQ36eI3Er95ffPAAuG6KyULmCWNS6YzoGBrHmt4HmtKZUmgoJ2dqhb3ylImHY6vUjgUWF6Z0SeX
+	a3FosHKN5h8JR1cCiN6kx/nI5dnu7EyKEftU/hAxiCRDnwV+hmMiYZPw/xaRg0E5LmHDbJgXS6h
+	h6PGW6aGIaBgddH15fK9zk3fdoMeDCDGkI/7ieIpYSAEUwC5hicURKuYKoDyRmcivb3vYQ5Y9Dt
+	1uvwSjS1wfCfkg0w9iq/p1lhZRUlaGIS6p1bIOalZxpDs56KFXQ9FKNLYd5pxSV+AMjdHa9nAWx
+	7uIw2N8Cgk3mAt35U/5ACGn0FYtnUPpDCuYHGXq5fWAVZlno8Gurf20UQAK88tbcrqO7mLS5OhG
+	hXe8DEgy+LMJOt42TFJ6oSGvtkDFKA=
+X-Received: by 2002:a05:600c:3508:b0:49f:e772:6ddf with SMTP id 5b1f17b1804b1-4a1d762251bmr165269695e9.32.1792410194117;
+        Mon, 19 Oct 2026 04:43:14 -0700 (PDT)
+Received: from google.com ([2a00:79e0:288a:8:d186:2d44:63ff:537f])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4a1e9423f20sm58112105e9.7.2026.10.19.04.43.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Oct 2026 04:43:13 -0700 (PDT)
+Date: Mon, 19 Oct 2026 13:43:04 +0200
+From: =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>
+To: Justin Suess <utilityemal77@gmail.com>
+Cc: Cai Xinchen <caixinchen1@huawei.com>, mic@digikod.net,
+	paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+	corbet@lwn.net, skhan@linuxfoundation.org, ast@kernel.org,
+	daniel@iogearbox.net, andrii@kernel.org, eddyz87@gmail.com,
+	memxor@gmail.com, martin.lau@linux.dev, song@kernel.org,
+	yonghong.song@linux.dev, jolsa@kernel.org, emil@etsalapatis.com,
+	ihor.solodrai@linux.dev, rdunlap@infradead.org,
+	gregkh@linuxfoundation.org, rafael@kernel.org, dakr@kernel.org,
+	johan@kernel.org, dlemoal@kernel.org, hch@lst.de, axboe@kernel.dk,
+	viro@zeniv.linux.org.uk, brauner@kernel.org, jack@suse.cz,
+	dhowells@redhat.com, code@tyhicks.com, linkinjeon@kernel.org,
+	sj1557.seo@samsung.com, yuezhang.mo@sony.com,
+	hirofumi@mail.parknet.co.jp, cel@kernel.org, jlayton@kernel.org,
+	neil@brown.name, okorniev@redhat.com, Dai.Ngo@oracle.com,
+	tom@talpey.com, hyc.lee@gmail.com, miklos@szeredi.hu,
+	amir73il@gmail.com, senozhatsky@chromium.org,
+	chenxiaosong@chenxiaosong.com, kpsingh@kernel.org,
+	matt@bobrowski.net, rostedt@goodmis.org, mhiramat@kernel.org,
+	mathieu.desnoyers@efficios.com, john.johansen@canonical.com,
+	georgia.garcia@canonical.com, zohar@linux.ibm.com,
+	roberto.sassu@huawei.com, dmitry.kasatkin@gmail.com,
+	eric.snowberg@oracle.com, stephen.smalley.work@gmail.com,
+	omosnacek@gmail.com, casey@schaufler-ca.com, takedakn@nttdata.co.jp,
+	penguin-kernel@i-love.sakura.ne.jp, xiujianfeng@huawei.com,
+	nanx95726@gmail.com, djwong@kernel.org, lujialin4@huawei.com,
+	bpf@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org,
+	driver-core@lists.linux.dev, linux-block@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, netfs@lists.linux.dev,
+	ecryptfs@vger.kernel.org, exfat@lists.linux.dev,
+	linux-nfs@vger.kernel.org, ntfs@lists.linux.dev,
+	linux-unionfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org, apparmor@lists.ubuntu.com,
+	linux-integrity@vger.kernel.org, selinux@vger.kernel.org,
+	linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH v2 -next 09/18] landlock: Add READ_METADATA and
+ WRITE_METADATA access rights
+Message-ID: <atYBVCIYE1zDb7do@google.com>
+References: <20261015125425.3246251-1-caixinchen1@huawei.com>
+ <20261015125425.3246251-10-caixinchen1@huawei.com>
+ <atI20Vs7Du9-g1Hz@zenbox>
 Precedence: bulk
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Subscribe: <mailto:ecryptfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20261018-ungemacht-sodbrennen-hausordnung-42d33a4f7098@brauner>
-X-Spam-Flag: NO
-X-Spam-Score: -3.80
-X-Spam-Level: 
-X-Spamd-Result: default: False [-3.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MISSING_XM_UA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_TWELVE(0.00)[18];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_THREE(0.00)[3];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_TLS_LAST(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.com:email]
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <atI20Vs7Du9-g1Hz@zenbox>
 
-On Sun 18-10-26 17:48:34, Christian Brauner wrote:
-...
-> On Fri, Oct 16, 2026 at 02:32:01AM +0200, Andreas Gruenbacher wrote:
-> > > diff --git a/fs/gfs2/util.c b/fs/gfs2/util.c
-> > > index 83b8bb6446e5..1535ce2b7aa8 100644
-> > > --- a/fs/gfs2/util.c
-> > > +++ b/fs/gfs2/util.c
-> > > @@ -122,7 +122,7 @@ static void do_withdraw(struct gfs2_sbd *sdp)
-> > >                 up_write(&sdp->sd_log_flush_lock);
-> > >                 return;
-> > >         }
-> > > -       clear_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
-> > > +       clear_and_wake_up_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags);
-> > >         gfs2_ail_drain(sdp); /* frees all transactions */
-> > >         up_write(&sdp->sd_log_flush_lock);
-> > >
-> > >
-> > > --
-> > > 2.53.0
-> > >
+Hello!
+
+On Fri, Oct 16, 2026 at 10:44:16AM -0400, Justin Suess wrote:
+> On Thu, Oct 15, 2026 at 08:54:15PM +0800, Cai Xinchen wrote:
+> > Add two new filesystem access rights to control file metadata access:
 > > 
-> > this looks good all around, thank you very much. Can I add it to my gfs2 queue?
+> > - LANDLOCK_ACCESS_FS_READ_METADATA: Read file or directory metadata
+> >   (e.g. inode attributes, extended attributes and POSIX ACLs) through
+> >   stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
+> >   friends, listxattr(2) and friends, and the POSIX ACL read
+> >   operations.
+> > - LANDLOCK_ACCESS_FS_WRITE_METADATA: Change file or directory
+> >   metadata through chmod(2) and friends, chown(2) and friends,
+> >   utimensat(2) and friends, setxattr(2) and friends, removexattr(2)
+> >   and friends, and the POSIX ACL set and remove operations.
+> > 
+> > This follows the coarse-grained grouping approach discussed in the
+> > mailing list [1], where file metadata operations are grouped by
+> > security relevance rather than by individual syscall.
+> > 
+> > Implement the two rights by hooking the inode_getattr,
+> > inode_file_getattr, inode_setattr, inode_file_setattr,
+> > inode_setxattr, inode_getxattr, inode_listxattr, inode_removexattr,
+> > inode_set_acl, inode_get_acl and inode_remove_acl LSM hooks, which
+> > now receive a struct path thanks to the preceding VFS and LSM
+> > refactoring.  The following system calls are now controlled:
+> > 
+> > - stat(2), fstat(2), lstat(2), newfstatat(2), getxattr(2) and
+> >   friends, listxattr(2) and friends, POSIX ACL reads, and the
+> >   chattr(1)/xfs_io style reads: ioctl(FS_IOC_GETFLAGS),
+> >   ioctl(FS_IOC_FSGETXATTR) and file_getattr(2) via inode_getattr,
+> >   inode_getxattr, inode_listxattr, inode_get_acl and
+> >   inode_file_getattr (READ_METADATA)
+> > - chmod(2), fchmod(2), fchmodat(2), fchmodat2(2), chown(2), fchown(2),
+> >   lchown(2), fchownat(2), chgrp(2), utimensat(2), futimens(2),
+> >   utime(2), setxattr(2) and friends, removexattr(2) and friends,
+> >   POSIX ACL set and remove, and the chattr(1)/xfs_io style writes:
+> >   ioctl(FS_IOC_SETFLAGS), ioctl(FS_IOC_FSSETXATTR) and
+> >   file_setattr(2) via inode_setattr, inode_file_setattr,
+> >   inode_setxattr, inode_removexattr, inode_set_acl and
+> >   inode_remove_acl (WRITE_METADATA)
+> > 
+> > Both new rights are added to ACCESS_FILE as they apply to both files
+> > and directories.
+> > 
+> > hook_inode_setattr only restricts explicit metadata changes, i.e. it
+> > checks WRITE_METADATA only when the ia_valid mask contains
+> > ATTR_MODE, ATTR_UID, ATTR_GID, ATTR_TIMES_SET or ATTR_TOUCH.
+> > Metadata changes that the kernel performs implicitly, such as
+> > timestamp updates on write(2) or size changes on truncate(2), are
+> > therefore not restricted, and neither are chmod(2)/chown(2) calls
+> > that do not change any attribute (e.g. chown(2) with -1/-1, which is
+> > a no-op that never reaches the hook), matching the behavior of the
+> > SELinux inode_setattr hook.
+> > 
+> > Stacking filesystems forward fileattr operations to underlying inodes
+> > without calling the LSM hooks again (see the preceding patch), so a
+> > fileattr operation on an overlayfs file is checked once on the
+> > user-facing merged path and is not spuriously denied because of the
+> > kernel-side creator credentials used for the forward.
+> > 
+> > Kernel-internal accesses performed with override_creds() (e.g.
+> > overlayfs and cachefiles) are not affected because Landlock domains
+> > are attached to credentials, and kernel threads without a Landlock
+> > domain (e.g. nfsd and ksmbd) are not restricted either.
+> > 
+> > Remove stat(2), chmod(2), chown(2), setxattr(2) and utime(2) from the
+> > list of file-related actions that cannot be restricted yet, and add
+> > the names of the new rights to _LANDLOCK_ACCESS_FS_NAMES in
+> > include/linux/landlock.h, which is shared by audit records and trace
+> > events, so that denied accesses can be reported with a human-readable
+> > name and the static assertion on fs_access_strings in
+> > security/landlock/audit.c stays valid.
+> > 
+> > Increment the Landlock ABI version from 12 to 13, and update the ABI
+> > version check in tools/testing/selftests/landlock/base_test.c
+> > accordingly.
+> >
+> LANDLOCK_ACCESS_FS_*_METADATA should be checked at open time and follow
+> the mechanic for the truncate right. Otherwise the access for already
+> opened file descriptors would be changed. See hook_file_open in
+> security/landlock/fs.c and this discussion here [1]
 > 
-> I was planning to just provide a stable branch for everyone to pull post
-> -rc1. Then you can just pull that in?
+> It should have clear documentation for this as well.
+> 
+> Justin
+> [1] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
 
-On a related topic: I didn't find any branch with this work in vfs.git - I
-wanted to check how all the things come together after adding the generic
-emergency RO bit. So if you can push some inofficial branch for now it
-would help me... Thanks!
 
-								Honza
+I agree with Justin here.
 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Apart from what I said in [1], Justin and Mickaël pointed out this
+other aspect in which it is similar to *_TRUNCATE, in [2] and [3]:
+System calls like fstat(2) operate on an already-opened file
+descriptor, and the semantic that Landlock has so far been following
+for these is that the effective access rights for that file descriptor
+would be determined at the time of open(2) and stored in the opened
+struct file, just as it has been done for the *_TRUNCATE and
+*_IOCTL_DEV access rights in the hook_file_open() call which Justin
+points to above.
+
+That way, an already opened file acts as a handle for a "capability"
+(in the more general sense of the word), and the things you can do
+with that opened file don't change as the process enforces nested
+Landlock domains.
+
+Landlock's documentation describes this in
+https://docs.kernel.org/userspace-api/landlock.html#rights-associated-with-file-descriptors
+
+It feels that this would be in order for the *_METADATA rights as
+well?  Does this seem reasonable to you?
+
+(If you have arguments against that, I'm also more than happy to
+discuss, but we should make a conscious decision. :-))
+
+—Günther
+
+[1] https://lore.kernel.org/all/arurOphe6QIx2Zr8@google.com/
+[2] https://lore.kernel.org/all/arvjb0HJYh1KyEBB@suesslenovo/
+[3] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
+
