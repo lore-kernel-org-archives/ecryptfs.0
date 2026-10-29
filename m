@@ -1,73 +1,113 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.216
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.135.74
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793331744;
-	b=3xTupxsKZjGRhzEbpgzf/sOpeax244df113/8Evr6Hbha/6SW/g/XnaXaZUl434TUYWt
-	 NYHSelkVaCiMogKxvlto78o5hn+jAq24cXbUfNBbOvbZnhOu5EOQo/yy/65dmKk/YlOr9
-	 BbpFedJd1yd3lx5AKtnFPcLVkdX+reIFDGZcW5vXxUsewTcT0ZNmc4oihALInAA4bPAGr
-	 S2TkPjbEI9P1aoYxrm0tl1qjshuln+hG/hXJ7l5S3YlRWjswR2a3G22iUNPyj1W4ryJmu
-	 xAnSiEr0XQo3IY+IQPJwQzhClAgZLRmSUjTPDdLOOMJrhx/5RV/2hrUMFUJG3cu4UVA==
+	t=1793355981;
+	b=wO/tjMhyByIjs63IXmjj1GaZYoOGS/LROaZCqPRwQblmh1uryGRfOxgLRQpLmGOUWoiD
+	 sRfuYpUG++Ekw5nEzdN0hv8iJE1zqWrJt8jeIJ9W4u8fp6lrKaEHNtqclJFwN9cIf0mTa
+	 TuxACdYklcokj74ZJxYjyAW/P35HdrGhMtOPv/f/mTk9GOzvJaTrGIEymzghs6VM1WVEH
+	 nOsDNCKetFdIOu9jtNEDVxWG8QA7kPyShjSS7ozGbjzhcgKYDU5tVC/49NkyKSSJfnYvN
+	 LUf0IDvdeDAlFS4HDqUm1ynnaVib3FoCIbDe5/tZqTieG68JgnNqU+NGkAzQIg1ryKQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793331744;
-	h=DMARC-Filter:dkim-signature:Received:Received:Received:Subject:To:CC:
-	 References:From:Message-ID:Date:User-Agent:MIME-Version:In-Reply-To:
-	 Content-Type:Content-Transfer-Encoding:X-Originating-IP:
-	 X-ClientProxiedBy;
-	bh=lyCCkGxsVqCH5Jxp2Gx73Ra2R6gYJ0X0+xLM8KV7Nyw=;
-	b=Cce5bxcyXsnKfxtSViQeH7U7kdjdN2GXhyL1yiznbCiwv6DP/FFzLdSkX2hNJkojpA3x
-	 u0eUahX36f7mqDBX01lioEgHjNPPzus5EDoakjoYNUxmKi2KfwNMbJEYDdsMyLgF6CVb/
-	 wgbIuSQQuFKeqO94zOLjmVI7ijk8Gxm4W8KaWQReS6vhD2xv9Ws5+8kUZIUMHLzVVgvzT
-	 d3YCzZfUeqrxToaVUeAupwLXFBaDJAKJf6FHJsK9yLNrLrgLdOYK3s6eYk5KJoWivg3cG
-	 wBa4KM35tAg1xPiqOg6cB/YOCfXF7pyeB1CQnZAonlVwiH4I+mUDbiOwIw3UJP2gOhA==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793355981;
+	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
+	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
+	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
+	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
+	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details:
+	 X-Proofpoint-Reinject:X-Proofpoint-GUID:X-Proofpoint-Spam-Info:
+	 X-Proofpoint-ORIG-GUID:X-Proofpoint-Spam-Details-Enc:
+	 X-Authority-Analysis:X-Proofpoint-Virus-Version:
+	 X-Proofpoint-Spam-Details;
+	bh=cQPjKdWMy7S1oYqCkDx7X4TDyODbJDGxE2F3oqdGrUM=;
+	b=FBGl59069jyqjvHviFkogtw9AQfsX3Fup9eUEDULcneTlU9yJ/TEVYL5Xibfc2frHqmf
+	 BHcx7WptSJbhYUyBWpNVg0LEYCEYTzqlKpamV3/LfzLUpj8U/M82IQwDUK8gMKNF5u/SH
+	 OS6fRaKoHRZ3nSEzKrzAIGFiEdamPGcQW79TAQ9IYlJg2Qh84yDFqQbnWigHMGsG4ArAW
+	 ebrZxdvWRw6uiv9mpy7BqVAOgffS8oayePaXe78Ha34fkWYU21Qhe0669Da3hYBr5fDT4
+	 ski/S95Iuw1WVY9npCRH7dusrd4ibDsVxexQJIqUk4tob2/CK11/rdHcZJF8SNjOLZg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=huawei.com;
-	spf=pass smtp.mailfrom=huawei.com;
-	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=6lgTf+Ts;
-	arc=none smtp.remote-ip=113.46.200.216
-Received: from canpmsgout01.his.huawei.com (canpmsgout01.his.huawei.com [113.46.200.216])
+	dmarc=pass header.from=columbia.edu;
+	spf=pass smtp.mailfrom=columbia.edu;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=SzYmS8Kt;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=rvf5gfM+;
+	arc=none smtp.remote-ip=148.163.135.74
+Received: from mx0a-00364e01.pphosted.com (mx0a-00364e01.pphosted.com [148.163.135.74])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ECBA606A31C;
-	Fri, 30 Oct 2026 03:42:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 2ECBA606A31C
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B9D606A320
+	for <ecryptfs@vger.kernel.org>; Fri, 30 Oct 2026 10:26:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 81B9D606A320
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key, unprotected) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=6lgTf+Ts
-dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
-	c=relaxed/relaxed; q=dns/txt;
-	h=From;
-	bh=lyCCkGxsVqCH5Jxp2Gx73Ra2R6gYJ0X0+xLM8KV7Nyw=;
-	b=6lgTf+Ts1V+YHSBCrEFvDEXDhiMC9GXMq3b2wsOqtZVSt4aNi9cNouzzS6JDieVJF34tbk3Eh
-	hET2+S5R51zLlg3+fDdAp58YFcw5B6/T2rmuCau0hbz720kofk1l0vMy/ktC5xSYSNUX71IMs/h
-	Me1Uuzuu58wyIDDAb/XNnkQ=
-Received: from mail.maildlp.com (unknown [172.19.162.140])
-	by canpmsgout01.his.huawei.com (SkyGuard) with ESMTPS id 4jG6NZ0f5mz1T4G5;
-	Fri, 30 Oct 2026 11:42:06 +0800 (CST)
-Received: from whupemo200011.china.huawei.com (unknown [7.152.185.179])
-	by mail.maildlp.com (Postfix) with ESMTPS id 483B3202E6;
-	Fri, 30 Oct 2026 11:42:18 +0800 (CST)
-Received: from [10.174.178.46] (10.174.178.46) by
- whupemo200011.china.huawei.com (7.152.185.179) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.2562.45; Fri, 30 Oct 2026 11:42:16 +0800
-Subject: Re: [PATCH v2 28/34] ubifs: don't set SB_RDONLY after errors
-To: Christian Brauner <brauner@kernel.org>, <linux-fsdevel@vger.kernel.org>,
-	Jan Kara <jack@suse.com>
-CC: Al Viro <viro@zeniv.linux.org.uk>, <ecryptfs@vger.kernel.org>,
-	<linux-ext4@vger.kernel.org>, <jfs-discussion@lists.sourceforge.net>,
-	<linux-nilfs@vger.kernel.org>, <exfat@lists.linux.dev>, <linux-mm@kvack.org>,
-	<ntfs@lists.linux.dev>, <ocfs2-devel@lists.linux.dev>,
-	<linux-btrfs@vger.kernel.org>, <gfs2@lists.linux.dev>,
-	<linux-efi@vger.kernel.org>, <linux-mtd@lists.infradead.org>,
-	<linux-xfs@vger.kernel.org>
-References: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
- <20261029-work-fs-sb_rdonly-v2-28-2f44f64f0b66@kernel.org>
-From: Zhihao Cheng <chengzhihao1@huawei.com>
-Message-ID: <0d472865-6cbb-cbb5-b361-1f2bf71dd528@huawei.com>
-Date: Fri, 30 Oct 2026 11:42:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
+	dkim=pass (2048-bit key, unprotected) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=SzYmS8Kt;
+	dkim=pass (2048-bit key, unprotected) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=rvf5gfM+
+Received: from pps.filterd (m0167068.ppops.net [127.0.0.1])
+	by mx0a-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69U9dYot1150468
+	for <ecryptfs@vger.kernel.org>; Fri, 30 Oct 2026 06:26:20 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
+	cc:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pps01; bh=cQPj
+	KdWMy7S1oYqCkDx7X4TDyODbJDGxE2F3oqdGrUM=; b=SzYmS8KtomEYRhXgVYxZ
+	/WOyQDuLlLWpDlsL1jee8kgPSFdcAO6DbCuDZ0lTCRarvqp8bqw5WQMyZ0dtiiuv
+	QqHyNVfhN95LecaXASZhekhVhX2Fgx0gS6EwvRzak0zJFB3EZcVBNg3Y537B5H9B
+	sfU0yxOj4izwKCngXpcTSXinxhLNO7Xz3DFHUwVyX+pY4qWD3lVSEslnRTg8FJbQ
+	LiUZ3mJkIMqP1rx68IBpui5+14936UYbjOlx5smVcGuv10TixnZKcIYl1/iDoJrT
+	63jxeNyLAUhUmA2FUTIknkO6w9BRtktBogCH1kjSjrjbC0jdiHCm5ZJeoYavxi1X
+	GA==
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com [209.85.160.200])
+	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4hksu4v7p9-1
+	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
+	for <ecryptfs@vger.kernel.org>; Thu, 29 Oct 2026 10:52:00 -0400 (EDT)
+Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-5364605e74bso34857371cf.3
+        for <ecryptfs@vger.kernel.org>; Thu, 29 Oct 2026 07:52:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=columbia.edu; s=lionmail; t=1793285520; x=1793890320; darn=vger.kernel.org;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=cQPjKdWMy7S1oYqCkDx7X4TDyODbJDGxE2F3oqdGrUM=;
+        b=rvf5gfM+pVHLaxNI44qTrcb1snfU+vrYUfRJiTMF/xI5l4IvrL0wQTDZGbAfzHA5vL
+         xOfoSSEBPz4hUBj2nZe0c/8tW7NAooCCU9sjbMdekXbO8v5FdHFsfyeX//8MC6tqNFwS
+         hSzQA1LRDBDRgiGauy/hATOtWgBCR0M3fBm8HNDQwKQKMb7ql8X5tv0dyunNBRy8VuOo
+         w7myhc5ZfD31ZNqGzMQdd5mG+IQf04prH0zWZjLwZuxlF0bP/dt6GXS0mEzoc/ctwjh+
+         zP8Oqwqof8TZ/QO0a5NgBjOVkNL66gA6+8+DHcLYqaKTD6WQYoMuFX3HrZurRiIW5TmA
+         M0jg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1793285520; x=1793890320;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :content-type:mime-version:subject:date:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=cQPjKdWMy7S1oYqCkDx7X4TDyODbJDGxE2F3oqdGrUM=;
+        b=qCgVBQNRMkej8aWuz5QoRKwVSAfqM22KUJPacFvQwIDkbg8KWzpU5EHERu8247TKJM
+         Wl6VR6JyvbQ5jn/nToO2PFiofUrf8LzqEJT0zpz13Zv3GS+44fD7vufbZAM4+Ynsjtyl
+         rRnX7zxct7U0y3ZGI/slmOhSC0H5vdZBOSwy8eFznYbIKhO+NS9ewZMnn2Jh4Pdu8KZ2
+         tm1PewHxlyyCRdK0S/YygYrDcYOFzXuyJTDN/fQitkFNrh2bLT2gEQ2bUU1uRCF/i6E+
+         WNYrelY6sj00c6mi39Fve98PJtuvK4sOnAmhuica0v34fd7CT3HfjdCXaujBc9s0ChUs
+         f5AA==
+X-Gm-Message-State: AFq9FYJHKhxkWkkMZY0DgsosoYTyPwnp7cSF/ucFcgtADLMIds9pAFqb
+	MKwQUiJrw88mLvMHSPDXoE3MtEmZCExdW1IG37+dGSFxaGogQSDULHh9SFf2Xh0EhLffB5YQhJr
+	e01lJxBmCbl4xQOlw7En3pQ59AkowNa5LcxdLyWeFr3RZSCRSI2yJlwRx4ziov2NqPe0=
+X-Gm-Gg: AYBFou2q7o5yCBKR7AbfVIqWmItTQi1ywt3XTb/cWvH7b2gprZHIH8itpSi28p/Qrc/
+	4XSSLvHVKLvNdOz1j5jL1KASU2eX7HesvKyoIv4IKyzKXc5y/o8tQT25S18Rn1u+YT5JmcSAjod
+	mUWeb3UrV/GoalV/di9C6ezJBjs36oX86sKy8p3IYuv+QtZM2JdDqBAkeVezkCfbgwIvtl+7Yj8
+	xacduzfVgzcJPCSsjEFXZtomNybKXxkOfAp+XN256wNLIEWxyaKNK2itzIeVF+PE3zSId3lIW+Q
+	v5wfyu+GG7y/Prk84oi2zTS5gaQw3z8S/d8HqiYHAY/Wz35ZNwu3gaSZ9Puv9IlOAd2VKzc6Yp2
+	qMIiguybvjufxJvICrV7KBGgY7+r1lbtNwo2z3+ULBmA8nxIQ+BTli3LvYmE+UdAp2ddTxZULfE
+	76wCODHp+HRGv1OWY=
+X-Received: by 2002:a05:620a:17ab:b0:93e:60e8:c9ad with SMTP id af79cd13be357-944089dc305mr880516585a.12.1793285520239;
+        Thu, 29 Oct 2026 07:52:00 -0700 (PDT)
+X-Received: by 2002:a05:620a:17ab:b0:93e:60e8:c9ad with SMTP id af79cd13be357-944089dc305mr880512185a.12.1793285519690;
+        Thu, 29 Oct 2026 07:51:59 -0700 (PDT)
+Received: from [127.0.1.1] (bzq-79-179-7-133.red.bezeqint.net. [79.179.7.133])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4aa80f04723sm78153515e9.5.2026.10.29.07.51.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Oct 2026 07:51:58 -0700 (PDT)
+From: Tal Zussman <tz2294@columbia.edu>
+Date: Thu, 29 Oct 2026 10:51:28 -0400
+Subject: [PATCH v2 7/9] ecryptfs: zero the tail of the last folio in place
+ on truncate
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -77,106 +117,153 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-In-Reply-To: <20261029-work-fs-sb_rdonly-v2-28-2f44f64f0b66@kernel.org>
-Content-Type: text/plain; charset="gbk"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: kwepems200002.china.huawei.com (7.221.188.68) To
- whupemo200011.china.huawei.com (7.152.185.179)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20261029-ecryptfs-folio-v2-7-dc53f1d47d9c@columbia.edu>
+References: <20261029-ecryptfs-folio-v2-0-dc53f1d47d9c@columbia.edu>
+In-Reply-To: <20261029-ecryptfs-folio-v2-0-dc53f1d47d9c@columbia.edu>
+To: Tyler Hicks <code@tyhicks.com>
+Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Tal Zussman <tz2294@columbia.edu>
+X-Mailer: b4 0.17-dev
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1793285500; l=3389;
+ i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
+ bh=tfML2l/4cmHk3rjgjwPjbvyNbIjUB+q3HfZTghlUFyQ=;
+ b=PF43qTififwjcXJsXJOD3gXoOymbNv1ze4bqNcgFDjb/PnkpWSOyQOUsq946gDd23ZgIQJsoM
+ 8st4Kt+ZMD1Ct2LLvC7TEkMvsesO9zlX2vYiCfBfyUPrpy3Bfu1SKr1
+X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
+ pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
+X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11949
+ signatures=596817
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ malwarescore=0 suspectscore=0 lowpriorityscore=10 phishscore=0 bulkscore=10
+ priorityscore=1501 clxscore=1015 adultscore=0 impostorscore=10 spamscore=0
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.22.0-2610190000 definitions=main-2610290058
+X-Proofpoint-Reinject: loops=2 maxloops=12
+X-Proofpoint-GUID: iNAVkfhIxJG3Pjo41fOzCBnfHGjXXDgg
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMwMDA0MSBTYWx0ZWRfX00oeOCOjzVPT
+ rDygU1nXTLzG7lUXG1wGum0iJrufdtUxoCoqbJv83taR3bQK6lZOODE6u+hgWNY33LitkaZDHHR
+ wEjGWs6p7C2lJgsq5tEYlfI3VXV2quniw8IVt/wnLITHVCYwzDCu
+X-Proofpoint-ORIG-GUID: LTyOsays3og4SrjCFyhG4zC1JaRcDeVZ
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMwMDA0MSBTYWx0ZWRfX8AQifOpDmWPZ
+ S3FLn2/+feTlLsZguSTl9TT6hJKJvjmAwV9xRJb5QF9MG30TCNLR1DhufJnmx7Wh3nVfVvVakLV
+ 8Y+VY3zYm/ferU2e3sgaCkOOiik60KLPCzRNOxnjxK7SGX5ptrS2KW8XBPuNplrVvMg7hx9ksjc
+ 1Yu6bT29BOGSfr54tDNBeT8RG/RpGLbYfYEHT2TeYEcUlnNaH6O8v1WQbRc9H6uEbrHJ5E4hAB8
+ qAFfhZllpCE47sPU2MkQ54HIuhVJSM9ECYHbC++filFAsdUuHcMJJFgAiS1AxEiTcpU+UagheHb
+ A7IemWXZ0lrZNl/AY9Krk5okzjS6j3sJqLnvsijD75iZLfVk4tTi/O8Al23AAMWaaQ6lK6ilRa7
+ KURCj6V8Wz5rkjA02ybe+PPCP+71oGdxpz/IC9AUSjO+NUE9tqaK81TfaNvQYkaU79EH6qF43mO
+ nglXNCDDytA4qhaTv4w==
+X-Authority-Analysis: v=2.4 cv=cpQOAF4i c=1 sm=1 tr=0 ts=6ae470cb cx=c_pps
+ a=JbAStetqSzwMeJznSMzCyw==:117 a=LRATYcvZeiQrLRB5MfbBvg==:17
+ a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
+ a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=usPcmh10W0ubT8QP8_c3:22
+ a=dGUJCdGidsCb5_L8LY8A:9 a=QEXdDO2ut3YA:10 a=uxP6HrT_eTzRwkO_Te1X:22
+X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11950
+ signatures=596817
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ adultscore=0 priorityscore=1501 malwarescore=0 clxscore=1015 phishscore=0
+ suspectscore=0 spamscore=0 lowpriorityscore=10 impostorscore=10 bulkscore=10
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=2 engine=8.22.0-2610190000 definitions=main-2610300041
 
-ÔÚ 2026/10/30 0:07, Christian Brauner Ð´µÀ:
-> ubifs_ro_mode() sets c->ro_error and SB_RDONLY from whatever context hit
-> the error, e.g. a failing write, and without holding s_umount. UBIFS
-> can't be frozen but that still races with everyone else changing
-> sb->s_flags. And c->ro_error alone already makes every write fail with
-> EROFS.
-> 
-> So only set SB_RDONLY while the filesystem is still being mounted and
-> call sb_set_emergency_ro() after that. The xattr setters check
-> c->ro_error as well because ecryptfs calls them without write access on
-> the lower mount and they change the inode in memory first.
-> 
-> So far a remount to read-only after an error was refused and a remount
-> to read-write went through and cleared SB_RDONLY again because
-> c->ro_mount was never set. Now going read-only works and its writes fail
-> with EROFS before any I/O, and going read-write is refused by the VFS.
-> fsync() fails with EROFS instead of taking ubifs_fsync()'s read-only
-> shortcut.
-> 
-> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
-> ---
->   fs/ubifs/io.c    | 9 ++++++++-
->   fs/ubifs/super.c | 5 +----
->   fs/ubifs/xattr.c | 6 ++++++
->   3 files changed, 15 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/ubifs/io.c b/fs/ubifs/io.c
-> index 6c6d68242779..7a59aa1ea5ce 100644
-> --- a/fs/ubifs/io.c
-> +++ b/fs/ubifs/io.c
-> @@ -72,7 +72,14 @@ void ubifs_ro_mode(struct ubifs_info *c, int err)
->   	if (!c->ro_error) {
->   		c->ro_error = 1;
->   		c->no_chk_data_crc = 0;
-> -		c->vfs_sb->s_flags |= SB_RDONLY;
-> +		/*
-> +		 * Before SB_BORN the mounter holds s_umount, later see
-> +		 * sb_set_emergency_ro().
-> +		 */
-> +		if (!(c->vfs_sb->s_flags & SB_BORN))
-> +			c->vfs_sb->s_flags |= SB_RDONLY;
-> +		else
-> +			sb_set_emergency_ro(c->vfs_sb);
->   		ubifs_warn(c, "switched to read-only mode, error %d", err);
->   		dump_stack();
->   	}
-> diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
-> index 38972786817e..ef39da4e780b 100644
-> --- a/fs/ubifs/super.c
-> +++ b/fs/ubifs/super.c
-> @@ -1977,10 +1977,7 @@ static int ubifs_reconfigure(struct fs_context *fc)
->   		if (err)
->   			return err;
->   	} else if (!c->ro_mount && (fc->sb_flags & SB_RDONLY)) {
-> -		if (c->ro_error) {
-> -			ubifs_msg(c, "cannot re-mount R/O due to prior errors");
-> -			return -EROFS;
-> -		}
-> +		/* After an error ubifs_remount_ro() can't write but still works. */
+A shrinking truncate zeroes the rest of the folio that holds the new
+end of the file by copying from the zero page through ecryptfs_write().
+Zero the folio in place with folio_zero_range() instead, the way the
+truncate helpers in other filesystems do, and encrypt it to the lower
+file. This no longer bumps i_size to the end of the folio and writes
+that to the metadata before the real size is written. It also removes
+the last struct page usage in ecryptfs.
 
-Hi, Brauner
-If we remove the c->ro_error check, ubifs_remount_ro->ubifs_wbuf_sync 
-will return EROFS and trigger ubifs_ro_mode() again, I think we can 
-retain the pre-check placement to trigger more error printing.
-BTW, a remount to read-write after an error is refused too.
->   		ubifs_remount_ro(c);
->   	}
->   
-> diff --git a/fs/ubifs/xattr.c b/fs/ubifs/xattr.c
-> index 3b0e8a270f59..572f6f3e52ad 100644
-> --- a/fs/ubifs/xattr.c
-> +++ b/fs/ubifs/xattr.c
-> @@ -260,6 +260,9 @@ int ubifs_xattr_set(struct inode *host, const char *name, const void *value,
->   	if (check_lock)
->   		ubifs_assert(c, inode_is_locked(host));
->   
-> +	if (c->ro_error)
-> +		return -EROFS;
-> +
->   	if (size > UBIFS_MAX_INO_DATA)
->   		return -ERANGE;
->   
-> @@ -564,6 +567,9 @@ static int ubifs_xattr_remove(struct inode *host, const char *name)
->   
->   	ubifs_assert(c, inode_is_locked(host));
->   
-> +	if (c->ro_error)
-> +		return -EROFS;
-> +
->   	if (fname_len(&nm) > UBIFS_MAX_NLEN)
->   		return -ENAMETOOLONG;
->   
-> 
-The sb_rdonly won't affect the sync_fs_one_sb() after an error, and 
-sb_emergency_ro check in not added into sync_fs_one_sb, should we add 
-the c->ro_error check in ubifs_sync_fs() to prevent the failure 
-ubifs_wbuf_sync executing?
+The folio stays locked while it is encrypted, as in
+ecryptfs_writepages(), and is marked not uptodate if that fails, so a
+later read goes back to the lower file instead of returning zeroes that
+were never written out.
+
+Signed-off-by: Tal Zussman <tz2294@columbia.edu>
+---
+ fs/ecryptfs/inode.c | 51 ++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 38 insertions(+), 13 deletions(-)
+
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 525297c7ebd8..2d6f4f440f65 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -718,6 +718,36 @@ upper_size_to_lower_size(struct ecryptfs_crypt_stat *crypt_stat,
+ 	return lower_size;
+ }
+ 
++/**
++ * ecryptfs_zero_tail
++ * @inode: The ecryptfs inode
++ * @pos: The file offset from which to zero
++ *
++ * Zero the folio that holds @pos from @pos to its end, and write the
++ * result out to the lower file.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++static int ecryptfs_zero_tail(struct inode *inode, loff_t pos)
++{
++	struct folio *folio;
++	size_t from;
++	int rc;
++
++	folio = read_mapping_folio(inode->i_mapping, pos >> PAGE_SHIFT, NULL);
++	if (IS_ERR(folio))
++		return PTR_ERR(folio);
++	from = offset_in_folio(folio, pos);
++	folio_lock(folio);
++	folio_zero_range(folio, from, folio_size(folio) - from);
++	rc = ecryptfs_encrypt_page(folio);
++	if (rc)
++		folio_clear_uptodate(folio);
++	folio_unlock(folio);
++	folio_put(folio);
++	return rc;
++}
++
+ /**
+  * __ecryptfs_truncate
+  * @dentry: The ecryptfs layer dentry
+@@ -739,7 +769,6 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
+ 	loff_t lower_size_before_truncate;
+ 	loff_t lower_size_after_truncate;
+ 	struct iattr lower_ia;
+-	size_t num_zeros;
+ 	int rc;
+ 
+ 	ecryptfs_iattr_to_lower(&lower_ia, ia);
+@@ -788,19 +817,15 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
+ 	}
+ 
+ 	/*
+-	 * We're chopping off all the pages down to the page in which
+-	 * ia->ia_size is located. Fill in the end of that page from
+-	 * (ia->ia_size & ~PAGE_MASK) to PAGE_SIZE with zeros.
++	 * We're chopping off all the folios down to the folio in which
++	 * ia->ia_size is located. Fill in the end of that folio from
++	 * ia->ia_size with zeros.
+ 	 */
+-	num_zeros = PAGE_SIZE - (ia->ia_size & ~PAGE_MASK);
+-	if (num_zeros) {
+-		rc = ecryptfs_write(inode, page_address(ZERO_PAGE(0)),
+-				ia->ia_size, num_zeros);
+-		if (rc) {
+-			pr_err("Error attempting to zero out the remainder of the end page on reducing truncate; rc = [%d]\n",
+-				rc);
+-			goto out;
+-		}
++	rc = ecryptfs_zero_tail(inode, ia->ia_size);
++	if (rc) {
++		pr_err("Error attempting to zero out the remainder of the end folio on reducing truncate; rc = [%d]\n",
++			rc);
++		goto out;
+ 	}
+ 	truncate_setsize(inode, ia->ia_size);
+ 	rc = ecryptfs_write_inode_size_to_metadata(inode);
+
+-- 
+2.39.5
+
