@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793290093;
-	b=2ReM3olgWEWMvBdzuyPlbyBgjcJPXRT1jdMEDfNZJI1hs3T81uGrupVJXVFCYOjkwmcU
-	 h6GQFvrfYVBEQLkefZDich895SQGzn60gFaimsRLzMX0WxPGvNHDWEibuT+hoXDwBJFXE
-	 8Gw3NO3DsKpF+gzoy3HGhGcWxifpeYAUKBsubzARFAp64gTKiuWT4hwyRHJgmIkGtJAl7
-	 zGrJdGVei8TEQCrtxF0UjMBxI4584kRG9It87ax168Mqjdtkt/4uqeSB1BEYez0nTt9B2
-	 Po2WsnJ6V7WWWKxu5P6dXq3d9A1+sjAcVq3w2SRJXGnoCHEEE9EfI4iWKMQpLzCeBuA==
+	t=1793290110;
+	b=xj1XEmzZFsnOElHKl7KJMAsigKeG2+6eR9AXv78pA1IW19EpOgKYPOxkg6zrLuV7XaHY
+	 Igh7QXy7NPI0A6Gxhetqh/hZcTAfoT2MXuyq7bRihozuFjThxQsye+1Str2Widgl4EyUb
+	 KpOva1u/bpQrGu6VzOPRNmDM8IEkKBpFpcaJOTdaYRzbUs+d740Mn1enWJ2F3rB39QR/A
+	 7TAd0vkQu+dezP1WS8JG/ECIKo4N3BJjbtwvjvx7GUQhy9fQ4pgX9TOjkcUp5cWS3omwF
+	 f3XvZUVaDPZu+kBtGQwwxFS1JXC+9Qtw0g+JlukWj1uRWDzP8q8wjtRy/vvLoBvkzBw==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793290093;
+	a=rsa-sha256; c=relaxed/relaxed; t=1793290110;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=c9NHcjuBYTRgyuNebQWjZQ0oqgVAhT3fzgkYSGKqfg4=;
-	b=w87ClPAuLuTxE0T/eP4qmnGEHRnuBwZFM9GKvKAIyVbhwZy+ruLqq6AARpVCjHRE8KZa
-	 9TZgsUEngbGJFEHqSNEtj+Mvx53H2wNqvCaFLQioEzOl9yB7Wh05hnNMF/KeZ3AInDSmw
-	 cRshqpIDAs5jeoVjSwZJEueoSfYp3nmgRzGf8ahCwa+YiYH9XHaKLvpeb/9iR3sXual6J
-	 xeEHvd985lJf16jWoRT/RYoWpp5xwajJLWpyM9qNxvhGvctpFxCvwFLZ8jVhjn3PNfJwq
-	 EmT+vPV1bQWeMzcBuxUUtwe2P3leSOs9IdE76YA5T7wCO1RLdCU6An69qBm5WJrv40Q==
+	bh=lOdaf0Zf7Tx/CylsO5jKdAcnuGg+xFWYSOeHAoH3mNc=;
+	b=nwY5/57TtLUQXdG9C9g+JKmF/jhpgtE6TDj9VNunehqxMVmKaGOHk6d3p2ANwOlNeNYW
+	 6Ihsa5hUKOphYQqK7LITueDP7kdGzlHr2sntkX3Fo4DYd/ZJggHqYF5+2dLtJwuel1MsZ
+	 aiVbiTbUOHPX3Hmf+AiUXn0ozgRQszvodCrfAFSZ54bcXLqEVea8nPdV+ujzkgvCpTFUs
+	 WNGV7lMndigRIsnGNMrvnoyX4i/5MOF+C+MPRufhe9mSfIzYPi/K7SdCbDt4SpU0/3DAK
+	 v7jGs7iV3KnNyQcs9hfnRJ1dvfOX+QATaozUx8tcaypT2AtY69T17wfqfkaqm0z/WGw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iZSgo6Si;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b="Mkkh/6Ad";
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B284606A31C;
-	Thu, 29 Oct 2026 16:08:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5148B606A31C;
+	Thu, 29 Oct 2026 16:08:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=iZSgo6Si
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F1B21F031E4;
-	Thu, 29 Oct 2026 16:08:09 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=Mkkh/6Ad
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AC6A1F01826;
+	Thu, 29 Oct 2026 16:08:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793290093;
-	bh=c9NHcjuBYTRgyuNebQWjZQ0oqgVAhT3fzgkYSGKqfg4=;
+	s=k20260515; t=1793290109;
+	bh=lOdaf0Zf7Tx/CylsO5jKdAcnuGg+xFWYSOeHAoH3mNc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=iZSgo6SiEAfrSEaaX8mDB+yBYdeGvon/S8F4WRbn+oWO1HGL/U9gCe2iRi/tJGtnz
-	 J++7RkjNNSG1kc8+8Wfgl+a1SSi+IdjYVKRpU06d1aR98O51t6VaIhODHPqmBs52h+
-	 6Tfahz80uqc7uIgRradogpZL83UCpvfFqDJzP6XD0fQ4TMVYKeC3N4e51/8G90qJ+k
-	 FJHVD/D2ukooWKe9mGr8PXC16qv/gt01cOSGmvgNu2C95jOVjPHgDtXkv+4Z/aRAQV
-	 8r81abY/vuUl+7CTKorVZSVxQ0oCY8EPFTzY/r8Sme/qtFbDtgaojMMT5KXOVlgJE+
-	 Qk7H/I287UIKA==
+	b=Mkkh/6AdRYfvSfyjpLwbroR31lzxLlJFZEp5FSNJ/gv/Y2ksuNNMnQ7DNOpxkFJZs
+	 H83BjlVu+Ow4K2PY+bVZIdujbY8jRUosS55d6uMBxaEbOVWjifjTtQxwXpQbmotZwa
+	 ItPwCURgbjN3znNMx9+vi6oI7MD5hB4GZLh+yTtQFSA6hw9ritBvSwoFIcVGsxL74p
+	 cOIZZ7MhC3xEAHShIX+IwymVOtNP+lQy3SvX8HJZwqCK00aPdqC0gLmGjwNZyVbtAs
+	 B17SiqaVnq6QhU+0td2yT+ST7BNJyJCQAidTifAqGK7AHn3T+wC4LuwZ/CyKJandiB
+	 uBreV+q7tvzQA==
 From: Christian Brauner <brauner@kernel.org>
-Date: Thu, 29 Oct 2026 17:07:03 +0100
-Subject: [PATCH v2 12/34] hfs: use the generic emergency read-only state
+Date: Thu, 29 Oct 2026 17:07:07 +0100
+Subject: [PATCH v2 16/34] hpfs: don't set SB_RDONLY after filesystem errors
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -54,7 +54,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261029-work-fs-sb_rdonly-v2-12-2f44f64f0b66@kernel.org>
+Message-Id: <20261029-work-fs-sb_rdonly-v2-16-2f44f64f0b66@kernel.org>
 References: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
 In-Reply-To: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
 To: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.com>
@@ -67,269 +67,119 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org,
  linux-xfs@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=8902; i=brauner@kernel.org;
- h=from:subject:message-id; bh=mps+uYrFI8GDU18Uvw7I2v924Kk7f16ilW9beBVH01Y=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQ9ztfnqn0WpVx71v/BVLbb01bXMGQrcf1qLOD+q2DVx
- c/XzZLbUcrCIMbFICumyOLQbhIut5ynYrNRpgbMHFYmkCEMXJwCMJE8a4a/Yvcuqb7gKjiwM+3V
- GsmVR7sNJk22mnpXa9Ue1itXkpMf1zIyzDGbXhmh8ucwR3J55Curb2s9HG7Esqer2JpWzL20+/B
- yLgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4412; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=HjY2TpU2zaQJA3Ncvw1b4w9QnMNY6uHTIkSft5aNRTE=;
+ b=kA0DAAoWkcYbwGV43KIByyZiAGrjby+jQvJKYk2QQRQ1L8q//FVvZJgprvAFPf0r1TvUIMCe+
+ oh1BAAWCgAdFiEEQIc0Vx6nDHizMmkokcYbwGV43KIFAmrjby8ACgkQkcYbwGV43KJSKwD+MnJY
+ PXjYZUPCVMbe+ntVEdsrAo9wqFKueXJYeySUyQkA/RQp/pST8RDbnSwtc7r5VAOV4jWHE1f9RMH
+ rZe91yVII
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-Set SB_STATE_EMERGENCY_RO instead of a private bit and drop the checks
-the VFS does now. What's left is hfs_get_block(), hfs_file_truncate(),
-write_begin, O_DIRECT writes, the hfs.type and hfs.creator xattrs,
-hfs_write_inode() which still writes the b-tree headers, and the MDB
-commit, close and dirtying paths.
+With errors=remount-ro, the hpfs default, hpfs_error() sets SB_RDONLY on
+the first error without holding s_umount. If that happens while the
+filesystem is frozen through bdev_freeze() thaw_super() sees a read-only
+superblock and leaves the s_writers rwsems locked so every writer hangs.
+
+hpfs_error() is also called from hpfs_fill_super() where nothing can
+freeze the superblock yet, so keep setting SB_RDONLY there. After that
+call sb_set_emergency_ro() instead and let the VFS refuse modifications.
+FITRIM is refused and unmark_dirty() does nothing in that state so the
+next mount reports the volume as improperly stopped. hpfs_map_dnode()
+and hpfs_lookup() treat the state like read-only so lookups behave as
+before.
+
+A remount to read-write fails until umount and a remount to read-only
+doesn't write the spare block. Writes through file descriptors opened
+before the error fail with EROFS.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/hfs/attr.c   |  2 +-
- fs/hfs/dir.c    | 12 ------------
- fs/hfs/extent.c |  4 ++--
- fs/hfs/hfs_fs.h | 11 -----------
- fs/hfs/inode.c  | 20 ++++----------------
- fs/hfs/mdb.c    |  8 ++++----
- fs/hfs/super.c  |  5 +----
- 7 files changed, 12 insertions(+), 50 deletions(-)
+ fs/hpfs/alloc.c |  4 ++--
+ fs/hpfs/dir.c   |  3 ++-
+ fs/hpfs/map.c   |  3 ++-
+ fs/hpfs/super.c | 11 +++++++++--
+ 4 files changed, 15 insertions(+), 6 deletions(-)
 
-diff --git a/fs/hfs/attr.c b/fs/hfs/attr.c
-index bd9a1289d8c5..337b22f28208 100644
---- a/fs/hfs/attr.c
-+++ b/fs/hfs/attr.c
-@@ -129,7 +129,7 @@ static int hfs_xattr_set(const struct xattr_handler *handler,
- 	if (!value)
- 		return -EOPNOTSUPP;
- 
--	if (unlikely(hfs_emergency_ro(inode->i_sb)))
-+	if (unlikely(sb_emergency_ro(inode->i_sb)))
- 		return -EROFS;
- 
- 	return __hfs_setxattr(inode, handler->flags, value, size, flags);
-diff --git a/fs/hfs/dir.c b/fs/hfs/dir.c
-index f0d8ddb07503..f6b97da19788 100644
---- a/fs/hfs/dir.c
-+++ b/fs/hfs/dir.c
-@@ -189,9 +189,6 @@ static int hfs_create(const struct mnt_idmap *idmap, struct inode *dir,
- 	struct inode *inode;
- 	int res;
- 
--	if (unlikely(hfs_emergency_ro(dir->i_sb)))
--		return -EROFS;
--
- 	inode = hfs_new_inode(dir, &dentry->d_name, mode);
- 	if (IS_ERR(inode))
- 		return PTR_ERR(inode);
-@@ -222,9 +219,6 @@ static struct dentry *hfs_mkdir(const struct mnt_idmap *idmap, struct inode *dir
- 	struct inode *inode;
- 	int res;
- 
--	if (unlikely(hfs_emergency_ro(dir->i_sb)))
--		return ERR_PTR(-EROFS);
--
- 	inode = hfs_new_inode(dir, &dentry->d_name, mode);
- 	if (IS_ERR(inode))
- 		return ERR_CAST(inode);
-@@ -258,9 +252,6 @@ static int hfs_remove(struct inode *dir, struct dentry *dentry)
- 	struct inode *inode = d_inode(dentry);
- 	int res;
- 
--	if (unlikely(hfs_emergency_ro(sb)))
--		return -EROFS;
--
- 	if (S_ISDIR(inode->i_mode) && inode->i_size != 2)
- 		return -ENOTEMPTY;
- 
-@@ -299,9 +290,6 @@ static int hfs_rename(const struct mnt_idmap *idmap, struct inode *old_dir,
- 	if (flags & ~RENAME_NOREPLACE)
- 		return -EINVAL;
- 
--	if (unlikely(hfs_emergency_ro(old_dir->i_sb)))
--		return -EROFS;
--
- 	/* Unlink destination if it already exists */
- 	if (d_really_is_positive(new_dentry)) {
- 		res = hfs_remove(new_dir, new_dentry);
-diff --git a/fs/hfs/extent.c b/fs/hfs/extent.c
-index dacf7ce1ffe4..fd874a93a92f 100644
---- a/fs/hfs/extent.c
-+++ b/fs/hfs/extent.c
-@@ -357,7 +357,7 @@ int hfs_get_block(struct inode *inode, sector_t block,
- 			return -EIO;
- 		if (ablock >= HFS_I(inode)->alloc_blocks) {
- 			/* No new allocations after an error. */
--			if (unlikely(hfs_emergency_ro(sb)))
-+			if (unlikely(sb_emergency_ro(sb)))
- 				return -EROFS;
- 			res = hfs_extend_file(inode);
- 			if (res)
-@@ -494,7 +494,7 @@ void hfs_file_truncate(struct inode *inode)
- 	hfs_dbg("ino %llu, phys_size %llu -> i_size %llu\n",
- 		inode->i_ino, (long long)HFS_I(inode)->phys_size,
- 		inode->i_size);
--	if (unlikely(hfs_emergency_ro(sb)))
-+	if (unlikely(sb_emergency_ro(sb)))
- 		return;
- 	if (inode->i_size > HFS_I(inode)->phys_size) {
- 		struct address_space *mapping = inode->i_mapping;
-diff --git a/fs/hfs/hfs_fs.h b/fs/hfs/hfs_fs.h
-index 325214573d91..fdfa5d303d5e 100644
---- a/fs/hfs/hfs_fs.h
-+++ b/fs/hfs/hfs_fs.h
-@@ -143,7 +143,6 @@ struct hfs_sb_info {
- #define HFS_FLG_BITMAP_DIRTY	0
- #define HFS_FLG_MDB_DIRTY	1
- #define HFS_FLG_ALT_MDB_DIRTY	2
--#define HFS_FLG_EMERGENCY_RO	3	/* read-only after an MDB write error */
- 
- /* bitmap.c */
- extern u32 hfs_vbm_search_free(struct super_block *sb, u32 goal, u32 *num_bits);
-@@ -294,16 +293,6 @@ static inline const char *hfs_mdb_name(struct super_block *sb)
- 	return sb->s_id;
- }
- 
--/*
-- * Writing back the MDB failed and the filesystem stopped all modifications
-- * until unmount. SB_RDONLY isn't used for that because it must not change
-- * without s_umount.
-- */
--static inline bool hfs_emergency_ro(struct super_block *sb)
--{
--	return test_bit(HFS_FLG_EMERGENCY_RO, &HFS_SB(sb)->flags);
--}
--
- static inline void hfs_bitmap_dirty(struct super_block *sb)
- {
- 	set_bit(HFS_FLG_BITMAP_DIRTY, &HFS_SB(sb)->flags);
-diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
-index 6ea3b8ffb284..71f7ddf60fb2 100644
---- a/fs/hfs/inode.c
-+++ b/fs/hfs/inode.c
-@@ -54,7 +54,7 @@ int hfs_write_begin(const struct kiocb *iocb, struct address_space *mapping,
- 	loff_t total_capacity;
- 	int ret;
- 
--	if (unlikely(hfs_emergency_ro(inode->i_sb)))
-+	if (unlikely(sb_emergency_ro(inode->i_sb)))
- 		return -EROFS;
- 
- 	total_capacity = (loff_t)sbi->fs_ablocks * sbi->alloc_blksz;
-@@ -143,7 +143,7 @@ static ssize_t hfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- 	ssize_t ret;
- 
- 	if (iov_iter_rw(iter) == WRITE &&
--	    unlikely(hfs_emergency_ro(inode->i_sb)))
-+	    unlikely(sb_emergency_ro(inode->i_sb)))
- 		return -EROFS;
- 
- 	ret = blockdev_direct_IO(iocb, inode, iter, hfs_get_block);
-@@ -479,11 +479,8 @@ int hfs_write_inode(struct inode *inode, struct writeback_control *wbc)
- 	int res;
- 
- 	hfs_dbg("ino %llu\n", inode->i_ino);
--	if (unlikely(hfs_emergency_ro(inode->i_sb))) {
--		/*
--		 * Writeback still writes the b-tree nodes. Keep the headers in
--		 * sync with them so the trees on disk stay intact.
--		 */
-+	if (unlikely(sb_emergency_ro(inode->i_sb))) {
-+		/* Keep the headers in sync with the nodes writeback still writes. */
- 		if (inode->i_ino == HFS_EXT_CNID)
- 			hfs_btree_write(HFS_SB(inode->i_sb)->ext_tree);
- 		else if (inode->i_ino == HFS_CAT_CNID)
-@@ -640,8 +637,6 @@ void hfs_evict_inode(struct inode *inode)
- 
- static int hfs_file_open(struct inode *inode, struct file *file)
- {
--	if ((file->f_mode & FMODE_WRITE) && hfs_emergency_ro(inode->i_sb))
--		return -EROFS;
- 	if (HFS_IS_RSRC(inode))
- 		inode = HFS_I(inode)->rsrc_inode;
- 	atomic_inc(&HFS_I(inode)->opencnt);
-@@ -673,9 +668,6 @@ int hfs_inode_setattr(const struct mnt_idmap *idmap, struct dentry *dentry,
- 	struct hfs_sb_info *hsb = HFS_SB(inode->i_sb);
- 	int error;
- 
--	if (unlikely(hfs_emergency_ro(inode->i_sb)))
--		return -EROFS;
--
- 	error = setattr_prepare(&nop_mnt_idmap, dentry, attr);
- 	if (error)
- 		return error;
-@@ -727,10 +719,6 @@ static int hfs_file_fsync(struct file *filp, loff_t start, loff_t end,
- 	struct super_block * sb;
- 	int ret, err;
- 
--	/* Inodes aren't written back after an error. */
--	if (unlikely(hfs_emergency_ro(inode->i_sb)))
--		return -EROFS;
--
- 	ret = file_write_and_wait_range(filp, start, end);
- 	if (ret)
- 		return ret;
-diff --git a/fs/hfs/mdb.c b/fs/hfs/mdb.c
-index 1a56cf5ea56e..b821b06121ad 100644
---- a/fs/hfs/mdb.c
-+++ b/fs/hfs/mdb.c
-@@ -338,7 +338,7 @@ int hfs_mdb_commit(struct super_block *sb)
- 	struct hfs_mdb *mdb = HFS_SB(sb)->mdb;
- 	int ret = 0;
- 
--	if (sb_rdonly(sb) || hfs_emergency_ro(sb))
-+	if (sb_rdonly(sb) || sb_emergency_ro(sb))
+diff --git a/fs/hpfs/alloc.c b/fs/hpfs/alloc.c
+index f5150372618e..8c84126ea038 100644
+--- a/fs/hpfs/alloc.c
++++ b/fs/hpfs/alloc.c
+@@ -539,7 +539,7 @@ int hpfs_trim_fs(struct super_block *s, u64 start, u64 end, u64 minlen, unsigned
  		return 0;
- 
- 	/*
-@@ -347,7 +347,7 @@ int hfs_mdb_commit(struct super_block *sb)
- 	 */
- 	if (!buffer_uptodate(HFS_SB(sb)->mdb_bh)) {
- 		pr_err("primary MDB is corrupt, mounting read-only\n");
--		set_bit(HFS_FLG_EMERGENCY_RO, &HFS_SB(sb)->flags);
-+		sb_set_emergency_ro(sb);
- 		return -EIO;
- 	}
- 
-@@ -381,7 +381,7 @@ int hfs_mdb_commit(struct super_block *sb)
- 	    HFS_SB(sb)->alt_mdb) {
- 		if (!buffer_uptodate(HFS_SB(sb)->alt_mdb_bh)) {
- 			pr_err("alternate MDB is corrupt, mounting read-only\n");
--			set_bit(HFS_FLG_EMERGENCY_RO, &HFS_SB(sb)->flags);
-+			sb_set_emergency_ro(sb);
- 			ret = -EIO;
- 			goto out;
+ 	if (start < sbi->sb_dirband_start + sbi->sb_dirband_size && end > sbi->sb_dirband_start) {
+ 		hpfs_lock(s);
+-		if (sb_rdonly(s)) {
++		if (sb_rdonly(s) || sb_emergency_ro(s)) {
+ 			err = -EROFS;
+ 			goto unlock_1;
  		}
-@@ -432,7 +432,7 @@ int hfs_mdb_commit(struct super_block *sb)
- void hfs_mdb_close(struct super_block *sb)
+@@ -560,7 +560,7 @@ int hpfs_trim_fs(struct super_block *s, u64 start, u64 end, u64 minlen, unsigned
+ 	end_bmp = (end + 0x3fff) >> 14;
+ 	while (start_bmp < end_bmp && !err) {
+ 		hpfs_lock(s);
+-		if (sb_rdonly(s)) {
++		if (sb_rdonly(s) || sb_emergency_ro(s)) {
+ 			err = -EROFS;
+ 			goto unlock_2;
+ 		}
+diff --git a/fs/hpfs/dir.c b/fs/hpfs/dir.c
+index 3bf11202e2d3..1fd35a98a5f1 100644
+--- a/fs/hpfs/dir.c
++++ b/fs/hpfs/dir.c
+@@ -265,7 +265,8 @@ struct dentry *hpfs_lookup(struct inode *dir, struct dentry *dentry, unsigned in
+ 	hpfs_result = hpfs_i(result);
+ 	if (!de->directory) hpfs_result->i_parent_dir = dir->i_ino;
+ 
+-	if (de->has_acl || de->has_xtd_perm) if (!sb_rdonly(dir->i_sb)) {
++	if ((de->has_acl || de->has_xtd_perm) &&
++	    !sb_rdonly(dir->i_sb) && !sb_emergency_ro(dir->i_sb)) {
+ 		hpfs_error(result->i_sb, "ACLs or XPERM found. This is probably HPFS386. This driver doesn't support it now. Send me some info on these structures");
+ 		iput(result);
+ 		result = ERR_PTR(-EINVAL);
+diff --git a/fs/hpfs/map.c b/fs/hpfs/map.c
+index be73233502f8..e9af634e54fa 100644
+--- a/fs/hpfs/map.c
++++ b/fs/hpfs/map.c
+@@ -288,7 +288,8 @@ struct dnode *hpfs_map_dnode(struct super_block *s, unsigned secno,
+ 					goto bail;
+ 				}
+ 				if (((31 + de->namelen + de->down*4 + 3) & ~3) != le16_to_cpu(de->length)) {
+-					if (((31 + de->namelen + de->down*4 + 3) & ~3) < le16_to_cpu(de->length) && s->s_flags & SB_RDONLY) goto ok;
++					if (((31 + de->namelen + de->down*4 + 3) & ~3) < le16_to_cpu(de->length) &&
++					    (sb_rdonly(s) || sb_emergency_ro(s))) goto ok;
+ 					hpfs_error(s, "namelen does not match dirent size in dnode %08x, dirent %03x, last %03x", secno, p, pp);
+ 					goto bail;
+ 				}
+diff --git a/fs/hpfs/super.c b/fs/hpfs/super.c
+index 8fbdbf080627..ab89e624cd51 100644
+--- a/fs/hpfs/super.c
++++ b/fs/hpfs/super.c
+@@ -44,7 +44,7 @@ static void unmark_dirty(struct super_block *s)
  {
- 	/* update volume attributes */
--	if (sb_rdonly(sb) || hfs_emergency_ro(sb))
-+	if (sb_rdonly(sb) || sb_emergency_ro(sb))
- 		return;
- 
- 	if (!buffer_uptodate(HFS_SB(sb)->mdb_bh))
-diff --git a/fs/hfs/super.c b/fs/hfs/super.c
-index bcc19c3a4f6b..c815d22ab900 100644
---- a/fs/hfs/super.c
-+++ b/fs/hfs/super.c
-@@ -82,7 +82,7 @@ void hfs_mark_mdb_dirty(struct super_block *sb)
- 	struct hfs_sb_info *sbi = HFS_SB(sb);
- 	unsigned long delay;
- 
--	if (sb_rdonly(sb) || hfs_emergency_ro(sb))
-+	if (sb_rdonly(sb) || sb_emergency_ro(sb))
- 		return;
- 
- 	spin_lock(&sbi->work_lock);
-@@ -131,9 +131,6 @@ static int hfs_reconfigure(struct fs_context *fc)
- 		return 0;
- 
- 	if (!(fc->sb_flags & SB_RDONLY)) {
--		/* After an MDB write error it stays read-only until unmount. */
--		if (hfs_emergency_ro(sb))
--			return -EROFS;
- 		if (!(HFS_SB(sb)->mdb->drAtrb & cpu_to_be16(HFS_SB_ATTRIB_UNMNT))) {
- 			pr_warn("filesystem was not cleanly unmounted, running fsck.hfs is recommended.  leaving read-only.\n");
- 			sb->s_flags |= SB_RDONLY;
+ 	struct buffer_head *bh;
+ 	struct hpfs_spare_block *sb;
+-	if (sb_rdonly(s)) return;
++	if (sb_rdonly(s) || sb_emergency_ro(s)) return;
+ 	sync_blockdev(s->s_bdev);
+ 	if ((sb = hpfs_map_sector(s, 17, &bh, 0))) {
+ 		sb->dirty = hpfs_sb(s)->sb_chkdsk > 1 - hpfs_sb(s)->sb_was_error;
+@@ -81,7 +81,14 @@ void hpfs_error(struct super_block *s, const char *fmt, ...)
+ 			else {
+ 				pr_cont("; remounting read-only\n");
+ 				mark_dirty(s, 0);
+-				s->s_flags |= SB_RDONLY;
++				/*
++				 * Before SB_BORN the mounter holds s_umount,
++				 * later see sb_set_emergency_ro().
++				 */
++				if (s->s_flags & SB_BORN)
++					sb_set_emergency_ro(s);
++				else
++					s->s_flags |= SB_RDONLY;
+ 			}
+ 		} else if (sb_rdonly(s))
+ 				pr_cont("; going on - but anything won't be destroyed because it's read-only\n");
 
 -- 
 2.53.0
