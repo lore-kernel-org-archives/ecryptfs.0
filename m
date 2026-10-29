@@ -1,49 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793290046;
-	b=qrRUYcc6A/gmeLRFmKg1gB1q0ncLGVlfaYupVA8V1w/rAeg2YrTRPn6O3Ciu/ELLBx7b
-	 /yNOetML0yiIAT768AqANQxtCYtWdtWX8CJGQy4yJ2qVzlxjyfPvHVOdt0WDOTGV0XWO0
-	 SJhJ8SVv1wsU4EI0b34du8clh8o3aJQOVxUlrC9gQkFR9xuPjVNjafQ6aZiYxQnR/gDJd
-	 T+Bbbb3jv6Xei1l5C1rVp5rkeYFsXcOpSNaZhtu+t5+aJcRIHpPodTYgoYovxzN+6wKv9
-	 bS4ebq3rv00uTkgZonTu/FKGu+j9EAhhIgnJRYtX3Qz2n+Y4AmoOCSBaqaaVQpZpk+A==
+	t=1793290072;
+	b=Vo628Gip882foFX7RiizprfD2IYVucLlUjKKnGRXLiHIqYvn3YYuHSdx4LcqEw5uM9S6
+	 1wtZP/pfTqTkg9m6XaLINSog/AwnmYXUzAZ8UXN0Z7zASK+gRcyFMbHHCgja5qtG2UtjG
+	 yt8cRcilB0usq3akL9/TBfEk25lLQi6QkRjqYZQt7r+O0EQCvFUogwbHeqyOO7Qp+jiuK
+	 uCuUSKPbfN4gbl3ir4/4DV0q2gM7saFuwuAHSJeHFY/ApLC+ujO3qhNCCDwZj7E1SIn5f
+	 V/ekwYOPOHI8prLht1QhS+FpEDCfsaySww3gjtgOaOK1WzMQT4tFGQAPJrb+li/Sb3Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793290046;
-	h=Received:DKIM-Signature:From:Subject:Date:Message-Id:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:
-	 Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=0kfa1+o/kOQJpCjWspPvluOo3G7XtKdfcqBY5eBQo5Y=;
-	b=QDuC/addGGJMOs/i1F+Q5E5114+IlYbuAihsvggW0EnNtho6+VxpZI/Sr3QsxCaR1JZO
-	 y9ISZTUrMi8ZS7w9B3YMXGEuituqMRz58MfxBi6lDJ1kDuL/oC1g6aBSEBKL+VjEdYhT/
-	 r2zCJMzzfXx8Y2sXrJhaRSwcVTJ7yEUY+MOcEWAbJc+EYDr0OrviNyK52fV16MYX+QtM2
-	 yKGPleqX0j8xDaOK7BdPfU4xD7tCzW9L7rWHonYQ9nGcfRbBpkVHWAz/sxoQrzn5kIMCR
-	 MVZdgkx/lPMqFhCqGhEbYOzG/FvWwe8JEJTy/S7w/mcvVZHWmMNFe3LE7kIfra1Lagw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793290072;
+	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
+	 X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=vWXoC3DGBRzxnPUyhv6W7lJ/GIRbUyR3KNIt8HGMfr4=;
+	b=ouhhLRjTpifHCQYRfJrz92AUUUTd8/ScbXGgiDQnMeZNyrpkKtGB2DXUUVMF0TUsQQWC
+	 Az1AkVMvqXJuuNygK2cu2d4bO1eU/bwEC2c/J8QmFqzlnygfrGytMulSOwuxoaRS0Kw8Y
+	 gCWT/cGniV3Dcso13idW3ms+B79hXxpIjUXLgtPkRsA3OgxxAO36aKVAfN4yOR9I09713
+	 FWl0Lgj1s/Urf/lMSgy16QhFRZoD1L7z7QqGZvId26o1QqvxppR4p97QMfZ6WoIXCfGbm
+	 bZigWO3c2opWM4x92TSKfsZei9vyf+gIsmgY82GmMfHGARIxVvyFnqQKT25Ca96Q+0A==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ENLdlQBC;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hUtWbXhW;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13C50606A325;
-	Thu, 29 Oct 2026 16:07:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD4FA606A31C;
+	Thu, 29 Oct 2026 16:07:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=ENLdlQBC
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B1FB1F031E1;
-	Thu, 29 Oct 2026 16:07:14 +0000 (UTC)
+	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=hUtWbXhW
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFADB1F031E1;
+	Thu, 29 Oct 2026 16:07:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1793290040;
-	bh=0kfa1+o/kOQJpCjWspPvluOo3G7XtKdfcqBY5eBQo5Y=;
-	h=From:Subject:Date:To:Cc;
-	b=ENLdlQBCOxcvXYZ9732gRlp7GWhde/z2/AbncGNhVadmd7mCXF6V+cOPRvs1GhjDu
-	 ken0PrYzQBe4IO1MchCBV6yu4Cl64rgfSKBkmMQmnpkcmRUclZrD5u3GP4j8fDbIXW
-	 tL5+HUCMtjkqGfYAqVZxqPpZCbOU0hz3cpFjbwGZA3DX8s5imLeVfLSROTUijoBrwu
-	 TLqT3kVrmBJyWo05wA+dNSOGvwyDY//v4VfTF2ksoShUVTjjLymL1VTAMTM2Av0e8F
-	 gqysEcjNyRy+c3NAOiXlmJg+zCuC/p+M5DOt8se2WEYDvC2omSJLK7t0UfGYs1HQgk
-	 C5RZNQVdwBUtQ==
+	s=k20260515; t=1793290071;
+	bh=vWXoC3DGBRzxnPUyhv6W7lJ/GIRbUyR3KNIt8HGMfr4=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc;
+	b=hUtWbXhW3fJajno1Nrb7Ec4J0dHYN6h6leJoiQclqb/1dXpC0rODkG3fKujqVJr7g
+	 34NGOPd1Z8IWVuqab9cP4r7S6etN9kh/tBXDV04IsaZ7rc2d4TTMfJjVR6z3LsJoWX
+	 0mS6H/DFYxU2xnNZuLCWw9zQFOsRo2dvw4vxruXIcM2HLQ3+08QrcQNbaK/VZR48kh
+	 YE0d2V6FVDCPczojym4K41diZWjEoXTRQZEnMtQK4MjJ5FoKWk6P5rJJAGCIuXKDmD
+	 DOfd75tdwmpnHOd2KQUSHKuR9w7mDMj+YlbQ5eIr8OX70MQbHtWSH4qBw84eEdmYXu
+	 MtDsALtrfKoSw==
 From: Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v2 00/34] fs: don't set SB_RDONLY after filesystem errors
-Date: Thu, 29 Oct 2026 17:06:51 +0100
-Message-Id: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
+Date: Thu, 29 Oct 2026 17:06:58 +0100
+Subject: [PATCH v2 07/34] fat: don't set SB_RDONLY after filesystem errors
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -55,11 +54,9 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/22OQQ6CMBBFr0K6tqQtpkZX3sMQ05YBKqQ1M4gSw
- t2lGF25fJM/L29mBOiB2CmbGcLoycewgtplzLUmNMB9tTJTQmkppOTPiB2viZO9YhVDP/H6WIB
- W2lbCKbb+3RFq/9qcl/LD9LA3cEMSpYU1BNyiCa5Np6TMa8p/yjwN0rD1NESctrpRJuE3RP0JG
- SUXXIvDvjBF5Qqlzx1ggD6P2LByWZY3Wd2/Ze4AAAA=
-X-Change-ID: 20261011-work-fs-sb_rdonly-f93e626bd0c2
+Message-Id: <20261029-work-fs-sb_rdonly-v2-7-2f44f64f0b66@kernel.org>
+References: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
+In-Reply-To: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
 To: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, 
  linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, 
@@ -68,328 +65,221 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org,
  linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev, 
  linux-efi@vger.kernel.org, linux-mtd@lists.infradead.org, 
  linux-xfs@vger.kernel.org, 
- "Christian Brauner (Amutable)" <brauner@kernel.org>, stable@vger.kernel.org, 
- Farhad Alemi <farhad.alemi@berkeley.edu>, Tyler Hicks <code@tyhicks.com>, 
- Jan Kara <jack@suse.cz>, Karl Mehltretter <kmehltretter@gmail.com>, 
- Ryusuke Konishi <konishi.ryusuke@gmail.com>, 
- Viacheslav Dubeyko <slava@dubeyko.com>, Christoph Hellwig <hch@lst.de>
+ "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=18142; i=brauner@kernel.org;
- h=from:subject:message-id; bh=MHX3uX4Z7tanio9rdiFDGmpLw2bGfkflZBNxCLxl1+c=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQ9ztfzWsI54x5bH2fFj6XR2jaGN778rxJmc3kUF/cxJ
- sO++6J4RykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwESuyjEyLAiOnxIlxfr+w4QL
- E94UpT3sY9R/GiTUvfxG/QyLgmaeT4wM33t/VUZueHbmSlru2uXPE80fJFVISbzx4OJJXzrzT/B
- 7HgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7436; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=8raaRLMglHB1XzqC3kqIXTQ2e6NIuFME1v48GfRyzxs=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWQ9ztfvYHB9vsnz5x3XmYyHfxs2f/r63Dfm+ZOFbRuEH
+ 52bm8O1pqOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAixzcx/BVea9y9bfOv8ijd
+ w1cCtgem+tSvUBc8JL28WUXJ6fkhj0UM/x1Lc8MKtk/YanDo+RP+95vm84afb1uT/P97oXVzw79
+ bYVwA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-A lot of filesystems handle errors by setting SB_RDONLY on the
-superblock. They do that from whatever context found the error and
-without holding s_umount. That's never been okay. SB_RDONLY is supposed
-to only change under s_umount through a proper remount and the unlocked
-update of sb->s_flags races with everyone else who writes it.
+With errors=remount-ro, the default, __fat_fs_error() sets SB_RDONLY
+from whatever context hit the error and without holding s_umount. If
+that happens while the filesystem is frozen through bdev_freeze(), e.g.
+by a device mapper suspend, thaw_super() sees a read-only superblock and
+leaves the s_writers rwsems locked so every writer hangs.
 
-And it breaks freezing. freeze_super() and thaw_super() decide from
-sb_rdonly() whether the s_writers rwsems need to be taken or released.
-So if an error sets SB_RDONLY while the filesystem is frozen
-thaw_super() leaves the rwsems write-locked and marks the superblock
-unfrozen. Every writer after that hangs in sb_start_write() and umount
-warns when it frees the locked rwsems. jfs even oopses on umount.
+So call sb_set_emergency_ro() instead and let the VFS refuse
+modifications. fat still refuses FAT writes, cluster allocation,
+write_begin, O_DIRECT writes, FITRIM and fat_write_inode() itself,
+leaves the volume marked dirty and doesn't free fallocated clusters on
+evict. With the flush mount option msdos treats EROFS from
+fat_flush_inodes() as success in that state because the directory
+entries were already changed. Errors while mounting still set SB_RDONLY,
+nothing can freeze the superblock before SB_BORN.
 
-Karl noticed and proposed teaching thaw_super() to remember whether the
-freeze took the rwsems (cf. [1]). But a filesystem changing SB_RDONLY
-behind the VFS' back causes more problems than confused freezing. Jan
-preferred fixing the filesystems instead (cf. [2]) and I agree. ext4
-and f2fs already stopped doing it.
-
-v1 converted all the others to what ext4 does and every one of them grew
-the same checks in ->open, ->setattr, ->fsync, the directory operations,
-the quota operations and ->reconfigure. Jan suggested a generic flag in
-the superblock instead so the VFS can do that once (cf. [3]). So that's
-what this version does:
-
-- a new sb->s_state word with SB_STATE_EMERGENCY_RO. It's only ever set
-  and never cleared. SB_RDONLY stays untouched so freeze_super() and
-  thaw_super() keep seeing a consistent superblock
-- a filesystem calls sb_set_emergency_ro() where it used to set
-  SB_RDONLY
-- the VFS refuses modifications with EROFS wherever sb_rdonly() does,
-  also for files that were opened before the error, and it refuses the
-  remount to read-write
-- /proc/mounts, statmount() and statfs() report the superblock as
-  read-only like they did when SB_RDONLY was set
-- a remount to read-only works so emergency remount (sysrq u) doesn't
-  WARN, and it doesn't mark the filesystem clean
-
-What the VFS doesn't do is stop writeback. ext4 refuses to write back
-anything in that state but jfs has to commit the allocations that were
-under way when the error hit, otherwise evicting those inodes BUGs. So
-->write_inode(), ->writepages() and ->sync_fs() keep being called and
-every filesystem decides for itself. The same goes for what reaches a
-filesystem without passing through the VFS: its allocators, its
-journal, the deletion of unlinked inodes and the xattr and ACL setters
-that ecryptfs and friends call without taking write access on the lower
-mount. That's about a third of the checks v1 had.
-
-The fixes that are tagged for stable stay self-contained so they can be
-backported without the VFS patch. A small follow-up patch converts each
-of exfat, hfs, ntfs, zonefs and ext4 to the generic state. fat, exfat,
-hpfs, ntfs and ubifs keep setting SB_RDONLY for errors while the
-filesystem is still being mounted. Nothing can freeze the superblock
-before SB_BORN so that's fine.
-
-A few patches make the read-only remount work in the first place. exfat
-and ocfs2 didn't inherit their mount options on remount so emergency
-remount, which passes none, could fail on them. gfs2 has a BUG_ON() when
-it's remounted read-only while a withdraw is still pending. ext4 refused
-to go read-only in its emergency state at all and a shut down xfs
-couldn't be remounted read-only either. So sysrq u WARNed for every ext4
-that hit an error and for every shut down xfs.
-
-ecryptfs opens its lower files read-write unless the lower superblock is
-read-only. On top of one of these filesystems every lookup of a regular
-file would fail with EROFS after an error and leak the inode. The first
-two patches make ecryptfs fall back to a read-only lower file and plug
-the leak.
-
-There are user-visible changes but I think they're all fine. The big one
-is that "mount -o remount,rw" doesn't make the filesystem writable again
-after an error. That's how ext4 behaves since commit d3476f3dad4a
-("ext4: don't set SB_RDONLY after filesystem errors"). Writes through
-file descriptors opened before the error fail with EROFS now, so does
-fsync(), and stores through shared mappings get SIGBUS once they fault.
-A second read-only mount of the device fails with EBUSY. And ext4 shows
-"ro" in /proc/mounts and reports ST_RDONLY again after an error, which
-it stopped doing with that commit.
-
-This has some dependency on vfs-7.5.super:
-
-  super: don't put the remount context under s_umount
-  super: keep the read-only state if a reconfiguration doesn't change it
-  nilfs2: don't reconfigure a frozen superblock on mount
-
-The first two are from [5]. The first one matters most. This series
-makes errored filesystems reachable for sysrq u and without it a
-concurrent umount deadlocks on s_umount. The second one makes
-fc->sb_flags carry the current read-only state for fspick()
-reconfigurations, which ->reconfigure() of fat, affs, hfs, ufs, hpfs and
-btrfs rely on. The third one closes the last way nilfs2 changes
-SB_RDONLY on a frozen superblock, through a mount that reconfigures it.
-
-With this no filesystem changes SB_RDONLY outside of mount and remount
-anymore.
-
-[1]: https://lore.kernel.org/r/20260903060855.4610-1-kmehltretter@gmail.com
-[2]: https://lore.kernel.org/r/hyhuckyohsabx2suvq3z7uy3pbgmihva6wgzxr3op7pzcrlu33@p7zzlgp2ehjf
-[3]: https://lore.kernel.org/r/my2k7257m265fp5ad77n5hfndl23i56gsog3jwnsyocp3yxbnj@aphfqdiej2hs
-[4]: https://lore.kernel.org/r/CAHc6FU5JuYU8R4=agxgWBoEKrUGyWiitzRn5MwXiV7NZYt=_ag@mail.gmail.com
-[5]: https://lore.kernel.org/r/20261011-work-super-fixes-core-v1-0-c727176c5b53@kernel.org
+A remount to read-write fails until umount and a remount to read-only
+doesn't mark the volume clean. Writes through file descriptors opened
+before the error fail with EROFS.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
-Changes in v2:
-- Generic SB_STATE_EMERGENCY_RO in the superblock, the VFS refuses
-  modifications. The checks at the VFS entry points of every filesystem
-  are gone (Jan).
-- The VFS patch from the v1 thread also hooked write_inode() and
-  sync_filesystem(). Dropped, jfs still has to commit queued allocations
-  after the error.
-- /proc/mounts shows "ro" and statfs() reports ST_RDONLY again in the
-  emergency state.
-- The stable-tagged fixes stay self-contained, follow-up patches convert
-  exfat, hfs, ntfs, zonefs and ext4 to the generic state.
-- hfsplus checks the b-tree map records in hfsplus_fill_super() (Slava).
-- Selftests expect ST_RDONLY and EROFS from fsync() on jfs too.
-- ecryptfs refuses writes through a read-only lower file with EROFS.
-  truncate(2) and creating a file ran into the WARN_ON_ONCE() in
-  __kernel_write_iter() (sashiko).
-- gfs2: bail out of the freeze loop when the filesystem withdrew in the
-  meantime, keep the EIO from gfs2_make_fs_rw() for a remount to
-  read-write and don't show "withdrawn" in the mount options (Andreas).
-- Don't show "emergency_ro" and "ro_ops" in the mount options. Remount
-  helpers that pass the shown options back trip over them. ext4 keeps
-  showing "emergency_ro" like it does now (Andreas).
-- Rebased onto current mainline. ntfs persists its error state itself
-  since commit 521978c4f444, the error work uses that now, and the new
-  named stream paths refuse modifications in the emergency state too.
-- statmount() reports the emergency state as read-only too and
-  remap_verify_area() refuses FICLONE and friends in that state.
-- nilfs2 refuses going read-write in the emergency state itself because
-  nilfs_get_tree() reconfigures the superblock without
-  reconfigure_super(). zonefs keeps its check in ->write_iter() because
-  the loop driver and others call it without rw_verify_area().
-- ntfs runs a pending error work before umount persists the error
-  state, hfsplus says which b-tree header node it couldn't load again.
-- The reproducers moved out of the commit messages into git notes.
-- Link to v1: https://patch.msgid.link/20261012-work-fs-sb_rdonly-v1-0-60743a3dc326@kernel.org
+ fs/fat/dir.c    |  3 +++
+ fs/fat/fatent.c | 11 ++++++++++-
+ fs/fat/file.c   |  4 ++++
+ fs/fat/inode.c  | 19 +++++++++++++++++--
+ fs/fat/misc.c   | 19 +++++++++++++------
+ 5 files changed, 47 insertions(+), 9 deletions(-)
 
----
-Christian Brauner (34):
-      ecryptfs: don't leak the inode when a lookup can't open the lower file
-      ecryptfs: fall back to a read-only lower file
-      fs: add a generic emergency read-only state
-      ext2: don't set SB_RDONLY after filesystem errors
-      jfs: don't set SB_RDONLY after filesystem errors
-      nilfs2: don't set SB_RDONLY after filesystem errors
-      fat: don't set SB_RDONLY after filesystem errors
-      exfat: keep the current mount options on remount
-      exfat: don't set SB_RDONLY after filesystem errors
-      exfat: use the generic emergency read-only state
-      hfs: don't set SB_RDONLY after MDB write errors
-      hfs: use the generic emergency read-only state
-      hfsplus: don't set SB_RDONLY when creating the attributes tree
-      affs: don't set SB_RDONLY after filesystem errors
-      ufs: don't set SB_RDONLY after filesystem errors
-      hpfs: don't set SB_RDONLY after filesystem errors
-      ntfs: don't set SB_RDONLY after filesystem errors
-      ntfs: use the generic emergency read-only state
-      ocfs2: keep the current mount options on remount
-      ocfs2: don't set SB_RDONLY after filesystem errors
-      zonefs: don't set SB_RDONLY after I/O errors
-      zonefs: use the generic emergency read-only state
-      btrfs: check BTRFS_FS_STATE_RO instead of SB_RDONLY at runtime
-      btrfs: don't set SB_RDONLY after filesystem errors
-      gfs2: wait for a pending withdraw before remounting read-only
-      gfs2: don't set SB_RDONLY on withdraw
-      efivarfs: stop using SB_RDONLY for read-only efivar ops
-      ubifs: don't set SB_RDONLY after errors
-      selftests/filesystems: test filesystem errors while frozen
-      ext4: allow remounting read-only in the emergency state
-      ext4: use the generic emergency read-only state
-      selftests/filesystems: test ext4 remounts in the emergency state
-      xfs: allow remounting read-only after a shutdown
-      selftests/filesystems: test xfs remounts after a shutdown
+diff --git a/fs/fat/dir.c b/fs/fat/dir.c
+index 35bdb62944a2..553034bcbed4 100644
+--- a/fs/fat/dir.c
++++ b/fs/fat/dir.c
+@@ -1329,6 +1329,9 @@ int fat_add_entries(struct inode *dir, void *slots, int nr_slots,
+ 	loff_t pos;
+ 	bool saw_eod;
+ 
++	if (unlikely(sb_emergency_ro(sb)))
++		return -EROFS;
++
+ 	sinfo->nr_slots = nr_slots;
+ 
+ 	/* First stage: search free directory entries */
+diff --git a/fs/fat/fatent.c b/fs/fat/fatent.c
+index 2d10a815a579..158ce7056dcf 100644
+--- a/fs/fat/fatent.c
++++ b/fs/fat/fatent.c
+@@ -314,7 +314,7 @@ static void mark_fsinfo_dirty(struct super_block *sb)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 
+-	if (sb_rdonly(sb) || !is_fat32(sbi))
++	if (sb_rdonly(sb) || sb_emergency_ro(sb) || !is_fat32(sbi))
+ 		return;
+ 
+ 	__mark_inode_dirty(sbi->fsinfo_inode, I_DIRTY_SYNC);
+@@ -419,6 +419,9 @@ int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
+ 	const struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
+ 	int err;
+ 
++	if (unlikely(sb_emergency_ro(sb)))
++		return -EROFS;
++
+ 	ops->ent_put(fatent, new);
+ 	if (wait) {
+ 		err = fat_sync_bhs(fatent->bhs, fatent->nr_bhs);
+@@ -513,6 +516,9 @@ static int __fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluste
+ 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
+ 	int i, count, err, nr_bhs, idx_clus;
+ 
++	if (unlikely(sb_emergency_ro(sb)))
++		return -EROFS;
++
+ 	lock_fat(sbi);
+ 	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
+ 	    sbi->free_clusters < nr_cluster) {
+@@ -620,6 +626,9 @@ int fat_free_clusters(struct inode *inode, int cluster)
+ 	int i, err, nr_bhs;
+ 	int first_cl = cluster, dirty_fsinfo = 0;
+ 
++	if (unlikely(sb_emergency_ro(sb)))
++		return -EROFS;
++
+ 	nr_bhs = 0;
+ 	fatent_init(&fatent);
+ 	lock_fat(sbi);
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index d4f1b360b974..3d0a81994fb7 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -135,6 +135,10 @@ static int fat_ioctl_fitrim(struct inode *inode, unsigned long arg)
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
++	/* Don't trust the FAT after an error. */
++	if (unlikely(sb_emergency_ro(sb)))
++		return -EROFS;
++
+ 	if (!bdev_max_discard_sectors(sb->s_bdev))
+ 		return -EOPNOTSUPP;
+ 
+diff --git a/fs/fat/inode.c b/fs/fat/inode.c
+index d85c8fbdcca4..afd73dc4ba9a 100644
+--- a/fs/fat/inode.c
++++ b/fs/fat/inode.c
+@@ -228,6 +228,9 @@ static int fat_write_begin(const struct kiocb *iocb,
+ {
+ 	int err;
+ 
++	if (unlikely(sb_emergency_ro(mapping->host->i_sb)))
++		return -EROFS;
++
+ 	err = cont_write_begin(iocb, mapping, pos, len,
+ 				foliop, fsdata, fat_get_block,
+ 				&MSDOS_I(mapping->host)->mmu_private);
+@@ -264,6 +267,8 @@ static ssize_t fat_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ 	ssize_t ret;
+ 
+ 	if (iov_iter_rw(iter) == WRITE) {
++		if (unlikely(sb_emergency_ro(inode->i_sb)))
++			return -EROFS;
+ 		/*
+ 		 * FIXME: blockdev_direct_IO() doesn't use ->write_begin(),
+ 		 * so we need to update the ->mmu_private to block boundary.
+@@ -662,6 +667,10 @@ static int fat_sync_inode_metadata(struct inode *inode,
+ 
+ static void fat_free_eofblocks(struct inode *inode)
+ {
++	/* Nothing can be freed after an error. */
++	if (sb_emergency_ro(inode->i_sb))
++		return;
++
+ 	/* Release unwritten fallocated blocks on inode eviction. */
+ 	if ((inode->i_blocks << 9) >
+ 			round_up(MSDOS_I(inode)->mmu_private,
+@@ -710,8 +719,8 @@ static void fat_set_state(struct super_block *sb,
+ 	struct fat_boot_sector *b;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 
+-	/* do not change any thing if mounted read only */
+-	if (sb_rdonly(sb) && !force)
++	/* do not change any thing if mounted read only or after an error */
++	if ((sb_rdonly(sb) && !force) || sb_emergency_ro(sb))
+ 		return;
+ 
+ 	/* do not change state if fs was dirty */
+@@ -954,6 +963,9 @@ static int fat_write_inode(struct inode *inode, struct writeback_control *wbc)
+ {
+ 	int err;
+ 
++	if (unlikely(sb_emergency_ro(inode->i_sb)))
++		return -EROFS;
++
+ 	if (inode->i_ino == MSDOS_FSINFO_INO) {
+ 		struct super_block *sb = inode->i_sb;
+ 
+@@ -1949,6 +1961,9 @@ int fat_flush_inodes(struct super_block *sb, struct inode *i1, struct inode *i2)
+ 		ret = writeback_inode(i2);
+ 	if (!ret)
+ 		ret = sync_blockdev_nowait(sb->s_bdev);
++	/* The change is done, an error made us read-only in the meantime. */
++	if (ret == -EROFS && sb_emergency_ro(sb))
++		ret = 0;
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(fat_flush_inodes);
+diff --git a/fs/fat/misc.c b/fs/fat/misc.c
+index 65d02f2edec3..05d061b594a6 100644
+--- a/fs/fat/misc.c
++++ b/fs/fat/misc.c
+@@ -14,9 +14,9 @@
+  * fat_fs_error reports a file system problem that might indicate fa data
+  * corruption/inconsistency. Depending on 'errors' mount option the
+  * panic() is called, or error message is printed FAT and nothing is done,
+- * or filesystem is remounted read-only (default behavior).
+- * In case the file system is remounted read-only, it can be made writable
+- * again by remounting it.
++ * or the filesystem is made read-only (default behavior): a mount in
++ * progress comes up read-only, a mounted filesystem refuses all further
++ * modifications until it is unmounted.
+  */
+ void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
+ {
+@@ -32,10 +32,17 @@ void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
+ 		va_end(args);
+ 	}
+ 
+-	if (opts->errors == FAT_ERRORS_PANIC)
++	if (opts->errors == FAT_ERRORS_PANIC) {
+ 		panic("FAT-fs (%s): fs panic from previous error\n", sb->s_id);
+-	else if (opts->errors == FAT_ERRORS_RO && !sb_rdonly(sb)) {
+-		sb->s_flags |= SB_RDONLY;
++	} else if (opts->errors == FAT_ERRORS_RO && !sb_rdonly(sb)) {
++		/*
++		 * Before SB_BORN the mounter holds s_umount so SB_RDONLY is
++		 * fine. Later it needs a remount, see sb_set_emergency_ro().
++		 */
++		if (!(sb->s_flags & SB_BORN))
++			sb->s_flags |= SB_RDONLY;
++		else if (!sb_set_emergency_ro(sb))
++			return;
+ 		fat_msg(sb, KERN_ERR, "Filesystem has been set read-only");
+ 	}
+ }
 
- Documentation/filesystems/porting.rst              |  16 +
- Documentation/filesystems/zonefs.rst               |   4 +-
- fs/affs/amigaffs.c                                 |   4 +-
- fs/affs/inode.c                                    |   2 +
- fs/affs/super.c                                    |  14 +-
- fs/attr.c                                          |   4 +
- fs/btrfs/acl.c                                     |   3 +-
- fs/btrfs/bio.c                                     |   2 +-
- fs/btrfs/block-group.c                             |   2 +-
- fs/btrfs/dev-replace.c                             |   2 +-
- fs/btrfs/discard.c                                 |   2 +-
- fs/btrfs/disk-io.c                                 |   4 +-
- fs/btrfs/fs.h                                      |   9 +
- fs/btrfs/inode.c                                   |   8 +-
- fs/btrfs/ioctl.c                                   |   8 +-
- fs/btrfs/messages.c                                |  16 +-
- fs/btrfs/qgroup.c                                  |   4 +-
- fs/btrfs/reflink.c                                 |   3 +-
- fs/btrfs/super.c                                   |  35 +-
- fs/btrfs/sysfs.c                                   |   4 +-
- fs/btrfs/tree-checker.c                            |   2 +-
- fs/btrfs/volumes.c                                 |   4 +-
- fs/btrfs/xattr.c                                   |   8 +-
- fs/ecryptfs/inode.c                                |  13 +-
- fs/ecryptfs/kthread.c                              |  15 +-
- fs/ecryptfs/read_write.c                           |   3 +
- fs/efivarfs/file.c                                 |   6 +
- fs/efivarfs/inode.c                                |  15 +
- fs/efivarfs/internal.h                             |  14 +-
- fs/efivarfs/super.c                                |  26 +-
- fs/exfat/exfat_fs.h                                |  10 +
- fs/exfat/file.c                                    |  54 +-
- fs/exfat/inode.c                                   |  11 +-
- fs/exfat/misc.c                                    |  16 +-
- fs/exfat/namei.c                                   |  27 +-
- fs/exfat/super.c                                   |  36 +-
- fs/ext2/balloc.c                                   |   5 +
- fs/ext2/dir.c                                      |   3 +
- fs/ext2/ialloc.c                                   |   2 +
- fs/ext2/inode.c                                    |  10 +-
- fs/ext2/super.c                                    |  24 +-
- fs/ext2/xattr.c                                    |   2 +
- fs/ext4/super.c                                    |  19 +-
- fs/fat/dir.c                                       |   3 +
- fs/fat/fatent.c                                    |  11 +-
- fs/fat/file.c                                      |   4 +
- fs/fat/inode.c                                     |  19 +-
- fs/fat/misc.c                                      |  19 +-
- fs/gfs2/quota.c                                    |   2 +-
- fs/gfs2/super.c                                    |  40 +-
- fs/gfs2/util.c                                     |   7 +-
- fs/hfs/attr.c                                      |   3 +
- fs/hfs/extent.c                                    |   5 +
- fs/hfs/inode.c                                     |  18 +
- fs/hfs/mdb.c                                       |  16 +-
- fs/hfs/super.c                                     |   2 +-
- fs/hfsplus/btree.c                                 |  42 +-
- fs/hfsplus/hfsplus_fs.h                            |   1 +
- fs/hfsplus/super.c                                 |   5 +
- fs/hpfs/alloc.c                                    |   4 +-
- fs/hpfs/dir.c                                      |   3 +-
- fs/hpfs/map.c                                      |   3 +-
- fs/hpfs/super.c                                    |  11 +-
- fs/jfs/acl.c                                       |   3 +
- fs/jfs/inode.c                                     |   6 +-
- fs/jfs/ioctl.c                                     |   4 +
- fs/jfs/jfs_dtree.c                                 |   3 +-
- fs/jfs/jfs_extent.c                                |  10 +
- fs/jfs/jfs_incore.h                                |   6 +
- fs/jfs/jfs_inode.c                                 |   3 +
- fs/jfs/super.c                                     |  35 +-
- fs/jfs/xattr.c                                     |   3 +
- fs/namei.c                                         |   3 +-
- fs/namespace.c                                     |   6 +-
- fs/nilfs2/inode.c                                  |   4 +-
- fs/nilfs2/ioctl.c                                  |   4 +
- fs/nilfs2/mdt.c                                    |   2 +-
- fs/nilfs2/page.c                                   |   2 +-
- fs/nilfs2/segment.c                                |  13 +-
- fs/nilfs2/sufile.h                                 |   2 +-
- fs/nilfs2/super.c                                  |  29 +-
- fs/nilfs2/the_nilfs.h                              |   6 +
- fs/ntfs/aops.c                                     |   5 +-
- fs/ntfs/dir.c                                      |   5 +-
- fs/ntfs/ea.c                                       |  10 +-
- fs/ntfs/file.c                                     |  63 ++-
- fs/ntfs/inode.c                                    |  15 +-
- fs/ntfs/iomap.c                                    |   6 +-
- fs/ntfs/mft.c                                      |  10 +-
- fs/ntfs/named_stream.c                             |  43 +-
- fs/ntfs/namei.c                                    |  40 +-
- fs/ntfs/super.c                                    |  51 +-
- fs/ntfs/volume.h                                   |  13 +
- fs/ocfs2/acl.c                                     |   3 +
- fs/ocfs2/super.c                                   |  31 +-
- fs/ocfs2/xattr.c                                   |   8 +
- fs/open.c                                          |   4 +
- fs/proc_namespace.c                                |   2 +-
- fs/quota/dquot.c                                   |  23 +-
- fs/quota/quota.c                                   |  13 +
- fs/read_write.c                                    |   5 +
- fs/remap_range.c                                   |   4 +
- fs/statfs.c                                        |   9 +-
- fs/super.c                                         |   4 +
- fs/sync.c                                          |   4 +
- fs/ubifs/io.c                                      |   9 +-
- fs/ubifs/super.c                                   |   5 +-
- fs/ubifs/xattr.c                                   |   6 +
- fs/ufs/cylinder.c                                  |  12 +-
- fs/ufs/dir.c                                       |   3 +
- fs/ufs/inode.c                                     |   2 +
- fs/ufs/super.c                                     |  56 ++-
- fs/xfs/xfs_super.c                                 |  13 +-
- fs/zonefs/file.c                                   |  13 +-
- fs/zonefs/super.c                                  |  25 +-
- fs/zonefs/zonefs.h                                 |   1 +
- include/linux/fs/super.h                           |  17 +
- include/linux/fs/super_types.h                     |  19 +
- mm/memory.c                                        |   6 +
- tools/testing/selftests/Makefile                   |   1 +
- .../selftests/filesystems/sb_rdonly/.gitignore     |   5 +
- .../selftests/filesystems/sb_rdonly/Makefile       |   7 +
- .../testing/selftests/filesystems/sb_rdonly/config |   8 +
- .../filesystems/sb_rdonly/emergency_ro_test.c      | 560 +++++++++++++++++++++
- .../sb_rdonly/ext4_emergency_remount_test.c        | 305 +++++++++++
- .../filesystems/sb_rdonly/gfs2_withdraw_test.c     | 318 ++++++++++++
- .../selftests/filesystems/sb_rdonly/settings       |   1 +
- .../sb_rdonly/xfs_shutdown_remount_test.c          | 299 +++++++++++
- 128 files changed, 2573 insertions(+), 322 deletions(-)
----
-base-commit: c339f4010dea8b0d754f84ace70cd1b089878ef8
-change-id: 20261011-work-fs-sb_rdonly-f93e626bd0c2
+-- 
+2.53.0
 
