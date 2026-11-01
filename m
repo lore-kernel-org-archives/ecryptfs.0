@@ -1,112 +1,151 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.135.74
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=74.125.224.45
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793356154;
-	b=pLQWQqGA1olsDDl6xkP1C7WEPUmaP0zypH8I+m7u42aV8pm5zwT29e8clhCR5W49y+4t
-	 45AjUY+VAukmftixy9bAgjpZ53t6O8wnCRRbYr8aucAn/XDviRrGVfweDfuvDG3rgkXFQ
-	 E73DCVxk1WzaTDqR88f1j6af8yiPmSk4Ymnwd2hHfrDlKWEJzBgiNOnjkV2EJTgLqRbrD
-	 hVeFenb77SFsKKOlmZQL67yLa8XfvI/D5EWYMKDOEdbFriN5b0/Qg3QALXxVXIes2VBlr
-	 I+n1qMtObeU7kx3MADUpqoMzY3Xfri7vdTh8bNU3bEXqeXu5Lpv4rPCKYe+MwTMM6EQ==
+	t=1793493223;
+	b=FqcH20rHeS8WzwUjoQCp8IRojn+w7wJeOn3n7/f7PtzANZQsPrCv37mtjd+qKcZCSBKZ
+	 pQJFVA+dt2FbKKl0c6qKJT5CQj8M50WrVsu5zzcXRFBMNds6kJIwDEZWFd5LlcSLlD3l1
+	 7FfwM+m+fKXLpOYbjoQMMO3GngYLrn87dUbbNX4Tn1fSfMWiohG/7B6iloUefcCQFN1BL
+	 3rlz+66thftRK4Ta4i80BXE80OgzSdGXLH9F4u/d5Z8JvMP92FbUqKZxkhsn+FM6LicFD
+	 6ylLLEV8f0TC0tgz+iAYSiF+K6KK5nvt6WaFTrVOAr6U0TzoDX8J4ZcE+xVdTn5mzDg==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793356154;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
-	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details:
-	 X-Proofpoint-Reinject:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:
-	 X-Authority-Analysis:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Virus-Version:
-	 X-Proofpoint-Spam-Details;
-	bh=GJ5b+6wmoMaOFvcGByrVJwisKvHFAIIDntUfxnLnHrQ=;
-	b=a9DRE6Ibj+9M/gyqWf6DsbfLeviToehcr8H14hzohhKiPfg7ZaWhePY1Xhik6lHsMf2E
-	 chXMhplLDdIWXGSlEYElow3ugLhI1c3EdQTGRfyAEIfuSnEMEhfH7l2U5gSXXyBsJYtcH
-	 9TViAd7NM+U8Q+745zHxBLPCasPHxrxkEj7cb+LtG1EvKQhOLinx4zA3AdFrcpilAJmNE
-	 ZMmS3z0cvO7DZNpF+Y2yHUz7NdYyKfAnCKF2s1tZXUpgRBOf+04nuXz0sVRtTtV6YWxIe
-	 dGChKIg+tw/dnrGx0HjRsoUdd5Ov87id+PtCT3h8MRjqtO/OrrUek/1nQLmbuoOL43Q==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793493223;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:Autocrypt:
+	 Content-Type:Content-Transfer-Encoding:User-Agent:MIME-Version;
+	bh=/OyNuE+u9LVqbLjPn4c642Wjld5y0QKeGGJuFQ0QfKY=;
+	b=Qm+FjmjtCu37L9NbOE15bwK30p0TIKDRdy4jkwrVXhs+LuIu+Zd935akzisKa865sXFQ
+	 q0XGXB2Gnpry9r49JFx0DseAngZFMTTPk3oa/ahbFOk1BniQLiaYqjMRVsycG9G8t8wYk
+	 Pe6/LeaRBxWt7Eh8C4+l0TglPRklcejwlZFccWNDVVbQNl8vqP9evmlMG3QsAGdgccSyX
+	 ZQ97WPfgysFZyCBE6njNZRAEqdoKjstWio5S7xuTf3nSmaJYbSMd1JyQo1zqN3WcRdO3J
+	 X8NhakQ6VXCdchSXxDflZ20xO0Key5hfPXZXramfxkh+968rpogu7zDjJeMshUO8Bnw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=columbia.edu;
-	spf=pass smtp.mailfrom=columbia.edu;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=W6PN7z1Q;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=S8dqNKkb;
-	arc=none smtp.remote-ip=148.163.135.74
-Received: from mx0a-00364e01.pphosted.com (mx0a-00364e01.pphosted.com [148.163.135.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	dmarc=none header.from=dubeyko.com;
+	spf=pass smtp.mailfrom=dubeyko.com;
+	dkim=pass header.d=dubeyko-com.20260707.gappssmtp.com header.i=@dubeyko-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=opKOv9+L;
+	arc=none smtp.remote-ip=74.125.224.45
+Received: from mail-yx1-f45.google.com (mail-yx1-f45.google.com [74.125.224.45])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F294C606B81F
-	for <ecryptfs@vger.kernel.org>; Fri, 30 Oct 2026 10:29:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org F294C606B81F
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7644606A322
+	for <ecryptfs@vger.kernel.org>; Sun,  1 Nov 2026 00:33:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org E7644606A322
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=dubeyko.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dubeyko.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=W6PN7z1Q;
-	dkim=pass (2048-bit key, unprotected) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=S8dqNKkb
-Received: from pps.filterd (m0167069.ppops.net [127.0.0.1])
-	by mx0a-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 69U6vbLw3771306
-	for <ecryptfs@vger.kernel.org>; Fri, 30 Oct 2026 06:29:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps01; bh=GJ5b
-	+6wmoMaOFvcGByrVJwisKvHFAIIDntUfxnLnHrQ=; b=W6PN7z1QevOZ/TQPt6P7
-	YauJ0XQdc1Gk7Wi7vRZY7seNNRRBCotEhBpM9Mqi7D7FdgH/VVxjsIjpN+B2Oo1u
-	JY27TWoaV76R6q6A2tYvh8IG0M5AkBsybLhNlql+DWcEG8l58TN7QxVq0asStVv3
-	8duINhWDnE37eU5mH+rXyX6f0a9Y/aS3L3GYZhZFlOQROKoYie9WenUHjADhKkTS
-	V21gCO9HDER1Q4UC3JC8BJS6Yl2wz+2B3arJ8ngJbWf16nrh7TLnINXsCFSjhwBf
-	KHtshqbHokC6xEP64qTJzmREC/RWDlayXSgVBhwCeUCYT8AmUhJy4hJeQTbzVnDP
-	Iw==
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
-	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4hm7k00fv8-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <ecryptfs@vger.kernel.org>; Thu, 29 Oct 2026 10:51:57 -0400 (EDT)
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-943e8ff02d0so215393885a.2
-        for <ecryptfs@vger.kernel.org>; Thu, 29 Oct 2026 07:51:57 -0700 (PDT)
+	dkim=pass (2048-bit key, unprotected) header.d=dubeyko-com.20260707.gappssmtp.com header.i=@dubeyko-com.20260707.gappssmtp.com header.a=rsa-sha256 header.s=20260707 header.b=opKOv9+L
+Received: by mail-yx1-f45.google.com with SMTP id 956f58d0204a3-677bc4704cbso1601754d50.0
+        for <ecryptfs@vger.kernel.org>; Sat, 31 Oct 2026 17:33:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=columbia.edu; s=lionmail; t=1793285516; x=1793890316; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=GJ5b+6wmoMaOFvcGByrVJwisKvHFAIIDntUfxnLnHrQ=;
-        b=S8dqNKkb5sfSOSp88+eCIZay3gaJmXVL4lPeLDxxUAYgfVGuI0eJrLSRAh72NXJaDi
-         VkZ4lR5cj8s/Br6PCQh8zKeCh1NAY9j/a01VkO46GVjP5llIq9YpaMo8AmngAtGLohWC
-         jutr3POpBI7gmViMaDLCK3ODTgmI8l51E6WZQutz4sWBzUTghgBg9GO6jiCMxHFbKrMs
-         G/JfpJoGYZUD84nCsC7Q5KXsxWlVUHSqLb6gl1Av/0SwICfRFRuoLsESm1X3uVH7DtFr
-         orRt7qDmv+3QoJ6t09SJSh/APriKhqBOnwDYAgTi07ISbKfpe8/XtQALo56MhqpH/XhR
-         H2MA==
+        d=dubeyko-com.20260707.gappssmtp.com; s=20260707; t=1793493221; x=1794098021; darn=vger.kernel.org;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :autocrypt:references:in-reply-to:date:cc:to:from:subject:message-id
+         :from:to:cc:subject:date:message-id:reply-to:content-type;
+        bh=/OyNuE+u9LVqbLjPn4c642Wjld5y0QKeGGJuFQ0QfKY=;
+        b=opKOv9+LvbvKOcsG7sEdWgW5RTy7kU6wUMYBGioVfgkQyIsS6X9+fly6DW0lh7MWmZ
+         ADiBPMwopgDRliRbwbHjbfCkdevfkCAynrIpVoBW6iiAOr3rGvXAwIGA/DSi56T0vblu
+         Gjg2U4eBG8LdQEXYLZ7qi60tOfNA0+pQ7N6ygLuxQG+lIgm88X+Emoi5nm9Pbaem/j76
+         jkuNsmvU/V6VV1vnXToctK/8CAuMJZn01/QxEtPRFnFcVBKrtW5UUxqJ+1C3DlBlxZeW
+         +ODdnrfH/Kfr0AOh7QbaNuH+k1NTTYkBG/IliHraQ9l1BkSNdeBEsxD3N5gJRd6v8Nrx
+         0egw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793285516; x=1793890316;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=GJ5b+6wmoMaOFvcGByrVJwisKvHFAIIDntUfxnLnHrQ=;
-        b=aypTOMyXVSgRQn6+kYxmrVw8A4sI6ev5/ij6AdwvNhyRzys95qzHn2iGgxzZZMjYsx
-         NgFbke8a8EAYXjYLsJASsEaEfJZDUsXN2MN/SU0I5DfYOnxq1fMoeebjsEyrJ3jjCdtG
-         wuySYL5SDbBMjAS2z+qnCez6ao7oJKTR2tNXGdwF1iJlEk3erww0ePQL9RTrO7heVOw1
-         4lHfyur9GCD/C2FSnrIdfxMvCWZfDPbIjFTuRnrmoLF9PDwZW9us+oBupHj/ACDivVi4
-         pZedua1Ofamk+I5B3c80ZL/zDzu0RLjrZTP6WUJaMI7hT3qYAhV4TeOCkBqGGpgtKiUz
-         9DFw==
-X-Gm-Message-State: AFq9FYKraWTzKw3tKyTR78CLJMg7xfKBlE23G3cPM3B7Pe3PMiL0+PcF
-	YbMASz1IDQeQEJaRD9JACd0ylOXrBXcB0/9dAauoyVpmGxrsOkX7U5S03VcnosV9MJ6gt2MSHUU
-	EyITkt3rD3FwAHdQ+TPxBT1gcOnbZFwcS/31aBBG0+B2JuzlTTNlSSQz98g2VCwNe25I=
-X-Gm-Gg: AYBFou0P2gDFy7y8QqLVSYuKk1RhdJ32ztDfFUVYJstHzuvZV1QpPkvi5aMyzKoL30U
-	kuzhFZ6kse3Phz6tnGw9uPwRwIl4pAmFEDWLct412+BxoTqrfwzKEsF/kS4yqx7TOGcr7h5cETz
-	RgxitlKCJVDhNxwWPdum35/44NIhVT0UgGmKNR6ZRqD7dzk1VJyFXVrLxDwBx46hlNAqFJwcWqh
-	iQD6rq3cGqnXrDkrjMquSLZLoGPVsFOAC0WQDinCihxOG6jJtDkxzQth3mknLqbTxTRw8Bneub3
-	ZVvBejqUvmBn8igmaxSzF+qmMv9WapCoZsiKdG1WPn5TJwcXaXvk0xpF7yI3v7BHDloccauY4+J
-	f2NWsTgBEjHJHnaWBL+nmM928Gjut7eVpkFBftk2MVnqyUEZ9hMQ03gy1SqOd7yOokrtCgCdGI8
-	TL
-X-Received: by 2002:a05:620a:2a09:b0:93f:3bb5:545c with SMTP id af79cd13be357-94408a7256cmr836099385a.18.1793285516199;
-        Thu, 29 Oct 2026 07:51:56 -0700 (PDT)
-X-Received: by 2002:a05:620a:2a09:b0:93f:3bb5:545c with SMTP id af79cd13be357-94408a7256cmr836094685a.18.1793285515659;
-        Thu, 29 Oct 2026 07:51:55 -0700 (PDT)
-Received: from [127.0.1.1] (bzq-79-179-7-133.red.bezeqint.net. [79.179.7.133])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4aa80f04723sm78153515e9.5.2026.10.29.07.51.53
+        d=1e100.net; s=20260707; t=1793493221; x=1794098021;
+        h=mime-version:user-agent:content-transfer-encoding:content-type
+         :autocrypt:references:in-reply-to:date:cc:to:from:subject:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=/OyNuE+u9LVqbLjPn4c642Wjld5y0QKeGGJuFQ0QfKY=;
+        b=fMLl3ZXjxRvtoTALxQnSjvCHgjQX0HMH2CsybSbuNH6JLuTVzD588wLsIManLBfXEl
+         jOPLVrNjXj4K0BDW669TlQARrPH4/qDwho1d0la4J6BrKuBMUJg3o+ftIRg4zh6lC1l/
+         wsZ9T7NicXoWxrR1oBahaw+mBYhZut/W+UGkX59kElORIqLQQPbvpmcy+C9FHzRMBYn1
+         FjU1ShqH9dhUxTP9yL84jpGm02p8q3IkcUzIQdgqv6gIdsEgO7AQEtzInvCEGTypWJel
+         nVy7+9lUJCkFp9lA5ysw0ol+4bszUDeALXoNO5KnI3MW5PWQw+fsYkYCBR7y69S1qS3I
+         zCVQ==
+X-Forwarded-Encrypted: i=1; AKwUvBwJbiz1RiyOeZr7s3FzBjZUDakA7xqxSrLEmqgZZCW+OYyueBOMTC6f7aj8aS+hhR4sFUbsMLzPew==@vger.kernel.org
+X-Gm-Message-State: APuU4Z9C8UcCo4RuikFqGvunXi7IUALQUR9DA8Dz0q9BQLKUAXOgbOwZ
+	Tu+AMwMnQdY88Ln6e2LRNzEI19J8bwHUmAxF/jtQAIDtHfzV7ptC5TXX+LTiFpEU8H+TITnTWP9
+	xBCoVdXMESg==
+X-Gm-Gg: AYBFou1oP+oTi26ko0A8Gzy5RgMKa2wUqn5w6r2gAnYgn9DPeyVBgMJVIxxaalNoSSU
+	2QM02BFyISZOnOvtMKxV6NH2STEWrfng0hm9JniAEQTQm3AAkbbYxmaGAI1bnzFHG2Vuu73xZBx
+	msdvrgL6HYQ6Gg7oNWjc/RLTvBEX7C+rzYKm6OHY++ICezBgQrpbiqpHuANxEEkGErU5G0F9Div
+	2jNTN5LVxiyTeZHhGbuq0VwiM+ZE0uOpIBwRdC3UUD3N9LyZDAf/6UvPcw8raSZL0orgYSC//ak
+	Kzmyc7weBAGVnhueNP6J0pjmm7PxX+nMYET7cKcfYcLgSYrcuCoXGHoEQyXkkUNSKkOFBg3JYHU
+	a433YRnag9IL6d+CEyDJv3Gg8aqxyZcJJUw+DSYkd01qSluDyyID+nGKOZhqXw3A+ygJ2xa7V1A
+	ZfQAh1HDT2GRTsQVdKk+LNnBGclRgTXN3hc1bfZz8qVZy+NCrIS4xOwMeQWDxflvAbv93o5nImz
+	28lnz2BoIrMIKTct/eV8nrU1v9ZY9vj46SYk18HksKMk2QAoSVCH6jkUTDUrnN5LaJRZKMRPIUs
+	a4Epzus+raWXOzqS2lZi6A1g/Z/LR8ebVcM9LjgM+Dsy76msQ+HSkOuZIJYRqGQeupzWOPrDJHl
+	f0dzm1JKiVoxqse6x7uN27zzE3ZDC2hSm4eqZ2vvoafEznvx4LLmapLf5cgUo1cPI5SDDkbhpWS
+	KvZPjOMnDU3CW1UHRv6o4=
+X-Received: by 2002:a05:690e:140e:b0:675:3d40:3c34 with SMTP id 956f58d0204a3-67bb3041657mr1552875d50.68.1793493220725;
+        Sat, 31 Oct 2026 17:33:40 -0700 (PDT)
+Received: from ?IPv6:2600:1700:6476:1430:6f84:fe3e:51d2:f3cd? ([2600:1700:6476:1430:6f84:fe3e:51d2:f3cd])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-8b2b7198c65sm28593177b3.36.2026.10.31.17.33.37
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Oct 2026 07:51:54 -0700 (PDT)
-From: Tal Zussman <tz2294@columbia.edu>
-Date: Thu, 29 Oct 2026 10:51:26 -0400
-Subject: [PATCH v2 5/9] ecryptfs: use kzalloc() for the header buffer
+        Sat, 31 Oct 2026 17:33:39 -0700 (PDT)
+Message-ID: <39d08fa0b0e45c61dbb4f57ccc911d1235ff9b5f.camel@dubeyko.com>
+Subject: Re: [PATCH v2 13/34] hfsplus: don't set SB_RDONLY when creating the
+ attributes tree
+From: Viacheslav Dubeyko <slava@dubeyko.com>
+To: Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, 
+ Jan Kara <jack@suse.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org, 
+	linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, 
+	linux-nilfs@vger.kernel.org, exfat@lists.linux.dev, linux-mm@kvack.org, 
+	ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+ linux-btrfs@vger.kernel.org, 	gfs2@lists.linux.dev,
+ linux-efi@vger.kernel.org, linux-mtd@lists.infradead.org, 
+	linux-xfs@vger.kernel.org
+Date: Sat, 31 Oct 2026 17:33:37 -0700
+In-Reply-To: <20261029-work-fs-sb_rdonly-v2-13-2f44f64f0b66@kernel.org>
+References: <20261029-work-fs-sb_rdonly-v2-0-2f44f64f0b66@kernel.org>
+	 <20261029-work-fs-sb_rdonly-v2-13-2f44f64f0b66@kernel.org>
+Autocrypt: addr=slava@dubeyko.com; prefer-encrypt=mutual;
+ keydata=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
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.60.1 (by Flathub.org) 
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -116,130 +155,148 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261029-ecryptfs-folio-v2-5-dc53f1d47d9c@columbia.edu>
-References: <20261029-ecryptfs-folio-v2-0-dc53f1d47d9c@columbia.edu>
-In-Reply-To: <20261029-ecryptfs-folio-v2-0-dc53f1d47d9c@columbia.edu>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Tal Zussman <tz2294@columbia.edu>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1793285500; l=2395;
- i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
- bh=DAdtTEUZtFUeBHnOkeUrYySm2NLUFnvIrS8WFRdGNlU=;
- b=o24NQhnQDAIrcPX9RZTlnQiildQbI/YdsC2gSCgzhEDQWYQawRwaX4juBMzihifGbQnh2uG46
- Tym3iKNpadoBv4OHUJV9ftIt6Ouuw4yyFlY03wYx/qFouA9/IcVqd3c
-X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
- pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
-X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11949
- signatures=596817
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- phishscore=0 malwarescore=0 spamscore=0 bulkscore=10 impostorscore=10
- clxscore=1015 priorityscore=1501 adultscore=0 suspectscore=0
- lowpriorityscore=10 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2610190000
- definitions=main-2610290058
-X-Proofpoint-Reinject: loops=2 maxloops=12
-X-Proofpoint-GUID: _TeqkbEgp6Ce_Go6xz_H7g5fZHsqErtT
-X-Proofpoint-ORIG-GUID: rLhS_wBJIvUYaogsFpHjR5BjHMVpZV53
-X-Authority-Analysis: v=2.4 cv=GfuCDgXL c=1 sm=1 tr=0 ts=6ae47177 cx=c_pps
- a=qKBjSQ1v91RyAK45QCPf5w==:117 a=LRATYcvZeiQrLRB5MfbBvg==:17
- a=IkcTkHD0fZMA:10 a=660iZSQnnn4A:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=JR4YdQiviy7OQf72WyZ1:22
- a=JWifYr5Owm72-P8M7WcA:9 a=QEXdDO2ut3YA:10 a=NFOGd7dJGGMPyQGDc5-O:22
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMDMwMDA0MSBTYWx0ZWRfX7DtKctU2Fi9x
- C5P8AzPi94F/XgYesP5lk14v0lkRJfVL9K3xvUdSECCRyKATpHfJqoVKl6vdXcS85ZlDsOms1yS
- aIB5sOS36lKs/A3KlAng4SD0zK50cc+7/JcQ3gEQe4T8pWTriEXR
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMDMwMDA0MSBTYWx0ZWRfXysgKhMiwDqye
- KQ6DT4aGbpf3EQEy3mUy8G3OMqLxMm3H1S4+2JbdlPUTh/UGBhaQyV26yqR4oC5Z28CiB0gPuWn
- m9DAwEw579nCdV4RIR8lJBRvSg00J/QgiD3f3sX2Qt8ebwt718rDPrBHzJ6SaSzqnqsgb4pAndV
- 0p5LWtTNdELkkBneczDbKR8YwlmNGQX+NUKoRhIs3gTJXc9YzzW601tH2hM7arDIEy3G/kZiMVm
- KJd7FCh5FRbZ/rIq0tk7is3e/Lzgd76f3FgjX/HqW86rx7kw/6Pj55zeMDOfGr6lrME4SqNm9Xn
- 1VgWt2Me1gv4wJAHTwWXdHaW6I8TRumD06HxJQXfTIAxF/Cou07Sp2hTwmfOYhBIbXBfdFloYmj
- eMuCq5ZApcpl3HPfftMUaW36VHu3xtbCUdQaNfxB2a3Ft+9PWFR5SjSedfXFdWeKhnNWwJiINmi
- nxunxLW/cwpjPMIUJiw==
-X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11950
- signatures=596817
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- clxscore=1015 impostorscore=10 lowpriorityscore=10 priorityscore=1501
- malwarescore=0 bulkscore=10 spamscore=0 phishscore=0 adultscore=0
- suspectscore=0 classifier=typeunknown authscore=0 authtc= authcc=
- route=outbound adjust=0 reason=mlx scancount=2 engine=8.22.0-2610190000
- definitions=main-2610300041
 
-ecryptfs_write_metadata() is only called when a file is created,
-where ecryptfs_set_default_sizes() has set metadata_size to
-ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE (8 KiB), or PAGE_SIZE if that is
-larger. That is an acceptable size for kmalloc(), and the buffer is
-only written out with kernel_write() or as an xattr, so it doesn't
-need to be page-aligned. Allocate it with kzalloc() and remove
-ecryptfs_get_zeroed_pages().
+On Thu, 2026-10-29 at 17:07 +0100, Christian Brauner wrote:
+> hfs_btree_open() sets SB_RDONLY when the map record of a b-tree
+> doesn't
+> mark the header node as used. That's fine while mounting. But
+> hfsplus_create_attributes_file() calls it too when the first extended
+> attribute is set on a filesystem that has no attributes file yet.
+> That
+> runs on the live filesystem without s_umount and a filesystem must
+> not
+> change SB_RDONLY behind the VFS' back.
+>=20
+> hfsplus_create_attributes_file() opens a tree it has just created
+> itself
+> with the header node marked as used, so there's nothing to check
+> there.
+> Move the check into hfsplus_fill_super() and do it for every tree it
+> opens. No functional changes.
+>=20
+> Suggested-by: Viacheslav Dubeyko <slava@dubeyko.com>
+> Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+> ---
+> =C2=A0fs/hfsplus/btree.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 42 +++++++++++++=
++++++++++++++++-----------
+> ---
+> =C2=A0fs/hfsplus/hfsplus_fs.h |=C2=A0 1 +
+> =C2=A0fs/hfsplus/super.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 5 +++++
+> =C2=A03 files changed, 34 insertions(+), 14 deletions(-)
+>=20
+> diff --git a/fs/hfsplus/btree.c b/fs/hfsplus/btree.c
+> index bd4dbdbc8f98..4a67569050e3 100644
+> --- a/fs/hfsplus/btree.c
+> +++ b/fs/hfsplus/btree.c
+> @@ -270,7 +270,6 @@ struct hfs_btree *hfs_btree_open(struct
+> super_block *sb, u32 id)
+> =C2=A0	struct hfs_btree *tree;
+> =C2=A0	struct hfs_btree_header_rec *head;
+> =C2=A0	struct address_space *mapping;
+> -	struct hfs_bnode *node;
+> =C2=A0	struct inode *inode;
+> =C2=A0	struct page *page;
+> =C2=A0	unsigned int size;
+> @@ -381,19 +380,6 @@ struct hfs_btree *hfs_btree_open(struct
+> super_block *sb, u32 id)
+> =C2=A0	kunmap_local(head);
+> =C2=A0	put_page(page);
+> =C2=A0
+> -	node =3D hfs_bnode_find(tree, HFSPLUS_TREE_HEAD);
+> -	if (IS_ERR(node))
+> -		goto free_inode;
+> -
+> -	if (!hfs_bmap_test_bit(node, 0)) {
+> -		pr_warn("(%s): %s (cnid 0x%x) map record invalid or
+> bitmap corruption detected, forcing read-only.\n",
+> -				sb->s_id, hfs_btree_name(id), id);
+> -		pr_warn("Run fsck.hfsplus to repair.\n");
+> -		sb->s_flags |=3D SB_RDONLY;
+> -	}
+> -
+> -	hfs_bnode_put(node);
+> -
+> =C2=A0	return tree;
+> =C2=A0
+> =C2=A0 fail_page:
+> @@ -407,6 +393,34 @@ struct hfs_btree *hfs_btree_open(struct
+> super_block *sb, u32 id)
+> =C2=A0	return NULL;
+> =C2=A0}
+> =C2=A0
+> +/*
+> + * Check the map record of a b-tree at mount. hfs_btree_open() can't
+> do it
+> + * because hfsplus_create_attributes_file() calls it on the live
+> filesystem
+> + * where SB_RDONLY must not be set.
+> + */
+> +int hfsplus_btree_check_map(struct hfs_btree *tree)
+> +{
+> +	struct super_block *sb =3D tree->sb;
+> +	struct hfs_bnode *node;
+> +
+> +	node =3D hfs_bnode_find(tree, HFSPLUS_TREE_HEAD);
+> +	if (IS_ERR(node)) {
+> +		pr_err("failed to load %s header node\n",
+> +		=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 hfs_btree_name(tree->cnid));
+> +		return PTR_ERR(node);
+> +	}
+> +
+> +	if (!hfs_bmap_test_bit(node, 0)) {
+> +		pr_warn("(%s): %s (cnid 0x%x) map record invalid or
+> bitmap corruption detected, forcing read-only.\n",
+> +				sb->s_id, hfs_btree_name(tree-
+> >cnid), tree->cnid);
+> +		pr_warn("Run fsck.hfsplus to repair.\n");
+> +		sb->s_flags |=3D SB_RDONLY;
+> +	}
+> +
+> +	hfs_bnode_put(node);
+> +	return 0;
+> +}
+> +
+> =C2=A0/* Release resources used by a btree */
+> =C2=A0void hfs_btree_close(struct hfs_btree *tree)
+> =C2=A0{
+> diff --git a/fs/hfsplus/hfsplus_fs.h b/fs/hfsplus/hfsplus_fs.h
+> index 6f240f87f8ff..58c780b09b6f 100644
+> --- a/fs/hfsplus/hfsplus_fs.h
+> +++ b/fs/hfsplus/hfsplus_fs.h
+> @@ -362,6 +362,7 @@ int hfsplus_block_free(struct super_block *sb,
+> u32 offset, u32 count);
+> =C2=A0u32 hfsplus_calc_btree_clump_size(u32 block_size, u32 node_size, u6=
+4
+> sectors,
+> =C2=A0				=C2=A0 int file_id);
+> =C2=A0struct hfs_btree *hfs_btree_open(struct super_block *sb, u32 id);
+> +int hfsplus_btree_check_map(struct hfs_btree *tree);
+> =C2=A0void hfs_btree_close(struct hfs_btree *tree);
+> =C2=A0int hfs_btree_write(struct hfs_btree *tree);
+> =C2=A0int hfs_bmap_reserve(struct hfs_btree *tree, u32 rsvd_nodes);
+> diff --git a/fs/hfsplus/super.c b/fs/hfsplus/super.c
+> index ff7d6b3336a6..532f23502df3 100644
+> --- a/fs/hfsplus/super.c
+> +++ b/fs/hfsplus/super.c
+> @@ -564,6 +564,11 @@ static int hfsplus_fill_super(struct super_block
+> *sb, struct fs_context *fc)
+> =C2=A0	}
+> =C2=A0	sb->s_xattr =3D hfsplus_xattr_handlers;
+> =C2=A0
+> +	if (hfsplus_btree_check_map(sbi->ext_tree) ||
+> +	=C2=A0=C2=A0=C2=A0 hfsplus_btree_check_map(sbi->cat_tree) ||
+> +	=C2=A0=C2=A0=C2=A0 (sbi->attr_tree && hfsplus_btree_check_map(sbi-
+> >attr_tree)))
+> +		goto out_close_attr_tree;
+> +
+> =C2=A0	inode =3D hfsplus_iget(sb, HFSPLUS_ALLOC_CNID);
+> =C2=A0	if (IS_ERR(inode)) {
+> =C2=A0		pr_err("failed to load allocation file\n");
 
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
----
- fs/ecryptfs/crypto.c | 19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 9b8b0c5a81cd..6a014872e919 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -998,17 +998,6 @@ ecryptfs_write_metadata_to_xattr(struct dentry *ecryptfs_dentry,
- 	return rc;
- }
- 
--static unsigned long ecryptfs_get_zeroed_pages(gfp_t gfp_mask,
--					       unsigned int order)
--{
--	struct page *page;
--
--	page = alloc_pages(gfp_mask | __GFP_ZERO, order);
--	if (page)
--		return (unsigned long) page_address(page);
--	return 0;
--}
--
- /**
-  * ecryptfs_write_metadata
-  * @ecryptfs_dentry: The eCryptfs dentry, which should be negative
-@@ -1027,7 +1016,6 @@ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- {
- 	struct ecryptfs_crypt_stat *crypt_stat =
- 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
--	unsigned int order;
- 	char *virt;
- 	size_t virt_len;
- 	size_t size = 0;
-@@ -1046,15 +1034,14 @@ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- 		goto out;
- 	}
- 	virt_len = crypt_stat->metadata_size;
--	order = get_order(virt_len);
- 	/* Released in this function */
--	virt = (char *)ecryptfs_get_zeroed_pages(GFP_KERNEL, order);
-+	virt = kzalloc(virt_len, GFP_KERNEL);
- 	if (!virt) {
- 		printk(KERN_ERR "%s: Out of memory\n", __func__);
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	/* Zeroed page ensures the in-header unencrypted i_size is set to 0 */
-+	/* Zeroed buffer ensures the in-header unencrypted i_size is set to 0 */
- 	rc = ecryptfs_write_headers_virt(virt, virt_len, &size, crypt_stat,
- 					 ecryptfs_dentry);
- 	if (unlikely(rc)) {
-@@ -1074,7 +1061,7 @@ int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- 		goto out_free;
- 	}
- out_free:
--	free_pages((unsigned long)virt, order);
-+	kfree(virt);
- out:
- 	return rc;
- }
+Looks good.
 
--- 
-2.39.5
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
 
+Thanks,
+Slava.
