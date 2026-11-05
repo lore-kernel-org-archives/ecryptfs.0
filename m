@@ -1,54 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.199
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.49
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793877757;
-	b=kcjXsMyCxAv3k1tY71cJ90iJwK/V1TdT1NornLxWVnO/CKFcWgLN1jShlUlJYJiCb4Fm
-	 75l1dx8kK5HukZ0vIKZAjKhC52ic4q68FnZTgeiyvYvtVn63fU6EXYpytpYgH1SQbAZxL
-	 R5s4MZglOI7HvWLZiRcjxHoSMTndmQTgWE0cq3loqRdXcnXQpqXdkgB6MILk9JZvztY/1
-	 lCBuETqjNc5haUAPLtyN7TCmxWykIfd8ZDGMnjjN7HCpKYzJqOU+mIbCYPheIggpTkUCy
-	 NNFB7Da5Nm8+ZK8qp8r8UAIBg+a1C9BRowxqW3T9TXwEUxRveZ/BWYUKeNzwraE6tOw==
+	t=1793901849;
+	b=SEzEHI9dVePT+bccN0PITMacrYxmz2U88dQ99vR9CPtRynG77TnKCNPYqU9IK6b7rYP2
+	 zeOxMaX3xPYLVp7jkSTBdCWHfN48Vk5sZnbFuR6cMZIcgA472zaMecBS9R+EDO+lrH+rw
+	 eNOG+1aj8jlQWSMbTZlt2NfCcfPxnQuZGm4y+TxgX70+BvvX1WiYKCWp3HCf2geFDrUGu
+	 oLnHwX4XjnbRCWOm5rSQjPIBeSxv7QFygWFcIE+TZvaBX12ZcFSjhmhL9GTy/E+4PzJ/x
+	 GgMn/ESQy6r5prAXXiTRCmehivW0NN/msrMtNC0YuASxPQVnbv5rX0FwRKvHUsNDyJA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793877757;
-	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
-	 X-Gm-Message-State:MIME-Version:X-Received:Date:
-	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
-	 Subject:From:To:Content-Type;
-	bh=Qswaive52YYO7uidStbaEcMfM0Df4Lv2OiJl5FEZtFI=;
-	b=fKZ4yRsKhnqtwCcteqPMhX98e6TNFqu2zkiwsj2fY0RlhlPeQh96PVn3BnyOHFe3/U5V
-	 JuMZHkmph8EpAkt1RyxDPMt62k4HVxaAZH8Yg/Oo89MMSE/iUA8x0m/LMfFyBmAk7Oc8E
-	 Y8z8siN18/oSsAlsJwjCYcu5cxK0NAyniBjqqR1LxB5ZRoTDZKEaYHbs0n+/WCJ+XU0Zb
-	 RInTjca0gNF5OdbsBYvq8rZxN9ulfCx+iUQSQbYCnFfvbcGpQPsFHcQIeqTfbx0RtX24V
-	 RDDUYVdIWS0XeqYtuyXc89nUY635aAzFJ/3d0vuf2OttnPhFmM44Voc29Ojh5S7ea9g==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793901849;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
+	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
+	 Content-Transfer-Encoding;
+	bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
+	b=M4ijIlfAt8ewhsiNleCggPzGAgeozKzOt9QLyep88vrRKBLkuxDyu7+ePfh5mbVAbg2S
+	 GAuUYOrkiChp/JI+d9SD+zUJtPZCNLbQ8NFCqvHvYV8n3D8k4CpEnPlzzQ57PEf1Nt0hy
+	 7mmNqOeyYUVTR5NSRU7SvJE0e/i+W0aaFjw0lb6HefD+ynC/mMZ9i+i5ViFvMGUrMjXP+
+	 pgDSQpvTQUBAZgiXFCHsH0ammib5sICcJ3bRAvlWmiXFUHkg6ZWGvfQw7kfdy0Q0GwbCi
+	 N50ZvCC+LUc0Qp06iOU6ZIi+aMTbbT92NoyioIP4ZCxteIHWxTW7nRUTQf9ahtMj/Jw==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=fail header.from=syzkaller.appspotmail.com;
-	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
-	arc=none smtp.remote-ip=209.85.167.199
-Received: from mail-oi1-f199.google.com (mail-oi1-f199.google.com [209.85.167.199])
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yLgPglEV;
+	arc=none smtp.remote-ip=209.85.216.49
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDAB1606A326
-	for <ecryptfs@vger.kernel.org>; Thu,  5 Nov 2026 11:22:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org BDAB1606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oi1-f199.google.com with SMTP id 5614622812f47-4a41f46d629so2628257b6e.3
-        for <ecryptfs@vger.kernel.org>; Thu, 05 Nov 2026 03:22:36 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCEAE606A326
+	for <ecryptfs@vger.kernel.org>; Thu,  5 Nov 2026 18:04:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CCEAE606A326
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yLgPglEV
+Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-3b09a83d12aso1230657a91.2
+        for <ecryptfs@vger.kernel.org>; Thu, 05 Nov 2026 10:04:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1793901848; x=1794506648; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to:content-type;
+        bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
+        b=yLgPglEV7GIVD4E6i5KZiOI0zcHNXpKf7e278ayvsmQ+qjQ56E1zqMuh/choBfY4ld
+         XRD2plRdXUfNrEVuTNrobS7Psfu3kXVCz8LfQ3ulWq/ZOT97B2qO2Kn5Q2cab4zV3GTI
+         cGXxIinwB3b+zb7dOHnzw1BFttOEI14pRogyuDb2S5B3qJTHmS45wn8aINQrFt1gIiPp
+         iGb/qo2jTitloBoFZdqILA6VKwrYSIcjjPhqDGJuaTTsUkME/OCt2o4BdHyhST0n73Tz
+         c3MGTgAjCsRnnverO385lQL4+O+3VnrwhA83QTh2yHLOng4y/VFyRlvuIduNKFMFfwEv
+         zYoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793877755; x=1794482555;
-        h=content-type:to:from:subject:message-id:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=Qswaive52YYO7uidStbaEcMfM0Df4Lv2OiJl5FEZtFI=;
-        b=JvVVGcbL7SPdtTgaCtLIoe13jHJinrqt41bHmrzkLGhx/HL7sNtf5G/JdHCICBUcPo
-         ay26JTnfreggKiqiTOxL+3fhaLu9+WkeMlzMQBnMsUvjXXXiF2Zt5WAUJGLdUpshfw6M
-         UDGn67fm7ssOCc4FXh/8tePi7QuQsLoin1TZE2ejFmi2o+1smos8Em+nkUuJNSX5uNJL
-         7tRpp9LBZjaOIl4r5b9YlI0q7Pv84uH1c8VuQHfpmTog9yVkCKugrhb3ejsk+PYko+kp
-         jZOXMh3E+OEgGq4DP4HvHVYeSmUG/H/Mgp80AMbB72+1jY4Snc4hBQ8dh7EQCKuqbTKk
-         fILg==
-X-Forwarded-Encrypted: i=1; AKwUvByoJhv1N+t9biQJ3WLNn/4D3ZGsGlzEnhDGCWIvAZNPZa4wKSeiYncmw/acFz9QTwCHIqXS6aNISw==@vger.kernel.org
-X-Gm-Message-State: APuU4Z/IXpLik5h/s3QJ5S3PV/hCAPOpw+6pRdBjmDW4dq+rV8G6lcOj
-	3SLX2nOSH7SgCW96rw0ZtzXEETywJQLnYJvp0UT8KITXmpDmyjpYRazqk0z9vfOCiUz7zKDzA+u
-	dVQEMST/IUNP7RxmVMiu843R4l8MXllpHAaQtNDpBkSK9mThZhg89IEIbF54=
+        d=1e100.net; s=20260707; t=1793901848; x=1794506648;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to:content-type;
+        bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
+        b=UWFfBxuBNgTIWYMXxqLjJ9BQnKcCnIhlYF6L/P0UDFq90mQr5ifdJamgEhXmSaGytG
+         ddVSDiOVfyduFsm8tFP4eJszAAOfmY93KYqL6BWVlrrMkoug4d0sD8B6Z9MNO6CQu1IV
+         Hcme8L1rP+W0N3jTMzv6xo6hsvfez154dVsBQxP+x9LpEYCK9Dpipbfinao8OlXFNuZK
+         iUT+r/92ngd4bA8lWlyYRme43G1oWn1tftnegwGUAyVV7vbPkY6IHUnlkCo7DAwinZve
+         igr1V2BuMlhyaguotIN31HuCF8BpJD8o8RMqi9y2Uug+UrCJWjqCetnhFB3RiTSfA4ok
+         hU7A==
+X-Gm-Message-State: APuU4Z9cen0DUJy6tKVi9ECO9hPLNyVFGxPVr/3i74nEIeaX20yFSdeB
+	B4t1/rXnuXjCc9rSYtAiB8xMkKnVO7wFmXE43t/OTlHo1GMHHIvul5DG
+X-Gm-Gg: AYBFou3gJp5xafQm+hqSctq1/z10DVahhyIDZHNCzI+EnW6PHFiymosVJm/nkbcp02u
+	le0OJI8w1a20TpL1x9CP5lofkmSz4e+l844PNXlcpqInEeHEftt6rwVvM5GmfEK7NiO/0X/RIqK
+	jbNZwLijnmm2LhCO8mr0krkPNkIs8AL5OIiUwuiQx68hb9AcvTi1SL4K9R57kIk2NlmiQX0pnFJ
+	748tGBbcxntYcHlSU8GO6BFT94lwAtTsAk0wjApBlI095MMH0sCKSfwjau831vr2DvfpCWFPUmd
+	FTvJ/+1ff9xk7b5tylAsasfpAEjHBPh8A7fYzfSN774nQaG8cvfiOdYiwlx3HjuPgab7Z/KdRo2
+	ZG+faoDZxMxR0EOYKPN7bHfN3t4jMYZgQ95S0xDi9ZQbqkjaN+litc/udpm1jLlL8N2OQ26sZVJ
+	F5QhRA4ur8aAll5Q0zTCDr/7abW0MMzy3hFNqkt+DzxJDhO0QqDT5H1kvos4hmGdBnQSrsD6BNR
+	KBttVcBrdDzS0vL6Ql/h3T/PKHP2mC9L6GgVyZ+kWYf/gL70QtugX7Gv24WzuxLnKIEoDg9P0w3
+	9MqQSVVfJgPwGGS6NpSDmVo8yJT6nbPvSf0Z4RHa128aFlD3j9GR
+X-Received: by 2002:a17:90b:4d09:b0:3b0:cc6f:1046 with SMTP id 98e67ed59e1d1-3b0cc6f11cbmr1403236a91.67.1793901848105;
+        Thu, 05 Nov 2026 10:04:08 -0800 (PST)
+Received: from localhost.localdomain ([152.136.45.109])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b094d70a60sm4855031a91.1.2026.11.05.10.04.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Nov 2026 10:04:07 -0800 (PST)
+From: Qing Zhang <diasyzhangqing@gmail.com>
+To: Tyler Hicks <code@tyhicks.com>
+Cc: ecryptfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com,
+	Roberto Sassu <roberto.sassu@polito.it>,
+	diasyzhang@tencent.com
+Subject: [PATCH] ecryptfs: validate auth token payload length before use
+Date: Fri,  6 Nov 2026 02:04:02 +0800
+Message-ID: <20261105180403.675338-1-diasyzhangqing@gmail.com>
+X-Mailer: git-send-email 2.43.7
+In-Reply-To: <6aec66fb.059f5055.2712e4.0000.GAE@google.com>
+References: <6aec66fb.059f5055.2712e4.0000.GAE@google.com>
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -58,289 +99,53 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:1b27:b0:4f4:fc4e:77e9 with SMTP id
- 5614622812f47-5640de136b1mr13104191b6e.42.1793877755723; Thu, 05 Nov 2026
- 03:22:35 -0800 (PST)
-Date: Thu, 05 Nov 2026 03:22:35 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6aec66fb.059f5055.2712e4.0000.GAE@google.com>
-Subject: [syzbot] [ecryptfs?] KASAN: slab-out-of-bounds Read in write_tag_3_packet
-From: syzbot <syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com>
-To: code@tyhicks.com, ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+From: Qing Zhang <diasyzhang@tencent.com>
 
-syzbot found the following issue on:
+eCryptfs treats user and encrypted key payloads as struct
+ecryptfs_auth_tok without checking their length. Short payloads with
+valid version and token type fields can pass verification and cause
+out-of-bounds reads during file or filename encryption.
 
-HEAD commit:    05441d697f7f Merge tag 'cocci-7.4-rc1' of git://git.kernel..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=10a8a055580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5c210800cfc8f61e
-dashboard link: https://syzkaller.appspot.com/bug?extid=2e8c4ecc07730b29ae27
-compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
-userspace arch: i386
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=137858be580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14a3668d580000
+Reject undersized payloads in both payload accessors with -EINVAL
+before any authentication token fields are accessed.
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-05441d69.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/c75df30900d6/vmlinux-05441d69.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/3f7e073a900b/bzImage-05441d69.xz
-
-AI-generated root cause summary:
-In eCryptfs, ecryptfs_verify_auth_tok_from_key() and
-ecryptfs_get_key_payload_data() cast the data buffer of a key's payload (struct
-user_key_payload or struct encrypted_key_payload) to struct ecryptfs_auth_tok
-without validating that the key payload length (datalen) is at least
-sizeof(struct ecryptfs_auth_tok) (740 bytes). When a user key is provided with a
-smaller payload length, subsequent accesses to auth_tok fields (such as
-auth_tok->token.password.salt at offset 729 bytes) in write_tag_3_packet() read
-beyond the allocated user_key_payload buffer into adjacent slab objects, causing
-a slab-out-of-bounds read and leaking kernel memory into file metadata.
-
-full analysis:  https://syzkaller.appspot.com/x/ai_root_cause?x=2e8c4ecc07730b29ae27
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Fixes: 237fead61998 ("[PATCH] ecryptfs: fs/Makefile and fs/Kconfig")
+Fixes: 1252cc3b232e ("eCryptfs: added support for the encrypted key type")
 Reported-by: syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com
-
-==================================================================
-BUG: KASAN: slab-out-of-bounds in write_tag_3_packet+0xe4f/0x1430 fs/ecryptfs/keystore.c:2353
-Read of size 8 at addr ffff888043e1bcf1 by task syz.0.17/6007
-
-CPU: 3 UID: 0 PID: 6007 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x100/0x190 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0x13d/0x4b0 mm/kasan/report.c:482
- kasan_report+0xdf/0x1c0 mm/kasan/report.c:595
- check_region_inline mm/kasan/generic.c:186 [inline]
- kasan_check_range+0x10f/0x1e0 mm/kasan/generic.c:200
- __asan_memcpy+0x23/0x60 mm/kasan/shadow.c:105
- write_tag_3_packet+0xe4f/0x1430 fs/ecryptfs/keystore.c:2353
- ecryptfs_generate_key_packet_set+0x7ae/0x1880 fs/ecryptfs/keystore.c:2422
- ecryptfs_write_headers_virt fs/ecryptfs/crypto.c:955 [inline]
- ecryptfs_write_metadata+0x590/0x930 fs/ecryptfs/crypto.c:1065
- ecryptfs_initialize_file+0xb6/0x180 fs/ecryptfs/inode.c:252
- ecryptfs_create+0x393/0x550 fs/ecryptfs/inode.c:286
- lookup_open+0xd8a/0x19e0 fs/namei.c:4575
- open_last_lookups fs/namei.c:4774 [inline]
- path_openat+0xe75/0x23f0 fs/namei.c:5013
- do_file_open+0x20e/0x430 fs/namei.c:5045
- do_sys_openat2+0x163/0x1d0 fs/open.c:1442
- do_sys_open fs/open.c:1448 [inline]
- __do_compat_sys_openat fs/open.c:1510 [inline]
- __se_compat_sys_openat fs/open.c:1508 [inline]
- __ia32_compat_sys_openat+0x12d/0x210 fs/open.c:1508
- do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:79 [inline]
- __do_fast_syscall_32+0x14b/0x8c0 arch/x86/entry/syscall_32.c:282
- do_fast_syscall_32+0x32/0x70 arch/x86/entry/syscall_32.c:307
- entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-RIP: 0023:0xf73eefbc
-Code: d2 74 05 c1 e8 0c 89 02 8b 5d fc 31 c0 c9 c3 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 0f 1f 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 2e 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00 58 b8
-RSP: 002b:00000000ffad3b4c EFLAGS: 00000292 ORIG_RAX: 0000000000000127
-RAX: ffffffffffffffda RBX: 00000000ffffff9c RCX: 0000000080000580
-RDX: 0000000000101042 RSI: 000000000000009d RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
-
-Allocated by task 5949:
- kasan_save_stack+0x30/0x50 mm/kasan/common.c:57
- kasan_save_track+0x14/0x30 mm/kasan/common.c:78
- poison_kmalloc_redzone mm/kasan/common.c:409 [inline]
- __kasan_kmalloc+0xaa/0xb0 mm/kasan/common.c:426
- kasan_kmalloc include/linux/kasan.h:263 [inline]
- __do_kmalloc_node mm/slub.c:5531 [inline]
- __kmalloc_noprof+0x32f/0x840 mm/slub.c:5556
- _kmalloc_noprof include/linux/slab.h:995 [inline]
- _kzalloc_noprof include/linux/slab.h:1312 [inline]
- fib_create_info+0x5bf/0x4640 net/ipv4/fib_semantics.c:1432
- fib_table_insert+0x169/0x1c70 net/ipv4/fib_trie.c:1210
- fib_magic+0x4d4/0x5c0 net/ipv4/fib_frontend.c:1147
- fib_add_ifaddr+0x3a1/0x560 net/ipv4/fib_frontend.c:1184
- fib_netdev_event+0x3d6/0x710 net/ipv4/fib_frontend.c:1529
- notifier_call_chain+0x99/0x3f0 kernel/notifier.c:86
- call_netdevice_notifiers_info+0xbe/0x110 net/core/dev.c:2313
- call_netdevice_notifiers_extack net/core/dev.c:2351 [inline]
- call_netdevice_notifiers net/core/dev.c:2365 [inline]
- __dev_notify_flags+0x22c/0x4b0 net/core/dev.c:10032
- netif_change_flags+0x108/0x160 net/core/dev.c:10061
- do_setlink.isra.0+0x1b9f/0x3f50 net/core/rtnetlink.c:3294
- rtnl_changelink net/core/rtnetlink.c:3942 [inline]
- __rtnl_newlink net/core/rtnetlink.c:4113 [inline]
- rtnl_newlink+0x13c1/0x2620 net/core/rtnetlink.c:4252
- rtnetlink_rcv_msg+0x95e/0xe90 net/core/rtnetlink.c:7169
- netlink_rcv_skb+0x159/0x420 net/netlink/af_netlink.c:2584
- netlink_unicast_kernel net/netlink/af_netlink.c:1335 [inline]
- netlink_unicast+0x668/0x950 net/netlink/af_netlink.c:1361
- netlink_sendmsg+0x9ac/0x10c0 net/netlink/af_netlink.c:1920
- sock_sendmsg_nosec net/socket.c:800 [inline]
- __sock_sendmsg net/socket.c:818 [inline]
- __sys_sendto+0x492/0x4e0 net/socket.c:2283
- __do_compat_sys_socketcall net/compat.c:474 [inline]
- __se_compat_sys_socketcall net/compat.c:422 [inline]
- __ia32_compat_sys_socketcall+0x59a/0x770 net/compat.c:422
- do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:79 [inline]
- do_int80_emulation+0x166/0x650 arch/x86/entry/syscall_32.c:166
- asm_int80_emulation+0x1a/0x20 arch/x86/include/asm/idtentry.h:598
-
-The buggy address belongs to the object at ffff888043e1bc00
- which belongs to the cache kmalloc-256 of size 256
-The buggy address is located 241 bytes inside of
- allocated 248-byte region [ffff888043e1bc00, ffff888043e1bcf8)
-
-The buggy address belongs to the physical page:
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x43e1a
-head: order:1 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-flags: 0x4fff00000000040(head|node=1|zone=1|lastcpupid=0x7ff)
-page_type: f5(slab)
-raw: 04fff00000000040 ffff88801d442b40 dead000000000100 dead000000000122
-raw: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-head: 04fff00000000040 ffff88801d442b40 dead000000000100 dead000000000122
-head: 0000000000000000 0000000000100010 00000000f5000000 0000000000000000
-head: 04fff00000000001 ffffffffffffff81 00000000ffffffff 00000000ffffffff
-head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000002
-page dumped because: kasan: bad access detected
-page_owner tracks the page as allocated
-page last allocated via order 1, migratetype Unmovable, gfp_mask 0xd2820(GFP_ATOMIC|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 5864, tgid 5864 (syz-executor), ts 41561072516
- set_page_owner include/linux/page_owner.h:33 [inline]
- post_alloc_hook+0xfd/0x120 mm/page_alloc.c:1856
- prep_new_page mm/page_alloc.c:1864 [inline]
- get_page_from_freelist+0x1113/0x35e0 mm/page_alloc.c:3935
- __alloc_frozen_pages_noprof+0x2bd/0x3280 mm/page_alloc.c:5444
- alloc_slab_page mm/slub.c:3384 [inline]
- allocate_slab mm/slub.c:3499 [inline]
- new_slab+0xb1/0x6d0 mm/slub.c:3550
- refill_objects+0xe3/0x410 mm/slub.c:7539
- refill_sheaf mm/slub.c:2917 [inline]
- __pcs_replace_empty_main+0x35e/0x650 mm/slub.c:4811
- alloc_from_pcs mm/slub.c:4887 [inline]
- slab_alloc_node mm/slub.c:5021 [inline]
- __kmalloc_cache_noprof+0x4ef/0x6d0 mm/slub.c:5676
- _kmalloc_noprof include/linux/slab.h:991 [inline]
- _kzalloc_noprof include/linux/slab.h:1312 [inline]
- ____ip_mc_inc_group+0x40b/0x10d0 net/ipv4/igmp.c:1601
- br_ip4_multicast_join_snoopers.isra.0+0x152/0x400 net/bridge/br_multicast.c:4263
- br_multicast_join_snoopers+0x8b/0x120 net/bridge/br_multicast.c:4283
- br_dev_open+0x112/0x150 net/bridge/br_device.c:175
- __dev_open+0x3ad/0x8f0 net/core/dev.c:1762
- __dev_change_flags+0x596/0x850 net/core/dev.c:9991
- netif_change_flags+0x8d/0x160 net/core/dev.c:10056
- do_setlink.isra.0+0x1b9f/0x3f50 net/core/rtnetlink.c:3294
- rtnl_changelink net/core/rtnetlink.c:3942 [inline]
- __rtnl_newlink net/core/rtnetlink.c:4113 [inline]
- rtnl_newlink+0x13c1/0x2620 net/core/rtnetlink.c:4252
-page last free pid 5856 tgid 5856 ts 40658746840 stack trace:
- reset_page_owner include/linux/page_owner.h:26 [inline]
- __free_pages_prepare mm/page_alloc.c:1403 [inline]
- __free_frozen_pages+0x7b4/0x1110 mm/page_alloc.c:2954
- qlink_free mm/kasan/quarantine.c:163 [inline]
- qlist_free_all+0x47/0xf0 mm/kasan/quarantine.c:179
- kasan_quarantine_reduce+0x1a0/0x1f0 mm/kasan/quarantine.c:286
- __kasan_slab_alloc+0x69/0x90 mm/kasan/common.c:361
- kasan_slab_alloc include/linux/kasan.h:253 [inline]
- slab_post_alloc_hook mm/slub.c:4720 [inline]
- slab_alloc_node mm/slub.c:5033 [inline]
- kmem_cache_alloc_node_noprof+0x282/0x6e0 mm/slub.c:5105
- __alloc_skb+0x140/0x710 net/core/skbuff.c:705
- alloc_skb include/linux/skbuff.h:1390 [inline]
- nlmsg_new include/net/netlink.h:1055 [inline]
- rtmsg_ifinfo_build_skb+0x81/0x260 net/core/rtnetlink.c:4617
- rtmsg_ifinfo_event net/core/rtnetlink.c:4659 [inline]
- rtmsg_ifinfo_event net/core/rtnetlink.c:4649 [inline]
- rtmsg_ifinfo+0xa4/0x1b0 net/core/rtnetlink.c:4668
- netif_close_many+0x3ca/0x810 net/core/dev.c:1866
- unregister_netdevice_many_notify+0x563/0x1e00 net/core/dev.c:12694
- unregister_netdevice_many net/core/dev.c:12796 [inline]
- unregister_netdevice_queue net/core/dev.c:12592 [inline]
- unregister_netdevice_queue+0x30b/0x3c0 net/core/dev.c:12578
- unregister_netdevice include/linux/netdevice.h:3509 [inline]
- __tun_detach+0x1386/0x1850 drivers/net/tun.c:641
- tun_detach drivers/net/tun.c:657 [inline]
- tun_chr_close+0xc2/0x220 drivers/net/tun.c:3608
- __fput+0x3fb/0xb50 fs/file_table.c:512
- fput_close_sync+0x118/0x250 fs/file_table.c:618
- filp_close_sync+0x75/0xa0 fs/open.c:1573
-
-Memory state around the buggy address:
- ffff888043e1bb80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff888043e1bc00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->ffff888043e1bc80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fc
-                                                                ^
- ffff888043e1bd00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
- ffff888043e1bd80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-==================================================================
-----------------
-Code disassembly (best guess):
-   0:	d2 74 05 c1          	shlb   %cl,-0x3f(%rbp,%rax,1)
-   4:	e8 0c 89 02 8b       	call   0x8b028915
-   9:	5d                   	pop    %rbp
-   a:	fc                   	cld
-   b:	31 c0                	xor    %eax,%eax
-   d:	c9                   	leave
-   e:	c3                   	ret
-   f:	90                   	nop
-  10:	90                   	nop
-  11:	90                   	nop
-  12:	90                   	nop
-  13:	90                   	nop
-  14:	90                   	nop
-  15:	90                   	nop
-  16:	90                   	nop
-  17:	90                   	nop
-  18:	90                   	nop
-  19:	90                   	nop
-  1a:	90                   	nop
-  1b:	90                   	nop
-  1c:	90                   	nop
-  1d:	90                   	nop
-  1e:	0f 1f 00             	nopl   (%rax)
-  21:	51                   	push   %rcx
-  22:	52                   	push   %rdx
-  23:	55                   	push   %rbp
-  24:	89 e5                	mov    %esp,%ebp
-  26:	0f 34                	sysenter
-  28:	cd 80                	int    $0x80
-* 2a:	5d                   	pop    %rbp <-- trapping instruction
-  2b:	5a                   	pop    %rdx
-  2c:	59                   	pop    %rcx
-  2d:	c3                   	ret
-  2e:	90                   	nop
-  2f:	2e 8d b4 26 00 00 00 	cs lea 0x0(%rsi,%riz,1),%esi
-  36:	00
-  37:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
-  3e:	58                   	pop    %rax
-  3f:	b8                   	.byte 0xb8
-
-
+Closes: https://syzbot.org/bug?extid=2e8c4ecc07730b29ae27
+Signed-off-by: Qing Zhang <diasyzhang@tencent.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+ fs/ecryptfs/ecryptfs_kernel.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 58165928ed1e..4315c18ba1cd 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -88,6 +88,9 @@ ecryptfs_get_encrypted_key_payload_data(struct key *key)
+ 	if (!payload)
+ 		return ERR_PTR(-EKEYREVOKED);
+ 
++	if (payload->payload_datalen < sizeof(struct ecryptfs_auth_tok))
++		return ERR_PTR(-EINVAL);
++
+ 	return (struct ecryptfs_auth_tok *)payload->payload_data;
+ }
+ 
+@@ -124,6 +127,9 @@ ecryptfs_get_key_payload_data(struct key *key)
+ 	if (!ukp)
+ 		return ERR_PTR(-EKEYREVOKED);
+ 
++	if (ukp->datalen < sizeof(struct ecryptfs_auth_tok))
++		return ERR_PTR(-EINVAL);
++
+ 	return (struct ecryptfs_auth_tok *)ukp->data;
+ }
+ 
+-- 
+2.43.7
 
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
