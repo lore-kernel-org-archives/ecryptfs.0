@@ -1,95 +1,54 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.216.49
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.167.198
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1793901849;
-	b=SEzEHI9dVePT+bccN0PITMacrYxmz2U88dQ99vR9CPtRynG77TnKCNPYqU9IK6b7rYP2
-	 zeOxMaX3xPYLVp7jkSTBdCWHfN48Vk5sZnbFuR6cMZIcgA472zaMecBS9R+EDO+lrH+rw
-	 eNOG+1aj8jlQWSMbTZlt2NfCcfPxnQuZGm4y+TxgX70+BvvX1WiYKCWp3HCf2geFDrUGu
-	 oLnHwX4XjnbRCWOm5rSQjPIBeSxv7QFygWFcIE+TZvaBX12ZcFSjhmhL9GTy/E+4PzJ/x
-	 GgMn/ESQy6r5prAXXiTRCmehivW0NN/msrMtNC0YuASxPQVnbv5rX0FwRKvHUsNDyJA==
+	t=1793903045;
+	b=jExYuJiMeSZDuXndfy7Oqeo29nWytTm79YdQ98W68BSZo1eZ562WkEAjKlpdamKohdHD
+	 RZ+7fdnA4Tmdw+BYN5I2IalyePD5L9XbLMljqeQ0ncEnjzihwPUuqD20vottRfLl/9RLb
+	 URhfXMZrtKdLrgFH0kJH2p8SgA3uibZlz2tGSrLcb5jOMrkdBSDnYY1Q3P5rftSLEFPkO
+	 j9m+OCgA1h70DNDmZqdnMspn3PDY6suO0z15bTnhwUU5KG8WuSmPXUzPiYenRydzKjc3e
+	 o0INMxT/VgxxVjzD5b1dD/vDaumGxtysXVn6J/ZeHCznMK86D5QTbb9KqH6vXVi9upQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1793901849;
-	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
-	 X-Gm-Message-State:X-Gm-Gg:X-Received:Received:From:To:Cc:Subject:
-	 Date:Message-ID:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding;
-	bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
-	b=M4ijIlfAt8ewhsiNleCggPzGAgeozKzOt9QLyep88vrRKBLkuxDyu7+ePfh5mbVAbg2S
-	 GAuUYOrkiChp/JI+d9SD+zUJtPZCNLbQ8NFCqvHvYV8n3D8k4CpEnPlzzQ57PEf1Nt0hy
-	 7mmNqOeyYUVTR5NSRU7SvJE0e/i+W0aaFjw0lb6HefD+ynC/mMZ9i+i5ViFvMGUrMjXP+
-	 pgDSQpvTQUBAZgiXFCHsH0ammib5sICcJ3bRAvlWmiXFUHkg6ZWGvfQw7kfdy0Q0GwbCi
-	 N50ZvCC+LUc0Qp06iOU6ZIi+aMTbbT92NoyioIP4ZCxteIHWxTW7nRUTQf9ahtMj/Jw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1793903045;
+	h=DMARC-Filter:Received:X-Google-DKIM-Signature:X-Forwarded-Encrypted:
+	 X-Gm-Message-State:MIME-Version:X-Received:Date:In-Reply-To:
+	 X-Google-Appengine-App-Id:X-Google-Appengine-App-Id-Alias:Message-ID:
+	 Subject:From:To:Content-Type;
+	bh=FZYaPiXF5uqkd9py2yyYx1geKocgOLas510kMd12DD4=;
+	b=FXBzDoxdzLYt2aZ34g2mUAK1YmT/bd3LrSlqimveOYS9ybkdft+5du5kwsN1+yI/Xmqw
+	 MKe3kJfm+LPbE8gg3kQUB0q166538qdLVy2ite2ZcK7Dp48oIrWPcxhr7iMchWR0YM9SD
+	 DB3Yu9jTgCwGTZLWwxYp8S3sWAmveS3OtkoUzwM0tZdo5uQ/FFzM9SFzt9A9cBQFPVRjM
+	 WDEtyL3tMtrECY3SaLm0B+17VP1Q/fISfmqRuAD2vbqdSZSGSY6GoTi/r7okJsH87Os4r
+	 28/11wGHDy+U3ROCf5GwvrrCXekFHXZbwOkUNDKm5DJB+tF30BIPxBGbkO5Ia82ppuA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=gmail.com;
-	spf=pass smtp.mailfrom=gmail.com;
-	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yLgPglEV;
-	arc=none smtp.remote-ip=209.85.216.49
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+	dmarc=fail header.from=syzkaller.appspotmail.com;
+	spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com;
+	arc=none smtp.remote-ip=209.85.167.198
+Received: from mail-oi1-f198.google.com (mail-oi1-f198.google.com [209.85.167.198])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCEAE606A326
-	for <ecryptfs@vger.kernel.org>; Thu,  5 Nov 2026 18:04:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org CCEAE606A326
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=yLgPglEV
-Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-3b09a83d12aso1230657a91.2
-        for <ecryptfs@vger.kernel.org>; Thu, 05 Nov 2026 10:04:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20260707; t=1793901848; x=1794506648; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
-        b=yLgPglEV7GIVD4E6i5KZiOI0zcHNXpKf7e278ayvsmQ+qjQ56E1zqMuh/choBfY4ld
-         XRD2plRdXUfNrEVuTNrobS7Psfu3kXVCz8LfQ3ulWq/ZOT97B2qO2Kn5Q2cab4zV3GTI
-         cGXxIinwB3b+zb7dOHnzw1BFttOEI14pRogyuDb2S5B3qJTHmS45wn8aINQrFt1gIiPp
-         iGb/qo2jTitloBoFZdqILA6VKwrYSIcjjPhqDGJuaTTsUkME/OCt2o4BdHyhST0n73Tz
-         c3MGTgAjCsRnnverO385lQL4+O+3VnrwhA83QTh2yHLOng4y/VFyRlvuIduNKFMFfwEv
-         zYoQ==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB9B606A31B
+	for <ecryptfs@vger.kernel.org>; Thu,  5 Nov 2026 18:24:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9EB9B606A31B
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oi1-f198.google.com with SMTP id 5614622812f47-4cc89e86e4dso2962976b6e.2
+        for <ecryptfs@vger.kernel.org>; Thu, 05 Nov 2026 10:24:04 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1793901848; x=1794506648;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to:content-type;
-        bh=XnmxEFlwrYLXPYbiM4rRFqk5iRr+FlXWIqL+SZFi5xA=;
-        b=UWFfBxuBNgTIWYMXxqLjJ9BQnKcCnIhlYF6L/P0UDFq90mQr5ifdJamgEhXmSaGytG
-         ddVSDiOVfyduFsm8tFP4eJszAAOfmY93KYqL6BWVlrrMkoug4d0sD8B6Z9MNO6CQu1IV
-         Hcme8L1rP+W0N3jTMzv6xo6hsvfez154dVsBQxP+x9LpEYCK9Dpipbfinao8OlXFNuZK
-         iUT+r/92ngd4bA8lWlyYRme43G1oWn1tftnegwGUAyVV7vbPkY6IHUnlkCo7DAwinZve
-         igr1V2BuMlhyaguotIN31HuCF8BpJD8o8RMqi9y2Uug+UrCJWjqCetnhFB3RiTSfA4ok
-         hU7A==
-X-Gm-Message-State: APuU4Z9cen0DUJy6tKVi9ECO9hPLNyVFGxPVr/3i74nEIeaX20yFSdeB
-	B4t1/rXnuXjCc9rSYtAiB8xMkKnVO7wFmXE43t/OTlHo1GMHHIvul5DG
-X-Gm-Gg: AYBFou3gJp5xafQm+hqSctq1/z10DVahhyIDZHNCzI+EnW6PHFiymosVJm/nkbcp02u
-	le0OJI8w1a20TpL1x9CP5lofkmSz4e+l844PNXlcpqInEeHEftt6rwVvM5GmfEK7NiO/0X/RIqK
-	jbNZwLijnmm2LhCO8mr0krkPNkIs8AL5OIiUwuiQx68hb9AcvTi1SL4K9R57kIk2NlmiQX0pnFJ
-	748tGBbcxntYcHlSU8GO6BFT94lwAtTsAk0wjApBlI095MMH0sCKSfwjau831vr2DvfpCWFPUmd
-	FTvJ/+1ff9xk7b5tylAsasfpAEjHBPh8A7fYzfSN774nQaG8cvfiOdYiwlx3HjuPgab7Z/KdRo2
-	ZG+faoDZxMxR0EOYKPN7bHfN3t4jMYZgQ95S0xDi9ZQbqkjaN+litc/udpm1jLlL8N2OQ26sZVJ
-	F5QhRA4ur8aAll5Q0zTCDr/7abW0MMzy3hFNqkt+DzxJDhO0QqDT5H1kvos4hmGdBnQSrsD6BNR
-	KBttVcBrdDzS0vL6Ql/h3T/PKHP2mC9L6GgVyZ+kWYf/gL70QtugX7Gv24WzuxLnKIEoDg9P0w3
-	9MqQSVVfJgPwGGS6NpSDmVo8yJT6nbPvSf0Z4RHa128aFlD3j9GR
-X-Received: by 2002:a17:90b:4d09:b0:3b0:cc6f:1046 with SMTP id 98e67ed59e1d1-3b0cc6f11cbmr1403236a91.67.1793901848105;
-        Thu, 05 Nov 2026 10:04:08 -0800 (PST)
-Received: from localhost.localdomain ([152.136.45.109])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3b094d70a60sm4855031a91.1.2026.11.05.10.04.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 05 Nov 2026 10:04:07 -0800 (PST)
-From: Qing Zhang <diasyzhangqing@gmail.com>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com,
-	Roberto Sassu <roberto.sassu@polito.it>,
-	diasyzhang@tencent.com
-Subject: [PATCH] ecryptfs: validate auth token payload length before use
-Date: Fri,  6 Nov 2026 02:04:02 +0800
-Message-ID: <20261105180403.675338-1-diasyzhangqing@gmail.com>
-X-Mailer: git-send-email 2.43.7
-In-Reply-To: <6aec66fb.059f5055.2712e4.0000.GAE@google.com>
-References: <6aec66fb.059f5055.2712e4.0000.GAE@google.com>
+        d=1e100.net; s=20260707; t=1793903043; x=1794507843;
+        h=content-type:to:from:subject:message-id:in-reply-to:date
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to:content-type;
+        bh=FZYaPiXF5uqkd9py2yyYx1geKocgOLas510kMd12DD4=;
+        b=xbDqkwB9YokZLCZeoV3Nu8hYGvUnnlwPPspOmPlRf5uaOnL3G1VGfPK09/c4/34PxP
+         DugSmev8kQyqlX1EB8REHjOoptBRZa8Hlnb/6Zd5H07r2E47QJqLIJBi4w7IiUIhMyTg
+         wFGRnOi96NoJxo29ekARcbih724XuVOA27JhDZtfxdkZaKuN/ScbnNTe9uvTODNWlR3Z
+         LrJomP0pmGSX/VHFdU5LEMjZutNUpuvXKTJq5PJy7tqq1B1iHnfDyLQS9U3xCUvZvJOW
+         oJvJZN5v7OHj1feZ0gwUHY7PFv4fX5XEqK9+vw555DNeLeNkSWD6FM4W7Z0PewOKaKIf
+         SyzA==
+X-Forwarded-Encrypted: i=1; AKwUvBwgTUdTOA2cf5ANzjc2OnciUaxdKFJWk2VawaGJg2Vf1DxZkz7CJ0+fSbIX/46W/rWcqANZ2deswQ==@vger.kernel.org
+X-Gm-Message-State: APuU4Z/aTFjgAKlmlA6HneZn8Fm11N6BBPGJt3176znZ8hiHuZNAzfAJ
+	At0p2Op+dxjvua3sjhgBdKM9OeoJd/ObcXf749T7TeT5UVLca4NTCXq0PO7n25KC1HI4P8FDkmQ
+	rESxIuQGWy2BQOmwVdlxHOZsidB1DxYB4RgyW/2BApqLe8PiO0rRFo/kmMNA=
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -99,53 +58,37 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6808:3c48:b0:4f4:d7:b16d with SMTP id
+ 5614622812f47-5640de8713amr14198871b6e.60.1793903043331; Thu, 05 Nov 2026
+ 10:24:03 -0800 (PST)
+Date: Thu, 05 Nov 2026 10:24:03 -0800
+In-Reply-To: <20261105180403.675338-1-diasyzhangqing@gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6aecc9c3.ab333cca.1deac.0002.GAE@google.com>
+Subject: Re: [syzbot] [ecryptfs?] KASAN: slab-out-of-bounds Read in write_tag_3_packet
+From: syzbot <syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com>
+To: code@tyhicks.com, diasyzhang@tencent.com, diasyzhangqing@gmail.com, 
+	ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	roberto.sassu@polito.it, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-From: Qing Zhang <diasyzhang@tencent.com>
+Hello,
 
-eCryptfs treats user and encrypted key payloads as struct
-ecryptfs_auth_tok without checking their length. Short payloads with
-valid version and token type fields can pass verification and cause
-out-of-bounds reads during file or filename encryption.
+syzbot has tested the proposed patch and the reproducer did not trigger any issue:
 
-Reject undersized payloads in both payload accessors with -EINVAL
-before any authentication token fields are accessed.
-
-Fixes: 237fead61998 ("[PATCH] ecryptfs: fs/Makefile and fs/Kconfig")
-Fixes: 1252cc3b232e ("eCryptfs: added support for the encrypted key type")
 Reported-by: syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com
-Closes: https://syzbot.org/bug?extid=2e8c4ecc07730b29ae27
-Signed-off-by: Qing Zhang <diasyzhang@tencent.com>
----
+Tested-by: syzbot+2e8c4ecc07730b29ae27@syzkaller.appspotmail.com
 
-#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
- fs/ecryptfs/ecryptfs_kernel.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+Tested on:
 
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 58165928ed1e..4315c18ba1cd 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -88,6 +88,9 @@ ecryptfs_get_encrypted_key_payload_data(struct key *key)
- 	if (!payload)
- 		return ERR_PTR(-EKEYREVOKED);
- 
-+	if (payload->payload_datalen < sizeof(struct ecryptfs_auth_tok))
-+		return ERR_PTR(-EINVAL);
-+
- 	return (struct ecryptfs_auth_tok *)payload->payload_data;
- }
- 
-@@ -124,6 +127,9 @@ ecryptfs_get_key_payload_data(struct key *key)
- 	if (!ukp)
- 		return ERR_PTR(-EKEYREVOKED);
- 
-+	if (ukp->datalen < sizeof(struct ecryptfs_auth_tok))
-+		return ERR_PTR(-EINVAL);
-+
- 	return (struct ecryptfs_auth_tok *)ukp->data;
- }
- 
--- 
-2.43.7
+commit:         05441d69 Merge tag 'cocci-7.4-rc1' of git://git.kernel..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=11a70cfd580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=5c210800cfc8f61e
+dashboard link: https://syzkaller.appspot.com/bug?extid=2e8c4ecc07730b29ae27
+compiler:       gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44
+userspace arch: i386
+patch:          https://syzkaller.appspot.com/x/patch.diff?x=102ba969580000
 
+Note: testing is done by a robot and is best-effort only.
