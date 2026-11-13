@@ -1,48 +1,48 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794571250;
-	b=ki8joO0GJCdrRBXmtBptMWh8bgrV5kq3ZvwYxjTuT/W500LM5shuckHRFqSBfA6KCxez
-	 tyHsQlXYoBJ1RODt+qIvFUCDEjUjGLx5ScaYWYnEukCNHTPvOzgSVtYxL0R7InM3fa6+p
-	 511T4qyLOORRaQbucpsBu7vqOlPN78tFF1Pq0w3hr8nAnTvXfaGEdilXsUW0juvwwfAfg
-	 HkD4yZbWQLU0Xod/tWFiAPyEInrLKJOzwS0hFvQuTaNi40ZpGnz17ptr8cBJFoj8Gx7dh
-	 sxRvkzF1njGHGn36/aurXhzXvNMbsjtmoz0nBVGz+ubes2F4rkvZuYSm2MIt0iYvVjg==
+	t=1794571263;
+	b=DpDMOiBEw38o1tKHYW5/dObSI5v7gtYDEgMFlZ6glHRkEb+1rNKC+YiaffPInr+Ps5ac
+	 NzA7Lx8LLNP8kUej2t6y54VJ8KmKOVugEfrxHW6ME8M7maI/vm3zXo8SgraOt4KKiuWd7
+	 Qshn4aK7FOcFyyZf25l30gKq65RQ06/c76rih5mqI3GU8bo2/y9fBwyna0l+nouLCO+1b
+	 LgL1MOkzXq/sqqlZyHOy/mIpbsZ70UMrsq3eqNbAHEji58XKUS/d6kMCWs6rTj/Bp3ioo
+	 wSxg97FT/vjCBg7GWLBsjG1nP2uImz7PxOtmGzgt/oOrMO4jVEr/IkpffuodJoFhE4Q==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794571250;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794571263;
 	h=Received:DKIM-Signature:From:Date:Subject:MIME-Version:Content-Type:
 	 Content-Transfer-Encoding:Message-Id:References:In-Reply-To:To:Cc:
 	 X-Mailer:X-Developer-Signature:X-Developer-Key;
-	bh=fO/77PxjazTXozaWYmXfnUNBIcfWAA9M213KUMdEO2E=;
-	b=w6eGC6yytHsoXmYVJB7r9hwi6Y6J18TzznPOS6zz4mlqR5+z9Qlrq1u2yZBWFGDA6EmE
-	 9OFW1TgfZcygtVC6fbno60i8Zp7RnsLmNjtdj6e2FoqSf7aBmsFEuG0wKzIPBvJpVq6kI
-	 itsHCpGJa5iebCdBITwuJagBfZHQHKlXHykN7ob5oRElNh89elhj8mC4/OlybvhQiCgNi
-	 SLb1xdm8ZXxqePzt1hcrX1YZvLLVVputW1l/DY4L81wZfJa4SOeHRSM8C2FPtO7NzKBbl
-	 TthU8oBeSxcs68p2g/8amDm/P9/xMz0gxhV4h+zqQdnIXSgzyRL7i5CqDePf44hSEgg==
+	bh=yyeMtFRiFUm1GgKqiaueiDO/IS6fCBvaYPtU/LMu/xo=;
+	b=oaO4XjCjaGV2PM3/7E9gYzWnAHCD7EwNM8rbrIRsY0tPqzLzd9Xud6iN73v7TnWGyJxS
+	 RLui/RFSJjIZfzVAmpGEIU73pZDaAyFvmK3maMiYYo6GFVh3xVCtbKoGosG1stMY2fCk+
+	 m8lEEoWTU3WXQI9s/TNAVdNosjFR/xBWh6FY33Yu2SL4rYPNl0/2APcJEcTU3VA3kMsVO
+	 qVbrng7FWkz9hXV1IyzbLnvdVl+s97ccEsHEimH/YXTOUPmpk5xFwdNf8s0Fo55GkmXze
+	 T2Llbpf13KNxDXMOfny+MGBJUOtSiqBhveVUd9L44QhKleTKWIIaRKHHPMma85IpgZA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O4PJhCa9;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kF4AFKYZ;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40471606A88B;
-	Fri, 13 Nov 2026 12:00:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F1CE606A33F;
+	Fri, 13 Nov 2026 12:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=O4PJhCa9
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4455C1F000D0;
-	Fri, 13 Nov 2026 12:00:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=kF4AFKYZ
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07E831F000C9;
+	Fri, 13 Nov 2026 12:00:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794571249;
-	bh=fO/77PxjazTXozaWYmXfnUNBIcfWAA9M213KUMdEO2E=;
+	s=k20260515; t=1794571262;
+	bh=yyeMtFRiFUm1GgKqiaueiDO/IS6fCBvaYPtU/LMu/xo=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc;
-	b=O4PJhCa9GmprnCSodb1Tvbb5kApzBmc9OY3BjB+klV4lzQqGkYLRy4J9XCwPWpgSe
-	 xbwQUYHBIhjx2aSoPuJ+YCZ0M9uzKPLEU0OXxmpUcPq28r/yrwofrICt9RE2KfGMXT
-	 0P9zk91R8g/+C8WyS8lIR7JipZtseBKB75Vi3tDqIhrAXzoU2OeaLi8XuvQiCB+ydM
-	 mHYj9piJvtVu4YrS77Kz4D0t0eLFN08qSngK45yf60mjQ0rcyERqc2U9vHRbawZQPm
-	 kewOhL5htAQCPY93n9kLf/hq1uqgXcQIM0wC6m59Nfoyxu2ghl71D/f9J8gPuPh0Yt
-	 gB3NCmsUUkouw==
+	b=kF4AFKYZ6LTt4D1pyInaN9B6u0OE4jPZDqqgqRlu5SSxnCxqtEaOUJ+9FGVs79LN5
+	 LWwJvImEvXw1/hVRnIhQVs1XAl5oyAi3sjHQ7m8vSgf4vYHiAE49qa+Nbo40Uj0vJE
+	 c78CtHjAIAiUZeQG+LB5Ults4fwbM5XtpnTiSDELaN3V3HHjcJk82wrBi3krguYfik
+	 z4bJ7/0CyTVnxO8T12tpwrsl5fKdKGqCSpLZW5fFVOUPeGb8NokGmStMRW9vLj/Rm9
+	 8NKMUYABnEbHP8iXKEEYMPGAgFZTpyLPomrT9t3P93S0KMDFLQGtBq91Z0lJWC7HzM
+	 W/YQ2P1zAnNjA==
 From: Christian Brauner <brauner@kernel.org>
-Date: Fri, 13 Nov 2026 12:59:05 +0100
-Subject: [PATCH v3 09/33] fat: don't set SB_RDONLY after filesystem errors
+Date: Fri, 13 Nov 2026 12:59:08 +0100
+Subject: [PATCH v3 12/33] exfat: use the generic emergency read-only state
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -54,7 +54,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261113-work-fs-sb_rdonly-v3-9-0be92bb73709@kernel.org>
+Message-Id: <20261113-work-fs-sb_rdonly-v3-12-0be92bb73709@kernel.org>
 References: <20261113-work-fs-sb_rdonly-v3-0-0be92bb73709@kernel.org>
 In-Reply-To: <20261113-work-fs-sb_rdonly-v3-0-0be92bb73709@kernel.org>
 To: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.com>
@@ -67,200 +67,128 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>, ecryptfs@vger.kernel.org,
  linux-xfs@vger.kernel.org, 
  "Christian Brauner (Amutable)" <brauner@kernel.org>
 X-Mailer: b4 0.17-dev-ce4c1
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6918; i=brauner@kernel.org;
- h=from:subject:message-id; bh=hJjqcETpnF8Bw85Y5EMVd99FPp/4PHlnKsk14i9xJCk=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWR9+73k3peNa5ziZH+ZT1ELYw4+uesn+5H7Rk2sP/jlF
- yvX+fnodJSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAExkTx/Db9Yqy4MBDS6hZlsO
- Lplv8Oe/8oaXf4q65T7I7D50+OGTnXwM/wNW7r0ZHML9PKJIeIqbSv6pmtDjirnnKx9OyT79Pvy
- hFgMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4142; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=ZSlUpRfgik1TuXvBBVvkw3QqcpPSPBH3FavShZHmWoU=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWR9+71iovftKZ2+13Pn17z7+Zx1wqsG5o2hLvcmBz1cE
+ LI1qXm3Q0cpC4MYF4OsmCKLQ7tJuNxynorNRpkaMHNYmUCGMHBxCsBEIpwYGS5VN1rdk4s1mHHD
+ MPH6rux/+n18sxXNQg3KDSfbV2k98mX4724wyXxD8okWRkeenetC72+76+Ps+jDH+si3g273dZh
+ vMAEA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp;
  fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-With errors=remount-ro, the default, __fat_fs_error() sets SB_RDONLY
-from whatever context hit the error and without holding s_umount. If
-that happens while the filesystem is frozen through bdev_freeze(), e.g.
-by a device mapper suspend, thaw_super() sees a read-only superblock and
-leaves the s_writers rwsems locked so every writer hangs.
+Set SB_STATE_EMERGENCY_RO instead of a private bit when an error makes
+the filesystem read-only. exfat_emergency_state() keeps telling a
+shutdown (EIO) and the emergency state (EROFS) apart so none of its
+callers change. The VFS refuses the remount to read-write now so exfat
+doesn't have to, and /proc/mounts shows the filesystem read-only again.
 
-So call sb_set_emergency_ro() instead and let the VFS refuse
-modifications. fat still refuses FAT writes, cluster allocation,
-write_begin, O_DIRECT writes and FITRIM itself, leaves the volume marked
-dirty and doesn't free fallocated clusters on evict. fat_write_inode()
-keeps working. Writeback still writes the FAT and the directory blocks
-and rename and create leave the new entry with cluster 0 and size 0
-until fat_write_inode() fills them in. Errors while mounting still set
-SB_RDONLY, nothing can freeze the superblock before SB_BORN.
-
-After a remount to read-only a remount to read-write fails until umount.
-A plain remount to read-write right after the error succeeds but the
-filesystem stays read-only. A remount to read-only doesn't mark the
-volume clean. Writes through file descriptors opened before the error
-fail with EROFS.
+The VFS also refuses to freeze the superblock in that state. So
+FS_IOC_SHUTDOWN with EXFAT_GOING_DOWN_DEFAULT or _FULLSYNC shuts down
+without the freeze after an error, there's nothing left to sync anyway.
 
 Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
 ---
- fs/fat/dir.c    |  3 +++
- fs/fat/fatent.c | 11 ++++++++++-
- fs/fat/file.c   |  4 ++++
- fs/fat/inode.c  | 13 +++++++++++--
- fs/fat/misc.c   | 19 +++++++++++++------
- 5 files changed, 41 insertions(+), 9 deletions(-)
+ fs/exfat/exfat_fs.h | 13 ++-----------
+ fs/exfat/misc.c     |  6 ++----
+ fs/exfat/super.c    | 12 ++++++------
+ 3 files changed, 10 insertions(+), 21 deletions(-)
 
-diff --git a/fs/fat/dir.c b/fs/fat/dir.c
-index 35bdb62944a2e..553034bcbed40 100644
---- a/fs/fat/dir.c
-+++ b/fs/fat/dir.c
-@@ -1329,6 +1329,9 @@ int fat_add_entries(struct inode *dir, void *slots, int nr_slots,
- 	loff_t pos;
- 	bool saw_eod;
+diff --git a/fs/exfat/exfat_fs.h b/fs/exfat/exfat_fs.h
+index c0e712d9083a0..ac138f1119886 100644
+--- a/fs/exfat/exfat_fs.h
++++ b/fs/exfat/exfat_fs.h
+@@ -123,7 +123,6 @@ enum {
  
-+	if (unlikely(sb_emergency_ro(sb)))
-+		return -EROFS;
-+
- 	sinfo->nr_slots = nr_slots;
+ /* Superblock flags */
+ #define EXFAT_FLAGS_SHUTDOWN	1
+-#define EXFAT_FLAGS_EMERGENCY_RO	2	/* read-only after an error */
  
- 	/* First stage: search free directory entries */
-diff --git a/fs/fat/fatent.c b/fs/fat/fatent.c
-index 2d10a815a5797..9e4bb0140320f 100644
---- a/fs/fat/fatent.c
-+++ b/fs/fat/fatent.c
-@@ -314,7 +314,7 @@ static void mark_fsinfo_dirty(struct super_block *sb)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 
--	if (sb_rdonly(sb) || !is_fat32(sbi))
-+	if (sb_rdonly_any(sb) || !is_fat32(sbi))
- 		return;
- 
- 	__mark_inode_dirty(sbi->fsinfo_inode, I_DIRTY_SYNC);
-@@ -419,6 +419,9 @@ int fat_ent_write(struct inode *inode, struct fat_entry *fatent,
- 	const struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
- 	int err;
- 
-+	if (unlikely(sb_emergency_ro(sb)))
-+		return -EROFS;
-+
- 	ops->ent_put(fatent, new);
- 	if (wait) {
- 		err = fat_sync_bhs(fatent->bhs, fatent->nr_bhs);
-@@ -513,6 +516,9 @@ static int __fat_alloc_clusters(struct inode *inode, int *cluster, int nr_cluste
- 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
- 	int i, count, err, nr_bhs, idx_clus;
- 
-+	if (unlikely(sb_emergency_ro(sb)))
-+		return -EROFS;
-+
- 	lock_fat(sbi);
- 	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
- 	    sbi->free_clusters < nr_cluster) {
-@@ -620,6 +626,9 @@ int fat_free_clusters(struct inode *inode, int cluster)
- 	int i, err, nr_bhs;
- 	int first_cl = cluster, dirty_fsinfo = 0;
- 
-+	if (unlikely(sb_emergency_ro(sb)))
-+		return -EROFS;
-+
- 	nr_bhs = 0;
- 	fatent_init(&fatent);
- 	lock_fat(sbi);
-diff --git a/fs/fat/file.c b/fs/fat/file.c
-index d4f1b360b9743..3d0a81994fb70 100644
---- a/fs/fat/file.c
-+++ b/fs/fat/file.c
-@@ -135,6 +135,10 @@ static int fat_ioctl_fitrim(struct inode *inode, unsigned long arg)
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
-+	/* Don't trust the FAT after an error. */
-+	if (unlikely(sb_emergency_ro(sb)))
-+		return -EROFS;
-+
- 	if (!bdev_max_discard_sectors(sb->s_bdev))
- 		return -EOPNOTSUPP;
- 
-diff --git a/fs/fat/inode.c b/fs/fat/inode.c
-index d85c8fbdcca46..2779583c64423 100644
---- a/fs/fat/inode.c
-+++ b/fs/fat/inode.c
-@@ -228,6 +228,9 @@ static int fat_write_begin(const struct kiocb *iocb,
- {
- 	int err;
- 
-+	if (unlikely(sb_emergency_ro(mapping->host->i_sb)))
-+		return -EROFS;
-+
- 	err = cont_write_begin(iocb, mapping, pos, len,
- 				foliop, fsdata, fat_get_block,
- 				&MSDOS_I(mapping->host)->mmu_private);
-@@ -264,6 +267,8 @@ static ssize_t fat_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
- 	ssize_t ret;
- 
- 	if (iov_iter_rw(iter) == WRITE) {
-+		if (unlikely(sb_emergency_ro(inode->i_sb)))
-+			return -EROFS;
- 		/*
- 		 * FIXME: blockdev_direct_IO() doesn't use ->write_begin(),
- 		 * so we need to update the ->mmu_private to block boundary.
-@@ -662,6 +667,10 @@ static int fat_sync_inode_metadata(struct inode *inode,
- 
- static void fat_free_eofblocks(struct inode *inode)
- {
-+	/* Nothing can be freed after an error. */
-+	if (sb_emergency_ro(inode->i_sb))
-+		return;
-+
- 	/* Release unwritten fallocated blocks on inode eviction. */
- 	if ((inode->i_blocks << 9) >
- 			round_up(MSDOS_I(inode)->mmu_private,
-@@ -710,8 +719,8 @@ static void fat_set_state(struct super_block *sb,
- 	struct fat_boot_sector *b;
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 
--	/* do not change any thing if mounted read only */
--	if (sb_rdonly(sb) && !force)
-+	/* do not change any thing if mounted read only or after an error */
-+	if ((sb_rdonly(sb) && !force) || sb_emergency_ro(sb))
- 		return;
- 
- 	/* do not change state if fs was dirty */
-diff --git a/fs/fat/misc.c b/fs/fat/misc.c
-index 65d02f2edec38..05d061b594a67 100644
---- a/fs/fat/misc.c
-+++ b/fs/fat/misc.c
-@@ -14,9 +14,9 @@
-  * fat_fs_error reports a file system problem that might indicate fa data
-  * corruption/inconsistency. Depending on 'errors' mount option the
-  * panic() is called, or error message is printed FAT and nothing is done,
-- * or filesystem is remounted read-only (default behavior).
-- * In case the file system is remounted read-only, it can be made writable
-- * again by remounting it.
-+ * or the filesystem is made read-only (default behavior): a mount in
-+ * progress comes up read-only, a mounted filesystem refuses all further
-+ * modifications until it is unmounted.
-  */
- void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
- {
-@@ -32,10 +32,17 @@ void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
- 		va_end(args);
- 	}
- 
--	if (opts->errors == FAT_ERRORS_PANIC)
-+	if (opts->errors == FAT_ERRORS_PANIC) {
- 		panic("FAT-fs (%s): fs panic from previous error\n", sb->s_id);
--	else if (opts->errors == FAT_ERRORS_RO && !sb_rdonly(sb)) {
--		sb->s_flags |= SB_RDONLY;
-+	} else if (opts->errors == FAT_ERRORS_RO && !sb_rdonly(sb)) {
-+		/*
-+		 * Before SB_BORN the mounter holds s_umount so SB_RDONLY is
-+		 * fine. Later it needs a remount, see sb_set_emergency_ro().
-+		 */
-+		if (!(sb->s_flags & SB_BORN))
-+			sb->s_flags |= SB_RDONLY;
-+		else if (!sb_set_emergency_ro(sb))
-+			return;
- 		fat_msg(sb, KERN_ERR, "Filesystem has been set read-only");
- 	}
+ struct exfat_dentry_namebuf {
+ 	char *lfn;
+@@ -376,20 +375,12 @@ static inline int exfat_forced_shutdown(struct super_block *sb)
+ 	return test_bit(EXFAT_FLAGS_SHUTDOWN, &EXFAT_SB(sb)->s_exfat_flags);
  }
+ 
+-static inline int exfat_emergency_ro(struct super_block *sb)
+-{
+-	return test_bit(EXFAT_FLAGS_EMERGENCY_RO, &EXFAT_SB(sb)->s_exfat_flags);
+-}
+-
+-/*
+- * Modifications are refused after a forced shutdown (-EIO) and after an error
+- * with errors=remount-ro (-EROFS).
+- */
++/* -EIO after a forced shutdown, -EROFS after an error with errors=remount-ro */
+ static inline int exfat_emergency_state(struct super_block *sb)
+ {
+ 	if (unlikely(exfat_forced_shutdown(sb)))
+ 		return -EIO;
+-	if (unlikely(exfat_emergency_ro(sb)))
++	if (unlikely(sb_emergency_ro(sb)))
+ 		return -EROFS;
+ 	return 0;
+ }
+diff --git a/fs/exfat/misc.c b/fs/exfat/misc.c
+index 56dcb93ce69e0..03c5c2b9a65ec 100644
+--- a/fs/exfat/misc.c
++++ b/fs/exfat/misc.c
+@@ -25,8 +25,7 @@
+  */
+ void __exfat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
+ {
+-	struct exfat_sb_info *sbi = EXFAT_SB(sb);
+-	struct exfat_mount_options *opts = &sbi->options;
++	struct exfat_mount_options *opts = &EXFAT_SB(sb)->options;
+ 	va_list args;
+ 	struct va_format vaf;
+ 
+@@ -49,8 +48,7 @@ void __exfat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
+ 		 */
+ 		if (!(sb->s_flags & SB_BORN))
+ 			sb->s_flags |= SB_RDONLY;
+-		else if (test_and_set_bit(EXFAT_FLAGS_EMERGENCY_RO,
+-					  &sbi->s_exfat_flags))
++		else if (!sb_set_emergency_ro(sb))
+ 			return;
+ 		exfat_err(sb, "Filesystem has been set read-only");
+ 	}
+diff --git a/fs/exfat/super.c b/fs/exfat/super.c
+index feeda41a80741..e3587ed270245 100644
+--- a/fs/exfat/super.c
++++ b/fs/exfat/super.c
+@@ -100,7 +100,7 @@ static int exfat_set_vol_flags(struct super_block *sb, unsigned short new_flags)
+ 	 * if this volume has been mounted with read-only,
+ 	 * or an error left it read-only (it stays dirty then)
+ 	 */
+-	if (sb_rdonly(sb) || exfat_emergency_ro(sb))
++	if (sb_rdonly_any(sb))
+ 		return 0;
+ 
+ 	p_boot->vol_flags = cpu_to_le16(new_flags);
+@@ -176,6 +176,11 @@ int exfat_force_shutdown(struct super_block *sb, u32 flags)
+ 	if (exfat_forced_shutdown(sb))
+ 		return 0;
+ 
++	/* After an error there is nothing to sync and freezing fails. */
++	if ((flags == EXFAT_GOING_DOWN_DEFAULT ||
++	     flags == EXFAT_GOING_DOWN_FULLSYNC) && sb_emergency_ro(sb))
++		flags = EXFAT_GOING_DOWN_NOSYNC;
++
+ 	switch (flags) {
+ 	case EXFAT_GOING_DOWN_DEFAULT:
+ 	case EXFAT_GOING_DOWN_FULLSYNC:
+@@ -789,11 +794,6 @@ static int exfat_reconfigure(struct fs_context *fc)
+ 
+ 	fc->sb_flags |= SB_NODIRATIME;
+ 
+-	/* After an error the filesystem stays read-only until unmount. */
+-	if ((fc->sb_flags_mask & SB_RDONLY) && !(fc->sb_flags & SB_RDONLY) &&
+-	    sb_rdonly(sb) && exfat_emergency_ro(sb))
+-		return -EROFS;
+-
+ 	sync_filesystem(sb);
+ 
+ 	if ((fc->sb_flags & (SB_FORCE | SB_RDONLY)) == SB_RDONLY &&
 
 -- 
 2.53.0
