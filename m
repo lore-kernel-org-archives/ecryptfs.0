@@ -1,13 +1,13 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.139.74
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794866915;
-	b=UsnDQgc0wKW8KmEzIEqJ4k98Epc/HB3k1294YuzkoFHRLzgQIMWRSFi7/tVpZBdsICvc
-	 r1IC2hPLn77VbqvavU9zhxoLZafI4d1b9Wxg9mXI1pjwnelhU9O0AtyuhcsZaqD4RdSHK
-	 DJEthUmOusQmRFtIlraLd7WBWDy0RupVQJh9cHqs4zYH5DHyE8Q+V++ZcIvvIbeTLA1Ny
-	 YVw5hL3zGyV0xcXUFO0A5w2gCi8BB1mEdo6d6NFtYnp95DNnA34fGmzsLM5YYkVqRHdCz
-	 /ti3mGeg3AFq8lY7G9kdPx4UYCXKx4g+0qKekHQdmZs8EyYkwZZmfj4jwc7EP4H+z5g==
+	t=1794866916;
+	b=Z6KjThz0nJpbcIGZfKwk08vwPC5cvmmQI7z9sA1xZYLRLqDCruSHht5WWJU2szL4uMu6
+	 +5m2pycLezTTQqwwSEvP9TNB9mCU3cs5+KqmDYEIcBg0IRPSvzofNNKgiPxVSRawsrQgV
+	 /4wTV9D8fcg7mFSDWfzcA0f8YKGGLRP54+e8h6BZBkTksP0YSDrm95fJdiBvU/yV+6qye
+	 BfrqJvf+V6/p7AX+Iv6X2yv/eQ1m3Kl2wQ7j6UMSUKYEdhstUNvYA6RNZm8nto1nJUZus
+	 SFfrRC9YIzPR/hLjhcfvwyMsAr9EabRPQTps1ENgTpVMqRdW4AdBPucVGQjyN8oITKA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794866915;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794866916;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
 	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
@@ -16,96 +16,96 @@ ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
 	 X-Proofpoint-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
 	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
 	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
-	b=dIhlHffyM15+vZKJ2Wr7/g4MntzRE5gNbD9FrQls5l8Mh+HE0LANp41pKiqPLS2eyo7m
-	 s2ScL8I+lRlQIB4aLIwytfSjWYPEi2BC8nEoOCeY8WnFhiEkahhyCpegCj5HITci8kq+j
-	 VBmxag87Y2pbGeExlI4cGCANt+Fj/5VvwoMT1TARc1mUK4xdG0YX56otuGbPCSRlC1lFI
-	 Vpq+Xn3yDksuQYK6SrAlKK+XKYtjvJnjXNRM+gNm/t7fOw/pjD/KRq+Mu4lscNqs9bUqh
-	 BVqXtQHYPEWfHpQXKmARHRqx/G34OEK/V228gvRVw3SeyD5uoV4U926krE/LQxL2tRA==
+	bh=1HR2RLdcMRaD9EbSYsw/zZt5bThBAeaFepmhayLTiyQ=;
+	b=fw7nnHheHKbeeo9YJoj/G3K4huzsEYpYYXcPXN8QBvOpBzGJCqtGMlerPhN58TJt/QgV
+	 YuYhyxEUrYftYuQUtox5Bgin4GC/FDkicyPUczSIL8EqyqtFQkBrQy6Z0E20TVBYntrRc
+	 oZzWYHN1/GbzWolowzf2kfgg/msGO1cI8Lsaq+ke0dhmBYV5e1Vy+y/mVH1fzLKLTyd9R
+	 uQrRLvd/L8E9sLKz7dKjmTGwk0lcgN6GB3A4p6fMwFvgHL2bmAmqZl366+DdG99aVJ8A6
+	 MmMTfUMZDq8uIrQ4popB186315QP/0qhkj3vxCBYNUA8JoMBh/MfYsVmo+eag8HJ5Wg==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=columbia.edu;
 	spf=pass smtp.mailfrom=columbia.edu;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=P3o46maC;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=D5i146Wt;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=Lcn01MkO;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=AxlJQPpg;
 	arc=none smtp.remote-ip=148.163.139.74
 Received: from mx0b-00364e01.pphosted.com (mx0b-00364e01.pphosted.com [148.163.139.74])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25E6B60A261B
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 22:08:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 25E6B60A261B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71129606A8A2
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 22:08:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 71129606A8A2
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=P3o46maC;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=D5i146Wt
+	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=Lcn01MkO;
+	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=AxlJQPpg
 Received: from pps.filterd (m0499198.ppops.net [127.0.0.1])
-	by mx0b-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGLYk2b237730
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:30 -0500
+	by mx0b-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGLZ2iq238962
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:26 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps01; bh=Mfro
-	dZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=; b=P3o46maCptDLVSaglNtF
-	ZFD+eLMB3MiByWj684Uuj1ssfn1z+Hhwmu4s7PPFAxxeAQu0lbhPAbD2iiP7iBh4
-	lkN36EhE2DSTs5LCRTMTUpVODAuiRdz8+X+zzaMkjFNYHg2grFDCUP1bOzS0S16e
-	DRHx/l/c6bcxDZmH43n1UUytG6IYTLfbQ1RKP5TrtaN5I4URfiL+biQ0yPN0ecmS
-	YyMCIGe7KDWoxzKIKP4A5+90V+vHpQ5ojfbL0fb0nX1XfE8pG2dmxuA2MF5RBzdC
-	YWVkLPOoKsHgQNYEvgsHElUMiGx2hYNRsdKiwKL3TqcTPYLOsDgN7/+FZFU5mFCx
-	Yg==
-Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
-	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4j059dkbbm-1
+	:message-id:mime-version:references:subject:to; s=pps01; bh=1HR2
+	RLdcMRaD9EbSYsw/zZt5bThBAeaFepmhayLTiyQ=; b=Lcn01MkOQnctcq2KDfHD
+	2//hXu3P9VxU1MMd/XhRdHcUPTGCoBOQ9SUfERtwU/ZSzi90lJPx/FCADS0GnZte
+	JZC2TTJUpeDeahdk70KYtwuQ0i3qEZl8msXqLmtPZ1svLTqbrqvB7mEaSY20PLKl
+	V/vwh6oMPrYPJCm19AJ3wBmSPSn4jqPke9Ir/2dNaXLQn42Bb7mfHWGXMoyHPqB7
+	UBJHtC+QyKZ8ifTolZ4tV1sSY5wlZZ20yCECvKq4e5C1ue8AbXzbqbbuYg4evJXv
+	EWLIOcXoEurHbilveBVO7fpNzXUXVGXMuEQq1jLhjS8zouNxGYwU0SqVvKGHU7ds
+	TQ==
+Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
+	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4j059dkbap-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:30 -0500 (EST)
-Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93cb7f9bb86so383763285a.2
-        for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 14:08:30 -0800 (PST)
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:26 -0500 (EST)
+Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93f32050e72so1111680485a.1
+        for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 14:08:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=columbia.edu; s=lionmail; t=1794866909; x=1795471709; darn=vger.kernel.org;
+        d=columbia.edu; s=lionmail; t=1794866906; x=1795471706; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
-        b=D5i146WtoByJ1WjMGZww8vAA6AYWgHfFz4i5BCC9/8YLijKhbR9Vyq6HUSGg4rg387
-         q0bMJlO2OCsgtJuA9RELykax1mRpI+cNPFKgm+SgHNZV6lD6QV/lWJN54IX4drFcpqEA
-         MHWvSlrRL9E11rpPJm3dOskw+uj4ASUJg0GM6eq4pCLRzx+GQO9CnpZTwdVX3R8AA97t
-         XAOUWsmTNXmFTV0vXSFQSIizImD9QpOlmT7girnDhL2WUdFyfa/6EAlkIK4UQIgPZdd0
-         0Hk5iJoP657Qe+MyUS2nvrVsxCoLtcI07ZjFTGQ6dv7MG02WZKsDioM21ar0KVuQsUli
-         iaOQ==
+        bh=1HR2RLdcMRaD9EbSYsw/zZt5bThBAeaFepmhayLTiyQ=;
+        b=AxlJQPpg9DO35i6r83bS/cAglUj33fYlpt4Rbizr6rruZi6xdYCaLmmXdDUsFEv5AW
+         L+uEkRCYxksVzVBGgfyFWtvLAkcseCgAStN41ByOzb/TFP9Zz+I7c0oumlt4UBGZ4ezi
+         ObrEHq4tNwTanI9+yn8OG+ippnssIJx3LYELe8IgSgInyMdRHmO7yAybVlu8NRsrsR3J
+         J8pZZqeQ4JXHHm625qAu9tOWkxUXVzajOcaJ081TedlGwLkvjJt63WLWjc6sZdd3/B2h
+         htXnT0dC07KOEph3WYK0fhcT99NvDJXmpqIP0orEZd5LR7oYThCRC3jJaEusKXHbB73V
+         aqqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794866909; x=1795471709;
+        d=1e100.net; s=20260707; t=1794866906; x=1795471706;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
-        b=SG4nAUMRfF6vLXRfYccEpOWmIRz4EMPYd0GHE1OlDiXYKoVTxwbzBrHqK3FQyRz+Gh
-         aaOI8IPq26nqBzJUjyN0t/mUL1nCE+qHEckTGQsWhr0d7RKwfkR5Dyrog8V9Q4hk6hxe
-         VPAvRKI4k5btyFSwvLkPVFACRtx1OWDSVf/B+W8le+splhwkN3k9LE1gr/MhZVTZmN5T
-         4fS7t3fbbKRL4qHY3syO/UBmnQTbsbBL1vBqBuE6egW9PioSSE0sPiY75xQFzL+KxkAC
-         JrGiWi8UEn4By8QjfO0UNPSp207LHubjxqk+K4N2yMSKu9ZkZyvdVAd9fWZECz7KKo0x
-         x4dg==
-X-Gm-Message-State: APuU4Z9wjwPSi8ZLAyAuD+/+5YD9loz4ux15Oml5D+W19B6JH2NYEI9n
-	1AcVUaGa8Q7VZDYWh+lbt1qyHf2oM9aqqxq+rBLGsd99TExcv7U5BF+D8Kr9fgyA5LcZC6zPdUi
-	ztDfjbzFXjjF+BKWBburho3F/acY+4YuYMAPLoMkeH27vnyW1H4mu8c2c
-X-Gm-Gg: AYBFou3eqoWW2PGwVmw+Qjqb1F9bMt8oTC2rk3m5rNeqoV4/WhTYf8QK7gU7jlv3ASg
-	T+UnoIM7bsqICgAyyKze4e0t2r+39VQP+5Wqb7mxrVOcqC3xUiDEcrpkDljvNDZiUV6pclv4nZ/
-	pGSxKRNx1fEUORe8cO78TC5hYn7yXwr0iG19vOnUcdCzXNc3nfgCVv0bvCZWPOqN61vITK71RC1
-	zYUGuqq41e5zH+hkfBWiZKcttn3aBnWteuhj6DVN0WFNXxptgbiFGUKqKW0ylJ3Mz4knfcQi4+y
-	B2BCUSGeB6tyuLUdYpGPjsVj5PZPGcJrcJN2+kVtTHNXSQZtMI+FDadLUShSUJ5BT2ORpG92wfy
-	1oa7zlXW4S5fKwUck9oHzKvTRz+6Q6chQiZme9BdfVOBWwEe83K20toXtYVVEw/ouEuPvSUMVAu
-	hy1TALAoMhWdTVQAazo3FQ
-X-Received: by 2002:a05:620a:90d3:10b0:949:744e:12eb with SMTP id af79cd13be357-949744e1528mr716581685a.65.1794866909617;
-        Mon, 16 Nov 2026 14:08:29 -0800 (PST)
-X-Received: by 2002:a05:620a:90d3:10b0:949:744e:12eb with SMTP id af79cd13be357-949744e1528mr716578585a.65.1794866909227;
-        Mon, 16 Nov 2026 14:08:29 -0800 (PST)
+        bh=1HR2RLdcMRaD9EbSYsw/zZt5bThBAeaFepmhayLTiyQ=;
+        b=rBVd3WbYCJ+zFaxofQhDAAmNctM1iwobBwZ1rzsTVxg+EuzqKvfU0NiSb5vhU/DJjM
+         sYH1I1KdmSu7XIFhOL7L30H0uhptN71foyivbMqvzUxkFDSMm/CPLtqQIPNvBEdQ1Be5
+         sMgBzJwZ3rRUfOnWyZt3rR8EhavK9rGok6anMaDrxPZyKSN/NEp2vl/hELKy5/uSMa36
+         bYaVw70v7QF6av+jy4Y9VlYSGmeZniAoyLVVt9JG6PXl7WtcL9/DDeNY503MsxDvKZlS
+         bubfIZKBbDRJmbeT9qJqVAfwQunIha2mUE4M32m9LT/z65eUwY8YQWcknr81/45bD1W5
+         Le6A==
+X-Gm-Message-State: APuU4Z92L/o45qOKCRU0JcQcSE0Rs3g7DoGa8bRG95FTZn97wxQqi96J
+	ts7pBLbjh/YHFGqcC6ygL81GAQQVdc2djPTtQK3EeHNTS2SH9l7o8kEWAwYRlOOYy89PcXX48LT
+	J8va14KyktQ/BB6b6liiFY6Gh0Gvrw76n+xcoJ5+/jNWx/Nif7RWpRPDI
+X-Gm-Gg: AYBFou3ccvaLXfcyF4T7CWqhRduGA1bZ7XNUancCqp0Cltg1K4ZAt9PdGOcGlg/nXVs
+	aGO9qC9eJVgij8KxmmzsG+p9sb6wXapJ4/MVjKgao3E409SrSfFGLz0jJymSHALx+7+3EC15QxI
+	kblg0GkAogJBwlJhOMWlJ2xK0RrO1CPrFqri3szgl0ude6fMCaicmy+jiDzo/ug80FxIPaf2eDq
+	A5aVbF0QOV5viHXtGijxLuJFkVlrwKN9y/S2/D9+L+T23+/QMLPn9n8j3U4oUtcGeJ+NFFOs8Bj
+	PbtpjHKORGDuZQQzfBPJBeEZgoMYDAO2OFkR9oMyAuQKt9oEzZe+6si9yCjLqH97bu0RNMW04D1
+	jYH8TDzyJquy0zKC4mQVQYfdnA87N7o7knYVy17cdPsfm9k0I1p94s7THrq2JKs2Smacfl4WQ15
+	/g7c+4+V8cshlv4r1Dl5ay
+X-Received: by 2002:a05:620a:27c5:b0:949:7b2c:671f with SMTP id af79cd13be357-9497b2c6976mr748373285a.82.1794866905687;
+        Mon, 16 Nov 2026 14:08:25 -0800 (PST)
+X-Received: by 2002:a05:620a:27c5:b0:949:7b2c:671f with SMTP id af79cd13be357-9497b2c6976mr748370285a.82.1794866905252;
+        Mon, 16 Nov 2026 14:08:25 -0800 (PST)
 Received: from [127.0.1.1] (nat-128-59-176-174.net.columbia.edu. [128.59.176.174])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c86c946sm951838885a.25.2026.11.16.14.08.28
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c86c946sm951838885a.25.2026.11.16.14.08.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 14:08:28 -0800 (PST)
+        Mon, 16 Nov 2026 14:08:24 -0800 (PST)
 From: Tal Zussman <tz2294@columbia.edu>
-Date: Mon, 16 Nov 2026 17:08:14 -0500
-Subject: [PATCH v3 08/10] ecryptfs: zero the tail of the last folio in
- place on truncate
+Date: Mon, 16 Nov 2026 17:08:10 -0500
+Subject: [PATCH v3 04/10] ecryptfs: remove struct
+ ecryptfs_page_crypt_context
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -117,7 +117,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261116-ecryptfs-folio-v3-8-1aba8e620eda@columbia.edu>
+Message-Id: <20261116-ecryptfs-folio-v3-4-1aba8e620eda@columbia.edu>
 References: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
 In-Reply-To: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
 To: Tyler Hicks <code@tyhicks.com>, Erez Zadok <ezk@cs.sunysb.edu>,
@@ -131,31 +131,31 @@ Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
         Randy Dunlap <rdunlap@infradead.org>,
         Tal Zussman <tz2294@columbia.edu>
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794866899; l=3672;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794866899; l=1031;
  i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
- bh=YU2D0h1+YiZ8zzlfyo96f+8NuGaYq6vNDpSn5r/Qj8Q=;
- b=3t3nFJecH20Q09ngSn+Y1yZUNXrl006bAUIgBb32KB9oci0ZPGg6emOGeeuYivABA+XnZz0LG
- vsKCdt1VuSkCKis2rlEiIM7Yz8A8rWs1nS9PZZoEONgCvshI/w+xQKW
+ bh=8nNsMMmNdcqVbMlIKq9eZpT/6NpoMNBQA7psRulhB58=;
+ b=sdDdsOb04BJGImGvRcaS3h2apUzwX5ol2azcfjms1C33PJmTtMwV5ypen5E+kRDOGFGXDJ1Ds
+ lvUrAPyKb/HAK7uqtIR7alJB4aAadSi8hS9BnXRq1u8Axb6u8da3K5l
 X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
  pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
-X-Proofpoint-GUID: AFoEOK6IjWaSeatUZWsjBL88cC_HE1hR
-X-Authority-Analysis: v=2.4 cv=Utf2pOwB c=1 sm=1 tr=0 ts=6afb7ede cx=c_pps
- a=HLyN3IcIa5EE8TELMZ618Q==:117 a=KPY1cyGZ6h6m4ASiENTC8Q==:17
+X-Proofpoint-GUID: cY_5MXjGPYDk9tL7xVEfZE8vICBx5f8C
+X-Authority-Analysis: v=2.4 cv=Utf2pOwB c=1 sm=1 tr=0 ts=6afb7eda cx=c_pps
+ a=qKBjSQ1v91RyAK45QCPf5w==:117 a=KPY1cyGZ6h6m4ASiENTC8Q==:17
  a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
  a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=BpGzv1V74M3SfeTrGa8v:22
- a=dGUJCdGidsCb5_L8LY8A:9 a=QEXdDO2ut3YA:10 a=bTQJ7kPSJx9SKPbeHEYW:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfX2vCaeBFuYUER
- M7bFd7Ft3jSfm6/nS8tnT8/nZk2H7p02NWX4fQXLSur48iwNKn6LYrbrQmDA2wWNLAzNXRWmYa/
- Dv1tYIpwffGMOkYlY3+IeC89t5GV1FdJ63lRCgaHrGw9o9ZItVF68RrHFLUxcyZlr7fzIkejjqC
- xC8R3SLZaZU1+psVuXRvAr7LHwnjlxBBh/QdhiUNb6BMJA1BbOXsx4cYqsyqQ+Idqh0SJ/L6Qh5
- shKo0JCk1jBcuTE459NaxbqYZ1U7xveyKmvduk8f6VTrv0M0uyxsOE25v6fffhdXF0RqpXFovme
- me+7kukltDAnxyJy2mUoNK6fPg1dkpcPbsrupcIhlQgzsZwFKmngmo8tRr5QLWHH+/Q0dXHDNhL
- EPMKsDi8RJLlyIS2oXxYzalnTAdpJTzkZxxAU5UxmX27lW+KTlAXIDtS7Z0O+P2BJ4s/XxzF0wj
- V2GVMGxkTr9Q4UDmfTQ==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfXyKLGyHimilrF
- a0i1ZREz402paG+U+CgqvKsSS0TAJamAzsJLRGtyk8d8z0uI/69jlES9cwoomtMgRfAFUknj6fw
- ojZ5d0eq0HzgU/S6dfrUMBhSUtGvEvFK61D0C/pb5x9Dr5wD1bgD
-X-Proofpoint-ORIG-GUID: AFoEOK6IjWaSeatUZWsjBL88cC_HE1hR
+ a=4zUkhEILHW4tcmWJkwUA:9 a=QEXdDO2ut3YA:10 a=NFOGd7dJGGMPyQGDc5-O:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfX5BJ2tVAhLYFQ
+ 2x4mLr5+UJ0ZXCTE5eCbOZKCuw/JX3Uuhpk0RYqWMUmZTzC1NFRW43zXWQrMHcZH/EoG5PQDReC
+ c6f+bDRIgxf67p5bqHreojSuYm75qIdAy6UZ5yaWyWlKsW1s2Zz8sMesHzJpGwIdgU7KbfPA2Ug
+ xS8n4hwyThqUSpGQOGNaLSMEPJcwQRWb3WKJVyvn1SkB5c74moSIwjiumDGGm/bHOXKICrXUmUC
+ 2cPXf2IS/AHfeAA76PM7CNL+k1zffb4FlHZRIc5850OooaDKJMRTXcY3zndwsu71v8iHfQeu47H
+ sc0X9FhTRC4BrEusy+CXtYsDrWLt72jXHAajpGsoTvsZ0rA+/pyh6qzq+EkDxLcDuV+Yc7/rMsm
+ H+CCcZ7+Unphdczitp5qJxVtkOqhvpkvyhKovdZzed8SC6nYK/xcoI9Xcyjn6H9KsrSXT6aEr7Z
+ raYLYwadlyaALlqXSyw==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfX7g4Wip755q7g
+ 7YrazKhRwWCV7I2B+ZFmuBAC6RSaz34gWAPOAz87K/0XXQGBoNu17Pf+43mXgE6VRdYkm51FiYM
+ Y41wCk0rPbpiQqf5ZFUue0aqL/+AxeyVq4sJ0S+Gb85RQHFLVQkp
+X-Proofpoint-ORIG-GUID: cY_5MXjGPYDk9tL7xVEfZE8vICBx5f8C
 X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11968
  signatures=596817
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
@@ -165,109 +165,36 @@ X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
  definitions=main-2611160087
 
-A shrinking truncate zeroes the rest of the folio that holds the new
-end of the file by copying from the zero page through ecryptfs_write().
-Zero the folio in place with folio_zero_range() instead, the way the
-truncate helpers in other filesystems do, and encrypt it to the lower
-file. This no longer bumps i_size to the end of the folio and writes
-that to the metadata before the real size is written. It also removes
-the last struct page usage in ecryptfs.
-
-The folio stays locked while it is encrypted, as in
-ecryptfs_writepages(), and is marked not uptodate if that fails, so a
-later read goes back to the lower file instead of returning zeroes that
-were never written out.
-
-A page-aligned new size has no tail to zero, so skip it. The old code
-wrote out a full page of zeroes past the new end of the file in that
-case, which the truncate then discarded.
+This has been unused since commit b6c1d8fcbade ("eCryptfs: remove
+unused functions and kmem_cache") in 2007. Remove it.
 
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 ---
- fs/ecryptfs/inode.c | 55 ++++++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 42 insertions(+), 13 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 525297c7ebd8..ffab685688ab 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -718,6 +718,40 @@ upper_size_to_lower_size(struct ecryptfs_crypt_stat *crypt_stat,
- 	return lower_size;
- }
+diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
+index 4315c18ba1cd..d828040ade89 100644
+--- a/fs/ecryptfs/ecryptfs_kernel.h
++++ b/fs/ecryptfs/ecryptfs_kernel.h
+@@ -64,17 +64,6 @@ struct ecryptfs_auth_tok_list {
+ struct ecryptfs_crypt_stat;
+ struct ecryptfs_mount_crypt_stat;
  
-+/**
-+ * ecryptfs_zero_tail
-+ * @inode: The ecryptfs inode
-+ * @pos: The file offset from which to zero
-+ *
-+ * Zero the folio that holds @pos from @pos to its end, and write the
-+ * result out to the lower file.
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
-+static int ecryptfs_zero_tail(struct inode *inode, loff_t pos)
-+{
-+	struct folio *folio;
-+	size_t from;
-+	int rc;
-+
-+	/* A page-aligned @pos has no tail to zero. */
-+	if (!offset_in_page(pos))
-+		return 0;
-+
-+	folio = read_mapping_folio(inode->i_mapping, pos >> PAGE_SHIFT, NULL);
-+	if (IS_ERR(folio))
-+		return PTR_ERR(folio);
-+	from = offset_in_folio(folio, pos);
-+	folio_lock(folio);
-+	folio_zero_range(folio, from, folio_size(folio) - from);
-+	rc = ecryptfs_encrypt_page(folio);
-+	if (rc)
-+		folio_clear_uptodate(folio);
-+	folio_unlock(folio);
-+	folio_put(folio);
-+	return rc;
-+}
-+
- /**
-  * __ecryptfs_truncate
-  * @dentry: The ecryptfs layer dentry
-@@ -739,7 +773,6 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
- 	loff_t lower_size_before_truncate;
- 	loff_t lower_size_after_truncate;
- 	struct iattr lower_ia;
--	size_t num_zeros;
- 	int rc;
- 
- 	ecryptfs_iattr_to_lower(&lower_ia, ia);
-@@ -788,19 +821,15 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
- 	}
- 
- 	/*
--	 * We're chopping off all the pages down to the page in which
--	 * ia->ia_size is located. Fill in the end of that page from
--	 * (ia->ia_size & ~PAGE_MASK) to PAGE_SIZE with zeros.
-+	 * We're chopping off all the folios down to the folio in which
-+	 * ia->ia_size is located. Fill in the end of that folio from
-+	 * ia->ia_size with zeros.
- 	 */
--	num_zeros = PAGE_SIZE - (ia->ia_size & ~PAGE_MASK);
--	if (num_zeros) {
--		rc = ecryptfs_write(inode, page_address(ZERO_PAGE(0)),
--				ia->ia_size, num_zeros);
--		if (rc) {
--			pr_err("Error attempting to zero out the remainder of the end page on reducing truncate; rc = [%d]\n",
--				rc);
--			goto out;
--		}
-+	rc = ecryptfs_zero_tail(inode, ia->ia_size);
-+	if (rc) {
-+		pr_err("Error attempting to zero out the remainder of the end folio on reducing truncate; rc = [%d]\n",
-+			rc);
-+		goto out;
- 	}
- 	truncate_setsize(inode, ia->ia_size);
- 	rc = ecryptfs_write_inode_size_to_metadata(inode);
+-struct ecryptfs_page_crypt_context {
+-	struct page *page;
+-#define ECRYPTFS_PREPARE_COMMIT_MODE 0
+-#define ECRYPTFS_WRITEPAGE_MODE      1
+-	unsigned int mode;
+-	union {
+-		struct file *lower_file;
+-		struct writeback_control *wbc;
+-	} param;
+-};
+-
+ #if defined(CONFIG_ENCRYPTED_KEYS) || defined(CONFIG_ENCRYPTED_KEYS_MODULE)
+ static inline struct ecryptfs_auth_tok *
+ ecryptfs_get_encrypted_key_payload_data(struct key *key)
 
 -- 
 2.39.5
