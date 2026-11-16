@@ -1,111 +1,111 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.139.74
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794866912;
-	b=OzOvdGOcXyYpVaqcQqCWVMKX0CrP3aK778bf5rID+Rr+/86TH5Cw2o0zqTFCr8xvFa+g
-	 Ku/h80lQnCFf5AClGGLrZR+IPVt4k2PmHHyRUB36tgUQD7UQoy77SAQw3fKcwDRfKH3xb
-	 Tvu/2pWuESfIq4pvua9/SXSQB44a5ElHOu8Wn9/fFB+TxPFzJSyL7wXCFi8B22jCu4OEL
-	 yBdqWlyRSSvRuFWpDUXIFvGtSZgjXrAbZngTov0fyF9VbO53Yz3V9K0WmnWsW7ueQGCaU
-	 hy5KkmNzMMWQJDHbfHjvPF0Pc+luClcccHb8EtS99OK3grH3IBhjBKbpMHzXlyivzRg==
+	t=1794866915;
+	b=UsnDQgc0wKW8KmEzIEqJ4k98Epc/HB3k1294YuzkoFHRLzgQIMWRSFi7/tVpZBdsICvc
+	 r1IC2hPLn77VbqvavU9zhxoLZafI4d1b9Wxg9mXI1pjwnelhU9O0AtyuhcsZaqD4RdSHK
+	 DJEthUmOusQmRFtIlraLd7WBWDy0RupVQJh9cHqs4zYH5DHyE8Q+V++ZcIvvIbeTLA1Ny
+	 YVw5hL3zGyV0xcXUFO0A5w2gCi8BB1mEdo6d6NFtYnp95DNnA34fGmzsLM5YYkVqRHdCz
+	 /ti3mGeg3AFq8lY7G9kdPx4UYCXKx4g+0qKekHQdmZs8EyYkwZZmfj4jwc7EP4H+z5g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794866912;
+	a=rsa-sha256; c=relaxed/relaxed; t=1794866915;
 	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
 	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
 	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
 	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
 	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
+	 X-Proofpoint-GUID:X-Authority-Analysis:X-Proofpoint-Spam-Details-Enc:
 	 X-Proofpoint-Spam-Info:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-GUID:X-Authority-Analysis:
 	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=TLCucmL89h6Y343vyk/BSzJ/L9xsssqYgiwpO26BJsY=;
-	b=nQ/mSX6qYc7JloWgGlvdYoG0gNyrtkGBPyL9OvBkoj9kGL+r1IdwfWqkEREwmWw6gYS3
-	 /1WQyc23rsTrBPhclRNZWC/qc4CygM7Oy1YHoFDScPXym87H9ui/VLXHEjkOLsAUhsg4w
-	 Amh39O9zpopQ22fgqUwsprL9oqFzHdxW6hE47BNei7suKRDCbbYf0oghMvpuMtMvSiKD7
-	 zsEOBsB4/xn8XIlipp/y2mXLHAHG7ubG5YOAJiJ9EiKzcsLz8LJZrH8rE3b4hgHaf/zZU
-	 dGjy0qFlYwQQ5QSv0G68TFT9/xzOsCFWsq3zHwEo4YDKlT0Obk3pYCW0yEGIAaZs4FA==
+	bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
+	b=dIhlHffyM15+vZKJ2Wr7/g4MntzRE5gNbD9FrQls5l8Mh+HE0LANp41pKiqPLS2eyo7m
+	 s2ScL8I+lRlQIB4aLIwytfSjWYPEi2BC8nEoOCeY8WnFhiEkahhyCpegCj5HITci8kq+j
+	 VBmxag87Y2pbGeExlI4cGCANt+Fj/5VvwoMT1TARc1mUK4xdG0YX56otuGbPCSRlC1lFI
+	 Vpq+Xn3yDksuQYK6SrAlKK+XKYtjvJnjXNRM+gNm/t7fOw/pjD/KRq+Mu4lscNqs9bUqh
+	 BVqXtQHYPEWfHpQXKmARHRqx/G34OEK/V228gvRVw3SeyD5uoV4U926krE/LQxL2tRA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
 	dmarc=pass header.from=columbia.edu;
 	spf=pass smtp.mailfrom=columbia.edu;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b="V/iJtvKs";
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=KrNP6RGx;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=P3o46maC;
+	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=D5i146Wt;
 	arc=none smtp.remote-ip=148.163.139.74
 Received: from mx0b-00364e01.pphosted.com (mx0b-00364e01.pphosted.com [148.163.139.74])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C409606A33D
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 22:08:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 6C409606A33D
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25E6B60A261B
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 22:08:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 25E6B60A261B
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=V/iJtvKs;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=KrNP6RGx
-Received: from pps.filterd (m0167074.ppops.net [127.0.0.1])
-	by mx0b-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGLYkTA4118921
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:29 -0500
+	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=P3o46maC;
+	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=D5i146Wt
+Received: from pps.filterd (m0499198.ppops.net [127.0.0.1])
+	by mx0b-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGLYk2b237730
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:30 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
 	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps01; bh=TLCu
-	cmL89h6Y343vyk/BSzJ/L9xsssqYgiwpO26BJsY=; b=V/iJtvKsucsaaPCKMQEs
-	7cAgW/QX+5U2qrxAettTu2ao5x5ENVLGBA7JLqtL2VkdUKYsWR0pd8WNOKqxb01E
-	WrOdPa4k4azpVBhDxOsxya1rK7+QA6FNcFvIrFXuAo/GeOnZnuMZcWqKyYWEu4z+
-	cRjRYZSnhKJ2JCKS9L/srDZIcpb7rJw0ypTqxT8PO1iTF2eoMq3zOQM2NFvNgUc4
-	vzMd1RFhCs8Q3xtsRssYNeVfyRwEHT/y727mzY0r3Tcx2tDLcZdnWPkggPNV6v3W
-	01bY6wkCEGy7MKtaTQtCSOKOmCo2negCmJkwPw0rHvRvv9vf7psfDAt1R+qIgef/
-	DQ==
-Received: from mail-qv1-f70.google.com (mail-qv1-f70.google.com [209.85.219.70])
-	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4j0598uak6-1
+	:message-id:mime-version:references:subject:to; s=pps01; bh=Mfro
+	dZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=; b=P3o46maCptDLVSaglNtF
+	ZFD+eLMB3MiByWj684Uuj1ssfn1z+Hhwmu4s7PPFAxxeAQu0lbhPAbD2iiP7iBh4
+	lkN36EhE2DSTs5LCRTMTUpVODAuiRdz8+X+zzaMkjFNYHg2grFDCUP1bOzS0S16e
+	DRHx/l/c6bcxDZmH43n1UUytG6IYTLfbQ1RKP5TrtaN5I4URfiL+biQ0yPN0ecmS
+	YyMCIGe7KDWoxzKIKP4A5+90V+vHpQ5ojfbL0fb0nX1XfE8pG2dmxuA2MF5RBzdC
+	YWVkLPOoKsHgQNYEvgsHElUMiGx2hYNRsdKiwKL3TqcTPYLOsDgN7/+FZFU5mFCx
+	Yg==
+Received: from mail-qk1-f199.google.com (mail-qk1-f199.google.com [209.85.222.199])
+	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4j059dkbbm-1
 	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:29 -0500 (EST)
-Received: by mail-qv1-f70.google.com with SMTP id 6a1803df08f44-91eacf20364so79469496d6.0
-        for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 14:08:29 -0800 (PST)
+	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:30 -0500 (EST)
+Received: by mail-qk1-f199.google.com with SMTP id af79cd13be357-93cb7f9bb86so383763285a.2
+        for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 14:08:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=columbia.edu; s=lionmail; t=1794866909; x=1795471709; darn=vger.kernel.org;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:from:to:cc:subject:date
          :message-id:reply-to:content-type;
-        bh=TLCucmL89h6Y343vyk/BSzJ/L9xsssqYgiwpO26BJsY=;
-        b=KrNP6RGxdLoTead7NEFi0lGMHPcsB6RPA2kNwFvxiA3d4ScbcFCMFkati2KuVQswOb
-         M340mQ1Eo+jrDVUZCFYrJ7sQMpGhhouE6shyescpxDKRX2BPo1MLS2AuM0Z3+x5TstoI
-         QmRwE/5F2eh2hqTDriSyRwLf+EEjXKZNeWkCBjBXFz6BlkhCrfPw+haxIC5SyqkPZynT
-         Lj0IugJ3/bvACTLue1xVKjo8Er+IhkwBo3s3PDuG+8uMrfo2HyrN8C01GCbSgoy7YNwK
-         V9jimKW2KunrIexnaRN9R3DjfDbnRlGWk1OL2Cu3ZQGbL0KDp/UUcKSFP4WKHZKDhRGT
-         AktA==
+        bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
+        b=D5i146WtoByJ1WjMGZww8vAA6AYWgHfFz4i5BCC9/8YLijKhbR9Vyq6HUSGg4rg387
+         q0bMJlO2OCsgtJuA9RELykax1mRpI+cNPFKgm+SgHNZV6lD6QV/lWJN54IX4drFcpqEA
+         MHWvSlrRL9E11rpPJm3dOskw+uj4ASUJg0GM6eq4pCLRzx+GQO9CnpZTwdVX3R8AA97t
+         XAOUWsmTNXmFTV0vXSFQSIizImD9QpOlmT7girnDhL2WUdFyfa/6EAlkIK4UQIgPZdd0
+         0Hk5iJoP657Qe+MyUS2nvrVsxCoLtcI07ZjFTGQ6dv7MG02WZKsDioM21ar0KVuQsUli
+         iaOQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20260707; t=1794866909; x=1795471709;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :content-type:mime-version:subject:date:from:x-gm-gg
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
          :content-type;
-        bh=TLCucmL89h6Y343vyk/BSzJ/L9xsssqYgiwpO26BJsY=;
-        b=sJeKAcKuPQ7BsJ1ndGzhWLj9XC0UlgWy1VUmnz06nlMhfXHnUfvPPwnS9buNpQVZ/t
-         nUVpEddty3bg5zdJonZLNcm4rCHNko4GzG7M3l+9tGzRTlLNXXjyjsmcoIXV9QNPCKUG
-         OnySxYTa8LV7FOVSI3/qqC/Wqp5cUjHuNTkbz8VTuFauoLMO6s92slOzpv0jefxPFaXq
-         8HDNXG0G1nsHyKwf+FrHWlU7UsnhPrclnRCRk+7Zka1PAHMqEnAncXj9cO0Y8RLkLjP2
-         Qmmxq42dkIQCBYCp5fgfKlfQs1dr1+QjtrPPcEFoUFfB2vh/vcXNRNq+zVxsBSz+K92q
-         Si4Q==
-X-Gm-Message-State: APuU4Z+Iryl0K4JDenIanntrzQ/OYuAvYXa31CNuPHR+Oy1DR7TWTpRn
-	F9jAx3mc0vVuEM9uJtonOrCPT5ZEfJFDmZIsODX/dxOjdaE1nLpWrF8BTlKqSvMxn8e8EIm2+9t
-	EiWMg7Psds7uacgUH+8iuDIPkELwLC3fg9gWm5K194vPG0HTMtM3niArB
-X-Gm-Gg: AYBFou1TOdgCwb7i8YWHz0ePdgeY2Ohe6cbo3OsYPVzJXmApB3mouWAczt1zDIfGcJA
-	BJXg4wRr7tUD9be8BGEzmAk0F/DwWzjb6NnpUWZkwIWHX5RDMtc4F6f0WsnrykZCOY8wQ+xoHjP
-	JftF/z0daC1gjYqNvgyjXW+KWIqo7R8FU1BcnI+kfTiluyeg3znUsGq/hMPmE30Qp+BCUgssHHX
-	HilkJ+S1qWuSYe03dAHmv1dM9+Znd+ggVWVNJqkTW+QXuJH2Z0LBEEBcj0r8elwqFdgb5Q5RuEr
-	g+hcvV1d1PaLQf5ihIMnkUbkA/7WY1ZtlZF01cKe89iLcE4phF9APmAuUhfMkUA5pSHUWEcWZDA
-	/xr99IVmby1hIlWWV5s4KTTEoVNcNcdqyujg5yR6Wd77oPE78xhvgXv5Ynpv9VV+lxlDiL6OAX2
-	3qJZ9LWtJ4McX8sgVBp1YR
-X-Received: by 2002:a05:620a:6c84:b0:93f:3120:6c71 with SMTP id af79cd13be357-9494bbf73afmr1926074985a.44.1794866908683;
-        Mon, 16 Nov 2026 14:08:28 -0800 (PST)
-X-Received: by 2002:a05:620a:6c84:b0:93f:3120:6c71 with SMTP id af79cd13be357-9494bbf73afmr1926071385a.44.1794866908184;
-        Mon, 16 Nov 2026 14:08:28 -0800 (PST)
+        bh=MfrodZ+vmY6ItwdAcNnP6Ro7yOb/7bLr9QT5eCmeHrk=;
+        b=SG4nAUMRfF6vLXRfYccEpOWmIRz4EMPYd0GHE1OlDiXYKoVTxwbzBrHqK3FQyRz+Gh
+         aaOI8IPq26nqBzJUjyN0t/mUL1nCE+qHEckTGQsWhr0d7RKwfkR5Dyrog8V9Q4hk6hxe
+         VPAvRKI4k5btyFSwvLkPVFACRtx1OWDSVf/B+W8le+splhwkN3k9LE1gr/MhZVTZmN5T
+         4fS7t3fbbKRL4qHY3syO/UBmnQTbsbBL1vBqBuE6egW9PioSSE0sPiY75xQFzL+KxkAC
+         JrGiWi8UEn4By8QjfO0UNPSp207LHubjxqk+K4N2yMSKu9ZkZyvdVAd9fWZECz7KKo0x
+         x4dg==
+X-Gm-Message-State: APuU4Z9wjwPSi8ZLAyAuD+/+5YD9loz4ux15Oml5D+W19B6JH2NYEI9n
+	1AcVUaGa8Q7VZDYWh+lbt1qyHf2oM9aqqxq+rBLGsd99TExcv7U5BF+D8Kr9fgyA5LcZC6zPdUi
+	ztDfjbzFXjjF+BKWBburho3F/acY+4YuYMAPLoMkeH27vnyW1H4mu8c2c
+X-Gm-Gg: AYBFou3eqoWW2PGwVmw+Qjqb1F9bMt8oTC2rk3m5rNeqoV4/WhTYf8QK7gU7jlv3ASg
+	T+UnoIM7bsqICgAyyKze4e0t2r+39VQP+5Wqb7mxrVOcqC3xUiDEcrpkDljvNDZiUV6pclv4nZ/
+	pGSxKRNx1fEUORe8cO78TC5hYn7yXwr0iG19vOnUcdCzXNc3nfgCVv0bvCZWPOqN61vITK71RC1
+	zYUGuqq41e5zH+hkfBWiZKcttn3aBnWteuhj6DVN0WFNXxptgbiFGUKqKW0ylJ3Mz4knfcQi4+y
+	B2BCUSGeB6tyuLUdYpGPjsVj5PZPGcJrcJN2+kVtTHNXSQZtMI+FDadLUShSUJ5BT2ORpG92wfy
+	1oa7zlXW4S5fKwUck9oHzKvTRz+6Q6chQiZme9BdfVOBWwEe83K20toXtYVVEw/ouEuPvSUMVAu
+	hy1TALAoMhWdTVQAazo3FQ
+X-Received: by 2002:a05:620a:90d3:10b0:949:744e:12eb with SMTP id af79cd13be357-949744e1528mr716581685a.65.1794866909617;
+        Mon, 16 Nov 2026 14:08:29 -0800 (PST)
+X-Received: by 2002:a05:620a:90d3:10b0:949:744e:12eb with SMTP id af79cd13be357-949744e1528mr716578585a.65.1794866909227;
+        Mon, 16 Nov 2026 14:08:29 -0800 (PST)
 Received: from [127.0.1.1] (nat-128-59-176-174.net.columbia.edu. [128.59.176.174])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c86c946sm951838885a.25.2026.11.16.14.08.27
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c86c946sm951838885a.25.2026.11.16.14.08.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 14:08:27 -0800 (PST)
+        Mon, 16 Nov 2026 14:08:28 -0800 (PST)
 From: Tal Zussman <tz2294@columbia.edu>
-Date: Mon, 16 Nov 2026 17:08:13 -0500
-Subject: [PATCH v3 07/10] ecryptfs: use sg_init_one() instead of
- virt_to_scatterlist()
+Date: Mon, 16 Nov 2026 17:08:14 -0500
+Subject: [PATCH v3 08/10] ecryptfs: zero the tail of the last folio in
+ place on truncate
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -117,7 +117,7 @@ Precedence: list
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20261116-ecryptfs-folio-v3-7-1aba8e620eda@columbia.edu>
+Message-Id: <20261116-ecryptfs-folio-v3-8-1aba8e620eda@columbia.edu>
 References: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
 In-Reply-To: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
 To: Tyler Hicks <code@tyhicks.com>, Erez Zadok <ezk@cs.sunysb.edu>,
@@ -131,341 +131,143 @@ Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
         Randy Dunlap <rdunlap@infradead.org>,
         Tal Zussman <tz2294@columbia.edu>
 X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794866899; l=11895;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1794866899; l=3672;
  i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
- bh=VlDnCX3i7mGZvNYBW4J8FKMLFtRDtsIQljRKRABgp+k=;
- b=s5+wznyEl0etqn7N9GmLoLd98/pE/hX/In0QQ5lbf24GS5AOeUELrxVhkLWpOCeZhoUCid9f5
- NhU2F76jv5iAP2umHErTy6nvEGUMc2lJkh3XxExamHBeIRg+o8hqjcQ
+ bh=YU2D0h1+YiZ8zzlfyo96f+8NuGaYq6vNDpSn5r/Qj8Q=;
+ b=3t3nFJecH20Q09ngSn+Y1yZUNXrl006bAUIgBb32KB9oci0ZPGg6emOGeeuYivABA+XnZz0LG
+ vsKCdt1VuSkCKis2rlEiIM7Yz8A8rWs1nS9PZZoEONgCvshI/w+xQKW
 X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
  pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA4OCBTYWx0ZWRfX31hGOvg7htlQ
- CTdyTmrxCr8v7ZAvlPDSEZY+5EAlUAvd/qscRIT3zRPpqyJeJVMU1AJyFJ2ItnNinldFBoxfZYp
- IScm02ikPJBPW+OhSbkfLjZDF3vj7rfW6AId4i1atPiLamO9kB82
-X-Proofpoint-ORIG-GUID: dPlfK_jZWsaEKIdqU7wCF0EfnPPUwR42
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA4OCBTYWx0ZWRfX7rlChAbGrlUR
- FTgGrruFG8s3bXLWCmSX/NQLtQDfsdlhDtQpRoCzRxDs615F5i7LZe6+sFkZmckgMBf3ac5Tf3X
- 3+wZ2IjTRwVDrmDVxX5UeVBI445uWBrtj6Yv9dkPzp9mqMcAkZ2yeN6HOF/8bQIk4N0zz5++K1u
- Zqo8ixE9Zl9bmevsx6WgrELMg34qATTh8Xwj1X16ZDHkbDLAzBDrgLXd2NpPCkC18X4ive3fCAQ
- OETGZCv0x0aBQTzKElRNOoC/6FGz9N4AEzMO0ithbikbYDGBxAGq1e4zqi52yg20NcORn2kEOby
- 8jYy2ReXwzeil9Ds6scUdhzLEhKMOjq5UC49lqxbHjTG7pljsojsicWkIJ4c+UyO6yJLIT/vHAz
- 5vABDQC3oqyw516AxbS6Z/zwiwKqCMfXQC10+rYgzxAmzV97EMblvUZZyrQzuImbswZ5Pb0xTwV
- Z9FL5Yog7yVSZcgN7Kg==
-X-Proofpoint-GUID: dPlfK_jZWsaEKIdqU7wCF0EfnPPUwR42
-X-Authority-Analysis: v=2.4 cv=R/aWitRX c=1 sm=1 tr=0 ts=6afb7edd cx=c_pps
- a=oc9J++0uMp73DTRD5QyR2A==:117 a=KPY1cyGZ6h6m4ASiENTC8Q==:17
+X-Proofpoint-GUID: AFoEOK6IjWaSeatUZWsjBL88cC_HE1hR
+X-Authority-Analysis: v=2.4 cv=Utf2pOwB c=1 sm=1 tr=0 ts=6afb7ede cx=c_pps
+ a=HLyN3IcIa5EE8TELMZ618Q==:117 a=KPY1cyGZ6h6m4ASiENTC8Q==:17
  a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=azVShVRs0zEubeQ0wG0L:22
- a=rhbNDiOmHe9WM6CdvIYA:9 a=QEXdDO2ut3YA:10 a=iYH6xdkBrDN1Jqds4HTS:22
+ a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=BpGzv1V74M3SfeTrGa8v:22
+ a=dGUJCdGidsCb5_L8LY8A:9 a=QEXdDO2ut3YA:10 a=bTQJ7kPSJx9SKPbeHEYW:22
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfX2vCaeBFuYUER
+ M7bFd7Ft3jSfm6/nS8tnT8/nZk2H7p02NWX4fQXLSur48iwNKn6LYrbrQmDA2wWNLAzNXRWmYa/
+ Dv1tYIpwffGMOkYlY3+IeC89t5GV1FdJ63lRCgaHrGw9o9ZItVF68RrHFLUxcyZlr7fzIkejjqC
+ xC8R3SLZaZU1+psVuXRvAr7LHwnjlxBBh/QdhiUNb6BMJA1BbOXsx4cYqsyqQ+Idqh0SJ/L6Qh5
+ shKo0JCk1jBcuTE459NaxbqYZ1U7xveyKmvduk8f6VTrv0M0uyxsOE25v6fffhdXF0RqpXFovme
+ me+7kukltDAnxyJy2mUoNK6fPg1dkpcPbsrupcIhlQgzsZwFKmngmo8tRr5QLWHH+/Q0dXHDNhL
+ EPMKsDi8RJLlyIS2oXxYzalnTAdpJTzkZxxAU5UxmX27lW+KTlAXIDtS7Z0O+P2BJ4s/XxzF0wj
+ V2GVMGxkTr9Q4UDmfTQ==
+X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfXyKLGyHimilrF
+ a0i1ZREz402paG+U+CgqvKsSS0TAJamAzsJLRGtyk8d8z0uI/69jlES9cwoomtMgRfAFUknj6fw
+ ojZ5d0eq0HzgU/S6dfrUMBhSUtGvEvFK61D0C/pb5x9Dr5wD1bgD
+X-Proofpoint-ORIG-GUID: AFoEOK6IjWaSeatUZWsjBL88cC_HE1hR
 X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11968
  signatures=596817
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=10 clxscore=1015 adultscore=0 phishscore=0 suspectscore=0
- priorityscore=1501 bulkscore=10 malwarescore=0 spamscore=0
- lowpriorityscore=10 classifier=typeunknown authscore=0 authtc= authcc=
+ malwarescore=0 priorityscore=1501 bulkscore=10 spamscore=0 adultscore=0
+ clxscore=1015 impostorscore=10 suspectscore=0 lowpriorityscore=10
+ phishscore=0 classifier=typeunknown authscore=0 authtc= authcc=
  route=outbound adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
- definitions=main-2611160088
+ definitions=main-2611160087
 
-Every caller passes a kmalloc()-ed buffer or an array inside a kmalloc()-ed
-structure, which is physically contiguous and so fits in one
-scatterlist entry. Use sg_init_one(), which can't fail, drop the
-two-entry arrays and their length checks, and remove
-virt_to_scatterlist() and the unused ECRYPTFS_MAX_SCATTERLIST_LEN.
+A shrinking truncate zeroes the rest of the folio that holds the new
+end of the file by copying from the zero page through ecryptfs_write().
+Zero the folio in place with folio_zero_range() instead, the way the
+truncate helpers in other filesystems do, and encrypt it to the lower
+file. This no longer bumps i_size to the end of the folio and writes
+that to the metadata before the real size is written. It also removes
+the last struct page usage in ecryptfs.
+
+The folio stays locked while it is encrypted, as in
+ecryptfs_writepages(), and is marked not uptodate if that fails, so a
+later read goes back to the lower file instead of returning zeroes that
+were never written out.
+
+A page-aligned new size has no tail to zero, so skip it. The old code
+wrote out a full page of zeroes past the new end of the file in that
+case, which the truncate then discarded.
 
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 ---
- fs/ecryptfs/crypto.c          |  46 -----------------
- fs/ecryptfs/ecryptfs_kernel.h |   2 -
- fs/ecryptfs/keystore.c        | 114 +++++++++---------------------------------
- 3 files changed, 25 insertions(+), 137 deletions(-)
+ fs/ecryptfs/inode.c | 55 ++++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 42 insertions(+), 13 deletions(-)
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index 6a014872e919..f0e67b48917f 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -149,50 +149,6 @@ void ecryptfs_destroy_mount_crypt_stat(
- 	memset(mount_crypt_stat, 0, sizeof(struct ecryptfs_mount_crypt_stat));
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 525297c7ebd8..ffab685688ab 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -718,6 +718,40 @@ upper_size_to_lower_size(struct ecryptfs_crypt_stat *crypt_stat,
+ 	return lower_size;
  }
  
--/**
-- * virt_to_scatterlist
-- * @addr: Virtual address
-- * @size: Size of data; should be an even multiple of the block size
-- * @sg: Pointer to scatterlist array; set to NULL to obtain only
-- *      the number of scatterlist structs required in array
-- * @sg_size: Max array size
-- *
-- * Fills in a scatterlist array with page references for a passed
-- * virtual address.
-- *
-- * Returns the number of scatterlist structs in array used
-- */
--int virt_to_scatterlist(const void *addr, int size, struct scatterlist *sg,
--			int sg_size)
--{
--	int i = 0;
--	struct page *pg;
--	int offset;
--	int remainder_of_page;
--
--	sg_init_table(sg, sg_size);
--
--	while (size > 0 && i < sg_size) {
--		pg = virt_to_page(addr);
--		offset = offset_in_page(addr);
--		sg_set_page(&sg[i], pg, 0, offset);
--		remainder_of_page = PAGE_SIZE - offset;
--		if (size >= remainder_of_page) {
--			sg[i].length = remainder_of_page;
--			addr += remainder_of_page;
--			size -= remainder_of_page;
--		} else {
--			sg[i].length = size;
--			addr += size;
--			size = 0;
++/**
++ * ecryptfs_zero_tail
++ * @inode: The ecryptfs inode
++ * @pos: The file offset from which to zero
++ *
++ * Zero the folio that holds @pos from @pos to its end, and write the
++ * result out to the lower file.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++static int ecryptfs_zero_tail(struct inode *inode, loff_t pos)
++{
++	struct folio *folio;
++	size_t from;
++	int rc;
++
++	/* A page-aligned @pos has no tail to zero. */
++	if (!offset_in_page(pos))
++		return 0;
++
++	folio = read_mapping_folio(inode->i_mapping, pos >> PAGE_SHIFT, NULL);
++	if (IS_ERR(folio))
++		return PTR_ERR(folio);
++	from = offset_in_folio(folio, pos);
++	folio_lock(folio);
++	folio_zero_range(folio, from, folio_size(folio) - from);
++	rc = ecryptfs_encrypt_page(folio);
++	if (rc)
++		folio_clear_uptodate(folio);
++	folio_unlock(folio);
++	folio_put(folio);
++	return rc;
++}
++
+ /**
+  * __ecryptfs_truncate
+  * @dentry: The ecryptfs layer dentry
+@@ -739,7 +773,6 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
+ 	loff_t lower_size_before_truncate;
+ 	loff_t lower_size_after_truncate;
+ 	struct iattr lower_ia;
+-	size_t num_zeros;
+ 	int rc;
+ 
+ 	ecryptfs_iattr_to_lower(&lower_ia, ia);
+@@ -788,19 +821,15 @@ static int __ecryptfs_truncate(struct dentry *dentry, const struct iattr *ia)
+ 	}
+ 
+ 	/*
+-	 * We're chopping off all the pages down to the page in which
+-	 * ia->ia_size is located. Fill in the end of that page from
+-	 * (ia->ia_size & ~PAGE_MASK) to PAGE_SIZE with zeros.
++	 * We're chopping off all the folios down to the folio in which
++	 * ia->ia_size is located. Fill in the end of that folio from
++	 * ia->ia_size with zeros.
+ 	 */
+-	num_zeros = PAGE_SIZE - (ia->ia_size & ~PAGE_MASK);
+-	if (num_zeros) {
+-		rc = ecryptfs_write(inode, page_address(ZERO_PAGE(0)),
+-				ia->ia_size, num_zeros);
+-		if (rc) {
+-			pr_err("Error attempting to zero out the remainder of the end page on reducing truncate; rc = [%d]\n",
+-				rc);
+-			goto out;
 -		}
--		i++;
--	}
--	if (size > 0)
--		return -ENOMEM;
--	return i;
--}
--
- /**
-  * crypt_scatterlist
-  * @crypt_stat: Pointer to the crypt_stat struct to initialize.
-@@ -438,8 +394,6 @@ int ecryptfs_decrypt_page(struct folio *folio)
- 	return rc;
- }
- 
--#define ECRYPTFS_MAX_SCATTERLIST_LEN 4
--
- /**
-  * ecryptfs_init_crypt_ctx
-  * @crypt_stat: Uninitialized crypt stats structure
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index d828040ade89..301744f0f819 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -544,8 +544,6 @@ int ecryptfs_encrypt_and_encode_filename(
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat,
- 	const char *name, size_t name_size);
- void ecryptfs_dump_hex(char *data, int bytes);
--int virt_to_scatterlist(const void *addr, int size, struct scatterlist *sg,
--			int sg_size);
- int ecryptfs_compute_root_iv(struct ecryptfs_crypt_stat *crypt_stat);
- void ecryptfs_rotate_iv(unsigned char *iv);
- void ecryptfs_init_crypt_stat(struct ecryptfs_crypt_stat *crypt_stat);
-diff --git a/fs/ecryptfs/keystore.c b/fs/ecryptfs/keystore.c
-index a0989e3c8aef..b147ddb0055d 100644
---- a/fs/ecryptfs/keystore.c
-+++ b/fs/ecryptfs/keystore.c
-@@ -602,8 +602,8 @@ struct ecryptfs_write_tag_70_packet_silly_stack {
- 	struct mutex *tfm_mutex;
- 	char *block_aligned_filename;
- 	struct ecryptfs_auth_tok *auth_tok;
--	struct scatterlist src_sg[2];
--	struct scatterlist dst_sg[2];
-+	struct scatterlist src_sg;
-+	struct scatterlist dst_sg;
- 	struct crypto_skcipher *skcipher_tfm;
- 	struct skcipher_request *skcipher_req;
- 	char iv[ECRYPTFS_MAX_IV_BYTES];
-@@ -758,24 +758,9 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
++	rc = ecryptfs_zero_tail(inode, ia->ia_size);
++	if (rc) {
++		pr_err("Error attempting to zero out the remainder of the end folio on reducing truncate; rc = [%d]\n",
++			rc);
++		goto out;
  	}
- 	memcpy(&s->block_aligned_filename[s->num_rand_bytes], filename,
- 	       filename_size);
--	rc = virt_to_scatterlist(s->block_aligned_filename,
--				 s->block_aligned_filename_size, s->src_sg, 2);
--	if (rc < 1) {
--		printk(KERN_ERR "%s: Internal error whilst attempting to "
--		       "convert filename memory to scatterlist; rc = [%d]. "
--		       "block_aligned_filename_size = [%zd]\n", __func__, rc,
--		       s->block_aligned_filename_size);
--		goto out_free_unlock;
--	}
--	rc = virt_to_scatterlist(&dest[s->i], s->block_aligned_filename_size,
--				 s->dst_sg, 2);
--	if (rc < 1) {
--		printk(KERN_ERR "%s: Internal error whilst attempting to "
--		       "convert encrypted filename memory to scatterlist; "
--		       "rc = [%d]. block_aligned_filename_size = [%zd]\n",
--		       __func__, rc, s->block_aligned_filename_size);
--		goto out_free_unlock;
--	}
-+	sg_init_one(&s->src_sg, s->block_aligned_filename,
-+		    s->block_aligned_filename_size);
-+	sg_init_one(&s->dst_sg, &dest[s->i], s->block_aligned_filename_size);
- 	/* The characters in the first block effectively do the job
- 	 * of the IV here, so we just use 0's for the IV. Note the
- 	 * constraint that ECRYPTFS_FILENAME_MIN_RANDOM_PREPEND_BYTES
-@@ -794,7 +779,7 @@ ecryptfs_write_tag_70_packet(char *dest, size_t *remaining_bytes,
- 		       mount_crypt_stat->global_default_fn_cipher_key_bytes);
- 		goto out_free_unlock;
- 	}
--	skcipher_request_set_crypt(s->skcipher_req, s->src_sg, s->dst_sg,
-+	skcipher_request_set_crypt(s->skcipher_req, &s->src_sg, &s->dst_sg,
- 				   s->block_aligned_filename_size, s->iv);
- 	rc = crypto_skcipher_encrypt(s->skcipher_req);
- 	if (rc) {
-@@ -830,8 +815,8 @@ struct ecryptfs_parse_tag_70_packet_silly_stack {
- 	struct mutex *tfm_mutex;
- 	char *decrypted_filename;
- 	struct ecryptfs_auth_tok *auth_tok;
--	struct scatterlist src_sg[2];
--	struct scatterlist dst_sg[2];
-+	struct scatterlist src_sg;
-+	struct scatterlist dst_sg;
- 	struct crypto_skcipher *skcipher_tfm;
- 	struct skcipher_request *skcipher_req;
- 	char fnek_sig_hex[ECRYPTFS_SIG_SIZE_HEX + 1];
-@@ -950,15 +935,8 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
- 		goto out;
- 	}
- 	mutex_lock(s->tfm_mutex);
--	rc = virt_to_scatterlist(&data[(*packet_size)],
--				 s->block_aligned_filename_size, s->src_sg, 2);
--	if (rc < 1) {
--		printk(KERN_ERR "%s: Internal error whilst attempting to "
--		       "convert encrypted filename memory to scatterlist; "
--		       "rc = [%d]. block_aligned_filename_size = [%zd]\n",
--		       __func__, rc, s->block_aligned_filename_size);
--		goto out_unlock;
--	}
-+	sg_init_one(&s->src_sg, &data[(*packet_size)],
-+		    s->block_aligned_filename_size);
- 	(*packet_size) += s->block_aligned_filename_size;
- 	s->decrypted_filename = kmalloc(s->block_aligned_filename_size,
- 					GFP_KERNEL);
-@@ -966,15 +944,8 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
- 		rc = -ENOMEM;
- 		goto out_unlock;
- 	}
--	rc = virt_to_scatterlist(s->decrypted_filename,
--				 s->block_aligned_filename_size, s->dst_sg, 2);
--	if (rc < 1) {
--		printk(KERN_ERR "%s: Internal error whilst attempting to "
--		       "convert decrypted filename memory to scatterlist; "
--		       "rc = [%d]. block_aligned_filename_size = [%zd]\n",
--		       __func__, rc, s->block_aligned_filename_size);
--		goto out_free_unlock;
--	}
-+	sg_init_one(&s->dst_sg, s->decrypted_filename,
-+		    s->block_aligned_filename_size);
- 
- 	s->skcipher_req = skcipher_request_alloc(s->skcipher_tfm, GFP_KERNEL);
- 	if (!s->skcipher_req) {
-@@ -1014,7 +985,7 @@ ecryptfs_parse_tag_70_packet(char **filename, size_t *filename_size,
- 		       mount_crypt_stat->global_default_fn_cipher_key_bytes);
- 		goto out_free_unlock;
- 	}
--	skcipher_request_set_crypt(s->skcipher_req, s->src_sg, s->dst_sg,
-+	skcipher_request_set_crypt(s->skcipher_req, &s->src_sg, &s->dst_sg,
- 				   s->block_aligned_filename_size, s->iv);
- 	rc = crypto_skcipher_decrypt(s->skcipher_req);
- 	if (rc) {
-@@ -1632,8 +1603,8 @@ static int
- decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
- 					 struct ecryptfs_crypt_stat *crypt_stat)
- {
--	struct scatterlist dst_sg[2];
--	struct scatterlist src_sg[2];
-+	struct scatterlist dst_sg;
-+	struct scatterlist src_sg;
- 	struct mutex *tfm_mutex;
- 	struct crypto_skcipher *tfm;
- 	struct skcipher_request *req = NULL;
-@@ -1655,28 +1626,12 @@ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
- 		       crypt_stat->cipher, rc);
- 		goto out;
- 	}
--	rc = virt_to_scatterlist(auth_tok->session_key.encrypted_key,
--				 auth_tok->session_key.encrypted_key_size,
--				 src_sg, 2);
--	if (rc < 1 || rc > 2) {
--		printk(KERN_ERR "Internal error whilst attempting to convert "
--			"auth_tok->session_key.encrypted_key to scatterlist; "
--			"expected rc = 1; got rc = [%d]. "
--		       "auth_tok->session_key.encrypted_key_size = [%d]\n", rc,
--			auth_tok->session_key.encrypted_key_size);
--		goto out;
--	}
-+	sg_init_one(&src_sg, auth_tok->session_key.encrypted_key,
-+		    auth_tok->session_key.encrypted_key_size);
- 	auth_tok->session_key.decrypted_key_size =
- 		auth_tok->session_key.encrypted_key_size;
--	rc = virt_to_scatterlist(auth_tok->session_key.decrypted_key,
--				 auth_tok->session_key.decrypted_key_size,
--				 dst_sg, 2);
--	if (rc < 1 || rc > 2) {
--		printk(KERN_ERR "Internal error whilst attempting to convert "
--			"auth_tok->session_key.decrypted_key to scatterlist; "
--			"expected rc = 1; got rc = [%d]\n", rc);
--		goto out;
--	}
-+	sg_init_one(&dst_sg, auth_tok->session_key.decrypted_key,
-+		    auth_tok->session_key.decrypted_key_size);
- 	mutex_lock(tfm_mutex);
- 	req = skcipher_request_alloc(tfm, GFP_KERNEL);
- 	if (!req) {
-@@ -1699,7 +1654,7 @@ decrypt_passphrase_encrypted_session_key(struct ecryptfs_auth_tok *auth_tok,
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	skcipher_request_set_crypt(req, src_sg, dst_sg,
-+	skcipher_request_set_crypt(req, &src_sg, &dst_sg,
- 				   auth_tok->session_key.encrypted_key_size,
- 				   NULL);
- 	rc = crypto_skcipher_decrypt(req);
-@@ -2173,8 +2128,8 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 	size_t i;
- 	size_t encrypted_session_key_valid = 0;
- 	char session_key_encryption_key[ECRYPTFS_MAX_KEY_BYTES];
--	struct scatterlist dst_sg[2];
--	struct scatterlist src_sg[2];
-+	struct scatterlist dst_sg;
-+	struct scatterlist src_sg;
- 	struct mutex *tfm_mutex = NULL;
- 	u8 cipher_code;
- 	size_t packet_size_length;
-@@ -2249,27 +2204,8 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 		ecryptfs_printk(KERN_DEBUG, "Session key encryption key:\n");
- 		ecryptfs_dump_hex(session_key_encryption_key, 16);
- 	}
--	rc = virt_to_scatterlist(crypt_stat->key, key_rec->enc_key_size,
--				 src_sg, 2);
--	if (rc < 1 || rc > 2) {
--		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
--				"for crypt_stat session key; expected rc = 1; "
--				"got rc = [%d]. key_rec->enc_key_size = [%zd]\n",
--				rc, key_rec->enc_key_size);
--		rc = -ENOMEM;
--		goto out;
--	}
--	rc = virt_to_scatterlist(key_rec->enc_key, key_rec->enc_key_size,
--				 dst_sg, 2);
--	if (rc < 1 || rc > 2) {
--		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
--				"for crypt_stat encrypted session key; "
--				"expected rc = 1; got rc = [%d]. "
--				"key_rec->enc_key_size = [%zd]\n", rc,
--				key_rec->enc_key_size);
--		rc = -ENOMEM;
--		goto out;
--	}
-+	sg_init_one(&src_sg, crypt_stat->key, key_rec->enc_key_size);
-+	sg_init_one(&dst_sg, key_rec->enc_key, key_rec->enc_key_size);
- 	mutex_lock(tfm_mutex);
- 	rc = crypto_skcipher_setkey(tfm, session_key_encryption_key,
- 				    crypt_stat->key_size);
-@@ -2296,7 +2232,7 @@ write_tag_3_packet(char *dest, size_t *remaining_bytes,
- 	rc = 0;
- 	ecryptfs_printk(KERN_DEBUG, "Encrypting [%zd] bytes of the key\n",
- 			crypt_stat->key_size);
--	skcipher_request_set_crypt(req, src_sg, dst_sg,
-+	skcipher_request_set_crypt(req, &src_sg, &dst_sg,
- 				   (*key_rec).enc_key_size, NULL);
- 	rc = crypto_skcipher_encrypt(req);
- 	mutex_unlock(tfm_mutex);
+ 	truncate_setsize(inode, ia->ia_size);
+ 	rc = ecryptfs_write_inode_size_to_metadata(inode);
 
 -- 
 2.39.5
