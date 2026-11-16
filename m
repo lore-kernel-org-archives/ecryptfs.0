@@ -1,51 +1,49 @@
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794649010;
-	b=eUVcRioRvaBjsp7+Dc2jeXAGfcK9rz5s0ScgWag5bMWMTACLy5vrE6ol1IM2a/9gOUwx
-	 Lccowm3kVxlHwBfnFOG+L1wFn7DrzMaRM3U5pbwJb5dX1hVvL39d5kEDkg9eT14PAc/gj
-	 iRGztxBeh1lweGL8AJkHwn5dNqcFM8HUQC0zHYFGzA1k3yC0A7W312xz2TTpLdFIhybEV
-	 Y5xBLtkajJirYGfkqcjLGM8ooYNjVfOQkxCgi2Ro3jp0ivieVMUKSNpRfVxOB7dZItOxc
-	 bViWI7TUsjtA/Y8IoaSuQvjpcCWyYF7hB6JxM72TMEejBEU7aQaGnXKF2RUoP39dqjw==
+	t=1794822662;
+	b=ZPQ+6CCZU5+C8W7QRERrUWVmAMKbMpSTjNWnxfBgQ71sTBwVLLOPihzTI8+2QHfaXSyT
+	 xbCtMzsei30NPh/wOac1UkJDleK1tZz75cdwr9S44aW01oe69Zxdr41HJckEslaTWQh9G
+	 QyyRLVSw2Oy3yTHSLT4NJt4wg3iqLJPjvyHGvRVMoA+aIufWk0gvE20+ZYEcDrk84eH+d
+	 lKju4ajpcqjL4IaHbi7r20YBIiSnmb0tZXOuUDF+jW7IWONtwXxuhjyERe6GMHTrQ76qN
+	 conCdS4FuF3bwLodk9q+k+2QGgKsgkEaL5GZGZ7dmwcOuT0NVRS7t1G6RmqBqLtof8g==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794649010;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 MIME-Version:Content-Type:Content-Disposition;
-	bh=4rT0eAwPFvmjSNwFGfR3YlSLMafIVhGOWDFd7IQ4gCc=;
-	b=KlYpYewZt5VtZWK7J7VHZshn2NJpGuqAUNNMOoY13AF9EftflpRCcW1CrHoGma7FLpqZ
-	 KuNcpAzd3M4FBwIzRl6924oYfcJoSfUN0uSIl9suzHYfoWKkGj8yOeg3r61v91aJkiI8Z
-	 QMMQmeeTURbvXZuyzcOvGu3yK6iMoZn2M7UQ5EA1WpfQ3kGGrN8BDPZtz/NeYdY2rzNwX
-	 8UfCEedNtdXUKoax/OxfJLrm4Ucej2+T880uAQgeXxkRwCmo34HtMvD7hwWdMsJWLon1k
-	 GmEG5vixNXvQVS8esxAF7su1e7bTAUD9XrObdFMhd3U8Qw0/QgKTVz5TtsCeyVoKCXw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794822662;
+	h=Received:DKIM-Signature:From:Subject:Date:Message-Id:MIME-Version:
+	 Content-Type:Content-Transfer-Encoding:X-B4-Tracking:X-Change-ID:To:
+	 Cc:X-Mailer:X-Developer-Signature:X-Developer-Key;
+	bh=8aRGBcpvx8xM7mxQtHaidBWPdNvahzYjZNEX0jkJ1yE=;
+	b=AUrbPjzgtiJkIiQW5UyWbqc3vElwrUqFRgzM+ZY6TBSKyWfJnOHvWoPG9mIzihpnPD5W
+	 y1FSQqwPly9nPWi4MJwgN9TiEEmq0/Vq7qNvvHDpMPg3gYC01fpg4U0up3zZDTPE5v7Ei
+	 pXnFXmRXyKszyGpdnrghF9wVvKIXNcnDqP9xRgj6lIQbqDv7KVTmOQwvV/NXOpDESWa+4
+	 v6SVAasxcdHcxXKOd8Qu2ZGUx7hq0D4kC+iSOPHgOO18M2nCgkvPeC7mNJVB/31MVWtkO
+	 p4gDysvRMYSV9PEt67gatrbm7A8Oo/fujSfwBxTteo0aFyXUrSJ7fJ43qXr2MTOv/hA==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gtajZqgr;
+	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K2+7tRLz;
 	arc=none smtp.remote-ip=100.103.45.18
 Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585BA606A323;
-	Sat, 14 Nov 2026 09:36:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F7E5606A31C;
+	Mon, 16 Nov 2026 09:51:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=gtajZqgr
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 880741F000C4;
-	Sat, 14 Nov 2026 09:36:48 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=K2+7tRLz
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 609D61F000C4;
+	Mon, 16 Nov 2026 09:50:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794649009;
-	bh=4rT0eAwPFvmjSNwFGfR3YlSLMafIVhGOWDFd7IQ4gCc=;
-	h=Date:From:To:Cc:Subject;
-	b=gtajZqgr8hns8TB8bF0mXs8JwrBhR93c9dhH3KrlmASOpOzNGBK3A+qNcSo3fWSEq
-	 TWhy40qspYEiqL6LR0Shv1UfYtTJLBWH8ksjEaIo/9i7foxtSJqcvLOOVXqitad4Yt
-	 2HZcOEcwT3yhAOPWWeu/qOLLxE2MfZAlZReTNxthV0JVCAoz0T3nDnX74zh78yfQvw
-	 nZVUMvPU4iydUc8ZEU+2086P4zBx1vW49ytmgXgwPX2wv7a4dUKjZgzLKblM9+8x7R
-	 rmefOoi6wqoMSrC8VBupuSvVComa6qTP0wR24gZIoLue8jSKcdb6eoPB+f0WoIZ4mE
-	 SDLC2mJwv1PqA==
-Date: Sat, 14 Nov 2026 10:36:46 +0100
+	s=k20260515; t=1794822662;
+	bh=8aRGBcpvx8xM7mxQtHaidBWPdNvahzYjZNEX0jkJ1yE=;
+	h=From:Subject:Date:To:Cc;
+	b=K2+7tRLzUA1vHpSh9Z4eYxrLSWLfx3VxiAtV+I2wsfPNb9ufsZBXDAGRXgVgW5eVT
+	 7EPd2127puPa6m8jR0gUbbLngHeCTt0SNmH9jNftFfvciTpnZOwt9ZFB8xaifyNx5I
+	 6T4/eGhfCJ4f1ugyPqE8JW8/pgNBj81vq/a0P4QMlvX9rDmpcnRbSLEfn3OZwjS09o
+	 Ffj8QthI/KmMMkRMsxQrY2bpnNRJNH0bSetX/pu6Ptvz0r4Eeu9O8UNelZBCix0Dko
+	 77WqR1fbWuPXsEef+M7YM+E7QUpfT9xgzJUFuXdxSrgNBt3AgthI6/SanCUbgR5X4y
+	 DYCuvs09giVyg==
 From: Christian Brauner <brauner@kernel.org>
-To: Tyler Hicks <code@tyhicks.com>
-Cc: Jan Kara <jack@suse.cz>, ecryptfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: ecryptfs: the lower filesystem gets modified while it is frozen
-Message-ID: <20261114-kranich-banknoten-anheuern-5d0a2354a51d@brauner>
+Subject: [PATCH 0/3] fs: pre-existing fixes for the SB_RDONLY series
+Date: Mon, 16 Nov 2026 10:28:29 +0100
+Message-Id: <20261116-work-fs-sb_rdonly-fixes-v1-0-95a25ce917ad@kernel.org>
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -55,90 +53,63 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/z2M2QrCMBBFf6XMsxOaoK36KyKSZWKjksqMK6X/b
+ qLg47nLmUCIEwlsmwmYHknSmAvoRQN+sPlImEJhMK3ptNYdPkc+YxQUd+Aw5ssbY3qRYOiXfmP
+ 6uG7dCsr7yvQtynm3/7Hc3Yn8rerqwlkhdGyzH2pUxSqK+otVHcA8fwDm31WGpAAAAA==
+X-Change-ID: 20261116-work-fs-sb_rdonly-fixes-d74c927f80b5
+To: linux-fsdevel@vger.kernel.org
+Cc: Jan Kara <jack@suse.com>, ecryptfs@vger.kernel.org, 
+ linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, 
+ linux-nilfs@vger.kernel.org, exfat@lists.linux.dev, linux-mm@kvack.org, 
+ ntfs@lists.linux.dev, ocfs2-devel@lists.linux.dev, 
+ linux-btrfs@vger.kernel.org, gfs2@lists.linux.dev, 
+ linux-efi@vger.kernel.org, linux-mtd@lists.infradead.org, 
+ linux-xfs@vger.kernel.org, 
+ "Christian Brauner (Amutable)" <brauner@kernel.org>, stable@vger.kernel.org
+X-Mailer: b4 0.17-dev-ce4c1
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1425; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=jeCsQzF34oL0Arvs8F9B2uJQSCX+EzbT3qRU+Rbsju8=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWT9uvi7fE9w7bmpcv5J82/1za9S4FUrcTJtdFY06i+ct
+ 14hJSyuo5SFQYyLQVZMkcWh3SRcbjlPxWajTA2YOaxMIEMYuDgFYCLiSxn+p61423H1yuqphyNy
+ CypNQ07uYf2rs/yuFLtD9f/+bZMLtzEyTOL9teBm7yq3mqbpzbY+BsIR898sTkj0CjXjaTy2tLW
+ IFQA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-I'm working on freeze protection fixes in the tree and this is the part
-that affects ecryptfs.
+Three fixes for pre-existing bugs that came up during review of the
+SB_RDONLY series (cf. [1]). They don't depend on it and are all tagged
+for stable. I'll put them in front of the series in vfs-7.5.super.
 
-A syscall on an ecryptfs mount only takes freeze protection for the
-ecryptfs superblock. ecryptfs then modifies the lower filesystem
-without any freeze protection for the lower superblock. So with the
-lower filesystem frozen it gets modified anyway. On ext4 that trips the
-WARN_ON() in ext4_journal_check_start().
+- gfs2 hits the BUG_ON() in gfs2_quota_cleanup() on a remount to
+  read-only after a withdraw during mount. The withdraw work was never
+  queued so SDF_JOURNAL_LIVE stays set.
 
-Affected are all the lower namespace operations, setattr, truncate,
-xattrs, ACLs and fileattr:
+- exfat marks the volume clean at umount or on a remount to read-only
+  after a shutdown with EXFAT_GOING_DOWN_NOSYNC although it may be
+  inconsistent.
 
-- ecryptfs_create(), ecryptfs_mkdir(), ecryptfs_mknod(),
-  ecryptfs_symlink(), ecryptfs_link(), ecryptfs_do_unlink(),
-  ecryptfs_rmdir() and ecryptfs_rename() call vfs_create(),
-  vfs_mkdir(), ... on the lower dentries
-- ecryptfs_setattr() and __ecryptfs_truncate() call notify_change()
-- ecryptfs_setxattr() and ecryptfs_removexattr() call
-  __vfs_setxattr_locked() and __vfs_removexattr(), and with
-  ecryptfs_xattr_metadata ecryptfs_write_metadata_to_xattr() and
-  ecryptfs_write_inode_size_to_xattr() call __vfs_setxattr()
-- ecryptfs_set_acl() and ecryptfs_fileattr_set() call vfs_set_acl()
-  and vfs_fileattr_set()
+- jfs takes a negative inode size from disk as is. A symlink with one
+  is treated as a fast symlink and jfs_iget() writes out of bounds.
 
-Only data writes are protected because they go through kernel_write().
+[1]: https://patch.msgid.link/20261113-work-fs-sb_rdonly-v3-0-0be92bb73709@kernel.org
 
-I triggered create, mkdir, unlink, rename, chmod and setxattr below.
-The rest is from reading the code.
+Signed-off-by: Christian Brauner (Amutable) <brauner@kernel.org>
+---
+Christian Brauner (3):
+      gfs2: don't BUG when remounting read-only after a withdraw during mount
+      exfat: keep the volume marked dirty after a shutdown
+      jfs: refuse inodes with a negative size
 
-Reproduced on v7.4-rc1:
+ fs/exfat/super.c     | 3 ++-
+ fs/gfs2/incore.h     | 1 +
+ fs/gfs2/ops_fstype.c | 5 +++++
+ fs/gfs2/util.c       | 9 ++++++++-
+ fs/gfs2/util.h       | 1 +
+ fs/jfs/jfs_imap.c    | 4 ++++
+ 6 files changed, 21 insertions(+), 2 deletions(-)
+---
+base-commit: c339f4010dea8b0d754f84ace70cd1b089878ef8
+change-id: 20261116-work-fs-sb_rdonly-fixes-d74c927f80b5
 
-    mount /dev/vdb /lower; mkdir /lower/enc /ecr
-    keyctl link @u @s
-    keyctl add user kmk 0123456789abcdef0123456789abcdef @u
-    keyctl add encrypted 1000100010001000 "new ecryptfs user:kmk 64" @u
-    mount -t ecryptfs /lower/enc /ecr -o ecryptfs_sig=1000100010001000,ecryptfs_cipher=aes,ecryptfs_key_bytes=32
-    cd /ecr; echo x > a; echo x > b; echo x > f; mkdir d1 d2; cd /; sync
-    fsfreeze -f /lower
-    touch /ecr/d1/new; mkdir /ecr/d2/nd; rm /ecr/a; mv /ecr/b /ecr/c
-    chmod 600 /ecr/f; setfattr -n user.x -v 1 /ecr/f
-
-Each of these warns, the mkdir, rename, chmod and setxattr complete
-right away and "a" is gone from the frozen lower filesystem. The append
-in
-
-    echo y >> /ecr/f
-
-waits for the thaw as it should. The create and the mkdir:
-
-  WARNING: fs/ext4/ext4_jbd2.c:90 at ext4_journal_check_start+0x1f6/0x2d0, CPU#3: touch/309
-  Call Trace:
-   __ext4_journal_start_sb+0x7a/0x470
-   __ext4_new_inode+0x23da/0x45d0
-   ext4_create+0x286/0x530
-   vfs_create+0x2a6/0x6a0
-   ecryptfs_create+0xf8/0x4c0
-   lookup_open+0xa80/0x1b20
-   path_openat+0xd2b/0x2300
-   do_file_open+0x209/0x480
-   do_sys_openat2+0x128/0x180
-   __x64_sys_openat+0x10e/0x210
-   do_syscall_64+0x10e/0x5e0
-
-  WARNING: fs/ext4/ext4_jbd2.c:90 at ext4_journal_check_start+0x1f6/0x2d0, CPU#3: mkdir/322
-  Call Trace:
-   __ext4_journal_start_sb+0x7a/0x470
-   __ext4_new_inode+0x23da/0x45d0
-   ext4_mkdir+0x249/0xb10
-   vfs_mkdir+0x2bb/0x760
-   ecryptfs_mkdir+0x11c/0x570
-   vfs_mkdir+0x2bb/0x760
-   filename_mkdirat+0x417/0x590
-   __x64_sys_mkdir+0x68/0x90
-   do_syscall_64+0x10e/0x5e0
-
-The way overlayfs deals with this is ovl_want_write(), i.e.
-mnt_want_write() on the upper mount around every modification of the
-upper layer, taken before the upper inode locks. ecryptfs needs the same
-for its lower mount. It must not wrap a region that later calls
-kernel_write() on the same superblock though, as that nests
-sb_start_write() and deadlocks against a pending freeze.
-
-This predates freeze protection in the callers which came with
-5accdf82ba25 ("fs: Improve filesystem freezing handling").
