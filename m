@@ -1,110 +1,95 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=148.163.139.74
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=113.46.200.217
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794866916;
-	b=tFrOBiAD7ylPg/Wu1zMQSbBL0sIKPYnOhJLy1O/lxHU/qokFu6gvOucoIWfIPrmQQQ6B
-	 tFo8WmKZlbG6w0lm8PnNcaDNv7R7+e/NkDxQIJZjZx7vrSQG4Mzbfsj/737S8V4JHc2Z6
-	 zmxqKsmlz7Qnh/SO0AlvTcV5W3R9TJc9X/Y+aQkh0zlZdcUW0GbcmHP1YbsZlOjFj1Y1J
-	 hiNPsL54RAfgagTZZtuwrhCulCF6pMFyzet0BYsixlh+/i28Cx8jDmYJ8l/L4FNxiWMr1
-	 MSmD0HxMK2FpaZ8gtLnN5MszNzkx7DuiSIrPyv6YT8VBn8dkEOf7Qdz4ryBYxMIJUCQ==
+	t=1794926019;
+	b=pFmSiYRBrYCv/w8WTxBg36P9TQfr/d6kcdgAhNYiZsZ+irgjou0ImbCaXoKWDZuGjakU
+	 RcU7h22z9LTNSW0C403ipBUZLvf6cFQd16oXZ2FJVxPzMKBCiWSZNKl217vNx5+Kszo5R
+	 UwozkVQ5DS+mJ2PbFgcQGgEqZ/mHwOkDjvPNz8mXOUFUSsO0nkWC3Jl8MfzDGMzAcZ1Fh
+	 8d6pIksm7IGse2uOWyR+VZkk/SIwRuQ/CMaH74ntNytt/4+Sp0qXHm/wI1eNfR8sFj60P
+	 jFAyOWSBaIUYMtRmgeL4zNU5VppQrnJ9AAU1IUdujRSrzm6MKjipz23yNYFB8cOGyqQ==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794866916;
-	h=DMARC-Filter:Received:DKIM-Signature:Received:Received:
-	 DKIM-Signature:X-Google-DKIM-Signature:X-Gm-Message-State:X-Gm-Gg:
-	 X-Received:X-Received:Received:From:Date:Subject:MIME-Version:
-	 Content-Type:Content-Transfer-Encoding:Message-Id:References:
-	 In-Reply-To:To:Cc:X-Mailer:X-Developer-Signature:X-Developer-Key:
-	 X-Authority-Analysis:X-Proofpoint-GUID:X-Proofpoint-ORIG-GUID:
-	 X-Proofpoint-Spam-Details-Enc:X-Proofpoint-Spam-Info:
-	 X-Proofpoint-Virus-Version:X-Proofpoint-Spam-Details;
-	bh=rxG4ggWN6089uD/UJK7MpQ1pVb6XaNGi4HD+1f1YoOw=;
-	b=nRUauKefVeqtS5gDO831J6XZA8o0OhmVA5g4G8xK8gBozbAp+3Pa++JqnGpbzIfZtE1/
-	 R5kvp7XiKPXJ4C800emAg/f3T/hKrEH3W7Ly0aOlpmOqrxqMWjgN6ZL+GzV3/XE4TE/Yb
-	 13kOClZ+kJ/5vTZdgi8gAMdY4TBmFsEwkYMWPPUbi5uEjbpCF0UxasdWUNXLUxqVPqdFW
-	 UCsm/TkEeEELJr7ltxspIyanpgc74Fa/zJ4+Xhb3EZ4VafioS27e3Nx6XGTElU2XjlPF3
-	 op8qI6Z9C9dt+O82nQRFG9/yak4lCXq2nknvR/4EGuMr0/TTmof77M9PLzL9KZ+59kg==
+	a=rsa-sha256; c=relaxed/relaxed; t=1794926019;
+	h=DMARC-Filter:dkim-signature:Received:Received:Received:From:To:CC:
+	 Subject:Date:Message-ID:X-Mailer:MIME-Version:Content-Type:
+	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+	bh=By2TgM9Xeiq5fwyI6d3OB7CNRr7DwQCDNevlT/7vutY=;
+	b=1lmiG/sUBHJEkcbeRUXDRODjtrzpGl8f76dPrZX0JxcWGSOEq4PwxFRY1kmfRYqVlGNR
+	 ACGZ/LCRNVqdlVgdSKs7zh3n/sDp29Ejtl3oY5OJsOcRQKund5rQYzxq1jo1AOucltwSI
+	 sXRrpegTF215zSi1NCINQQT4edAp4RBfdki2aKjaXjLeEuvXFw4zMLqDJwuiZxau6yHZP
+	 i17byLJYbmEXi1FEVoXtL3N9RbLYtS8O7vt45K2ZbXZcBMo9sz8zfKT/8qxZb8KTuNZ1C
+	 NqzyEcaW+4Pr+MkVmqRehDYV3GYaC8JtstBZXoaMayapg0LQa0V22fMxclabC8tGOSQ==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dmarc=pass header.from=columbia.edu;
-	spf=pass smtp.mailfrom=columbia.edu;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=ZZkm4rSW;
-	dkim=pass header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=xrzf7sh5;
-	arc=none smtp.remote-ip=148.163.139.74
-Received: from mx0b-00364e01.pphosted.com (mx0b-00364e01.pphosted.com [148.163.139.74])
+	dmarc=pass header.from=huawei.com;
+	spf=pass smtp.mailfrom=huawei.com;
+	dkim=pass header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=fmE8M1h5;
+	arc=none smtp.remote-ip=113.46.200.217
+Received: from canpmsgout02.his.huawei.com (canpmsgout02.his.huawei.com [113.46.200.217])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68906606A8B1
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 22:08:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 68906606A8B1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=columbia.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=columbia.edu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23CB7606A882;
+	Tue, 17 Nov 2026 14:33:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 23CB7606A882
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=pps01 header.b=ZZkm4rSW;
-	dkim=pass (2048-bit key) header.d=columbia.edu header.i=@columbia.edu header.a=rsa-sha256 header.s=lionmail header.b=xrzf7sh5
-Received: from pps.filterd (m0167076.ppops.net [127.0.0.1])
-	by mx0b-00364e01.pphosted.com (8.18.1.11/8.18.1.11) with ESMTP id 6AGLYuGj1009624
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:31 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=columbia.edu; h=
-	cc:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to; s=pps01; bh=rxG4
-	ggWN6089uD/UJK7MpQ1pVb6XaNGi4HD+1f1YoOw=; b=ZZkm4rSWu1yb7mAyrIUS
-	UIh2Okum67IsmXyg3gimdcDS3j4mshs+GSCuqyAju4NHPshuaPoKUUmx1cfUk6h2
-	QMTI1tpFXypC+Q328fMpV/6SKam7J4SYpQ+lV0udwXvgxUEfBbzOaDKW/wWU16Ff
-	YaCZeTtDPRBgpv5BOXov2ZjmSi3UAa+gESr72asUK2wbbdBadQjV5C6gVcCfsl/z
-	6Q7on0WPJ6s04UKMWMS+g3MmYVPYUNnXm/K2wQ7xm5Oc+OXVw2KTKnZX/LFsvd8X
-	zaVmC5es6ngZwTfCpNigv45fCXdauBLPcZJwQZ5rOnr++SAhYu+3k45eTe5NoKW8
-	zA==
-Received: from mail-qk1-f198.google.com (mail-qk1-f198.google.com [209.85.222.198])
-	by mx0b-00364e01.pphosted.com (PPS) with ESMTPS id 4j059qu898-1
-	(version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NOT)
-	for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 17:08:31 -0500 (EST)
-Received: by mail-qk1-f198.google.com with SMTP id af79cd13be357-93f1f2fafeaso536421485a.2
-        for <ecryptfs@vger.kernel.org>; Mon, 16 Nov 2026 14:08:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=columbia.edu; s=lionmail; t=1794866910; x=1795471710; darn=vger.kernel.org;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:from:to:cc:subject:date
-         :message-id:reply-to:content-type;
-        bh=rxG4ggWN6089uD/UJK7MpQ1pVb6XaNGi4HD+1f1YoOw=;
-        b=xrzf7sh5lFjNp9q4cw7aBoHiXu3ZAhTaRIrhobRtLtm0ncFxUhZ1EwoYNoqwmDAq8H
-         3UdJEKnvTKsh9+vomoTbrmj5e1PIfOyu0SOfiFOfGL/xlPdFDN3v/axCJ8DOPcDhaWNL
-         wZcKzVnP0YTTf9KX4W7nXwOhE4Dyo65HJctFPHkwWywBGJkkD0bNmelrH0OVyE5DRrVx
-         rb+IDzEN3Nbml4RTnqMgfUZu6ongx1iEOYvel9KSbEyWmUnsp3FlTYuIVn2rWn9OxGSD
-         M7kSd0p8UZDD9QK/9LWyNF0zPbrinRroI83aFpDV3B1HUMy60TnCnA+1DNlO74AqRbNX
-         7cCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20260707; t=1794866910; x=1795471710;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :content-type:mime-version:subject:date:from:x-gm-gg
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
-         :content-type;
-        bh=rxG4ggWN6089uD/UJK7MpQ1pVb6XaNGi4HD+1f1YoOw=;
-        b=IvVIboXPRF4y76sJ6yo789aa9uaBlCm79LFDV2jyiUso6im9gWdSbimys9XKNv8V5z
-         cYDSo91GgXfMRxvUVWJG2x+hOtJ4n85jF4LsbM9Eq3hCXHEX+AZardGJydFUuh1lRYa5
-         gVI41szuS+IyrtOu0pMTthEQ9fEr+nP3c0oaN09owbeibeVy9xM5JntaZOt95CfurQZm
-         zjD2LniMYgA3jMC/nQ2Vdpuh54rhisH93N1R+v9UeQ5XfI8PE5NtK9l+MEV1CKPtoEAj
-         OAPMPFbPpKtNVHGPh0CeRerJQVb+cuCgNYtMDm+HMa7rdrWQUqlOTUwpgoILXXcaTDly
-         yvBQ==
-X-Gm-Message-State: APuU4Z8svxhDWkY0bePOgMI/zuK1FsRTB+8MJDcFnEdMtRBqoY4CDmjG
-	GeBwrKMtv/BunEduA9KXW0PBTayx+hMcNV52/4s9Lua2gE0rrWxcYaiMynltTaKBXSdlDrk9nOr
-	2QZuxkdU5EzvhQ1NQxa8JmO661X/8SL8ImTxLqX86PtZFajwx4ByzKo25
-X-Gm-Gg: AYBFou01Xbgyq1aXVS/Ce5G8sB771cXyYOC23o5jWuQj5gdLuWCORO92r0GB3Qhs1yz
-	1+f8LTBRGTKDpHqjdsHULTwSH4xz006AtdJZXUuSERBJPuz743PDKgS+K6biKeILP5OBm+VjZsk
-	WKLvvu8F4VnxTP75NZXRj5R4KeSGUnfsgke2opaoj6MfyvjStjnLGxA/sJ6ftH8F4KA5/R9oH+H
-	wRdzxc3mvA/rXUROieIiSWr1zLYuKtZi62L8ythGyXZIi++cczfjxE95pAHllMbRq837SQ8FADy
-	Lxy3pD73zBiZC0d7hc1sZzMB20aYs1evtrOWeCyrvJEE5W2fElACdT+PMP0H500mL4r4iid1DHO
-	EIT5bE18B/YhfqCOXyaFPn3ZiCmQsn8lMmbJnuqUzUOszcDM6FDPnHnIUR85w/9AjeUiR9lIOSj
-	1vuBBz8LMaC1RSs6gSlAEt
-X-Received: by 2002:a05:620a:2788:b0:945:f28f:ce92 with SMTP id af79cd13be357-9494bbf547emr1794102385a.40.1794866910612;
-        Mon, 16 Nov 2026 14:08:30 -0800 (PST)
-X-Received: by 2002:a05:620a:2788:b0:945:f28f:ce92 with SMTP id af79cd13be357-9494bbf547emr1794099185a.40.1794866910166;
-        Mon, 16 Nov 2026 14:08:30 -0800 (PST)
-Received: from [127.0.1.1] (nat-128-59-176-174.net.columbia.edu. [128.59.176.174])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-9494c86c946sm951838885a.25.2026.11.16.14.08.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 16 Nov 2026 14:08:29 -0800 (PST)
-From: Tal Zussman <tz2294@columbia.edu>
-Date: Mon, 16 Nov 2026 17:08:15 -0500
-Subject: [PATCH v3 09/10] ecryptfs: rename functions to refer to folios
+	dkim=pass (1024-bit key) header.d=huawei.com header.i=@huawei.com header.a=rsa-sha256 header.s=dkim header.b=fmE8M1h5
+dkim-signature: v=1; a=rsa-sha256; d=huawei.com; s=dkim;
+	c=relaxed/relaxed; q=dns/txt;
+	h=From;
+	bh=By2TgM9Xeiq5fwyI6d3OB7CNRr7DwQCDNevlT/7vutY=;
+	b=fmE8M1h5jCOHDWXgeJCJFeb0hX7leMPaHPbVAUYxGt8hzFBowo9Z2rEnwEM2Ez5r8Ka6rpuE6
+	fQfdQkYAzFq3InspAmYMT/Q1LWAGscF3EBrD7IpGRyf97gtdnnwp61LHAuyS/9PH/5bg4Hjc0Wp
+	6DdiHT2efGkXmfXx1MI9Whg=
+Received: from mail.maildlp.com (unknown [172.19.163.104])
+	by canpmsgout02.his.huawei.com (SkyGuard) with ESMTPS id 4jTRym4C4Gzcb3H;
+	Tue, 17 Nov 2026 22:32:32 +0800 (CST)
+Received: from whupemk100010.china.huawei.com (unknown [7.152.184.41])
+	by mail.maildlp.com (Postfix) with ESMTPS id A5EA34057F;
+	Tue, 17 Nov 2026 22:33:23 +0800 (CST)
+Received: from octopus.huawei.com (10.67.174.191) by
+ whupemk100010.china.huawei.com (7.152.184.41) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.2562.45; Tue, 17 Nov 2026 22:33:17 +0800
+From: Cai Xinchen <caixinchen1@huawei.com>
+To: <mic@digikod.net>, <gnoack@google.com>, <paul@paul-moore.com>,
+	<brauner@kernel.org>, <jack@suse.cz>, <caixinchen1@huawei.com>
+CC: <amir73il@gmail.com>, <andrii@kernel.org>, <apparmor@lists.ubuntu.com>,
+	<ast@kernel.org>, <axboe@kernel.dk>, <bpf@vger.kernel.org>,
+	<casey@schaufler-ca.com>, <cel@kernel.org>, <cem@kernel.org>,
+	<chenxiaosong@chenxiaosong.com>, <code@tyhicks.com>, <corbet@lwn.net>,
+	<Dai.Ngo@oracle.com>, <dakr@kernel.org>, <daniel@iogearbox.net>,
+	<dhowells@redhat.com>, <dlemoal@kernel.org>, <dmitry.kasatkin@gmail.com>,
+	<driver-core@lists.linux.dev>, <dsterba@suse.com>,
+	<ecryptfs@vger.kernel.org>, <eddyz87@gmail.com>, <emil@etsalapatis.com>,
+	<eric.snowberg@oracle.com>, <exfat@lists.linux.dev>,
+	<georgia.garcia@canonical.com>, <gregkh@linuxfoundation.org>, <hch@lst.de>,
+	<hirofumi@mail.parknet.co.jp>, <hyc.lee@gmail.com>,
+	<ihor.solodrai@linux.dev>, <jlayton@kernel.org>, <jmorris@namei.org>,
+	<johan@kernel.org>, <john.fastabend@gmail.com>,
+	<john.johansen@canonical.com>, <jolsa@kernel.org>, <kpsingh@kernel.org>,
+	<linkinjeon@kernel.org>, <linux-api@vger.kernel.org>,
+	<linux-block@vger.kernel.org>, <linux-btrfs@vger.kernel.org>,
+	<linux-cifs@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <linux-integrity@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-kselftest@vger.kernel.org>,
+	<linux-nfs@vger.kernel.org>, <linux-security-module@vger.kernel.org>,
+	<linux-trace-kernel@vger.kernel.org>, <linux-unionfs@vger.kernel.org>,
+	<linux-xfs@vger.kernel.org>, <liubaolin12138@163.com>,
+	<martin.lau@linux.dev>, <mason@kernel.org>, <mathieu.desnoyers@efficios.com>,
+	<matt@bobrowski.net>, <memxor@gmail.com>, <mhiramat@kernel.org>,
+	<miklos@szeredi.hu>, <neil@brown.name>, <netfs@lists.linux.dev>,
+	<ntfs@lists.linux.dev>, <okorniev@redhat.com>, <omosnacek@gmail.com>,
+	<penguin-kernel@I-love.SAKURA.ne.jp>, <rafael@kernel.org>,
+	<rdunlap@infradead.org>, <roberto.sassu@huawei.com>, <rostedt@goodmis.org>,
+	<selinux@vger.kernel.org>, <senozhatsky@chromium.org>, <serge@hallyn.com>,
+	<sj1557.seo@samsung.com>, <skhan@linuxfoundation.org>, <song@kernel.org>,
+	<stephen.smalley.work@gmail.com>, <takedakn@nttdata.co.jp>, <tom@talpey.com>,
+	<viro@zeniv.linux.org.uk>, <yonghong.song@linux.dev>, <yuezhang.mo@sony.com>,
+	<zohar@linux.ibm.com>, <utilityemal77@gmail.com>, <lujialin4@huawei.com>
+Subject: [PATCH -next -v4 00/17] landlock: Add READ_METADATA and WRITE_METADATA access rights
+Date: Tue, 17 Nov 2026 23:05:25 +0800
+Message-ID: <20261117150542.1169451-1-caixinchen1@huawei.com>
+X-Mailer: git-send-email 2.18.0.huawei.25
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -114,353 +99,312 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20261116-ecryptfs-folio-v3-9-1aba8e620eda@columbia.edu>
-References: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
-In-Reply-To: <20261116-ecryptfs-folio-v3-0-1aba8e620eda@columbia.edu>
-To: Tyler Hicks <code@tyhicks.com>, Erez Zadok <ezk@cs.sunysb.edu>,
-        Phillip Hellewell <phillip@hellewell.homeip.net>,
-        Badari Pulavarty <pbadari@us.ibm.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc: ecryptfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Stephan Mueller <smueller@chronox.de>, Adrian Bunk <bunk@stusta.de>,
-        Michael Halcrow <mhalcrow@us.ibm.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Tal Zussman <tz2294@columbia.edu>
-X-Mailer: b4 0.17-dev
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1794866899; l=12276;
- i=tz2294@columbia.edu; s=20250528; h=from:subject:message-id;
- bh=GUSPZZZpDb+WYfUnla3AaNXxM4VFpo16ifORSK9V2Gk=;
- b=cm6oFXzc01yoJaDmyVEKBHvrttJalFOfSkIx/ZgIct5rv6XWulTktQ9seyA9aGBaj1Hofmkxp
- /xX3/qPJ1dtCFRAVsB1Q3y+CsWHSTZMJ7w9BC3ZPLu3ybheMelI8A79
-X-Developer-Key: i=tz2294@columbia.edu; a=ed25519;
- pk=BIj5KdACscEOyAC0oIkeZqLB3L94fzBnDccEooxeM5Y=
-X-Authority-Analysis: v=2.4 cv=L/qI0OT8 c=1 sm=1 tr=0 ts=6afb7edf cx=c_pps
- a=qKBjSQ1v91RyAK45QCPf5w==:117 a=KPY1cyGZ6h6m4ASiENTC8Q==:17
- a=IkcTkHD0fZMA:10 a=zJRp6_cAMcgA:10 a=x7bEGLp0ZPQA:10 a=A0y_DWxS2BwA:10
- a=VkNPw1HP01LnGYTKEx00:22 a=Da8U98TiO7q1upZEImrf:22 a=Qm0qsxP7aFY2tkT6R2MF:22
- a=UvMYEBrEvhs-qqGVCq8A:9 a=QEXdDO2ut3YA:10 a=NFOGd7dJGGMPyQGDc5-O:22
-X-Proofpoint-GUID: r1dA5mHIxzgftdPahLXHGv5CrlZEqynF
-X-Proofpoint-ORIG-GUID: r1dA5mHIxzgftdPahLXHGv5CrlZEqynF
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfXw8Pvy2w9UlEN
- sHl0C+vGJZirOEMtxo3Hq8xQkaUsD6MSCupbAJOfTbX8uNXZZqUH3b0MI5TyX9qyFiClTP65S8I
- 2kRjXBDhfDUsQZ+aPZnx6qBAq5zkoVqDZUYj21B/uAjZT3s2fSQb4Txgf4lcI/7eh/4N5hfz2vK
- ynl/HHgaPospcrV69Ci1H9CItW1Nm23vrOA3p+PWMAbQl/nelqQKfXV0W/l6Kn3JlJOuaT4zYqH
- xVyxQZXEjC8tQG1MQNVP7yweu3bzmb50yU94HHbV41Fh8YCr/iZMSxFSX8QAN1vg5D3Uwn3LyLr
- 3xB/3X9S9nHvVhf4PGsOkBI62oejKW0Cy/aZ8xqOL/mKHfzU0bT8yPAHDfCtrnrsWg+YxAFJuBV
- o8ypkCJuhwqShWyFyBn2U4Due/rjI0Hyq5wVcFmKWYWrZqFZal2FNhuLAPjJ/ar/tdr3qa0zGfY
- hhPOqwW9LtWlGnl1buQ==
-X-Proofpoint-Spam-Info: AW1haW4tMjYxMTE2MDA4NyBTYWx0ZWRfX6yxaO7PM+PCG
- EbriUlSKgSAdrqEpOU05mSyOR/sM3Icf0P+SMJNkVygOuNzZFxF2OvvRp/XGLAVJslBqy8SMsed
- UYvYvmJmVDsX3KFEpgnWAjsNGmlY3qBp1H/cHY1HQYQJohpQPBk1
-X-Proofpoint-Virus-Version: vendor=nai engine=6900 definitions=11968
- signatures=596817
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
- impostorscore=10 lowpriorityscore=10 adultscore=0 priorityscore=1501
- malwarescore=0 bulkscore=10 suspectscore=0 phishscore=0 clxscore=1015
- spamscore=0 classifier=typeunknown authscore=0 authtc= authcc= route=outbound
- adjust=0 reason=mlx scancount=1 engine=8.22.0-2611040001
- definitions=main-2611160087
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems100002.china.huawei.com (7.221.188.206) To
+ whupemk100010.china.huawei.com (7.152.184.41)
 
-ecryptfs_encrypt_page(), ecryptfs_decrypt_page(),
-ecryptfs_read_lower_page_segment(), ecryptfs_write_lower_page_segment(),
-lower_offset_for_page() and fill_zeros_to_end_of_page() all take a folio
-now. Rename them accordingly.
+This series adds two new Landlock filesystem access rights,
+LANDLOCK_ACCESS_FS_READ_METADATA and LANDLOCK_ACCESS_FS_WRITE_METADATA,
+which control access to file and directory metadata such as inode
+attributes (mode, ownership, timestamps), extended attributes, POSIX
+ACLs and chattr(1)-style flags.  It picks up the work from the
+"landlock: add chmod and chown support" series [1] and follows the
+coarse-grained grouping discussed in that thread [2]: instead of
+separate chmod/chown rights, metadata operations are grouped into one
+read and one write right.
 
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
----
- fs/ecryptfs/crypto.c          | 16 ++++++++--------
- fs/ecryptfs/ecryptfs_kernel.h |  8 ++++----
- fs/ecryptfs/inode.c           |  2 +-
- fs/ecryptfs/mmap.c            | 26 +++++++++++++-------------
- fs/ecryptfs/read_write.c      | 12 ++++++------
- 5 files changed, 32 insertions(+), 32 deletions(-)
+Landlock evaluates access rights on a per-path basis, but the
+metadata related LSM hooks (inode_setattr, inode_setsecctx, the inode
+xattr, POSIX ACL and fileattr hooks) only receive the dentry of the
+accessed object.  Patches 1-8 therefore first pass struct path
+instead of dentry through the metadata-related VFS helpers and LSM
+hooks.  The hooks also receive a struct file argument, set by the
+VFS to the file through which the operation is requested when there
+is one (i.e. for the file descriptor-based system calls such as
+fchmod(2), fchown(2), fgetxattr(2), utimensat(2) on an empty path,
+and for the FS_IOC_* ioctls and file_[gs]etattr(2) with
+AT_EMPTY_PATH), and NULL otherwise (i.e. for the path-based system
+calls and for kernel-internal accesses).  This is a pure refactoring
+with no behavior change for the other LSMs, which only have their
+hook implementations' signatures updated; the file argument is only
+consumed by Landlock (patch 14).  The series is split so that every
+patch builds on its own:
 
-diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
-index f0e67b48917f..bbaeb9a38db0 100644
---- a/fs/ecryptfs/crypto.c
-+++ b/fs/ecryptfs/crypto.c
-@@ -212,11 +212,11 @@ static int crypt_scatterlist(struct ecryptfs_crypt_stat *crypt_stat,
- }
- 
- /*
-- * lower_offset_for_page
-+ * lower_offset_for_folio
-  *
-  * Convert an eCryptfs page index into a lower byte offset
-  */
--static loff_t lower_offset_for_page(struct ecryptfs_crypt_stat *crypt_stat,
-+static loff_t lower_offset_for_folio(struct ecryptfs_crypt_stat *crypt_stat,
- 				    struct folio *folio)
- {
- 	return ecryptfs_lower_header_size(crypt_stat) +
-@@ -274,7 +274,7 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
- }
- 
- /**
-- * ecryptfs_encrypt_page
-+ * ecryptfs_encrypt_folio
-  * @folio: Folio mapped from the eCryptfs inode for the file; contains
-  *        decrypted content that needs to be encrypted (to a temporary
-  *        buffer; not in place) and written out to the lower file
-@@ -289,7 +289,7 @@ static int crypt_extent(struct ecryptfs_crypt_stat *crypt_stat,
-  *
-  * Returns zero on success; negative on error
-  */
--int ecryptfs_encrypt_page(struct folio *folio)
-+int ecryptfs_encrypt_folio(struct folio *folio)
- {
- 	struct inode *ecryptfs_inode;
- 	struct ecryptfs_crypt_stat *crypt_stat;
-@@ -322,7 +322,7 @@ int ecryptfs_encrypt_page(struct folio *folio)
- 		}
- 	}
- 
--	lower_offset = lower_offset_for_page(crypt_stat, folio);
-+	lower_offset = lower_offset_for_folio(crypt_stat, folio);
- 	rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt, lower_offset,
- 				  PAGE_SIZE);
- 	if (rc < 0) {
-@@ -338,7 +338,7 @@ int ecryptfs_encrypt_page(struct folio *folio)
- }
- 
- /**
-- * ecryptfs_decrypt_page
-+ * ecryptfs_decrypt_folio
-  * @folio: Folio mapped from the eCryptfs inode for the file; data read
-  *        and decrypted from the lower file will be written into this
-  *        page
-@@ -353,7 +353,7 @@ int ecryptfs_encrypt_page(struct folio *folio)
-  *
-  * Returns zero on success; negative on error
-  */
--int ecryptfs_decrypt_page(struct folio *folio)
-+int ecryptfs_decrypt_folio(struct folio *folio)
- {
- 	struct inode *ecryptfs_inode;
- 	struct ecryptfs_crypt_stat *crypt_stat;
-@@ -367,7 +367,7 @@ int ecryptfs_decrypt_page(struct folio *folio)
- 		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
- 	BUG_ON(!(crypt_stat->flags & ECRYPTFS_ENCRYPTED));
- 
--	lower_offset = lower_offset_for_page(crypt_stat, folio);
-+	lower_offset = lower_offset_for_folio(crypt_stat, folio);
- 	page_virt = kmap_local_folio(folio, 0);
- 	rc = ecryptfs_read_lower(page_virt, lower_offset, PAGE_SIZE,
- 				 ecryptfs_inode);
-diff --git a/fs/ecryptfs/ecryptfs_kernel.h b/fs/ecryptfs/ecryptfs_kernel.h
-index 301744f0f819..2abead07a84c 100644
---- a/fs/ecryptfs/ecryptfs_kernel.h
-+++ b/fs/ecryptfs/ecryptfs_kernel.h
-@@ -552,8 +552,8 @@ void ecryptfs_destroy_mount_crypt_stat(
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat);
- int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat);
- int ecryptfs_write_inode_size_to_metadata(struct inode *ecryptfs_inode);
--int ecryptfs_encrypt_page(struct folio *folio);
--int ecryptfs_decrypt_page(struct folio *folio);
-+int ecryptfs_encrypt_folio(struct folio *folio);
-+int ecryptfs_decrypt_folio(struct folio *folio);
- int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
- 			    struct inode *ecryptfs_inode);
- int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry);
-@@ -636,13 +636,13 @@ int ecryptfs_keyring_auth_tok_for_sig(struct key **auth_tok_key,
- 				      char *sig);
- int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
- 			 loff_t offset, size_t size);
--int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
-+int ecryptfs_write_lower_folio_segment(struct inode *ecryptfs_inode,
- 				      struct folio *folio_for_lower,
- 				      size_t offset_in_page, size_t size);
- int ecryptfs_write(struct inode *inode, char *data, loff_t offset, size_t size);
- int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
- 			struct inode *ecryptfs_inode);
--int ecryptfs_read_lower_page_segment(struct folio *folio_for_ecryptfs,
-+int ecryptfs_read_lower_folio_segment(struct folio *folio_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode);
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index ffab685688ab..fdf65b25ced0 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -744,7 +744,7 @@ static int ecryptfs_zero_tail(struct inode *inode, loff_t pos)
- 	from = offset_in_folio(folio, pos);
- 	folio_lock(folio);
- 	folio_zero_range(folio, from, folio_size(folio) - from);
--	rc = ecryptfs_encrypt_page(folio);
-+	rc = ecryptfs_encrypt_folio(folio);
- 	if (rc)
- 		folio_clear_uptodate(folio);
- 	folio_unlock(folio);
-diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
-index 07a6c8448100..d841610644ed 100644
---- a/fs/ecryptfs/mmap.c
-+++ b/fs/ecryptfs/mmap.c
-@@ -34,7 +34,7 @@ static int ecryptfs_writepages(struct address_space *mapping,
- 	int error;
- 
- 	while ((folio = writeback_iter(mapping, wbc, folio, &error))) {
--		error = ecryptfs_encrypt_page(folio);
-+		error = ecryptfs_encrypt_folio(folio);
- 		if (error) {
- 			ecryptfs_printk(KERN_WARNING,
- 				"Error encrypting folio (index [0x%.16lx])\n",
-@@ -133,7 +133,7 @@ ecryptfs_copy_up_encrypted_with_header(struct folio *folio,
- 				((view_extent_num * crypt_stat->extent_size)
- 				 - crypt_stat->metadata_size);
- 
--			rc = ecryptfs_read_lower_page_segment(
-+			rc = ecryptfs_read_lower_folio_segment(
- 				folio, (lower_offset >> PAGE_SHIFT),
- 				(lower_offset & ~PAGE_MASK),
- 				crypt_stat->extent_size, folio->mapping->host);
-@@ -168,7 +168,7 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 	int err = 0;
- 
- 	if (!crypt_stat || !(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
--		err = ecryptfs_read_lower_page_segment(folio, folio->index, 0,
-+		err = ecryptfs_read_lower_folio_segment(folio, folio->index, 0,
- 				folio_size(folio), inode);
- 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
- 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
-@@ -184,7 +184,7 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 			}
- 
- 		} else {
--			err = ecryptfs_read_lower_page_segment(folio,
-+			err = ecryptfs_read_lower_folio_segment(folio,
- 					folio->index, 0, folio_size(folio),
- 					inode);
- 			if (err) {
-@@ -194,7 +194,7 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- 			}
- 		}
- 	} else {
--		err = ecryptfs_decrypt_page(folio);
-+		err = ecryptfs_decrypt_folio(folio);
- 		if (err) {
- 			ecryptfs_printk(KERN_ERR, "Error decrypting page; "
- 					"err = [%d]\n", err);
-@@ -211,7 +211,7 @@ static int ecryptfs_read_folio(struct file *file, struct folio *folio)
- /*
-  * Called with lower inode mutex held.
-  */
--static int fill_zeros_to_end_of_page(struct folio *folio, unsigned int to)
-+static int fill_zeros_to_end_of_folio(struct folio *folio, unsigned int to)
- {
- 	struct inode *inode = folio->mapping->host;
- 	int end_byte_in_page;
-@@ -261,7 +261,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 			&ecryptfs_inode_to_private(mapping->host)->crypt_stat;
- 
- 		if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
--			rc = ecryptfs_read_lower_page_segment(
-+			rc = ecryptfs_read_lower_folio_segment(
- 				folio, index, 0, PAGE_SIZE, mapping->host);
- 			if (rc) {
- 				printk(KERN_ERR "%s: Error attempting to read "
-@@ -287,7 +287,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 				}
- 				folio_mark_uptodate(folio);
- 			} else {
--				rc = ecryptfs_read_lower_page_segment(
-+				rc = ecryptfs_read_lower_folio_segment(
- 					folio, index, 0, PAGE_SIZE,
- 					mapping->host);
- 				if (rc) {
-@@ -305,7 +305,7 @@ static int ecryptfs_write_begin(const struct kiocb *iocb,
- 				folio_zero_range(folio, 0, PAGE_SIZE);
- 				folio_mark_uptodate(folio);
- 			} else if (len < PAGE_SIZE) {
--				rc = ecryptfs_decrypt_page(folio);
-+				rc = ecryptfs_decrypt_folio(folio);
- 				if (rc) {
- 					printk(KERN_ERR "%s: Error decrypting "
- 					       "page at index [%ld]; "
-@@ -443,10 +443,10 @@ static int ecryptfs_write_end(const struct kiocb *iocb,
- 		&ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
- 	int rc;
- 
--	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
-+	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_folio"
- 			"(page w/ index = [0x%.16lx], to = [%d])\n", index, to);
- 	if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
--		rc = ecryptfs_write_lower_page_segment(ecryptfs_inode,
-+		rc = ecryptfs_write_lower_folio_segment(ecryptfs_inode,
- 				folio, 0, to);
- 		if (!rc) {
- 			rc = copied;
-@@ -463,13 +463,13 @@ static int ecryptfs_write_end(const struct kiocb *iocb,
- 		folio_mark_uptodate(folio);
- 	}
- 	/* Fills in zeros if 'to' goes beyond inode size */
--	rc = fill_zeros_to_end_of_page(folio, to);
-+	rc = fill_zeros_to_end_of_folio(folio, to);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "Error attempting to fill "
- 			"zeros in page with index = [0x%.16lx]\n", index);
- 		goto out;
- 	}
--	rc = ecryptfs_encrypt_page(folio);
-+	rc = ecryptfs_encrypt_folio(folio);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
- 				"index [0x%.16lx])\n", index);
-diff --git a/fs/ecryptfs/read_write.c b/fs/ecryptfs/read_write.c
-index 0881945da99d..fa876eef85ad 100644
---- a/fs/ecryptfs/read_write.c
-+++ b/fs/ecryptfs/read_write.c
-@@ -39,7 +39,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
- }
- 
- /**
-- * ecryptfs_write_lower_page_segment
-+ * ecryptfs_write_lower_folio_segment
-  * @ecryptfs_inode: The eCryptfs inode
-  * @folio_for_lower: The folio containing the data to be written to the
-  *                  lower file
-@@ -54,7 +54,7 @@ int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
-  *
-  * Returns zero on success; non-zero otherwise
-  */
--int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
-+int ecryptfs_write_lower_folio_segment(struct inode *ecryptfs_inode,
- 				      struct folio *folio_for_lower,
- 				      size_t offset_in_page, size_t size)
- {
-@@ -167,9 +167,9 @@ int ecryptfs_write(struct inode *ecryptfs_inode, char *data, loff_t offset,
- 		flush_dcache_folio(ecryptfs_folio);
- 		folio_mark_uptodate(ecryptfs_folio);
- 		if (crypt_stat->flags & ECRYPTFS_ENCRYPTED)
--			rc = ecryptfs_encrypt_page(ecryptfs_folio);
-+			rc = ecryptfs_encrypt_folio(ecryptfs_folio);
- 		else
--			rc = ecryptfs_write_lower_page_segment(ecryptfs_inode,
-+			rc = ecryptfs_write_lower_folio_segment(ecryptfs_inode,
- 						ecryptfs_folio,
- 						start_offset_in_page,
- 						data_offset);
-@@ -229,7 +229,7 @@ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
- }
- 
- /**
-- * ecryptfs_read_lower_page_segment
-+ * ecryptfs_read_lower_folio_segment
-  * @folio_for_ecryptfs: The folio into which data for eCryptfs will be
-  *                     written
-  * @page_index: Page index in @page_for_ecryptfs from which to start
-@@ -245,7 +245,7 @@ int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
-  *
-  * Returns zero on success; non-zero otherwise
-  */
--int ecryptfs_read_lower_page_segment(struct folio *folio_for_ecryptfs,
-+int ecryptfs_read_lower_folio_segment(struct folio *folio_for_ecryptfs,
- 				     pgoff_t page_index,
- 				     size_t offset_in_page, size_t size,
- 				     struct inode *ecryptfs_inode)
+  1: notify_change() and its callers
+  2: inode_setsecctx hook (must come before 3: the SELinux and Smack
+     implementations call __vfs_setxattr_locked internally)
+  3: xattr helpers, which also drops a redundant EVM xattr size sanity
+     check whose vfs_getxattr() call only has a dentry and therefore
+     cannot be migrated to the new path-based signature
+  4: POSIX ACL helpers
+  5: inode xattr hooks, threaded through the xattr helpers so that
+     the f[gs]etxattr(2) and io_uring flows pass their file
+  6: inode POSIX ACL hooks, threaded through do_set_acl()/do_get_acl()
+  7: inode fileattr hooks (FS_IOC_[GS]ETFLAGS, FS_IOC_FS[SG]ETXATTR,
+     file_[gs]etattr(2)), which also adds a __vfs_fileattr_get()
+     counterpart without security checks for the kernel-internal
+     readers (nfsd), and removes the ovl_security_fileattr() hack by
+     forwarding the real upper/lower path to the checked
+     vfs_fileattr_get()/_set() from ecryptfs and overlayfs
+  8: inode_setattr hook, which now receives the struct file held by
+     the fd-based callers (fchmod(2), fchown(2), fchmodat2(2) and
+     fchownat(2) with AT_EMPTY_PATH, utimensat(2) on an empty path);
+     do_truncate() passes NULL because size changes are governed by
+     the truncate hooks.  The hook is renamed to path_setattr in the
+     same patch, so that a stale BPF LSM program attaching to
+     lsm/inode_setattr fails to load instead of reading dentry->d_flags
+     where it expects iattr->ia_valid (see below)
+
+Three deliberate scoping decisions for this refactor:
+
+- The hooks consistently take struct path rather than struct file as
+  their primary object.  The VFS call sites involved (chmod(2),
+  chown(2), utimensat(2), xattr(2) and ACL syscalls) operate on
+  paths, and several of them (lstat(2), lchown(2), llistxattr(2),
+  ...) have no struct file to begin with.  The optional struct file
+  argument carries the open-time semantic described below.
+
+- struct inode_operations->setattr still receives (idmap, dentry, attr).
+  Only the VFS boundary (notify_change()) and the LSM hook layer see the
+  path, which keeps the refactor contained to fs/attr.c and the LSM
+  infrastructure instead of touching every filesystem.
+
+- The path argument of the hooks is only meant to be handed to VFS
+  helpers taking a struct path (e.g., notify_change(), the xattr
+  helpers): the VFS makes no guarantees with regard to path->mnt,
+  whose layout and implementation details are subject to change, and
+  implementations must not rely on its properties.  The idmap, in
+  contrast, is passed separately so that the VFS and the filesystem
+  are guaranteed to see the same idmap.
+
+Unlike what was done for LANDLOCK_ACCESS_FS_TRUNCATE, no new file_*
+hooks are introduced for the file descriptor flows: the metadata
+hooks are already consumed by other LSMs (SELinux, Smack, EVM, IMA,
+AppArmor, TOMOYO) on these flows, and routing them to new hooks
+would either silently remove the other LSMs' checks, or keep the
+path_* hooks as well and check twice with Landlock.  Passing the
+struct file to the existing path_* hooks instead keeps the pipeline
+and the other LSMs' behavior unchanged, while giving Landlock the
+information it needs to apply the open-time semantic below.
+
+Since these hooks now operate on paths rather than inodes, patches
+8-13 rename them to the path_* naming convention used by the other
+hooks that take a struct path (path_chmod, path_chown, path_link,
+...).  The inode_setattr hook is renamed in patch 8, in the same patch
+that changes its ctx layout: BPF LSM program arguments are retyped
+from the hook prototype at verification time and are not checked
+against a versioned ABI, so leaving the old name in place for a few
+patches would let a stale program read dentry->d_flags where it
+expects iattr->ia_valid, silently inverting a deny rule.  The
+inode_getattr hook, which already received a struct path, is renamed
+to path_getattr as well; patch 9 also threads the struct file held by
+the fd-based vfs_fstat() and vfs_statx_fd() callers through it, while
+the many kernel-internal vfs_getattr() callers keep a wrapper which
+passes NULL.  Apart from patch 8 and the file threading in patch 9,
+these renames are purely mechanical and can be reviewed independently.
+
+Patch 14 then adds the access rights and implements their
+enforcement, and patches 15-17 add the selftests, the sandboxer
+sample update and the documentation.
+
+Patch 14 applies the LANDLOCK_ACCESS_FS_TRUNCATE mechanic to the
+new rights, following Mickaël's confirmation [4]: for operations on
+already opened files, it is the access rights at the time of open(2)
+which decide whether a metadata operation is permitted, not the
+rights of the current thread.  READ_METADATA and WRITE_METADATA are
+looked up at open time, recorded in the opened file, and consumed by
+the metadata hooks when they are called with a file.  As a
+consequence:
+
+- A file descriptor opened before sandboxing keeps allowing metadata
+  operations whatever the current domain is, which resolves the
+  "catch-22" raised by Justin [5]: an already opened file descriptor
+  keeps working, it is not an escape hatch because its rights were
+  fixed when it was legitimate to open the file.
+- Conversely, a restricted file descriptor passed to another
+  (possibly non-landlocked) process keeps denying metadata
+  operations: the file descriptor carries the rights of the process
+  which opened it.
+- ioctl(FS_IOC_GETFLAGS) and friends on a file descriptor opened
+  without READ_METADATA are now denied, which closes the metadata
+  leak Justin was concerned about.
+- O_PATH file descriptors are an exception: they are not opened
+  through the open permission checks (cf. do_dentry_open()) and
+  carry no recorded rights; metadata accesses through them are
+  checked against the current domain, like path-based accesses.
+- File descriptors obtained without going through the file_open
+  hook (e.g. memfd_create(2), pipes, sockets) keep the full access
+  rights granted at file allocation time, consistent with the
+  truncate behavior.
+- deny_masks_t is widened from u8 to u16 to keep tracking one
+  nibble per optional access right for the audit logs.
+
+The Landlock ABI version is incremented from 12 to 13; ABI 12 was
+taken by the capability and namespace use restrictions that are
+already in linux-next.
+
+The series is based on linux-next commit 749a4de37040 ("Add linux-next
+specific files for 20261116").
+
+Changes since v3 [6]:
+
+- The empty-path branch of do_fchmodat(), do_fchownat() and
+  do_utimes_path() used fdget(), which rejects O_PATH file
+  descriptors.  It now uses fd_raw, the same lookup path_init() uses
+  for an empty path, so AT_EMPTY_PATH metadata operations work again
+  on O_PATH descriptors; futimens(2) keeps rejecting O_PATH, and a
+  NULL pathname returns -EFAULT instead of being turned into an empty
+  path (patch 8).
+- Every hook that gained a struct file argument is declared with a
+  strong file__nullable definition in kernel/bpf/bpf_lsm_proto.c, so
+  the verifier requires a NULL check before dereferencing it
+  (patches 5-12).
+- The ntfs named stream setattr no longer bypasses the hooks: it goes
+  through notify_change_target(), which performs the path-based LSM
+  checks on the caller-supplied path while the attributes land on the
+  base inode, and the borrowed path is dropped from the caller-owned
+  struct iattr before notify_change() returns (patch 1).
+- ecryptfs and overlayfs run the fileattr hooks on the real
+  upper/lower path instead of calling unchecked helpers, and the
+  ksmbd xattr helper passes the file it was given instead of NULL
+  (patches 5 and 7).
+- Since a trusted struct path lets BPF LSM programs reach path->dentry
+  and call the dentry xattr kfuncs, the sleepable path hooks that
+  always run under i_rwsem use the _locked kfunc variants, while the
+  hooks that can run either way (path_link, path_rename, path_rmdir,
+  path_unlink and path_getattr, which nfsd reaches with the inode
+  already locked) reject both variants (patch 8).
+- fchmod(2) and fchown(2) are not O_PATH-capable metadata interfaces
+  and are no longer listed as such in the UAPI header and in the
+  userspace documentation (patches 14 and 17).
+- The setattr hook rename is folded into the patch that changes its
+  ctx layout, so that a stale BPF LSM program cannot be silently
+  reinterpreted, and that patch now comes right before the getattr
+  rename (patch 8).
+- ksmbd reports the share root for the ".." entry when follow_up()
+  cannot leave a mount that was detached, instead of using a parent
+  which that mount does not cover (patch 3).
+- The Landlock changelog states that kernel-internal getattr calls
+  made under the caller's credentials, such as NFS localio's
+  post-write attribute refresh, are subject to READ_METADATA too, and
+  that localio discards the resulting error (patch 14).
+
+[1]
+https://lore.kernel.org/all/20220827111215.131442-1-xiujianfeng@huawei.com/
+[2]
+https://lore.kernel.org/all/abc960a1-e66e-792e-6869-cfd201c29dbe@digikod.net/
+[3]
+https://lore.kernel.org/all/20261015125425.3246251-1-caixinchen1@huawei.com/
+[4] https://lore.kernel.org/all/20260929.Ahgoo4yeetai@digikod.net/
+[5] https://lore.kernel.org/all/arvjb0HJYh1KyEBB@suesslenovo/
+[6]
+https://lore.kernel.org/all/20261027121151.1887650-1-caixinchen1@huawei.com/
+
+Cai Xinchen (17):
+  fs: pass struct path to notify_change()
+  LSM: pass struct path to the inode_setsecctx hook
+  fs: pass struct path to xattr helpers
+  fs: pass struct path to POSIX ACL helpers
+  LSM: pass struct path and struct file to the inode xattr hooks
+  LSM: pass struct path and struct file to the inode posix acl hooks
+  LSM: pass struct path and struct file to the inode fileattr hooks
+  LSM: rename inode_setattr to path_setattr and pass struct path and
+    file
+  LSM: rename inode_getattr to path_getattr and pass struct file
+  LSM: rename the inode xattr hooks to path_xattr hooks
+  LSM: rename the inode posix acl hooks to path_*_acl hooks
+  LSM: rename the inode fileattr hooks to path_file_* hooks
+  LSM: rename inode_setsecctx to path_setsecctx
+  landlock: Add READ_METADATA and WRITE_METADATA access rights
+  selftests/landlock: Add tests for metadata access rights
+  samples/landlock: Add metadata rights to sandboxer
+  Documentation: Update landlock doc for metadata rights
+
+ Documentation/admin-guide/LSM/landlock.rst    |   2 +
+ Documentation/bpf/fs_kfuncs.rst               |   2 +-
+ Documentation/filesystems/porting.rst         |  63 ++
+ Documentation/trace/events-landlock.rst       |  18 +-
+ Documentation/userspace-api/landlock.rst      | 148 ++-
+ drivers/base/devtmpfs.c                       |   6 +-
+ drivers/block/loop.c                          |  12 +-
+ drivers/block/zloop.c                         |  23 +-
+ fs/attr.c                                     | 119 ++-
+ fs/bpf_fs_kfuncs.c                            |  58 +-
+ fs/btrfs/volumes.c                            |   2 +-
+ fs/cachefiles/xattr.c                         |  45 +-
+ fs/coredump.c                                 |   2 +-
+ fs/ecryptfs/inode.c                           |  48 +-
+ fs/exfat/file.c                               |   5 +-
+ fs/fat/file.c                                 |   5 +-
+ fs/file_attr.c                                | 136 ++-
+ fs/init.c                                     |   6 +-
+ fs/inode.c                                    |   7 +-
+ fs/internal.h                                 |  26 +-
+ fs/namei.c                                    |   5 +-
+ fs/nfsd/nfs4ctl.h                             |   5 +-
+ fs/nfsd/nfs4state.c                           |  16 +-
+ fs/nfsd/nfs4xdr.c                             |   2 +-
+ fs/nfsd/state.h                               |   2 +-
+ fs/nfsd/vfs.c                                 |  87 +-
+ fs/ntfs/named_stream.c                        |  14 +-
+ fs/open.c                                     |  77 +-
+ fs/overlayfs/copy_up.c                        |   4 +-
+ fs/overlayfs/inode.c                          |  27 +-
+ fs/overlayfs/overlayfs.h                      |  44 +-
+ fs/overlayfs/xattrs.c                         |  12 +-
+ fs/posix_acl.c                                |  61 +-
+ fs/smb/server/smb2pdu.c                       |  59 +-
+ fs/smb/server/smb_common.c                    |  59 +-
+ fs/smb/server/smbacl.c                        |  12 +-
+ fs/smb/server/vfs.c                           | 101 +-
+ fs/smb/server/vfs.h                           |  19 +-
+ fs/stat.c                                     |  82 +-
+ fs/utimes.c                                   |  38 +-
+ fs/xattr.c                                    | 114 ++-
+ fs/xfs/xfs_ioctl.c                            |   2 +-
+ include/linux/fileattr.h                      |  10 +-
+ include/linux/fs.h                            |  30 +-
+ include/linux/landlock.h                      |   4 +-
+ include/linux/lsm_hook_defs.h                 |  66 +-
+ include/linux/posix_acl.h                     |  25 +-
+ include/linux/security.h                      | 131 +--
+ include/linux/xattr.h                         |  32 +-
+ include/uapi/linux/landlock.h                 |  47 +-
+ init/initramfs.c                              |   2 +-
+ kernel/bpf/bpf_lsm.c                          |  10 +-
+ kernel/bpf/bpf_lsm_proto.c                    | 108 ++
+ kernel/bpf/verifier.c                         |  13 +
+ kernel/trace/bpf_trace.c                      |   2 +-
+ samples/landlock/sandboxer.c                  |  16 +-
+ security/apparmor/lsm.c                       |   5 +-
+ security/commoncap.c                          |  17 +-
+ security/integrity/evm/evm_crypto.c           |   8 +-
+ security/integrity/evm/evm_main.c             |  77 +-
+ security/integrity/ima/ima_appraise.c         |  41 +-
+ security/landlock/access.h                    |  13 +-
+ security/landlock/fs.c                        | 235 ++++-
+ security/landlock/limits.h                    |   2 +-
+ security/landlock/syscalls.c                  |   2 +-
+ security/security.c                           | 179 ++--
+ security/selinux/hooks.c                      | 105 +-
+ security/smack/smack_lsm.c                    | 128 ++-
+ security/tomoyo/tomoyo.c                      |   8 +-
+ .../testing/selftests/bpf/prog_tests/d_path.c |   2 +-
+ .../selftests/bpf/prog_tests/fs_kfuncs.c      |  10 +-
+ .../testing/selftests/bpf/progs/test_d_path.c |   5 +-
+ .../bpf/progs/test_d_path_check_rdonly_mem.c  |   5 +-
+ .../bpf/progs/test_d_path_check_types.c       |   5 +-
+ .../selftests/bpf/progs/test_get_xattr.c      |   7 +-
+ .../bpf/progs/test_set_remove_xattr.c         |  34 +-
+ .../bpf/progs/verifier_lsm_init_xattr.c       |   8 +-
+ .../selftests/bpf/progs/verifier_vfs_accept.c |   2 +-
+ .../selftests/bpf/progs/verifier_vfs_reject.c |   2 +-
+ tools/testing/selftests/landlock/base_test.c  |   2 +-
+ tools/testing/selftests/landlock/fs_test.c    | 932 +++++++++++++++++-
+ .../selftests/landlock/trace_fs_test.c        |   3 +-
+ 82 files changed, 3003 insertions(+), 905 deletions(-)
 
 -- 
-2.39.5
+2.18.0.huawei.25
 
