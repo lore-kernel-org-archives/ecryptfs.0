@@ -1,83 +1,98 @@
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=100.103.45.18
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.remote-ip=209.85.128.48
 ARC-Seal: i=1; d=subspace.kernel.org; s=arc20261015; a=rsa-sha256; cv=none;
-	t=1794994563;
-	b=uige0oKgeJWHNoG03Q1AnC9RbaARJdL19qZ9Cg6wcaiovz6lJg0OI4jSfLdshI6pv/KA
-	 jNTbX25cpcj4qJwBTfPw+8JDoufK3Fvp/jbnvx0D+tUohfBDDtOjT6dOISs3ecs2GGbYo
-	 G5AThHr8o3ab/U7fSBbVlYmKRXC77kzPLvdQgTB7LxWQH9yN/WhNIVZugbODndFujLfNz
-	 mBMbC3/TqZPWxIx7G3SPse7KNk8zpjbUjizLLu+bDk9ihboeT//pRIrBRvxjDfgQgjgpS
-	 zYvse4vQKSHZ1TPSXiDV5BeuXCMzxHxJKoPJumVuTsxW5B82CRCALk/SKsDf13HgYPA==
+	t=1795007163;
+	b=LFjEDC12C+HK9AdWBkk1B+vXEVCbYzjqF4iani04qIlZn4CO5zf+gj54HpWcKPmpK1WE
+	 ZRX4XDUqKq/7L6m3DiU5ZyUOrJjcdUUWo8qtm/HR4S4OuTKZyqd/foyozJnROaMhbtXZL
+	 mpcLMGgLe56R9Dn2KMZMg3TYbJZ0jA0ypfwNrcNRCuMMqTpJDhOGAqJA+LrtDmjLbLjPM
+	 ytn+K5gSHdOK4ZmVeLGWFCUe6XFZxc/1Njluzc56W7HWO2JJCc5f3rmzgGXPLDhdVSWSB
+	 ezBRzq7QvkmKNOarhqAO2YwFuMGX6nTxcBIc/nFkj4hH8ZSbfVrgY0mhz9h+MV2cRoA==
 ARC-Message-Signature: i=1; d=subspace.kernel.org; s=arc20261015;
-	a=rsa-sha256; c=relaxed/relaxed; t=1794994563;
-	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-ID:
-	 References:MIME-Version:Content-Type:Content-Disposition:In-Reply-To;
-	bh=oEtrs9YN++TIvppEtfu/diqt2HKppGf1oq8L8HaJ3VE=;
-	b=JHHT6GeaZBO6zG1NBYKWec1cXinR97AX7khOViQRUydYGKs8oRGE8KnVjaK8LhOUL+ZW
-	 rYalF4yIvB1/GcW3Gh6XFeHnIQQU1RrVXzJKOiPSF/tmESHYxAltdbu8PyNrFbZKEOwoW
-	 ieHmCdmJqFi16QijcxgD4pZ7esxPiMB3xrxcFcFAMWg8QhqrDXE/hVlLi7NE9PhfQa48N
-	 m0UHIkDkylbLWRYiv7HzD98MIKFWkl4feBVjd+nwcBXkE1hu2exRzTREtQqK1NE7gs8si
-	 zlGbHK7KLZ6EWISue9p52Vro7wvl3vAtremgw33zWnDqWGo+aPs65LeSnimlleR9NSw==
+	a=rsa-sha256; c=relaxed/relaxed; t=1795007163;
+	h=DMARC-Filter:Received:DKIM-Signature:X-Google-DKIM-Signature:
+	 X-Forwarded-Encrypted:X-Gm-Message-State:X-Gm-Gg:X-Received:Received:
+	 From:To:Cc:Subject:Date:Message-ID:X-Mailer:In-Reply-To:References:
+	 MIME-Version:Content-Type:Content-Transfer-Encoding;
+	bh=tP8QKRJpZigGHJKGRqvFEzv+St6vv1COCqEtNwoaz7I=;
+	b=kfSewf95TpcYWY8NxAu8zMtsNcwRRRT1mP3cKfmgjsVl29B2O1T4LehUByLzw7NPWmJa
+	 z3Mf5m2CPtQiy2SF2YD7S/iqLwMUWjsJQCD5PAQ4mar1SceRu/Ergo6oZksPXK9b0fbCN
+	 xWNZZ6cCOyD8iEnjj/HpuvudX5iHB92MEXdp+FkkAAHrf+rNyeq9QRGMpSFGLJkJhV3XS
+	 iDAcDPC6Qc6iRLeQ8zMcvXrhBgLDPo4BE+EAD03uxU/vZ5PbXi073JooMrCL9MlsOmcaW
+	 oJhl2I9RieVpt5Wkw++w13x3FD4DX8ZCFzOOfeaQ9KIXlopopG53HHbF9TKLLX4UK5Q==
 ARC-Authentication-Results: i=1; smtp.subspace.kernel.org; 
-	dkim=pass header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nahPYjtB;
-	arc=none smtp.remote-ip=100.103.45.18
-Received: from smtp.kernel.org (quasi.space.kernel.org [100.103.45.18])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (prime256v1))
+	dmarc=pass header.from=gmail.com;
+	spf=pass smtp.mailfrom=gmail.com;
+	dkim=pass header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BWR73Gp8;
+	arc=none smtp.remote-ip=209.85.128.48
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature ECDSA (prime256v1) server-digest SHA256)
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8235B606A31C;
-	Wed, 18 Nov 2026 09:36:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C1EE606A335
+	for <ecryptfs@vger.kernel.org>; Wed, 18 Nov 2026 13:06:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.4.2 smtp.subspace.kernel.org 9C1EE606A335
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key, unprotected) header.d=kernel.org header.i=@kernel.org header.a=rsa-sha256 header.s=k20260515 header.b=nahPYjtB
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F321F000C4;
-	Wed, 18 Nov 2026 09:35:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1794994563;
-	bh=oEtrs9YN++TIvppEtfu/diqt2HKppGf1oq8L8HaJ3VE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=nahPYjtBD1Iaas2FHy09zfnsVzzPWV2xfnaZM4o2uDixquvqwuHvQ+/o6Lx3RmcT7
-	 A5MLlaaWHi5zeDFe6Pr6Zu/1tZf365UdM7zLPXtacuahcYasmLgD5icYRCqSxPoOAQ
-	 apSPaDPnXbhT/Rjv6/c4yyGGAb3a6EIjZs+gpHbG4KtSnFEboWn87xat6LJyla++Jd
-	 yjbLXh2HQKcIglQe/QgOIjdxO0MlY4PzADbD2mLPuxiLGazQOP1N6OqiCY11zDd0cS
-	 +PtK7soRS49YQWtEbo0XhLlRb2q60FYLSeh5q1DNqhKbRWl7YpSpO779dHK9eKPFp5
-	 s/bgKJ6Xw8nfA==
-Date: Wed, 18 Nov 2026 10:35:40 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Cai Xinchen <caixinchen1@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, mic@digikod.net, gnoack@google.com, 
-	paul@paul-moore.com, jack@suse.cz, amir73il@gmail.com, andrii@kernel.org, 
-	apparmor@lists.ubuntu.com, ast@kernel.org, axboe@kernel.dk, bpf@vger.kernel.org, 
-	casey@schaufler-ca.com, cel@kernel.org, cem@kernel.org, chenxiaosong@chenxiaosong.com, 
-	code@tyhicks.com, corbet@lwn.net, Dai.Ngo@oracle.com, dakr@kernel.org, 
-	daniel@iogearbox.net, dhowells@redhat.com, dlemoal@kernel.org, 
-	dmitry.kasatkin@gmail.com, driver-core@lists.linux.dev, dsterba@suse.com, 
-	ecryptfs@vger.kernel.org, eddyz87@gmail.com, emil@etsalapatis.com, 
-	eric.snowberg@oracle.com, exfat@lists.linux.dev, georgia.garcia@canonical.com, 
-	gregkh@linuxfoundation.org, hch@lst.de, hirofumi@mail.parknet.co.jp, hyc.lee@gmail.com, 
-	ihor.solodrai@linux.dev, jlayton@kernel.org, jmorris@namei.org, johan@kernel.org, 
-	john.fastabend@gmail.com, john.johansen@canonical.com, jolsa@kernel.org, 
-	kpsingh@kernel.org, linkinjeon@kernel.org, linux-api@vger.kernel.org, 
-	linux-block@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-cifs@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nfs@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-trace-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, liubaolin12138@163.com, 
-	martin.lau@linux.dev, mason@kernel.org, mathieu.desnoyers@efficios.com, 
-	matt@bobrowski.net, memxor@gmail.com, mhiramat@kernel.org, miklos@szeredi.hu, 
-	neil@brown.name, netfs@lists.linux.dev, ntfs@lists.linux.dev, okorniev@redhat.com, 
-	omosnacek@gmail.com, penguin-kernel@i-love.sakura.ne.jp, rafael@kernel.org, 
-	rdunlap@infradead.org, roberto.sassu@huawei.com, rostedt@goodmis.org, 
-	selinux@vger.kernel.org, senozhatsky@chromium.org, serge@hallyn.com, 
-	sj1557.seo@samsung.com, skhan@linuxfoundation.org, song@kernel.org, 
-	stephen.smalley.work@gmail.com, takedakn@nttdata.co.jp, tom@talpey.com, yonghong.song@linux.dev, 
-	yuezhang.mo@sony.com, zohar@linux.ibm.com, utilityemal77@gmail.com, 
-	lujialin4@huawei.com
-Subject: Re: [PATCH -next -v4 02/17] LSM: pass struct path to the
- inode_setsecctx hook
-Message-ID: <20261118-nordlicht-badeort-daumen-813a1e9fd0b3@brauner>
-References: <20261117150542.1169451-1-caixinchen1@huawei.com>
- <20261117150542.1169451-3-caixinchen1@huawei.com>
- <20261117184342.GR989762@ZenIV>
- <20261118001641.GA1669148@ZenIV>
- <bdc22808-9f22-46f7-b42d-e6bd8e1eeaca@huawei.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.a=rsa-sha256 header.s=20260707 header.b=BWR73Gp8
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4bb6adaf0f1so8601455e9.0
+        for <ecryptfs@vger.kernel.org>; Wed, 18 Nov 2026 05:06:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20260707; t=1795007162; x=1795611962; darn=vger.kernel.org;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:from:to:cc:subject
+         :date:message-id:reply-to:content-type;
+        bh=tP8QKRJpZigGHJKGRqvFEzv+St6vv1COCqEtNwoaz7I=;
+        b=BWR73Gp8ur1TqAXGpsO4UaQ9kojgP0l25Y9EsOwJN9jJ29SmPg+0OkAG4NDidExD/4
+         Hr1v5u5i25ZD9WY0qFfn7FzJe/uDztuJnPpwRtc/Q+nsXf9pcfOEdDXZSne+QoQJJMfN
+         q+E0URIEcdy/rBlRwVSWZ7R6IOx7WYyULuZYfHBxrolLmPPPrlNF8fZ3GP5q3amWfH+s
+         DIOD/Cb8vK70lK3NnN+qEVPVJ+NsCd8cFWRYolIdGwP/CyqXmLO99a7S+zjjJqLVtl1N
+         v0HxxanTuFQx0iElx2nuj1YSc/O7m7zBy1cKYmElYBwKWIh0OgiSiuPjowps6/nW6c9Q
+         32PA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20260707; t=1795007162; x=1795611962;
+        h=content-transfer-encoding:content-type:mime-version:references
+         :in-reply-to:message-id:date:subject:cc:to:from:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to
+         :content-type;
+        bh=tP8QKRJpZigGHJKGRqvFEzv+St6vv1COCqEtNwoaz7I=;
+        b=pW7Tj7QDr+8b3MT/2ZlxzdkqXp1BYvwstLfvheqdIi/cqlBVlgmJ5ZT5zVEuX1x95p
+         HT6M4OaOcaeyBGiGgTlpAlhN/5jiaCpQjXvQ+vpfWF3sDnY9vQJmVJyPt/qz/OlrKrzI
+         7e8PO1fK42aGjH+e0XH12fFo7QNL0+GANgdLKx+d8VOziymo3RqoeHzXCfFm2kXzsN4D
+         Z2WJxfhjgPKCwnnaczN26Tx8CIxGRRopaCG36w7/hZ3slxMlyWov0VMcPp9vxB427SSc
+         S8HHMZmtXZWqdsvOyelcJC6fuZs9vjZOffqFBgOrSRipCZxnatwBFHmET/2P7ot07LDJ
+         A4Xw==
+X-Forwarded-Encrypted: i=1; AL+hErGpGhhPwUGegV2D37IcypIlfsQ0qprM16WBiGPXaKuIttLvf2dD9EdCIIZouPsfz+6rSu/2utdVJQ==@vger.kernel.org
+X-Gm-Message-State: APuU4Z8WFvNFRYduumgmIQKPq0k4OSb/QzKQjOXda+tQcN4s6VyNA61p
+	08Mvb9loUcxYMlVYhQmfcrg6eulmf0xYaBv/Qk5TEew9nWvWdEeFH3a9
+X-Gm-Gg: AYBFou2Qf34JeabDium2i8bV8hcWNmKBuqopRHRHmKHg55KDgTaZitEz2V3oUPGi0Ng
+	s2JEQIAKbDcCoXc+0pXtAubi50IKTy6YCnP81AIltZzDqP8+90DM4yaiBvZzs0BO53ZSMjRNTyJ
+	4AxLYMiGAOTVds8WQkd2IkdyS6XHsDeOLez9peWb+HXk5Qke3wyaA/H4wyzk/62tqPigr6tUeBy
+	j1dUT6Tbm5aKnkaifHiCtzWE7aaof/rOKr/io25mtWvDJaqPJblm/fb84p4oy7JGaaDtTjJuf+E
+	iQnil87KnFKPig4/Tw9/8VoyLL9dOeXvB4AxNwc6g3WqloJVswctRgq49mjpqRdlUs/7vzL28eC
+	BHT6GOLBEnJlk1l3OJ4Dru+j3twPIpOabqJ9RittwOR6C07GBh50UE9Ar2kqn2mTqGMmHxTzeLI
+	9qGANorsuk6S/gMPgGbl8+ApLQqVFQrm52IBCcLWH23euC2YQZQtM8+dtUNKAaisVlQiNgwEB5r
+	PQIec8DNOY4IOoJCw0VreT6DBim4dhNuIS6NEm5wNeFYvQ0+Y2+ADLjGUWl2pAkoxVOFwlNN31+
+	gsPmSE0f/O/CnavC+aCOzX9SXPUbdIu2Y/OyFIWC5XRw+aWT5tq1VLwXsH6tljfIaGtxGS7YSM0
+	iprNb6Oq439JZBdKoLBaDeq/dK4DEnZtzxzypawwoQnilXKJvngQ6
+X-Received: by 2002:a05:600c:3556:b0:4a1:dda8:eb73 with SMTP id 5b1f17b1804b1-4bb7da26d70mr47037875e9.27.1795007161548;
+        Wed, 18 Nov 2026 05:06:01 -0800 (PST)
+Received: from DESKTOP-IR7J1S9.localdomain ([41.111.247.111])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4bb7d2c3c93sm95218535e9.13.2026.11.18.05.06.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Nov 2026 05:06:01 -0800 (PST)
+From: Drif Abdelmalek Mohamed Said <drifabdelmalekmohamedsaid@gmail.com>
+To: Christian Brauner <brauner@kernel.org>,
+	Tyler Hicks <code@tyhicks.com>
+Cc: Jan Kara <jack@suse.cz>,
+	ecryptfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: ecryptfs: the lower filesystem gets modified while it is frozen
+Date: Wed, 18 Nov 2026 14:05:56 +0100
+Message-ID: <20261118130557.374-1-drifabdelmalekmohamedsaid@gmail.com>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20261114-kranich-banknoten-anheuern-5d0a2354a51d@brauner>
+References: <20261114-kranich-banknoten-anheuern-5d0a2354a51d@brauner>
 X-Mailing-List: ecryptfs@vger.kernel.org
 List-Id: <ecryptfs.vger.kernel.org>
 List-Post: <mailto:ecryptfs@vger.kernel.org>
@@ -87,24 +102,9 @@ List-Unsubscribe: <mailto:ecryptfs+unsubscribe@vger.kernel.org>
 List-Owner: <mailto:ecryptfs+owner@vger.kernel.org>
 Precedence: list
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <bdc22808-9f22-46f7-b42d-e6bd8e1eeaca@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Wed, Nov 18, 2026 at 04:59:29PM +0800, Cai Xinchen wrote:
-> There are two places that violate (1), both introduced by this series of
-> patches in ksmbd:
->
-> smb2_parent_compressed() and smb_inherit_dacl() pair the directory entry
-> returned by dget_parent()
->
-> with path->mnt, and problems arise once that directory entry becomes the
-> root of its mount point.
-
-No, (1) holds there. dget_parent() never leaves the superblock so the
-parent has the same ->d_sb as path->dentry.
-
-What happens at the root of a mount is that the parent isn't below
-path->mnt->mnt_root anymore. That's a different property and struct path
-doesn't guarantee that (open_by_handle_at(), nfsd with
-no_subtree_check). So there's nothing to fix for (1) in those two.
+Hello everyone, I’d like to take this one unless one of you is already working
+on it.
+Cordially,
